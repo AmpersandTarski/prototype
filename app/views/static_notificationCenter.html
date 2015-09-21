@@ -1,0 +1,80 @@
+<div class="container-fluid">
+	<div id="notificationCenter" ng-controller="static_notificationCenterController">		
+		<div id="infos" ng-show="$storage.notificationPrefs.switchShowInfos">			
+			<div class="panel panel-info" id="info-panel-{{key}}" ng-repeat="(key, val) in notifications.infos">
+				<div class="panel-heading btn btn-block" data-toggle="collapse" data-target="#info-list-{{key}}">
+					<div class="text-left">
+						<strong>Info!</strong> {{val.message}}
+						<span class="badge pull-right">{{val.rows.length}}</span>				
+					</div>
+				</div>
+				<ul class="list-group collapse" id="info-list-{{key}}">
+					<li class="list-group-item" ng-repeat="row in val.rows track by $index">{{row}}</li>
+				</ul>
+			</div>
+		</div>
+		
+		<div id="errors" ng-show="$storage.notificationPrefs.switchShowErrors">
+			<alert ng-repeat="error in notifications.errors" type="danger" close="closeAlert(notifications.errors, $index)">
+				<strong>Error!</strong> <span ng-bind-html="error.message | unsafe"></span>
+				<span class="badge pull-right">{{error.count}}</span>
+			</alert>
+		</div>
+		
+		<div id="invariants" ng-show="$storage.notificationPrefs.switchShowInvariants">
+			<div class="panel panel-danger" ng-repeat="(key, val) in notifications.invariants">
+				<div class="panel-heading btn btn-block" data-toggle="collapse" data-target="#invariant-{{key}}">
+					<div class="text-left">
+						<span class="glyphicon glyphicon-exclamation-sign"></span> <strong>{{val.ruleMessage}}</strong>
+						<span class="badge pull-right">{{val.tuples.length}}</span>					
+					</div>
+				</div>
+				<ul class="list-group collapse" id="invariant-{{key}}">
+					<li class="list-group-item" ng-repeat="tuple in val.tuples track by $index">
+						<span>{{tuple.violationMessage}}</span>
+					</li>
+				</ul>
+			</div>
+		</div>
+					
+		<div id="violations" ng-show="$storage.notificationPrefs.switchShowViolations">
+			<div class="panel panel-warning" ng-repeat="(key, val) in notifications.violations">
+				<div class="panel-heading btn btn-block" data-toggle="collapse" data-target="#violation-{{key}}">
+					<div class="text-left">
+						<strong>Rule violation!</strong> {{val.ruleMessage}}
+						<span class="badge pull-right">{{val.tuples.length}}</span>					
+					</div>
+				</div>
+				<ul class="list-group collapse" id="violation-{{key}}">
+					<li class="dropdown list-group-item" ng-repeat="tuple in val.tuples track by $index">
+						<a ng-if="tuple.links.length > 1" href="" class="dropdown-toggle" data-toggle="dropdown">{{tuple.violationMessage}}</a>
+						<ul ng-if="tuple.links.length > 1" class="dropdown-menu" role="menu">
+							<li ng-repeat="link in tuple.links">
+								<a ng-href="{{link}}" data-toggle="collapse" data-target="#violation-{{key}}">{{link}}</a>
+							</li>
+						</ul>
+						<a ng-if="tuple.links.length == 1" ng-href="{{tuple.links[0]}}" data-toggle="collapse" data-target="#violation-{{key}}">{{tuple.violationMessage}}</a>
+						<span ng-if="tuple.links.length == 0">{{tuple.violationMessage}}</span>
+					</li>
+				</ul>
+			</div>
+		</div>
+		
+		<!-- Success notifications must be last in notifications center because of position:absolute -->
+		<div id="successes" ng-show="$storage.notificationPrefs.switchShowSuccesses">			
+			<div class="panel panel-success" id="success-panel-{{key}}" ng-repeat="(key, val) in notifications.successes">
+				<div class="panel-heading btn btn-block" data-toggle="collapse" data-target="#success-list-{{key}}">
+					<div class="text-left">
+						<strong>Success!</strong> {{val.message}}
+						<button type="button" class="close" data-target="#success-panel-{{key}}" data-dismiss="alert" aria-label="Dismiss">
+							<span aria-hidden="true">&times;</span>
+						</button>				
+					</div>
+				</div>
+				<ul class="list-group collapse" id="success-list-{{key}}">
+					<li class="list-group-item" ng-repeat="row in val.rows track by $index">{{row}}</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
