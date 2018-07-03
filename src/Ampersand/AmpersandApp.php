@@ -26,6 +26,7 @@ use Closure;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Misc\Generics;
+use Ampersand\Model\InterfaceObjectFactory;
 
 class AmpersandApp
 {
@@ -120,7 +121,7 @@ class AmpersandApp
         View::setAllViews($genericsFolder . 'views.json', $defaultPlug);
         Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'));
         Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'));
-        InterfaceObject::setAllInterfaces($genericsFolder . 'interfaces.json', $defaultPlug);
+        InterfaceObjectFactory::setAllInterfaces($genericsFolder . 'interfaces.json', $defaultPlug);
         Rule::setAllRules($genericsFolder . 'rules.json', $defaultPlug, Logger::getLogger('RULE'));
         Role::setAllRoles($genericsFolder . 'roles.json');
 
@@ -191,7 +192,7 @@ class AmpersandApp
     protected function setInterfacesAndRules()
     {
         // Add public interfaces
-        $this->accessibleInterfaces = InterfaceObject::getPublicInterfaces();
+        $this->accessibleInterfaces = InterfaceObjectFactory::getPublicInterfaces();
 
         // Add interfaces and rules for all active session roles
         foreach ($this->getActiveRoles() as $roleAtom) {

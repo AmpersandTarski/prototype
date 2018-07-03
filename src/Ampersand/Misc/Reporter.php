@@ -12,6 +12,7 @@ use Ampersand\Interfacing\InterfaceObject;
 use Ampersand\IO\AbstractWriter;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Relation;
+use Ampersand\Model\InterfaceObjectFactory;
 
 class Reporter
 {
@@ -88,7 +89,7 @@ class Reporter
     public function reportInterfaceDefinitions(): Reporter
     {
         $content = [];
-        foreach (InterfaceObject::getAllInterfaces() as $key => $ifc) {
+        foreach (InterfaceObjectFactory::getAllInterfaces() as $key => $ifc) {
             $content = array_merge($content, $ifc->getInterfaceFlattened());
         }
         
@@ -125,7 +126,7 @@ class Reporter
     public function reportInterfaceIssues(): Reporter
     {
         $content = [];
-        foreach (InterfaceObject::getAllInterfaces() as $key => $interface) {
+        foreach (InterfaceObjectFactory::getAllInterfaces() as $key => $interface) {
             foreach ($interface->getInterfaceFlattened() as $ifc) {
                 if ($ifc->crudU() && !$ifc->isEditable()) {
                     $content[] = [ 'interface' => $ifc->getPath()

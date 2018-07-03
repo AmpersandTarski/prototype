@@ -9,7 +9,6 @@ namespace Ampersand;
 
 use Exception;
 use Ampersand\Interfacing\Resource;
-use Ampersand\Interfacing\InterfaceObject;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
 use Ampersand\Transaction;
@@ -17,6 +16,7 @@ use Ampersand\Misc\Config;
 use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
 use Ampersand\Core\Relation;
+use Ampersand\Model\InterfaceObjectFactory;
 
 /**
  * Class of session objects
@@ -270,7 +270,7 @@ class Session
      */
     public function getSessionVars()
     {
-        if (InterfaceObject::interfaceExists('SessionVars')) {
+        if (InterfaceObjectFactory::interfaceExists('SessionVars')) {
             try {
                 $this->logger->debug("Getting interface 'SessionVars' for {$this->sessionResource}");
                 return $this->sessionResource->all('SessionVars', true)->get();

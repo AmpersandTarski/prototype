@@ -34,7 +34,7 @@ class InterfaceTxtObject extends InterfaceObject
      * @param string|null $pathEntry
      * @param bool $rootIfc Specifies if this interface object is a toplevel interface (true) or subinterface (false)
      */
-    protected function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null, bool $rootIfc = false)
+    public function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null, bool $rootIfc = false)
     {
         if ($ifcDef['type'] != 'ObjText') {
             throw new Exception("Provided interface definition is not of type ObjText", 500);

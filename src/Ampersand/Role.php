@@ -8,8 +8,8 @@
 namespace Ampersand;
 
 use Exception;
-use Ampersand\Interfacing\InterfaceObject;
 use Ampersand\Rule\Rule;
+use Ampersand\Model\InterfaceObjectFactory;
 
 /**
  *
@@ -71,7 +71,7 @@ class Role
         }
         
         foreach ($roleDef['interfaces'] as $ifcId) {
-            $this->interfaces[] = InterfaceObject::getInterface($ifcId);
+            $this->interfaces[] = InterfaceObjectFactory::getInterface($ifcId);
         }
     }
     

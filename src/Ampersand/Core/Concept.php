@@ -19,6 +19,7 @@ use Ampersand\Misc\Config;
 use Ampersand\Transaction;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
+use Ampersand\Model\InterfaceObjectFactory;
 
 /**
  *
@@ -435,7 +436,7 @@ class Concept
     public function getInterfaces(): array
     {
         return array_map(function ($ifcId) {
-            $ifc = InterfaceObject::getInterface($ifcId);
+            $ifc = InterfaceObjectFactory::getInterface($ifcId);
         }, $this->interfaceIds);
     }
 

@@ -15,6 +15,7 @@ use Ampersand\Core\Atom;
 use Ampersand\Misc\Config;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Interfacing\Options;
+use Ampersand\Model\InterfaceObjectFactory;
 
 /**
  *
@@ -23,13 +24,6 @@ use Ampersand\Interfacing\Options;
  */
 class InterfaceObject
 {
-    
-    /**
-     * Contains all interface definitions
-     * @var \Ampersand\Interfacing\InterfaceObject[]
-     */
-    private static $allInterfaces; // contains all interface objects
-    
     /**
      * Dependency injection of an IfcPlug implementation
      * @var \Ampersand\Plugs\IfcPlugInterface
@@ -185,7 +179,7 @@ class InterfaceObject
      * @param string|null $pathEntry
      * @param bool $rootIfc Specifies if this interface object is a toplevel interface (true) or subinterface (false)
      */
-    protected function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null, bool $rootIfc = false)
+    public function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null, bool $rootIfc = false)
     {
         if ($ifcDef['type'] != 'ObjExpression') {
             throw new Exception("Provided interface definition is not of type ObjExpression", 500);
@@ -334,7 +328,7 @@ class InterfaceObject
     public function getRefToIfc()
     {
         if ($this->isRef()) {
-            return self::getInterface($this->refInterfaceId);
+            return InterfaceObjectFactory::getInterface($this->refInterfaceId);
         } else {
             throw new Exception("Interface is not a reference interface: " . $this->getPath(), 500);
         }
@@ -543,7 +537,7 @@ class InterfaceObject
              * is interpreted as:
              * INTERFACE "A" : expr1;epxr2 BOX ["label" : expr3]
              */
-            return self::getInterface($this->refInterfaceId)->getSubinterfaces($options);
+            return InterfaceObjectFactory::getInterface($this->refInterfaceId)->getSubinterfaces($options);
         } else {
             return $this->subInterfaces;
         }
@@ -558,7 +552,7 @@ class InterfaceObject
         /** @var \Pimple\Container $container */
         global $container;
         $ifcs = [];
-        if ($this->isLinkTo() && $container['ampersand_app']->isAccessibleIfc($refIfc = self::getInterface($this->refInterfaceId))) {
+        if ($this->isLinkTo() && $container['ampersand_app']->isAccessibleIfc($refIfc = InterfaceObjectFactory::getInterface($this->refInterfaceId))) {
             $ifcs[] = $refIfc;
         } else {
             $ifcs = $container['ampersand_app']->getInterfacesToReadConcepts([$this->tgtConcept]);
@@ -593,95 +587,5 @@ class InterfaceObject
     public function getIfcData2(Atom $srcAtom)
     {
         return $this->getIfcData($srcAtom);
-    }
-    
-/**************************************************************************************************
- *
- * Static InterfaceObject functions
- *
- *************************************************************************************************/
-    
-    /**
-     * Returns if interface exists
-     * @var string $ifcId Identifier of interface
-     * @return boolean
-     */
-    public static function interfaceExists($ifcId)
-    {
-        return array_key_exists($ifcId, self::getAllInterfaces());
-    }
-    
-    /**
-     * Returns toplevel interface object
-     * @param string $ifcId
-     * @throws Exception when interface does not exist
-     * @return InterfaceObject
-     */
-    public static function getInterface($ifcId)
-    {
-        if (!array_key_exists($ifcId, $interfaces = self::getAllInterfaces())) {
-            throw new Exception("Interface '{$ifcId}' is not defined", 500);
-        }
-        
-        return $interfaces[$ifcId];
-    }
-    
-    
-    public static function getInterfaceByLabel($ifcLabel)
-    {
-        foreach (self::getAllInterfaces() as $interface) {
-            if ($interface->label == $ifcLabel) {
-                return $interface;
-            }
-        }
-        
-        throw new Exception("Interface with label '{$ifcLabel}' is not defined", 500);
-    }
-    
-    /**
-     * Returns all toplevel interface objects
-     * @return InterfaceObject[]
-     */
-    public static function getAllInterfaces()
-    {
-        if (!isset(self::$allInterfaces)) {
-            throw new Exception("Interface definitions not loaded yet", 500);
-        }
-        
-        return self::$allInterfaces;
-    }
-    
-    /**
-     * Returns all toplevel interface objects that are public (i.e. not assigned to a role)
-     * @return InterfaceObject[]
-     */
-    public static function getPublicInterfaces()
-    {
-        return array_values(array_filter(InterfaceObject::getAllInterfaces(), function ($ifc) {
-            return $ifc->isPublic();
-        }));
-    }
-    
-    /**
-     * Import all interface object definitions from json file and instantiate InterfaceObject objects
-     *
-     * @param string $fileName containing the Ampersand interface definitions
-     * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
-     * @return void
-     */
-    public static function setAllInterfaces(string $fileName, IfcPlugInterface $defaultPlug)
-    {
-        self::$allInterfaces = [];
-        
-        $allInterfaceDefs = (array)json_decode(file_get_contents($fileName), true);
-        
-        foreach ($allInterfaceDefs as $ifcDef) {
-            $ifc = new InterfaceObject($ifcDef['ifcObject'], $defaultPlug, null, true);
-            
-            // Set additional information about this toplevel interface object
-            $ifc->ifcRoleNames = $ifcDef['interfaceRoles'];
-            
-            self::$allInterfaces[$ifc->id] = $ifc;
-        }
     }
 }

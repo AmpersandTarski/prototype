@@ -18,6 +18,7 @@ use function Ampersand\Misc\isSequential;
 use Ampersand\Misc\Config;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceTxtObject;
+use Ampersand\Model\InterfaceObjectFactory;
 
 /**
  *
@@ -227,7 +228,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
         if (isset($this->parentList)) {
             $ifc = $this->parentList->getIfc()->getSubinterface($ifcId);
         } else {
-            $ifc = InterfaceObject::getInterface($ifcId);
+            $ifc = InterfaceObjectFactory::getInterface($ifcId);
         }
         
         return new ResourceList($this, $ifc, $skipAccessCheck);
@@ -305,7 +306,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
                 if (empty($pathList)) {
                     throw new Exception("Resource '{$this}' not found", 404);
                 }
-                $ifc = InterfaceObject::getInterface(reset($pathList));
+                $ifc = InterfaceObjectFactory::getInterface(reset($pathList));
             }
             
             // Automatically create if allowed
