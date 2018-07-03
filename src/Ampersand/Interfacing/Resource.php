@@ -17,6 +17,7 @@ use Ampersand\Log\Logger;
 use function Ampersand\Misc\isSequential;
 use Ampersand\Misc\Config;
 use Ampersand\Interfacing\Options;
+use Ampersand\Interfacing\InterfaceTxtObject;
 
 /**
  *
@@ -452,7 +453,11 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
                 }
                     
                 // Add content of subifc
-                $this->ifcData[$subifc->id] = $subcontent = $this->all($subifc->id)->get($options, $depth, $recursionArr);
+                if ($subifc instanceof InterfaceTxtObject) {
+                    $this->ifcData[$subifc->id] = $subcontent = $subifc->getIfcData2($this);
+                } else {
+                    $this->ifcData[$subifc->id] = $subcontent = $this->all($subifc->id)->get($options, $depth, $recursionArr);
+                }
                 
                 // Add sort data if subIfc is univalent
                 if ($subifc->isUni() && $addSortValues) {
