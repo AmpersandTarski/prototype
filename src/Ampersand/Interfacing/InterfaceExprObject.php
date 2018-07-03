@@ -90,7 +90,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
      *
      * @var \Ampersand\Core\Relation|null
      */
-    public $relation;
+    private $relation;
     
     /**
      *

@@ -103,7 +103,7 @@ class Reporter
                    , 'src' => $ifc->srcConcept->name
                    , 'tgt' => $ifc->tgtConcept->name
                    , 'view' => $ifc->getView()->label
-                   , 'relation' => $ifc->relation->signature
+                   , 'relation' => $ifc->relation()->signature ?? ''
                    , 'flipped' => $ifc->relationIsFlipped
                    , 'ref' => $ifc->getRefToIfcId()
                    , 'root' => $ifc->isRoot()

@@ -94,7 +94,7 @@ class ExcelImporter
             
             if ($cellvalue != '') {
                 $subIfc = $ifc->getSubinterfaceByLabel($cellvalue);
-                if (!$subIfc->crudU() || !$subIfc->relation) {
+                if (!$subIfc->crudU() || !$subIfc->isEditable()) {
                     throw new Exception("Use of {$subIfc->getIfcLabel()} in cell '{$worksheet->getTitle()}!{$columnLetter}1' is not allowed. No update rights specified in interface", 400);
                 }
                 $header[$columnLetter] = $subIfc;
