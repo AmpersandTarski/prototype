@@ -5,7 +5,7 @@ namespace Ampersand\IO;
 use Exception;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Concept;
-use Ampersand\Interfacing\InterfaceObject;
+use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Core\Relation;
 use PHPExcel_Cell;
 use PHPExcel_Shared_Date;
@@ -66,7 +66,7 @@ class ExcelImporter
      * Parse worksheet according to an Ampersand interface definition.
      *
      * @param \PHPExcel_Worksheet $worksheet
-     * @param \Ampersand\Interfacing\InterfaceObject $ifc
+     * @param \Ampersand\Interfacing\InterfaceObjectInterface $ifc
      * @return void
      *
      * Use interface name as worksheet name. Format for content is as follows:
@@ -76,7 +76,7 @@ class ExcelImporter
      * Row 3    | <srcAtom a2>    | <tgtAtom b2>    | <tgtAtom c2>    | etc
      * etc
      */
-    protected function parseWorksheetWithIfc(PHPExcel_Worksheet $worksheet, InterfaceObject $ifc)
+    protected function parseWorksheetWithIfc(PHPExcel_Worksheet $worksheet, InterfaceObjectInterface $ifc)
     {
         // Determine $leftConcept from cell A1
         $leftConcept = Concept::getConceptByLabel((string)$worksheet->getCell('A1'));

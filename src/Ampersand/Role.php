@@ -50,7 +50,7 @@ class Role
     
     /**
      * List of all interfaces that are accessible by this role
-     * @var \Ampersand\Interfacing\InterfaceObject[]
+     * @var \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     protected $interfaces = [];
     
@@ -98,7 +98,7 @@ class Role
     /**
      * Get list of interfaces that are accessible for this role
      *
-     * @return \Ampersand\Interfacing\InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function interfaces(): array
     {

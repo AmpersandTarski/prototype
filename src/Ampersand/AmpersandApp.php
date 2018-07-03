@@ -10,7 +10,7 @@ use Ampersand\Rule\Conjunct;
 use Ampersand\Session;
 use Ampersand\Core\Atom;
 use Exception;
-use Ampersand\Interfacing\InterfaceObject;
+use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Core\Concept;
 use Ampersand\Role;
 use Ampersand\Rule\RuleEngine;
@@ -81,7 +81,7 @@ class AmpersandApp
     /**
      * List of accessible interfaces for the user of this Ampersand application
      *
-     * @var \Ampersand\Interfacing\InterfaceObject[] $accessibleInterfaces
+     * @var \Ampersand\Interfacing\InterfaceObjectInterface[] $accessibleInterfaces
      */
     protected $accessibleInterfaces = [];
     
@@ -233,7 +233,7 @@ class AmpersandApp
     /**
      * Get list of accessible interfaces for the user of this Ampersand application
      *
-     * @return \Ampersand\Interfacing\InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getAccessibleInterfaces()
     {
@@ -446,7 +446,7 @@ class AmpersandApp
     /**
      * Get interfaces that are accessible in the current session to 'Read' a certain concept
      * @param \Ampersand\Core\Concept[] $concepts
-     * @return \Ampersand\Interfacing\InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getInterfacesToReadConcepts($concepts)
     {
@@ -479,10 +479,10 @@ class AmpersandApp
     
     /**
      * Determine if provided interface is accessible in the current session
-     * @param \Ampersand\Interfacing\InterfaceObject $ifc
+     * @param \Ampersand\Interfacing\InterfaceObjectInterface $ifc
      * @return boolean
      */
-    public function isAccessibleIfc(InterfaceObject $ifc)
+    public function isAccessibleIfc(InterfaceObjectInterface $ifc)
     {
         return in_array($ifc, $this->accessibleInterfaces, true);
     }

@@ -18,7 +18,7 @@ use Ampersand\Core\Link;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\ViewSegment;
-use Ampersand\Interfacing\InterfaceObject;
+use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Plugs\RelationPlugInterface;
@@ -744,11 +744,11 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     /**
      * Execute query for given interface expression and source atom
      *
-     * @param \Ampersand\Interfacing\InterfaceObject $ifc
+     * @param \Ampersand\Interfacing\InterfaceObjectInterface $ifc
      * @param \Ampersand\Core\Atom $srcAtom
      * @return mixed
      */
-    public function executeIfcExpression(InterfaceObject $ifc, Atom $srcAtom)
+    public function executeIfcExpression(InterfaceObjectInterface $ifc, Atom $srcAtom)
     {
         $srcAtomId = $this->getDBRepresentation($srcAtom);
         $query = $ifc->getQuery();

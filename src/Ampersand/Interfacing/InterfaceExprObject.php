@@ -16,13 +16,14 @@ use Ampersand\Misc\Config;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Interfacing\Options;
 use Ampersand\Model\InterfaceObjectFactory;
+use Ampersand\Interfacing\InterfaceObjectInterface;
 
 /**
  *
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class InterfaceObject
+class InterfaceExprObject implements InterfaceObjectInterface
 {
     /**
      * Dependency injection of an IfcPlug implementation
@@ -161,19 +162,20 @@ class InterfaceObject
     
     /**
      *
-     * @var \Ampersand\Interfacing\InterfaceObject[]
+     * @var \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     private $subInterfaces = [];
 
     /**
      * Parent interface (when not root interface)
      *
-     * @var \Ampersand\Interfacing\InterfaceObject
+     * @var \Ampersand\Interfacing\InterfaceObjectInterface
      */
     protected $parentIfc = null;
 
     /**
-     * InterfaceObject constructor
+     * Constructor
+     *
      * @param array $ifcDef Interface object definition as provided by Ampersand generator
      * @param \Ampersand\Plugs\IfcPlugInterface $plug
      * @param string|null $pathEntry
@@ -228,7 +230,7 @@ class InterfaceObject
             
             // Inline subinterface definitions
             foreach ((array)$ifcDef['subinterfaces']['ifcObjects'] as $subIfcDef) {
-                $ifc = $subIfcDef['type'] == 'ObjText' ? new InterfaceTxtObject($subIfcDef, $this->plug, $this->path) : new InterfaceObject($subIfcDef, $this->plug, $this->path);
+                $ifc = $subIfcDef['type'] == 'ObjText' ? new InterfaceTxtObject($subIfcDef, $this->plug, $this->path) : new InterfaceExprObject($subIfcDef, $this->plug, $this->path);
                 $ifc->parentIfc = $this;
                 $this->subInterfaces[$ifc->id] = $ifc;
             }
@@ -245,16 +247,17 @@ class InterfaceObject
      * Function is called when object is treated as a string
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->id;
     }
     
     /**
      * Returns interface relation (when interface expression = relation), throws exception otherwise
-     * @return Relation|Exception
+     * @throws \Exception when interface expression is not an (editable) relation
+     * @return \Ampersand\Core\Relation
      */
-    public function relation()
+    public function relation(): Relation
     {
         if (is_null($this->relation)) {
             throw new Exception("Interface expression for '{$this->label}' is not an (editable) relation", 500);
@@ -265,9 +268,9 @@ class InterfaceObject
     
     /**
      * Returns if interface expression is editable (i.e. expression = relation)
-     * @return boolean
+     * @return bool
      */
-    public function isEditable()
+    public function isEditable(): bool
     {
         return !is_null($this->relation);
     }
@@ -295,18 +298,18 @@ class InterfaceObject
 
     /**
      * Returns if interface expression relation is a property
-     * @return boolean
+     * @return bool
      */
-    public function isProp()
+    public function isProp(): bool
     {
         return is_null($this->relation) ? false : ($this->relation->isProp && !$this->isIdent());
     }
     
     /**
      * Returns if interface is a reference to another interface
-     * @return boolean
+     * @return bool
      */
-    public function isRef()
+    public function isRef(): bool
     {
         return !is_null($this->refInterfaceId);
     }
@@ -323,7 +326,7 @@ class InterfaceObject
     /**
      * Returns referenced interface object
      * @throws Exception when $this is not a reference interface
-     * @return InterfaceObject
+     * @return InterfaceObjectInterface
      */
     public function getRefToIfc()
     {
@@ -336,36 +339,36 @@ class InterfaceObject
     
     /**
      * Returns if interface is a LINKTO reference to another interface
-     * @return boolean
+     * @return bool
      */
-    public function isLinkTo()
+    public function isLinkTo(): bool
     {
         return $this->isLinkTo;
     }
     
     /**
      * Returns if interface object is a top level interface
-     * @return boolean
+     * @return bool
      */
-    public function isRoot()
+    public function isRoot(): bool
     {
         return $this->isRoot;
     }
     
     /**
      * Returns if interface object is a leaf node
-     * @return boolean
+     * @return bool
      */
-    public function isLeaf()
+    public function isLeaf(): bool
     {
         return empty($this->getSubinterfaces());
     }
     
     /**
      * Returns if interface is a public interface (i.e. accessible every role, incl. no role)
-     * @return boolean
+     * @return bool
      */
-    public function isPublic()
+    public function isPublic(): bool
     {
         return empty($this->ifcRoleNames) && $this->isRoot();
     }
@@ -381,17 +384,17 @@ class InterfaceObject
         return $this->isIdent;
     }
     
-    public function isUni()
+    public function isUni(): bool
     {
         return $this->isUni;
     }
     
-    public function isTot()
+    public function isTot(): bool
     {
         return $this->isTot;
     }
     
-    public function getPath()
+    public function getPath(): string
     {
         return $this->path;
     }
@@ -406,7 +409,7 @@ class InterfaceObject
         return $this->boxClass;
     }
     
-    public function crudC()
+    public function crudC(): bool
     {
         // If crudC not specified during object construction (e.g. in case of ref interface)
         if (is_null($this->crudC)) {
@@ -420,7 +423,7 @@ class InterfaceObject
         return $this->crudC;
     }
     
-    public function crudR()
+    public function crudR(): bool
     {
         // If crudR not specified during object construction (e.g. in case of ref interface)
         if (is_null($this->crudR)) {
@@ -434,7 +437,7 @@ class InterfaceObject
         return $this->crudR;
     }
     
-    public function crudU()
+    public function crudU(): bool
     {
         // If crudU not specified during object construction (e.g. in case of ref interface)
         if (is_null($this->crudU)) {
@@ -447,7 +450,7 @@ class InterfaceObject
         
         return $this->crudU;
     }
-    public function crudD()
+    public function crudD(): bool
     {
         // If crudD not specified during object construction (e.g. in case of ref interface)
         if (is_null($this->crudD)) {
@@ -465,7 +468,7 @@ class InterfaceObject
      * Returns generated query for this interface expression
      * @return string
      */
-    public function getQuery()
+    public function getQuery(): string
     {
         return str_replace('_SESSION', session_id(), $this->query); // Replace _SESSION var with current session id.
     }
@@ -473,7 +476,7 @@ class InterfaceObject
     /**
      * Returns parent interface object (or null if not applicable)
      *
-     * @return \Ampersand\Interfacing\InterfaceObject|null
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface|null
      */
     public function getParentInterface()
     {
@@ -482,9 +485,9 @@ class InterfaceObject
     
     /**
      * @param string $ifcId
-     * @return InterfaceObject
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    public function getSubinterface($ifcId)
+    public function getSubinterface(string $ifcId): InterfaceObjectInterface
     {
         if (!array_key_exists($ifcId, $subifcs = $this->getSubinterfaces())) {
             throw new Exception("Subinterface '{$ifcId}' does not exist in interface '{$this->path}'", 500);
@@ -495,9 +498,9 @@ class InterfaceObject
     
     /**
      * @param string $ifcLabel
-     * @return InterfaceObject
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    public function getSubinterfaceByLabel($ifcLabel)
+    public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface
     {
         foreach ($this->getSubinterfaces() as $ifc) {
             if ($ifc->label == $ifcLabel) {
@@ -510,7 +513,7 @@ class InterfaceObject
     
     /**
      * Return array with all sub interface recursively (incl. the interface itself)
-     * @return InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getInterfaceFlattened()
     {
@@ -523,7 +526,7 @@ class InterfaceObject
     
     /**
      * @param int $options
-     * @return InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS)
     {
@@ -544,7 +547,7 @@ class InterfaceObject
     }
     
     /**
-     * @return InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      * TODO: move this code, or at least remove dependency to global $container var
      */
     public function getNavInterfacesForTgt()

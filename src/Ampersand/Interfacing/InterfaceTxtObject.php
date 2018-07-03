@@ -11,13 +11,15 @@ use Exception;
 use Ampersand\Core\Atom;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Interfacing\Options;
+use Ampersand\Core\Relation;
+use Ampersand\Interfacing\InterfaceObjectInterface;
 
 /**
  *
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class InterfaceTxtObject extends InterfaceObject
+class InterfaceTxtObject extends InterfaceExprObject
 {
     /**
      * The string that is the content of this interface object
@@ -54,25 +56,26 @@ class InterfaceTxtObject extends InterfaceObject
      * Function is called when object is treated as a string
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->id;
     }
     
     /**
      * Returns interface relation (when interface expression = relation), throws exception otherwise
-     * @return \Ampersand\Core\Relation|\Exception
+     * @throws \Exception when interface expression is not an (editable) relation
+     * @return \Ampersand\Core\Relation
      */
-    public function relation()
+    public function relation(): Relation
     {
         throw new Exception("N.a. for InterfaceTxtObject", 500);
     }
     
     /**
      * Returns if interface expression is editable (i.e. expression = relation)
-     * @return boolean
+     * @return bool
      */
-    public function isEditable()
+    public function isEditable(): bool
     {
         throw new Exception("N.a. for InterfaceTxtObject", 500);
     }
@@ -88,18 +91,18 @@ class InterfaceTxtObject extends InterfaceObject
 
     /**
      * Returns if interface expression relation is a property
-     * @return boolean
+     * @return bool
      */
-    public function isProp()
+    public function isProp(): bool
     {
         return false;
     }
     
     /**
      * Returns if interface is a reference to another interface
-     * @return boolean
+     * @return bool
      */
-    public function isRef()
+    public function isRef(): bool
     {
         return false;
     }
@@ -116,7 +119,7 @@ class InterfaceTxtObject extends InterfaceObject
     /**
      * Returns referenced interface object
      * @throws Exception when $this is not a reference interface
-     * @return InterfaceObject
+     * @return InterfaceObjectInterface
      */
     public function getRefToIfc()
     {
@@ -125,36 +128,36 @@ class InterfaceTxtObject extends InterfaceObject
     
     /**
      * Returns if interface is a LINKTO reference to another interface
-     * @return boolean
+     * @return bool
      */
-    public function isLinkTo()
+    public function isLinkTo(): bool
     {
         return false;
     }
     
     /**
      * Returns if interface object is a top level interface
-     * @return boolean
+     * @return bool
      */
-    public function isRoot()
+    public function isRoot(): bool
     {
         return $this->isRoot;
     }
     
     /**
      * Returns if interface object is a leaf node
-     * @return boolean
+     * @return bool
      */
-    public function isLeaf()
+    public function isLeaf(): bool
     {
         return true;
     }
     
     /**
      * Returns if interface is a public interface (i.e. accessible every role, incl. no role)
-     * @return boolean
+     * @return bool
      */
-    public function isPublic()
+    public function isPublic(): bool
     {
         return empty($this->ifcRoleNames) && $this->isRoot();
     }
@@ -163,24 +166,24 @@ class InterfaceTxtObject extends InterfaceObject
      * Returns if the interface expression isIdent
      * Note! Epsilons are not included
      *
-     * @return boolean
+     * @return bool
      */
     public function isIdent(): bool
     {
         return false;
     }
     
-    public function isUni()
+    public function isUni(): bool
     {
         return true;
     }
     
-    public function isTot()
+    public function isTot(): bool
     {
         return true;
     }
     
-    public function getPath()
+    public function getPath(): string
     {
         return $this->path;
     }
@@ -195,21 +198,21 @@ class InterfaceTxtObject extends InterfaceObject
         return $this->boxClass;
     }
     
-    public function crudC()
+    public function crudC(): bool
     {
         return false;
     }
     
-    public function crudR()
+    public function crudR(): bool
     {
         return true;
     }
     
-    public function crudU()
+    public function crudU(): bool
     {
         return false;
     }
-    public function crudD()
+    public function crudD(): bool
     {
         return false;
     }
@@ -218,7 +221,7 @@ class InterfaceTxtObject extends InterfaceObject
      * Returns generated query for this interface expression
      * @return string
      */
-    public function getQuery()
+    public function getQuery(): string
     {
         throw new Exception("N.a. for InterfaceTxtObject", 500);
     }
@@ -226,7 +229,7 @@ class InterfaceTxtObject extends InterfaceObject
     /**
      * Returns parent interface object (or null if not applicable)
      *
-     * @return \Ampersand\Interfacing\InterfaceObject|null
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface|null
      */
     public function getParentInterface()
     {
@@ -235,25 +238,25 @@ class InterfaceTxtObject extends InterfaceObject
     
     /**
      * @param string $ifcId
-     * @return InterfaceObject
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    public function getSubinterface($ifcId)
+    public function getSubinterface(string $ifcId): InterfaceObjectInterface
     {
         throw new Exception("N.a. for InterfaceTxtObject", 500);
     }
     
     /**
      * @param string $ifcLabel
-     * @return InterfaceObject
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    public function getSubinterfaceByLabel($ifcLabel)
+    public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface
     {
         throw new Exception("N.a. for InterfaceTxtObject", 500);
     }
     
     /**
      * Return array with all sub interface recursively (incl. the interface itself)
-     * @return InterfaceTxtObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getInterfaceFlattened()
     {
@@ -262,7 +265,7 @@ class InterfaceTxtObject extends InterfaceObject
     
     /**
      * @param int $options
-     * @return InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS)
     {
@@ -271,7 +274,7 @@ class InterfaceTxtObject extends InterfaceObject
     
     /**
      *
-     * @return InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getNavInterfacesForTgt()
     {

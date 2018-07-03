@@ -8,6 +8,8 @@
 namespace Ampersand\Model;
 
 use Exception;
+use Ampersand\Interfacing\InterfaceExprObject;
+use Ampersand\Interfacing\InterfaceObjectInterface;
 
 /**
  *
@@ -18,7 +20,7 @@ class InterfaceObjectFactory
 {
     /**
      * Contains all interface definitions
-     * @var \Ampersand\Interfacing\InterfaceObject[]
+     * @var \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     private static $allInterfaces; // contains all interface objects
     
@@ -36,9 +38,9 @@ class InterfaceObjectFactory
      * Returns toplevel interface object
      * @param string $ifcId
      * @throws \Exception when interface does not exist
-     * @return \Ampersand\Interfacing\InterfaceObject
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    public static function getInterface(string $ifcId): InterfaceObject
+    public static function getInterface(string $ifcId): InterfaceObjectInterface
     {
         if (!array_key_exists($ifcId, $interfaces = self::getAllInterfaces())) {
             throw new Exception("Interface '{$ifcId}' is not defined", 500);
@@ -52,9 +54,9 @@ class InterfaceObjectFactory
      *
      * @param string $ifcLabel
      * @throws \Exception when interface does not exist
-     * @return \Ampersand\Interfacing\InterfaceObject
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    public static function getInterfaceByLabel(string $ifcLabel): InterfaceObject
+    public static function getInterfaceByLabel(string $ifcLabel): InterfaceObjectInterface
     {
         foreach (self::getAllInterfaces() as $interface) {
             if ($interface->label == $ifcLabel) {
@@ -67,7 +69,7 @@ class InterfaceObjectFactory
     
     /**
      * Returns all toplevel interface objects
-     * @return \Ampersand\Interfacing\InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public static function getAllInterfaces(): array
     {
@@ -80,7 +82,7 @@ class InterfaceObjectFactory
     
     /**
      * Returns all toplevel interface objects that are public (i.e. not assigned to a role)
-     * @return \Ampersand\Interfacing\InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public static function getPublicInterfaces(): array
     {
@@ -90,7 +92,7 @@ class InterfaceObjectFactory
     }
     
     /**
-     * Import all interface object definitions from json file and instantiate InterfaceObject objects
+     * Import all interface object definitions from json file and instantiate InterfaceObjectInterface objects
      *
      * @param string $fileName containing the Ampersand interface definitions
      * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
@@ -103,7 +105,7 @@ class InterfaceObjectFactory
         $allInterfaceDefs = (array)json_decode(file_get_contents($fileName), true);
         
         foreach ($allInterfaceDefs as $ifcDef) {
-            $ifc = new InterfaceObject($ifcDef['ifcObject'], $defaultPlug, null, true);
+            $ifc = new InterfaceExprObject($ifcDef['ifcObject'], $defaultPlug, null, true);
             
             // Set additional information about this toplevel interface object
             $ifc->ifcRoleNames = $ifcDef['interfaceRoles'];

@@ -11,7 +11,7 @@ use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTable;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 use Ampersand\Interfacing\Resource;
-use Ampersand\Interfacing\InterfaceObject;
+use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\View;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Atom;
@@ -431,7 +431,7 @@ class Concept
     
     /**
      *
-     * @return \Ampersand\Interfacing\InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getInterfaces(): array
     {

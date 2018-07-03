@@ -9,7 +9,7 @@ namespace Ampersand;
 
 use Exception;
 use Psr\Log\LoggerInterface;
-use Ampersand\Interfacing\InterfaceObject;
+use Ampersand\Interfacing\InterfaceObjectInterface;
 
 /**
  *
@@ -117,7 +117,7 @@ class AngularApp
             case 'new':
                 $result = [];
                 foreach ($this->getNavBarIfcs('new') as $ifc) {
-                    /** @var \Ampersand\Interfacing\InterfaceObject $ifc */
+                    /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifc */
                     $sort = $ifc->tgtConcept->name; // or sort by classification tree: $sort = $ifc->tgtConcept->getLargestConcept()->name;
 
                     if (!isset($result[$sort])) {
@@ -134,7 +134,7 @@ class AngularApp
             
             // Top level items in menu bar
             case 'top':
-                $result = array_map(function (InterfaceObject $ifc) {
+                $result = array_map(function (InterfaceObjectInterface $ifc) {
                     return [ 'id' => $ifc->id
                            , 'label' => $ifc->label
                            , 'link' => '/' . $ifc->id
@@ -153,14 +153,14 @@ class AngularApp
      * Get interfaces for certain use cases
 
      * @param string $menu
-     * @return \Ampersand\Interfacing\InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     protected function getNavBarIfcs(string $menu): array
     {
         global $container;
 
         // Filter interfaces for requested part of navbar
-        return array_filter($container['ampersand_app']->getAccessibleInterfaces(), function (InterfaceObject $ifc) use ($menu) {
+        return array_filter($container['ampersand_app']->getAccessibleInterfaces(), function (InterfaceObjectInterface $ifc) use ($menu) {
             switch ($menu) {
                 case 'top':
                     if ($ifc->srcConcept->isSession() && $ifc->crudR()) {

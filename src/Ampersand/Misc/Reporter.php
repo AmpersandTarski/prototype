@@ -8,7 +8,7 @@
 namespace Ampersand\Misc;
 
 use Exception;
-use Ampersand\Interfacing\InterfaceObject;
+use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\IO\AbstractWriter;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Relation;
@@ -93,7 +93,7 @@ class Reporter
             $content = array_merge($content, $ifc->getInterfaceFlattened());
         }
         
-        $content = array_map(function (InterfaceObject $ifc) {
+        $content = array_map(function (InterfaceObjectInterface $ifc) {
             return [ 'path' => $ifc->getPath()
                    , 'label' => $ifc->label
                    , 'crudC' => $ifc->crudC()

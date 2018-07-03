@@ -15,7 +15,8 @@ use Ampersand\Core\Atom;
 use Ampersand\Log\Logger;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\Resource;
-use Ampersand\Interfacing\InterfaceObject;
+use Ampersand\Interfacing\InterfaceExprObject;
+use Ampersand\Interfacing\InterfaceObjectInterface;
 
 /**
  *
@@ -41,7 +42,7 @@ class ResourceList implements IteratorAggregate
     /**
      * The Interface that is the base of this resource list
      *
-     * @var \Ampersand\Interfacing\InterfaceObject
+     * @var \Ampersand\Interfacing\InterfaceObjectInterface
      */
     protected $ifc = null;
     
@@ -56,10 +57,10 @@ class ResourceList implements IteratorAggregate
      * Constructor
      *
      * @param \Ampersand\Interfacing\Resource $src
-     * @param \Ampersand\Interfacing\InterfaceObject $ifc
+     * @param \Ampersand\Interfacing\InterfaceExprObject $ifc
      * @param bool $skipAccessCheck
      */
-    public function __construct(Resource $src, InterfaceObject $ifc, bool $skipAccessCheck = false)
+    public function __construct(Resource $src, InterfaceExprObject $ifc, bool $skipAccessCheck = false)
     {
         /** @var \Pimple\Container $container */
         global $container; // TODO: remove dependency on global $container var
@@ -107,9 +108,9 @@ class ResourceList implements IteratorAggregate
     }
     
     /**
-     * @return \Ampersand\Interfacing\InterfaceObject
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    public function getIfc(): InterfaceObject
+    public function getIfc(): InterfaceObjectInterface
     {
         return $this->ifc;
     }

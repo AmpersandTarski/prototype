@@ -124,7 +124,7 @@ class Violation
      * Get list of interfaces to solve the violation
      *
      * @param string $srcOrTgt specifies to get interfaces for source concept (src), target concept (tgt) or both (null)
-     * @return \Ampersand\Interfacing\InterfaceObject[]
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getInterfaces($srcOrTgt = null): array
     {
