@@ -34,7 +34,7 @@ class InterfaceObject
      * Dependency injection of an IfcPlug implementation
      * @var \Ampersand\Plugs\IfcPlugInterface
      */
-    private $plug;
+    protected $plug;
     
     /**
      * Interface id (i.e. safe name) to use in framework
@@ -46,7 +46,7 @@ class InterfaceObject
      *
      * @var string
      */
-    private $path;
+    protected $path;
     
     /**
      * Interface name to show in UI
@@ -58,7 +58,7 @@ class InterfaceObject
      * Specifies if this interface object is a toplevel interface (true) or subinterface (false)
      * @var boolean
      */
-    private $isRoot;
+    protected $isRoot;
     
     /**
      * Roles that have access to this interface
@@ -187,6 +187,10 @@ class InterfaceObject
      */
     private function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null, bool $rootIfc = false)
     {
+        if ($ifcDef['type'] != 'ObjExpression') {
+            throw new Exception("Provided interface definition is not of type ObjExpression", 500);
+        }
+
         $this->plug = $plug;
         $this->isRoot = $rootIfc;
         
@@ -230,7 +234,7 @@ class InterfaceObject
             
             // Inline subinterface definitions
             foreach ((array)$ifcDef['subinterfaces']['ifcObjects'] as $subIfcDef) {
-                $ifc = new InterfaceObject($subIfcDef, $this->plug, $this->path);
+                $ifc = $subIfcDef['type'] == 'ObjText' ? new InterfaceTxtObject($subIfcDef, $this->plug, $this->path) : new InterfaceObject($subIfcDef, $this->plug, $this->path);
                 $ifc->parentIfc = $this;
                 $this->subInterfaces[$ifc->id] = $ifc;
             }
@@ -578,6 +582,17 @@ class InterfaceObject
         }
         
         return $data;
+    }
+
+    /**
+     * Returns interface data for a given src atom
+     *
+     * @param \Ampersand\Core\Atom $srcAtom
+     * @return mixed
+     */
+    public function getIfcData2(Atom $srcAtom)
+    {
+        return $this->getIfcData($srcAtom);
     }
     
 /**************************************************************************************************
