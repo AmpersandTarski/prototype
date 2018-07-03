@@ -104,7 +104,7 @@ class ResourceList implements IteratorAggregate
      */
     public function getPath(): string
     {
-        return $this->src->getPath() . '/' . $this->ifc->id;
+        return $this->src->getPath() . '/' . $this->ifc->getIfcId();
     }
     
     /**
@@ -161,7 +161,7 @@ class ResourceList implements IteratorAggregate
                 
             // Else try to get tgt atom from src query data (in case of uni relation in same table)
             } else {
-                $tgtId = $this->src->getQueryData('ifc_' . $this->ifc->id, $exists); // column is prefixed with ifc_ in query data
+                $tgtId = $this->src->getQueryData('ifc_' . $this->ifc->getIfcId(), $exists); // column is prefixed with ifc_ in query data
                 if ($exists) {
                     if (!is_null($tgtId)) {
                         $this->tgts[] = $this->makeResource($tgtId);

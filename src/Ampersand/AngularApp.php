@@ -124,9 +124,9 @@ class AngularApp
                         $result[$sort] = ['label' => "New {$ifc->tgtConcept->label}", 'ifcs' => []];
                     }
 
-                    $result[$sort]['ifcs'][] = ['id' => $ifc->id
+                    $result[$sort]['ifcs'][] = ['id' => $ifc->getIfcId()
                                                ,'label' => $ifc->label
-                                               ,'link' => '/' . $ifc->id
+                                               ,'link' => '/' . $ifc->getIfcId()
                                                ,'resourceType' => $ifc->tgtConcept->name
                                                ];
                 }
@@ -135,9 +135,9 @@ class AngularApp
             // Top level items in menu bar
             case 'top':
                 $result = array_map(function (InterfaceObjectInterface $ifc) {
-                    return [ 'id' => $ifc->id
+                    return [ 'id' => $ifc->getIfcId()
                            , 'label' => $ifc->label
-                           , 'link' => '/' . $ifc->id
+                           , 'link' => '/' . $ifc->getIfcId()
                            ];
                 }, $this->getNavBarIfcs('top'));
                 break;

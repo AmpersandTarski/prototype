@@ -173,11 +173,11 @@ class Notifications
         
         $ifcs = [];
         foreach ($violation->getInterfaces('src') as $ifc) {
-            $ifcs[] = ['id' => $ifc->id, 'label' => $ifc->label, 'link' => "#/{$ifc->id}/{$violation->src->id}"];
+            $ifcs[] = ['id' => $ifc->getIfcId(), 'label' => $ifc->label, 'link' => "#/{$ifc->getIfcId()}/{$violation->src->id}"];
         }
         if ($violation->src->concept != $violation->tgt->concept || $violation->src->id != $violation->tgt->id) {
             foreach ($violation->getInterfaces('tgt') as $ifc) {
-                $ifcs[] = ['id' => $ifc->id, 'label' => $ifc->label, 'link' => "#/{$ifc->id}/{$violation->tgt->id}"];
+                $ifcs[] = ['id' => $ifc->getIfcId(), 'label' => $ifc->label, 'link' => "#/{$ifc->getIfcId()}/{$violation->tgt->id}"];
             }
         }
         $message = $violation->getViolationMessage();

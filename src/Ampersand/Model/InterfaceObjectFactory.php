@@ -110,7 +110,7 @@ class InterfaceObjectFactory
             // Set additional information about this toplevel interface object
             $ifc->ifcRoleNames = $ifcDef['interfaceRoles'];
             
-            self::$allInterfaces[$ifc->id] = $ifc;
+            self::$allInterfaces[$ifc->getIfcId()] = $ifc;
         }
     }
 }

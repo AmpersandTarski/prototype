@@ -35,7 +35,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * Interface id (i.e. safe name) to use in framework
      * @var string
      */
-    public $id;
+    protected $id;
     
     /**
      *
@@ -248,6 +248,11 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * @return string
      */
     public function __toString(): string
+    {
+        return $this->id;
+    }
+
+    public function getIfcId(): string
     {
         return $this->id;
     }

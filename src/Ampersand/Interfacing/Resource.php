@@ -19,6 +19,7 @@ use Ampersand\Misc\Config;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceTxtObject;
 use Ampersand\Model\InterfaceObjectFactory;
+use Ampersand\Interfacing\InterfaceObjectInterface;
 
 /**
  *
@@ -418,8 +419,8 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
         
         // Interface(s) to navigate to for this resource
         if (($options & Options::INCLUDE_NAV_IFCS) && isset($parentIfc)) {
-            $this->ifcData['_ifcs_'] = array_map(function ($o) {
-                   return ['id' => $o->id, 'label' => $o->label];
+            $this->ifcData['_ifcs_'] = array_map(function (InterfaceObjectInterface $o) {
+                   return ['id' => $o->getIfcId(), 'label' => $o->label];
             }, $parentIfc->getNavInterfacesForTgt());
         }
         
@@ -455,15 +456,15 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
                     
                 // Add content of subifc
                 if ($subifc instanceof InterfaceTxtObject) {
-                    $this->ifcData[$subifc->id] = $subcontent = $subifc->getIfcData2($this);
+                    $this->ifcData[$subifc->getIfcId()] = $subcontent = $subifc->getIfcData2($this);
                 } else {
-                    $this->ifcData[$subifc->id] = $subcontent = $this->all($subifc->id)->get($options, $depth, $recursionArr);
+                    $this->ifcData[$subifc->getIfcId()] = $subcontent = $this->all($subifc->getIfcId())->get($options, $depth, $recursionArr);
                 }
                 
                 // Add sort data if subIfc is univalent
                 if ($subifc->isUni() && $addSortValues) {
                     // Use label (value = Atom) or value (value is scalar) to sort objects
-                    $this->ifcData['_sortValues_'][$subifc->id] = $subcontent->getLabel() ?? $subcontent ?? null;
+                    $this->ifcData['_sortValues_'][$subifc->getIfcId()] = $subcontent->getLabel() ?? $subcontent ?? null;
                 }
             }
         }

@@ -60,6 +60,11 @@ class InterfaceTxtObject extends InterfaceExprObject
     {
         return $this->id;
     }
+
+    public function getIfcId(): string
+    {
+        return $this->id;
+    }
     
     /**
      * Returns interface relation (when interface expression = relation), throws exception otherwise

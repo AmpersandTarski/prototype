@@ -19,6 +19,7 @@ use Ampersand\Interfacing\InterfaceObjectInterface;
 interface InterfaceObjectInterface
 {
     public function __toString(): string;
+    public function getIfcId(): string;
 
     public function relation(): Relation;
     public function isEditable(): bool;
