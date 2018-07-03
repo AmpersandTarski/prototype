@@ -357,14 +357,13 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
         if (is_null($this->ifcData)) {
             $this->get(Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS, 1);
         }
-        if ($this->parentList->getIfc()->getSubinterface($offset)->tgtConcept->isObject()) {
-            return $this->ifcData[$offset];
-        }
+
         if ($this->parentList->getIfc()->getSubinterface($offset)->isUni()) {
-            return $this->ifcData[$offset]->id ?? null;
+            // Value can be Atom/Resource or scalar
+            return $this->ifcData[$offset]->id ?? $this->ifcData[$offset] ?? null;
         } else {
             return array_map(function (Resource $resource) {
-                return $resource->id;
+                return $resource->id ?? $resource; // value can be Atom/Resource or scalar
             }, $this->ifcData[$offset]);
         }
     }
@@ -457,18 +456,8 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
                 
                 // Add sort data if subIfc is univalent
                 if ($subifc->isUni() && $addSortValues) {
-                    // If subifc is PROP (i.e. content is boolean)
-                    if (!isset($subcontent)) {
-                        $this->ifcData['_sortValues_'][$subifc->id] = null;
-                    } elseif ($subifc->isProp()) {
-                        $this->ifcData['_sortValues_'][$subifc->id] = $subcontent;
-                    } // Elseif subifc points to object
-                    elseif ($subifc->tgtConcept->isObject()) {
-                        $this->ifcData['_sortValues_'][$subifc->id] = $subcontent->getLabel(); // use label to sort objects. We can use current() because subifc is univalent
-                    } // Else scalar
-                    else {
-                        $this->ifcData['_sortValues_'][$subifc->id] = $subcontent;
-                    }
+                    // Use label (value = Atom) or value (value is scalar) to sort objects
+                    $this->ifcData['_sortValues_'][$subifc->id] = $subcontent->getLabel() ?? $subcontent ?? null;
                 }
             }
         }
