@@ -125,7 +125,7 @@ class AngularApp
                     }
 
                     $result[$sort]['ifcs'][] = ['id' => $ifc->getIfcId()
-                                               ,'label' => $ifc->label
+                                               ,'label' => $ifc->getIfcLabel()
                                                ,'link' => '/' . $ifc->getIfcId()
                                                ,'resourceType' => $ifc->tgtConcept->name
                                                ];
@@ -136,7 +136,7 @@ class AngularApp
             case 'top':
                 $result = array_map(function (InterfaceObjectInterface $ifc) {
                     return [ 'id' => $ifc->getIfcId()
-                           , 'label' => $ifc->label
+                           , 'label' => $ifc->getIfcLabel()
                            , 'link' => '/' . $ifc->getIfcId()
                            ];
                 }, $this->getNavBarIfcs('top'));

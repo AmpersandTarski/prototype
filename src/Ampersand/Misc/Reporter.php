@@ -95,7 +95,7 @@ class Reporter
         
         $content = array_map(function (InterfaceObjectInterface $ifc) {
             return [ 'path' => $ifc->getPath()
-                   , 'label' => $ifc->label
+                   , 'label' => $ifc->getIfcLabel()
                    , 'crudC' => $ifc->crudC()
                    , 'crudR' => $ifc->crudR()
                    , 'crudU' => $ifc->crudU()

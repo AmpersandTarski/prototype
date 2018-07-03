@@ -59,7 +59,7 @@ class InterfaceObjectFactory
     public static function getInterfaceByLabel(string $ifcLabel): InterfaceObjectInterface
     {
         foreach (self::getAllInterfaces() as $interface) {
-            if ($interface->label == $ifcLabel) {
+            if ($interface->getIfcLabel() == $ifcLabel) {
                 return $interface;
             }
         }

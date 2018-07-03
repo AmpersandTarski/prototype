@@ -420,7 +420,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
         // Interface(s) to navigate to for this resource
         if (($options & Options::INCLUDE_NAV_IFCS) && isset($parentIfc)) {
             $this->ifcData['_ifcs_'] = array_map(function (InterfaceObjectInterface $o) {
-                   return ['id' => $o->getIfcId(), 'label' => $o->label];
+                   return ['id' => $o->getIfcId(), 'label' => $o->getIfcLabel()];
             }, $parentIfc->getNavInterfacesForTgt());
         }
         

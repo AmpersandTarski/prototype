@@ -67,7 +67,7 @@ class ResourceList implements IteratorAggregate
         $this->logger = Logger::getLogger('INTERFACING');
         
         if ($ifc->isRoot() && !$container['ampersand_app']->isAccessibleIfc($ifc) && !$skipAccessCheck) {
-            throw new Exception("Unauthorized to access interface {$ifc->label}", 403);
+            throw new Exception("Unauthorized to access interface {$ifc}", 403);
         }
         
         // Epsilon. TODO: remove after multiple concept specifications are possible for Atom objects

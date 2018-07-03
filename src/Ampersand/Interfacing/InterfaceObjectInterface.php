@@ -20,6 +20,7 @@ interface InterfaceObjectInterface
 {
     public function __toString(): string;
     public function getIfcId(): string;
+    public function getIfcLabel(): string;
 
     public function relation(): Relation;
     public function isEditable(): bool;

@@ -65,6 +65,11 @@ class InterfaceTxtObject extends InterfaceExprObject
     {
         return $this->id;
     }
+
+    public function getIfcLabel(): string
+    {
+        return $this->label;
+    }
     
     /**
      * Returns interface relation (when interface expression = relation), throws exception otherwise

@@ -47,7 +47,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * Interface name to show in UI
      * @var string
      */
-    public $label;
+    protected $label;
     
     /**
      * Specifies if this interface object is a toplevel interface (true) or subinterface (false)
@@ -255,6 +255,11 @@ class InterfaceExprObject implements InterfaceObjectInterface
     public function getIfcId(): string
     {
         return $this->id;
+    }
+
+    public function getIfcLabel(): string
+    {
+        return $this->label;
     }
     
     /**
