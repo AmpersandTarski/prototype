@@ -449,7 +449,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
             if ($this->isRef()) {
                 $this->crudU = $this->getRefToIfc()->crudU();
             } else {
-                throw new Exception("Read rights not specified for interface " . $this->getPath(), 500);
+                throw new Exception("Update rights not specified for interface " . $this->getPath(), 500);
             }
         }
         
@@ -462,7 +462,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
             if ($this->isRef()) {
                 $this->crudD = $this->getRefToIfc()->crudD();
             } else {
-                throw new Exception("Read rights not specified for interface " . $this->getPath(), 500);
+                throw new Exception("Delete rights not specified for interface " . $this->getPath(), 500);
             }
         }
         
