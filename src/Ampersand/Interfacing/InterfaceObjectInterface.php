@@ -31,7 +31,7 @@ interface InterfaceObjectInterface
     public function getRefToIfcId();
     public function getRefToIfc();
 
-    public function isLinkTo(): bool;    
+    public function isLinkTo(): bool;
     public function isRoot(): bool;
     public function isLeaf(): bool;
     public function isPublic(): bool;
