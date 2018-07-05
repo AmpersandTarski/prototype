@@ -552,7 +552,8 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
                 case "remove":
                     // Regular json patch remove operation, uses last part of 'path' attribuut as resource to remove from list
                     if (!property_exists($patch, 'value')) {
-                        $this->walkPathToResource($patch->path)->remove();
+                        $resource = $this->walkPathToResource($patch->path);
+                        $resource->getParentList()->remove($resource->id);
                     
                     // Not part of official json path specification. Uses 'value' attribute that must be removed from list
                     } elseif (property_exists($patch, 'value')) {
@@ -653,26 +654,6 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
     public function push($ifcId, $value)
     {
         return $this->all($ifcId)->add($value);
-    }
-    
-    /**
-     * Remove provided value from sub interface
-     * OR remove this resource as from parent list (when no params provided)
-     * @param string $ifcId
-     * @param string $value
-     * @return boolean
-     */
-    public function remove($ifcId = null, $value = null)
-    {
-        if (is_null($ifcId)) {
-            if (!isset($this->parentList)) {
-                throw new Exception("Cannot remove this resource because no parent resource list is provided", 400);
-            } else {
-                return $this->parentList->remove($this->id); // Remove this resource from the parent list
-            }
-        } else {
-            return $this->all($ifcId)->remove($value); // Remove tgt atom from provided ifc
-        }
     }
     
 /**********************************************************************************************
