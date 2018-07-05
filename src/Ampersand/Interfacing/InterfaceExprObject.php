@@ -136,7 +136,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
     
     /**
      *
-     * @var \Ampersand\Interfacing\View
+     * @var \Ampersand\Interfacing\View|null
      */
     private $view;
 
@@ -408,11 +408,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
     {
         return $this->path;
     }
-    
-    public function getView()
-    {
-        return $this->view;
-    }
 
     public function getBoxClass()
     {
@@ -602,6 +597,21 @@ class InterfaceExprObject implements InterfaceObjectInterface
         return $this->getIfcData($srcAtom);
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param \Ampersand\Core\Atom $tgtAtom the atom for which to get view data
+     * @return array
+     */
+    public function getViewData(Atom $tgtAtom): array
+    {
+        if (is_null($this->view)) {
+            return $this->tgtConcept->getViewData($tgtAtom);
+        } else {
+            return $this->view->getViewData($tgtAtom);
+        }
+    }
+
     public function getTechDetails(): array
     {
         return
@@ -613,7 +623,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
             , 'crudC' => $this->crudC()
             , 'src' => $this->srcConcept->name
             , 'tgt' => $this->tgtConcept->name
-            , 'view' => $this->getView()->label ?? ''
+            , 'view' => $this->view->label ?? ''
             , 'relation' => $this->relation()->signature ?? ''
             , 'flipped' => $this->relationIsFlipped
             , 'ref' => $this->getRefToIfcId()

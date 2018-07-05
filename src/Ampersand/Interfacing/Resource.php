@@ -142,15 +142,9 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
         // If view is not already set
         if (!isset($this->viewData)) {
             if (isset($this->parentList)) {
-                $viewDef = $this->parentList->getIfc()->getView(); // if parentList is defined, use view of ifc (can be null)
+                $this->viewData = $this->parentList->getIfc()->getViewData($this);
             } else {
-                $viewDef = $this->concept->getDefaultView(); // else use default view of concept (can be null)
-            }
-            
-            if (!is_null($viewDef)) {
-                $this->viewData = $viewDef->getViewData($this); // if there is a view definition
-            } else {
-                $this->viewData = [];
+                $this->viewData = $this->concept->getViewData($this); // else use default view of concept (can be null)
             }
         }
         return $this->viewData;

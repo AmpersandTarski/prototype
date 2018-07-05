@@ -41,7 +41,6 @@ interface InterfaceObjectInterface
     public function isTot(): bool;
 
     public function getPath(): string;
-    public function getView();
     public function getBoxClass();
 
     public function crudC(): bool;
@@ -60,6 +59,7 @@ interface InterfaceObjectInterface
 
     public function getIfcData(Atom $srcAtom): array;
     public function getIfcData2(Atom $srcAtom);
+    public function getViewData(Atom $tgtAtom);
 
     public function getTechDetails(): array;
 }

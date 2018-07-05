@@ -197,11 +197,6 @@ class InterfaceTxtObject extends InterfaceExprObject
     {
         return $this->path;
     }
-    
-    public function getView()
-    {
-        return null;
-    }
 
     public function getBoxClass()
     {
@@ -310,6 +305,17 @@ class InterfaceTxtObject extends InterfaceExprObject
     public function getIfcData2(Atom $srcAtom)
     {
         return $this->txt;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param \Ampersand\Core\Atom $tgtAtom the atom for which to get view data
+     * @return array
+     */
+    public function getViewData(Atom $tgtAtom): array
+    {
+        return [];
     }
 
     public function getTechDetails(): array

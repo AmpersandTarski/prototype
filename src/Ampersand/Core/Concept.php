@@ -399,16 +399,6 @@ class Concept
     }
     
     /**
-     * Returns default view for this concept (or null if no default view defined)
-     *
-     * @return \Ampersand\Interfacing\View|NULL
-     */
-    public function getDefaultView()
-    {
-        return $this->defaultView;
-    }
-    
-    /**
      * Returns array with signal conjuncts that are affected by creating or deleting an atom of this concept
      *
      * @return \Ampersand\Rule\Conjunct[]
@@ -572,6 +562,20 @@ class Concept
     public function getAllAtomObjects(): array
     {
         return $this->primaryPlug->getAllAtoms($this);
+    }
+
+    /**
+     * Returns view data for given atom
+     * @param \Ampersand\Core\Atom $atom
+     * @return array
+     */
+    public function getViewData(Atom $atom): array
+    {
+        if (is_null($this->defaultView)) {
+            return [];
+        } else {
+            return $this->defaultView->getViewData($atom);
+        }
     }
     
     /**
