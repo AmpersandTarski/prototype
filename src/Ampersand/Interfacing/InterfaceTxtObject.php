@@ -13,6 +13,7 @@ use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Interfacing\Options;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\InterfaceObjectInterface;
+use Ampersand\Interfacing\Resource;
 
 /**
  *
@@ -316,6 +317,16 @@ class InterfaceTxtObject extends InterfaceExprObject
     public function getViewData(Atom $tgtAtom): array
     {
         return [];
+    }
+
+    public function put(Resource $tgtAtom, $value): bool
+    {
+        throw new Exception("Put operation not implemented for TXT interface object", 501);
+    }
+
+    public function delete(Resource $tgtAtom): bool
+    {
+        throw new Exception("Detele operation not implemented for TXT interface object", 501);
     }
 
     public function getTechDetails(): array

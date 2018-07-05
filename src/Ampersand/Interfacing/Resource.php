@@ -151,11 +151,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
     {
         // If view is not already set
         if (!isset($this->viewData)) {
-            if (isset($this->parentList)) {
-                $this->viewData = $this->parentList->getIfc()->getViewData($this);
-            } else {
-                $this->viewData = $this->concept->getViewData($this); // else use default view of concept (can be null)
-            }
+            $this->viewData = $this->ifc->getViewData($this);
         }
         return $this->viewData;
     }
@@ -409,11 +405,8 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
             throw new Exception("Cannot get resource, because its type '{$this->concept}' is a non-object concept", 400);
         }
 
-        if (isset($this->parentList)) {
-            $parentIfc = $this->parentList->getIfc();
-            if (!$parentIfc->crudR()) {
-                throw new Exception("Read not allowed for ". $parentIfc->getPath(), 405);
-            }
+        if (!$this->ifc->crudR()) {
+            throw new Exception("Read not allowed for ". $this->ifc->getPath(), 405);
         }
 
         // User interface data (_id_, _label_ and _view_ and _path_)
@@ -422,14 +415,14 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
         }
         
         // Interface(s) to navigate to for this resource
-        if (($options & Options::INCLUDE_NAV_IFCS) && isset($parentIfc)) {
+        if (($options & Options::INCLUDE_NAV_IFCS)) {
             $this->ifcData['_ifcs_'] = array_map(function (InterfaceObjectInterface $o) {
                    return ['id' => $o->getIfcId(), 'label' => $o->getIfcLabel()];
-            }, $parentIfc->getNavInterfacesForTgt());
+            }, $this->ifc->getNavInterfacesForTgt());
         }
         
         // Get content of subinterfaces if depth is not provided or max depth not yet reached
-        if (isset($parentIfc) && (is_null($depth) || $depth > 0)) {
+        if (is_null($depth) || $depth > 0) {
             if (!is_null($depth)) {
                 $depth--; // decrease depth by 1
             }
@@ -437,23 +430,23 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
             // Prevent infinite loops for reference interfaces when no depth is provided
             // We only need to check LINKTO ref interfaces, because cycles may not exist in regular references (enforced by Ampersand generator)
             // If $depth is provided, no check is required, because recursion is finite
-            if ($parentIfc->isLinkTo() && is_null($depth)) {
-                if (in_array($this->id, $recursionArr[$parentIfc->getRefToIfcId()] ?? [])) {
-                    throw new Exception("Infinite loop detected for {$this} in " . $parentIfc->getPath(), 500);
+            if ($this->ifc->isLinkTo() && is_null($depth)) {
+                if (in_array($this->id, $recursionArr[$this->ifc->getRefToIfcId()] ?? [])) {
+                    throw new Exception("Infinite loop detected for {$this} in " . $this->ifc->getPath(), 500);
                 } else {
-                    $recursionArr[$parentIfc->getRefToIfcId()][] = $this->id;
+                    $recursionArr[$this->ifc->getRefToIfcId()][] = $this->id;
                 }
             }
             
             // Init array for sorting in case of sorting boxes (i.e. SCOLS, SHCOLS, SPCOLS)
             $addSortValues = false;
-            if (in_array($parentIfc->getBoxClass(), ['SCOLS', 'SHCOLS', 'SPCOLS']) && ($options & Options::INCLUDE_SORT_DATA)) {
+            if (in_array($this->ifc->getBoxClass(), ['SCOLS', 'SHCOLS', 'SPCOLS']) && ($options & Options::INCLUDE_SORT_DATA)) {
                 $this->ifcData['_sortValues_'] = [];
                 $addSortValues = true;
             }
             
             // Get sub interface data
-            foreach ($parentIfc->getSubinterfaces($options) as $subifc) {
+            foreach ($this->ifc->getSubinterfaces($options) as $subifc) {
                 if (!$subifc->crudR()) {
                     continue; // skip subinterface if not given read rights (otherwise exception will be thrown when getting content)
                 }
@@ -486,27 +479,13 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
         if (!$this->concept->isObject()) {
             throw new Exception("Cannot put resource, because its type '{$this->concept}' is a non-object concept", 400);
         }
-        if (!isset($this->parentList)) {
-            throw new Exception("Cannot perform put without interface specification", 400);
-        }
+        
         if (!isset($resourceToPut)) {
             return $this; // nothing to do
         }
-        
-        foreach ($resourceToPut as $ifcId => $value) {
-            if (substr($ifcId, 0, 1) == '_' && substr($ifcId, -1) == '_') {
-                continue; // skip special internal attributes
-            }
-            try {
-                $rl = $this->all($ifcId);
-            } catch (Exception $e) {
-                // throw new Exception("Unknown attribute '{$ifcId}'", 400);
-                Logger::getLogger('INTERFACING')->warning("Unknown attribute '{$ifcId}' in PUT data");
-                continue;
-            }
-            
-            $rl->put($value);
-        }
+
+        // Perform PUT using the interface definition
+        $this->ifc->put($this, $resourceToPut);
         
         // Clear query data
         $this->setQueryData(null);
@@ -581,15 +560,8 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
             throw new Exception("Cannot delete resource, because its type '{$this->concept}' is a non-object concept", 400);
         }
 
-        if (!isset($this->parentList)) {
-            throw new Exception("Cannot perform delete without interface specification", 400);
-        }
-        if (!$this->parentList->getIfc()->crudD()) {
-            throw new Exception("Delete not allowed for ". $this->parentList->getIfc()->getPath(), 405);
-        }
-        
-        // Perform delete
-        parent::delete();
+        // Perform DELETE using the interface definition
+        $this->ifc->delete($this);
         
         return $this;
     }

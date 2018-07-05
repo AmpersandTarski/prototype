@@ -10,6 +10,7 @@ namespace Ampersand\Interfacing;
 use Ampersand\Core\Relation;
 use Ampersand\Core\Atom;
 use Ampersand\Interfacing\InterfaceObjectInterface;
+use Ampersand\Interfacing\Resource;
 
 /**
  *
@@ -59,7 +60,10 @@ interface InterfaceObjectInterface
 
     public function getIfcData(Atom $srcAtom): array;
     public function getIfcData2(Atom $srcAtom);
-    public function getViewData(Atom $tgtAtom);
+    public function getViewData(Atom $tgtAtom): array;
 
     public function getTechDetails(): array;
+
+    public function put(Resource $tgtAtom, $value): bool;
+    public function delete(Resource $tgtAtom): bool;
 }

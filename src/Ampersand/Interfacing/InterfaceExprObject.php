@@ -17,6 +17,7 @@ use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Interfacing\Options;
 use Ampersand\Model\InterfaceObjectFactory;
 use Ampersand\Interfacing\InterfaceObjectInterface;
+use Ampersand\Interfacing\Resource;
 
 /**
  *
@@ -610,6 +611,36 @@ class InterfaceExprObject implements InterfaceObjectInterface
         } else {
             return $this->view->getViewData($tgtAtom);
         }
+    }
+
+    public function put(Resource $resource, $newDataObject): bool
+    {
+        foreach ($newDataObject as $ifcId => $value) {
+            if (substr($ifcId, 0, 1) == '_' && substr($ifcId, -1) == '_') {
+                continue; // skip special internal attributes
+            }
+            try {
+                $rl = $resource->all($ifcId);
+            } catch (Exception $e) {
+                Logger::getLogger('INTERFACING')->warning("Unknown attribute '{$ifcId}' in PUT data");
+                continue;
+            }
+            
+            $rl->put($value);
+        }
+        return true;
+    }
+
+    public function delete(Resource $tgtAtom): bool
+    {
+        if (!$this->crudD()) {
+            throw new Exception("Delete not allowed for ". $this->getPath(), 405);
+        }
+        
+        // Perform delete
+        $tgtAtom->concept->deleteAtom($tgtAtom);
+
+        return true;
     }
 
     public function getTechDetails(): array
