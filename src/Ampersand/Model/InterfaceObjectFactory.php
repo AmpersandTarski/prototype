@@ -10,6 +10,7 @@ namespace Ampersand\Model;
 use Exception;
 use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Interfacing\InterfaceObjectInterface;
+use Ampersand\Interfacing\InterfaceNullObject;
 
 /**
  *
@@ -47,6 +48,13 @@ class InterfaceObjectFactory
         }
         
         return $interfaces[$ifcId];
+    }
+
+    public static function getNullObject(): InterfaceObjectInterface
+    {
+        static $ifc = null;
+
+        return $ifc ?? $ifc = new InterfaceNullObject();
     }
     
     /**

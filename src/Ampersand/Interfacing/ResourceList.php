@@ -72,7 +72,7 @@ class ResourceList implements IteratorAggregate
         
         // Epsilon. TODO: remove after multiple concept specifications are possible for Atom objects
         if ($src->concept !== $ifc->srcConcept) {
-            $this->src = new Resource($src->id, $ifc->srcConcept, $src->getParentList());
+            $this->src = new Resource($src->id, $ifc->srcConcept, $src->getParentList()->getIfc(), $src->getParentList());
         // No epsilon
         } else {
             $this->src = $src;
@@ -187,7 +187,7 @@ class ResourceList implements IteratorAggregate
      */
     protected function makeResource(string $tgtId): Resource
     {
-        return new Resource($tgtId, $this->ifc->tgtConcept, $this);
+        return new Resource($tgtId, $this->ifc->tgtConcept, $this->ifc, $this);
     }
 
     /**
@@ -198,7 +198,7 @@ class ResourceList implements IteratorAggregate
     protected function makeNewResource(): Resource
     {
         $cpt = $this->ifc->tgtConcept;
-        return new Resource($cpt->createNewAtomId(), $cpt, $this);
+        return new Resource($cpt->createNewAtomId(), $cpt, $this->ifc, $this);
     }
 
 /**************************************************************************************************
