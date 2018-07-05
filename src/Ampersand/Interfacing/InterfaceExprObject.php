@@ -601,4 +601,25 @@ class InterfaceExprObject implements InterfaceObjectInterface
     {
         return $this->getIfcData($srcAtom);
     }
+
+    public function getTechDetails(): array
+    {
+        return
+            [ 'path' => $this->getPath()
+            , 'label' => $this->getIfcLabel()
+            , 'crudR' => $this->crudR()
+            , 'crudU' => $this->crudU()
+            , 'crudD' => $this->crudD()
+            , 'crudC' => $this->crudC()
+            , 'src' => $this->srcConcept->name
+            , 'tgt' => $this->tgtConcept->name
+            , 'view' => $this->getView()->label ?? ''
+            , 'relation' => $this->relation()->signature ?? ''
+            , 'flipped' => $this->relationIsFlipped
+            , 'ref' => $this->getRefToIfcId()
+            , 'root' => $this->isRoot()
+            , 'public' => $this->isPublic()
+            , 'roles' => implode(',', $this->ifcRoleNames)
+            ];
+    }
 }

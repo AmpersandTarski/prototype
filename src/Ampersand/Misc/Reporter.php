@@ -94,22 +94,7 @@ class Reporter
         }
         
         $content = array_map(function (InterfaceObjectInterface $ifc) {
-            return [ 'path' => $ifc->getPath()
-                   , 'label' => $ifc->getIfcLabel()
-                   , 'crudC' => $ifc->crudC()
-                   , 'crudR' => $ifc->crudR()
-                   , 'crudU' => $ifc->crudU()
-                   , 'crudD' => $ifc->crudD()
-                   , 'src' => $ifc->srcConcept->name
-                   , 'tgt' => $ifc->tgtConcept->name
-                   , 'view' => $ifc->getView()->label
-                   , 'relation' => $ifc->relation()->signature ?? ''
-                   , 'flipped' => $ifc->relationIsFlipped
-                   , 'ref' => $ifc->getRefToIfcId()
-                   , 'root' => $ifc->isRoot()
-                   , 'public' => $ifc->isPublic()
-                   , 'roles' => implode(',', $ifc->ifcRoleNames)
-                   ];
+            return $ifc->getTechDetails();
         }, $content);
 
         $this->writer->write($content);

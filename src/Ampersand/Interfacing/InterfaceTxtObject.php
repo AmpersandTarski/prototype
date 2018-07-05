@@ -311,4 +311,25 @@ class InterfaceTxtObject extends InterfaceExprObject
     {
         return $this->txt;
     }
+
+    public function getTechDetails(): array
+    {
+        return
+            [ 'path' => $this->getPath()
+            , 'label' => $this->getIfcLabel()
+            , 'crudR' => $this->crudR()
+            , 'crudU' => $this->crudU()
+            , 'crudD' => $this->crudD()
+            , 'crudC' => $this->crudC()
+            , 'src' => 'n.a.'
+            , 'tgt' => 'n.a.'
+            , 'view' => 'n.a.'
+            , 'relation' => 'n.a.'
+            , 'flipped' => 'n.a.'
+            , 'ref' => 'n.a.'
+            , 'root' => $this->isRoot()
+            , 'public' => $this->isPublic()
+            , 'roles' => implode(',', $this->ifcRoleNames)
+            ];
+    }
 }

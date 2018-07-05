@@ -60,4 +60,6 @@ interface InterfaceObjectInterface
 
     public function getIfcData(Atom $srcAtom): array;
     public function getIfcData2(Atom $srcAtom);
+
+    public function getTechDetails(): array;
 }
