@@ -79,6 +79,10 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
      */
     public function __construct(string $resourceId, Concept $cpt, InterfaceObjectInterface $ifc, ResourceList $parentList = null)
     {
+        if (!$cpt->isObject()) {
+            throw new Exception("Cannot instantiate resource, because its type '{$this->concept}' is a non-object concept", 400);
+        }
+
         // Set parentList
         $this->ifc = $ifc;
         $this->parentList = $parentList;
@@ -118,29 +122,25 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
      */
     public function jsonSerialize()
     {
-        if ($this->concept->isObject()) {
-            $content = [];
-            if ($this->inclUserInterfaceData) {
-                // Add Ampersand atom attributes
-                $content['_id_'] = $this->id;
-                $content['_label_'] = $this->getLabel();
-                $content['_path_'] = $this->getPath();
-            
-                // Add view data if array is assoc (i.e. not sequential)
-                $data = $this->getView();
-                if (!isSequential($data)) {
-                    $content['_view_'] = $data;
-                }
-            // Not inclUserInterfaceData and ifcData is null -> directly return $this->id
-            } elseif (is_null($this->ifcData)) {
-                return $this->id;
+        $content = [];
+        if ($this->inclUserInterfaceData) {
+            // Add Ampersand atom attributes
+            $content['_id_'] = $this->id;
+            $content['_label_'] = $this->getLabel();
+            $content['_path_'] = $this->getPath();
+        
+            // Add view data if array is assoc (i.e. not sequential)
+            $data = $this->getView();
+            if (!isSequential($data)) {
+                $content['_view_'] = $data;
             }
-            
-            // Merge with inerface data (which is set when get() method is called before)
-            return array_merge($content, (array)$this->ifcData); // cast to array: null => empty array
-        } else {
-            return parent::jsonSerialize();
+        // Not inclUserInterfaceData and ifcData is null -> directly return $this->id
+        } elseif (is_null($this->ifcData)) {
+            return $this->id;
         }
+        
+        // Merge with inerface data (which is set when get() method is called before)
+        return array_merge($content, (array)$this->ifcData); // cast to array: null => empty array
     }
     
     /**
@@ -401,10 +401,6 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
      */
     public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []): Resource
     {
-        if (!$this->concept->isObject()) {
-            throw new Exception("Cannot get resource, because its type '{$this->concept}' is a non-object concept", 400);
-        }
-
         if (!$this->ifc->crudR()) {
             throw new Exception("Read not allowed for ". $this->ifc->getPath(), 405);
         }
@@ -476,10 +472,6 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
      */
     public function put(stdClass $resourceToPut = null): Resource
     {
-        if (!$this->concept->isObject()) {
-            throw new Exception("Cannot put resource, because its type '{$this->concept}' is a non-object concept", 400);
-        }
-        
         if (!isset($resourceToPut)) {
             return $this; // nothing to do
         }
@@ -502,10 +494,6 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
      */
     public function patch(array $patches): Resource
     {
-        if (!$this->concept->isObject()) {
-            throw new Exception("Cannot patch resource, because its type '{$this->concept}' is a non-object concept", 400);
-        }
-
         foreach ($patches as $key => $patch) {
             if (!property_exists($patch, 'op')) {
                 throw new Exception("No 'op' (i.e. operation) specfied for patch #{$key}", 400);
@@ -556,10 +544,6 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
      */
     public function delete(): Resource
     {
-        if (!$this->concept->isObject()) {
-            throw new Exception("Cannot delete resource, because its type '{$this->concept}' is a non-object concept", 400);
-        }
-
         // Perform DELETE using the interface definition
         $this->ifc->delete($this);
         
@@ -682,11 +666,8 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
             throw new Exception("Resource type not found", 404);
         }
         
-        if (!$concept->isObject()) {
-            throw new Exception("Resource type not found", 404); // Only non-scalar concepts can be used as resource
-        }
-        if ($concept->isSession()) {
-            throw new Exception("Resource type not found", 404); // Prevent users create other sessions
+        if (!$concept->isObject() || $concept->isSession()) {
+            throw new Exception("Resource type not found", 404); // Prevent users to instantiate resources of scalar type or SESSION
         }
         
         return new Resource($concept->createNewAtomId(), $concept, InterfaceObjectFactory::getNullObject());
