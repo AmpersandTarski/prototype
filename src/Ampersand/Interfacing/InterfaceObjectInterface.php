@@ -29,11 +29,6 @@ interface InterfaceObjectInterface
     public function getEditableConcepts();
     public function isProp(): bool;
 
-    public function isRef(): bool;
-    public function getRefToIfcId();
-    public function getRefToIfc();
-
-    public function isLinkTo(): bool;
     public function isRoot(): bool;
     public function isLeaf(): bool;
     public function isPublic(): bool;
@@ -43,7 +38,6 @@ interface InterfaceObjectInterface
     public function isTot(): bool;
 
     public function getPath(): string;
-    public function getBoxClass();
 
     public function crudC(): bool;
     public function crudR(): bool;
@@ -57,7 +51,6 @@ interface InterfaceObjectInterface
     public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface;
     public function getInterfaceFlattened();
     public function getSubinterfaces(int $options);
-    public function getNavInterfacesForTgt();
 
     public function getIfcData(Atom $srcAtom): array;
     public function getIfcData2(Atom $srcAtom);

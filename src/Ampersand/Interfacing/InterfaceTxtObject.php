@@ -110,43 +110,6 @@ class InterfaceTxtObject extends InterfaceExprObject
     }
     
     /**
-     * Returns if interface is a reference to another interface
-     * @return bool
-     */
-    public function isRef(): bool
-    {
-        return false;
-    }
-    
-    /**
-     * Returns identifier of interface object to which this interface refers to (or null if not set)
-     * @return string|null
-     */
-    public function getRefToIfcId()
-    {
-        return null;
-    }
-    
-    /**
-     * Returns referenced interface object
-     * @throws Exception when $this is not a reference interface
-     * @return InterfaceObjectInterface
-     */
-    public function getRefToIfc()
-    {
-        throw new Exception("Interface is not a reference interface: " . $this->getPath(), 500);
-    }
-    
-    /**
-     * Returns if interface is a LINKTO reference to another interface
-     * @return bool
-     */
-    public function isLinkTo(): bool
-    {
-        return false;
-    }
-    
-    /**
      * Returns if interface object is a top level interface
      * @return bool
      */
@@ -197,11 +160,6 @@ class InterfaceTxtObject extends InterfaceExprObject
     public function getPath(): string
     {
         return $this->path;
-    }
-
-    public function getBoxClass()
-    {
-        return $this->boxClass;
     }
     
     public function crudC(): bool
@@ -274,15 +232,6 @@ class InterfaceTxtObject extends InterfaceExprObject
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS)
-    {
-        return [];
-    }
-    
-    /**
-     *
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
-     */
-    public function getNavInterfacesForTgt()
     {
         return [];
     }

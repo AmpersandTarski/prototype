@@ -160,7 +160,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
      *
      * @var boolean
      */
-    private $isLinkTo;
+    private $isLinkTo = false;
     
     /**
      *
@@ -321,18 +321,9 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * Returns if interface is a reference to another interface
      * @return bool
      */
-    public function isRef(): bool
+    protected function isRef(): bool
     {
         return !is_null($this->refInterfaceId);
-    }
-    
-    /**
-     * Returns identifier of interface object to which this interface refers to (or null if not set)
-     * @return string|null
-     */
-    public function getRefToIfcId()
-    {
-        return $this->refInterfaceId;
     }
     
     /**
@@ -347,15 +338,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
         } else {
             throw new Exception("Interface is not a reference interface: " . $this->getPath(), 500);
         }
-    }
-    
-    /**
-     * Returns if interface is a LINKTO reference to another interface
-     * @return bool
-     */
-    public function isLinkTo(): bool
-    {
-        return $this->isLinkTo;
     }
     
     /**
@@ -409,11 +391,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
     public function getPath(): string
     {
         return $this->path;
-    }
-
-    public function getBoxClass()
-    {
-        return $this->boxClass;
     }
     
     public function crudC(): bool
@@ -538,7 +515,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS)
     {
         if ($this->isRef() && ($options & Options::INCLUDE_REF_IFCS) // if ifc is reference to other root ifc, option to include refs must be set (= default)
-            && (!$this->isLinkTo() || ($options & Options::INCLUDE_LINKTO_IFCS))) { // this ref ifc must not be a LINKTO ór option is set to explicitly include linkto ifcs
+            && (!$this->isLinkTo || ($options & Options::INCLUDE_LINKTO_IFCS))) { // this ref ifc must not be a LINKTO ór option is set to explicitly include linkto ifcs
         /* Return the subinterfaces of the reference interface. This skips the referenced toplevel interface.
              * e.g.:
              * INTERFACE "A" : expr1 INTERFACE "B"
@@ -547,7 +524,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
              * is interpreted as:
              * INTERFACE "A" : expr1;epxr2 BOX ["label" : expr3]
              */
-            return InterfaceObjectFactory::getInterface($this->refInterfaceId)->getSubinterfaces($options);
+            return $this->getRefToIfc()->getSubinterfaces($options);
         } else {
             return $this->subInterfaces;
         }
@@ -557,12 +534,12 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      * TODO: move this code, or at least remove dependency to global $container var
      */
-    public function getNavInterfacesForTgt()
+    protected function getNavInterfacesForTgt()
     {
         /** @var \Pimple\Container $container */
         global $container;
         $ifcs = [];
-        if ($this->isLinkTo() && $container['ampersand_app']->isAccessibleIfc($refIfc = InterfaceObjectFactory::getInterface($this->refInterfaceId))) {
+        if ($this->isLinkTo && $container['ampersand_app']->isAccessibleIfc($refIfc = $this->getRefToIfc())) {
             $ifcs[] = $refIfc;
         } else {
             $ifcs = $container['ampersand_app']->getInterfacesToReadConcepts([$this->tgtConcept]);
@@ -655,17 +632,17 @@ class InterfaceExprObject implements InterfaceObjectInterface
             // Prevent infinite loops for reference interfaces when no depth is provided
             // We only need to check LINKTO ref interfaces, because cycles may not exist in regular references (enforced by Ampersand generator)
             // If $depth is provided, no check is required, because recursion is finite
-            if ($this->isLinkTo() && is_null($depth)) {
-                if (in_array($tgtAtom->id, $recursionArr[$this->getRefToIfcId()] ?? [])) {
+            if ($this->isLinkTo && is_null($depth)) {
+                if (in_array($tgtAtom->id, $recursionArr[$this->refInterfaceId] ?? [])) {
                     throw new Exception("Infinite loop detected for {$tgtAtom} in " . $this->getPath(), 500);
                 } else {
-                    $recursionArr[$this->getRefToIfcId()][] = $tgtAtom->id;
+                    $recursionArr[$this->refInterfaceId][] = $tgtAtom->id;
                 }
             }
             
             // Init array for sorting in case of sorting boxes (i.e. SCOLS, SHCOLS, SPCOLS)
             $addSortValues = false;
-            if (in_array($this->getBoxClass(), ['SCOLS', 'SHCOLS', 'SPCOLS']) && ($options & Options::INCLUDE_SORT_DATA)) {
+            if (in_array($this->boxClass, ['SCOLS', 'SHCOLS', 'SPCOLS']) && ($options & Options::INCLUDE_SORT_DATA)) {
                 $content['_sortValues_'] = [];
                 $addSortValues = true;
             }
@@ -734,7 +711,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
             , 'view' => $this->view->label ?? ''
             , 'relation' => $this->relation()->signature ?? ''
             , 'flipped' => $this->relationIsFlipped
-            , 'ref' => $this->getRefToIfcId()
+            , 'ref' => $this->refInterfaceId
             , 'root' => $this->isRoot()
             , 'public' => $this->isPublic()
             , 'roles' => implode(',', $this->ifcRoleNames)
