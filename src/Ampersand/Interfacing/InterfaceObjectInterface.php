@@ -11,6 +11,7 @@ use Ampersand\Core\Relation;
 use Ampersand\Core\Atom;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
+use Ampersand\Interfacing\Options;
 
 /**
  *
@@ -64,6 +65,7 @@ interface InterfaceObjectInterface
 
     public function getTechDetails(): array;
 
+    public function get(Resource $tgtAtom, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
     public function put(Resource $tgtAtom, $value): bool;
     public function delete(Resource $tgtAtom): bool;
 }

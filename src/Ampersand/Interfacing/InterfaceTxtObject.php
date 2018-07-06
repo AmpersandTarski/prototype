@@ -319,6 +319,11 @@ class InterfaceTxtObject extends InterfaceExprObject
         return [];
     }
 
+    public function get(Resource $tgtAtom, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    {
+        return $this->txt;
+    }
+
     public function put(Resource $tgtAtom, $value): bool
     {
         throw new Exception("Put operation not implemented for TXT interface object", 501);

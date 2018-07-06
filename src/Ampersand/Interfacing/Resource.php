@@ -394,75 +394,15 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
  *************************************************************************************************/
  
     /**
+     * Get resource data according to provided interface
      * @param int $options
      * @param int|null $depth
      * @param array $recursionArr
-     * @return \Ampersand\Interfacing\Resource $this
+     * @return mixed
      */
-    public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []): Resource
+    public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
-        if (!$this->ifc->crudR()) {
-            throw new Exception("Read not allowed for ". $this->ifc->getPath(), 405);
-        }
-
-        // User interface data (_id_, _label_ and _view_ and _path_)
-        if ($options & Options::INCLUDE_UI_DATA) {
-            $this->inclUserInterfaceData = true; // added in json_serialize
-        }
-        
-        // Interface(s) to navigate to for this resource
-        if (($options & Options::INCLUDE_NAV_IFCS)) {
-            $this->ifcData['_ifcs_'] = array_map(function (InterfaceObjectInterface $o) {
-                   return ['id' => $o->getIfcId(), 'label' => $o->getIfcLabel()];
-            }, $this->ifc->getNavInterfacesForTgt());
-        }
-        
-        // Get content of subinterfaces if depth is not provided or max depth not yet reached
-        if (is_null($depth) || $depth > 0) {
-            if (!is_null($depth)) {
-                $depth--; // decrease depth by 1
-            }
-            
-            // Prevent infinite loops for reference interfaces when no depth is provided
-            // We only need to check LINKTO ref interfaces, because cycles may not exist in regular references (enforced by Ampersand generator)
-            // If $depth is provided, no check is required, because recursion is finite
-            if ($this->ifc->isLinkTo() && is_null($depth)) {
-                if (in_array($this->id, $recursionArr[$this->ifc->getRefToIfcId()] ?? [])) {
-                    throw new Exception("Infinite loop detected for {$this} in " . $this->ifc->getPath(), 500);
-                } else {
-                    $recursionArr[$this->ifc->getRefToIfcId()][] = $this->id;
-                }
-            }
-            
-            // Init array for sorting in case of sorting boxes (i.e. SCOLS, SHCOLS, SPCOLS)
-            $addSortValues = false;
-            if (in_array($this->ifc->getBoxClass(), ['SCOLS', 'SHCOLS', 'SPCOLS']) && ($options & Options::INCLUDE_SORT_DATA)) {
-                $this->ifcData['_sortValues_'] = [];
-                $addSortValues = true;
-            }
-            
-            // Get sub interface data
-            foreach ($this->ifc->getSubinterfaces($options) as $subifc) {
-                if (!$subifc->crudR()) {
-                    continue; // skip subinterface if not given read rights (otherwise exception will be thrown when getting content)
-                }
-                    
-                // Add content of subifc
-                if ($subifc instanceof InterfaceTxtObject) {
-                    $this->ifcData[$subifc->getIfcId()] = $subcontent = $subifc->getIfcData2($this);
-                } else {
-                    $this->ifcData[$subifc->getIfcId()] = $subcontent = $this->all($subifc->getIfcId())->get($options, $depth, $recursionArr);
-                }
-                
-                // Add sort data if subIfc is univalent
-                if ($subifc->isUni() && $addSortValues) {
-                    // Use label (value = Atom) or value (value is scalar) to sort objects
-                    $this->ifcData['_sortValues_'][$subifc->getIfcId()] = $subcontent->getLabel() ?? $subcontent ?? null;
-                }
-            }
-        }
-        
-        return $this;
+        return $this->ifc->get($this, $options, $depth, $recursionArr);
     }
     
     /**

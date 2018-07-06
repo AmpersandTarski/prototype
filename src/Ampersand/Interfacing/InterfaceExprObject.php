@@ -13,6 +13,7 @@ use Ampersand\Core\Concept;
 use Ampersand\Interfacing\View;
 use Ampersand\Core\Atom;
 use Ampersand\Misc\Config;
+use function Ampersand\Misc\isSequential;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Interfacing\Options;
 use Ampersand\Model\InterfaceObjectFactory;
@@ -611,6 +612,82 @@ class InterfaceExprObject implements InterfaceObjectInterface
         } else {
             return $this->view->getViewData($tgtAtom);
         }
+    }
+
+    public function get(Resource $tgtAtom, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    {
+        if (!$this->crudR()) {
+            throw new Exception("Read not allowed for ". $this->getPath(), 405);
+        }
+
+        $content = [];
+
+        // User interface data (_id_, _label_ and _view_ and _path_)
+        if ($options & Options::INCLUDE_UI_DATA) {
+            // Add Ampersand atom attributes
+            $content['_id_'] = $tgtAtom->id;
+            $content['_label_'] = $tgtAtom->getLabel();
+            $content['_path_'] = $tgtAtom->getPath();
+        
+            // Add view data if array is assoc (i.e. not sequential)
+            $data = $tgtAtom->getView();
+            if (!isSequential($data)) {
+                $content['_view_'] = $data;
+            }
+        // When no INCLUDE_UI_DATA and no subintefaces -> directly return resource id
+        } elseif ($this->isLeaf()) {
+            return $tgtAtom->id;
+        }
+        
+        // Interface(s) to navigate to for this resource
+        if (($options & Options::INCLUDE_NAV_IFCS)) {
+            $content['_ifcs_'] = array_map(function (InterfaceObjectInterface $o) {
+                return ['id' => $o->getIfcId(), 'label' => $o->getIfcLabel()];
+            }, $this->getNavInterfacesForTgt());
+        }
+        
+        // Get content of subinterfaces if depth is not provided or max depth not yet reached
+        if (is_null($depth) || $depth > 0) {
+            if (!is_null($depth)) {
+                $depth--; // decrease depth by 1
+            }
+            
+            // Prevent infinite loops for reference interfaces when no depth is provided
+            // We only need to check LINKTO ref interfaces, because cycles may not exist in regular references (enforced by Ampersand generator)
+            // If $depth is provided, no check is required, because recursion is finite
+            if ($this->isLinkTo() && is_null($depth)) {
+                if (in_array($tgtAtom->id, $recursionArr[$this->getRefToIfcId()] ?? [])) {
+                    throw new Exception("Infinite loop detected for {$tgtAtom} in " . $this->getPath(), 500);
+                } else {
+                    $recursionArr[$this->getRefToIfcId()][] = $tgtAtom->id;
+                }
+            }
+            
+            // Init array for sorting in case of sorting boxes (i.e. SCOLS, SHCOLS, SPCOLS)
+            $addSortValues = false;
+            if (in_array($this->getBoxClass(), ['SCOLS', 'SHCOLS', 'SPCOLS']) && ($options & Options::INCLUDE_SORT_DATA)) {
+                $content['_sortValues_'] = [];
+                $addSortValues = true;
+            }
+            
+            // Get sub interface data
+            foreach ($this->getSubinterfaces($options) as $subifc) {
+                if (!$subifc->crudR()) {
+                    continue; // skip subinterface if not given read rights (otherwise exception will be thrown when getting content)
+                }
+                
+                // Add content of subifc
+                $content[$subifc->getIfcId()] = $subcontent = $tgtAtom->all($subifc->getIfcId())->get($options, $depth, $recursionArr);
+                
+                // Add sort data if subIfc is univalent
+                if ($subifc->isUni() && $addSortValues) {
+                    // Use label (value = Atom) or value (value is scalar) to sort objects
+                    $content['_sortValues_'][$subifc->getIfcId()] = $subcontent['_label_'] ?? $subcontent ?? null;
+                }
+            }
+        }
+
+        return $content;
     }
 
     public function put(Resource $resource, $newDataObject): bool
