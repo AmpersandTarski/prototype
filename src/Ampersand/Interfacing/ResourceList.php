@@ -90,16 +90,6 @@ class ResourceList implements IteratorAggregate
     }
     
     /**
-     * Get source resource of this list
-     *
-     * @return \Ampersand\Interfacing\Resource
-     */
-    public function getSrc(): Resource
-    {
-        return $this->src;
-    }
-    
-    /**
      * @return string
      */
     public function getPath(): string
