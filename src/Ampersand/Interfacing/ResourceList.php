@@ -71,7 +71,8 @@ class ResourceList implements IteratorAggregate
         
         // Epsilon. TODO: remove after multiple concept specifications are possible for Atom objects
         if ($src->concept !== $ifc->srcConcept) {
-            $this->src = new Resource($src->id, $ifc->srcConcept, $src->getParentList());
+            $this->src = clone $src;
+            $this->src->concept = $ifc->srcConcept;
         // No epsilon
         } else {
             $this->src = $src;
