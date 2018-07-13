@@ -38,9 +38,10 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
     protected $ifc;
 
     /**
-     * @var ResourceList $parentList specifies the resource list in which this resource is a tgt atom
+     * The parent resource (or null when $this resource is entry resource)
+     * @var \Ampersand\Interfacing\Resource
      */
-    protected $parentList = null;
+    protected $parent = null;
     
     /**
      * Label of resource to be displayed in user interfaces
@@ -75,20 +76,19 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
      * @param string $resourceId Ampersand atom identifier
      * @param \Ampersand\Core\Concept $cpt
      * @param \Ampersand\Interfacing\InterfaceObjectInterface $ifc
-     * @param \Ampersand\Interfacing\ResourceList|null $parentList
+     * @param \Ampersand\Interfacing\Resource $parent
      */
-    public function __construct(string $resourceId, Concept $cpt, InterfaceObjectInterface $ifc, ResourceList $parentList = null)
+    public function __construct(string $resourceId, Concept $cpt, InterfaceObjectInterface $ifc, Resource $parent = null)
     {
         if (!$cpt->isObject()) {
             throw new Exception("Cannot instantiate resource, because its type '{$this->concept}' is a non-object concept", 400);
         }
-
-        // Set parentList
-        $this->ifc = $ifc;
-        $this->parentList = $parentList;
         
         // Call Atom constructor
         parent::__construct(rawurldecode($resourceId), $cpt); // url decode resource identifier
+
+        $this->ifc = $ifc;
+        $this->parent = $parent;
     }
 
     /**
@@ -194,13 +194,16 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * Return parent list (i.e. the list of which this Resource is a target resource/atom)
+     * Returns parent resource, or null is not specified (i.e. $this is entry resource)
      *
-     * @return \Ampersand\Interfacing\ResourceList|null
+     * @return \Ampersand\Interfacing\Resource
      */
-    public function getParentList()
+    public function getParent(): Resource
     {
-        return $this->parentList;
+        if (is_null($this->parent)) {
+            throw new Exception("Parent resource not provided", 400);
+        }
+        return $this->parent;
     }
     
     /**
@@ -226,11 +229,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
      */
     public function all($ifcId, bool $skipAccessCheck = false): ResourceList
     {
-        if (isset($this->parentList)) {
-            $ifc = $this->parentList->getIfc()->getSubinterface($ifcId);
-        } else {
-            $ifc = InterfaceObjectFactory::getInterface($ifcId);
-        }
+        $ifc = $this->ifc->getSubinterface($ifcId);
         
         return new ResourceList($this, $ifc, $skipAccessCheck);
     }
@@ -301,17 +300,8 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
 
         // Try to create resource ($this) if not exists (yet)
         if (!$this->exists()) {
-            if (isset($this->parentList)) {
-                $ifc = $this->parentList->getIfc();
-            } else {
-                if (empty($pathList)) {
-                    throw new Exception("Resource '{$this}' not found", 404);
-                }
-                $ifc = InterfaceObjectFactory::getInterface(reset($pathList));
-            }
-            
             // Automatically create if allowed
-            if ($ifc->crudC()) {
+            if ($this->ifc->crudC()) {
                 $this->add();
             } else {
                 throw new Exception("Resource '{$this}' not found", 404);
@@ -361,7 +351,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
             $this->get(Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS, 1);
         }
 
-        if ($this->parentList->getIfc()->getSubinterface($offset)->isUni()) {
+        if ($this->ifc->getSubinterface($offset)->isUni()) {
             // Value can be Atom/Resource or scalar
             return $this->ifcData[$offset]->id ?? $this->ifcData[$offset] ?? null;
         } else {
@@ -572,7 +562,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
         
         $resources = [];
         foreach ($concept->getAllAtomObjects() as $atom) {
-            $r = new Resource($atom->id, $concept, InterfaceObjectFactory::getNullObject());
+            $r = new Resource($atom->id, $concept, InterfaceObjectFactory::getNullObject(), null);
             $r->setQueryData($atom->getQueryData());
             $resources[] = $r->get();
         }
@@ -589,7 +579,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
      */
     public static function makeResource(string $id, string $conceptName): Resource
     {
-        return new Resource($id, Concept::getConcept($conceptName), InterfaceObjectFactory::getNullObject());
+        return new Resource($id, Concept::getConcept($conceptName), InterfaceObjectFactory::getNullObject(), null);
     }
 
     /**
@@ -610,7 +600,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
             throw new Exception("Resource type not found", 404); // Prevent users to instantiate resources of scalar type or SESSION
         }
         
-        return new Resource($concept->createNewAtomId(), $concept, InterfaceObjectFactory::getNullObject());
+        return new Resource($concept->createNewAtomId(), $concept, InterfaceObjectFactory::getNullObject(), null);
     }
 
     /**
@@ -621,6 +611,6 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
      */
     public static function makeResourceFromAtom(Atom $atom): Resource
     {
-        return new Resource($atom->id, $atom->concept, InterfaceObjectFactory::getNullObject());
+        return new Resource($atom->id, $atom->concept, InterfaceObjectFactory::getNullObject(), null);
     }
 }

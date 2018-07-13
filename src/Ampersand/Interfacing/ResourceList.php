@@ -169,7 +169,7 @@ class ResourceList
      */
     protected function makeResource(string $tgtId): Resource
     {
-        return new Resource($tgtId, $this->ifc->tgtConcept, $this->ifc, $this);
+        return new Resource($tgtId, $this->ifc->tgtConcept, $this->ifc, $this->src);
     }
 
     /**
@@ -180,7 +180,7 @@ class ResourceList
     protected function makeNewResource(): Resource
     {
         $cpt = $this->ifc->tgtConcept;
-        return new Resource($cpt->createNewAtomId(), $cpt, $this->ifc, $this);
+        return new Resource($cpt->createNewAtomId(), $cpt, $this->ifc, $this->src);
     }
 
 /**************************************************************************************************
