@@ -195,7 +195,6 @@ class ResourceList
      */
     public function get($options = Options::DEFAULT_OPTIONS, int $depth = null, $recursionArr = [])
     {
-        $this->logger->debug("get() called for {$this->src} / {$this->ifc}");
         if (!$this->ifc->crudR()) {
             throw new Exception("Read not allowed for ". $this->ifc->getPath(), 405);
         }

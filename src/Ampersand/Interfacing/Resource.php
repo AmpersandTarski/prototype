@@ -88,7 +88,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
     public function __construct(string $resourceId, Concept $cpt, InterfaceObjectInterface $ifc, Resource $parent = null)
     {
         if (!$cpt->isObject()) {
-            throw new Exception("Cannot instantiate resource, because its type '{$this->concept}' is a non-object concept", 400);
+            throw new Exception("Cannot instantiate resource, because its type '{$cpt}' is a non-object concept", 400);
         }
         
         // Call Atom constructor
@@ -224,8 +224,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
      */
     public function one($ifcId, $tgtId): Resource
     {
-        $rl = $this->all($ifcId);
-        return $rl->one($tgtId);
+        return $this->all($ifcId)->one($tgtId);
     }
     
     /**
@@ -402,6 +401,11 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
     public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         return $this->ifc->get($this, $options, $depth, $recursionArr);
+    }
+
+    public function getProperty(string $ifcId)
+    {
+        return $this->ifc->getProperty($this, $ifcId);
     }
     
     /**
