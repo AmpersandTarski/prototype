@@ -60,5 +60,6 @@ interface InterfaceObjectInterface
 
     public function get(Resource $tgtAtom, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
     public function put(Resource $tgtAtom, $value): bool;
+    public function remove(Resource $srcAtom, $value): bool;
     public function delete(Resource $tgtAtom): bool;
 }

@@ -463,7 +463,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
                     // Regular json patch remove operation, uses last part of 'path' attribuut as resource to remove from list
                     if (!property_exists($patch, 'value')) {
                         $resource = $this->walkPathToResource($patch->path);
-                        $resource->getParentList()->remove($resource->id);
+                        $resource->ifc->remove($resource->getParent(), $resource->id);
                     
                     // Not part of official json path specification. Uses 'value' attribute that must be removed from list
                     } elseif (property_exists($patch, 'value')) {
