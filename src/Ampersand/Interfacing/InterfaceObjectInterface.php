@@ -52,8 +52,6 @@ interface InterfaceObjectInterface
     public function getInterfaceFlattened();
     public function getSubinterfaces(int $options);
 
-    public function getIfcData(Atom $srcAtom): array;
-    public function getIfcData2(Atom $srcAtom);
     public function getViewData(Atom $tgtAtom): array;
 
     public function getTechDetails(): array;

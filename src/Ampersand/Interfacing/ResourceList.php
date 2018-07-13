@@ -127,40 +127,6 @@ class ResourceList
         // When not found
         throw new Exception("Resource not found", 404);
     }
-    
-    /**
-     * Return list of target resources
-     *
-     * @param bool $fromCache specifies if target resources may be get from cache (true) or recalculated (false)
-     * @return \Ampersand\Interfacing\Resource[]
-     */
-    protected function getTgtResources(bool $fromCache = true): array
-    {
-        if (!isset($this->tgts) || !$fromCache) {
-            $this->tgts = [];
-            // If interface isIdent (i.e. expr = I[Concept]), and no epsilon is required (i.e. srcConcept equals tgtConcept of parent ifc) we can return the src
-            if ($this->ifc->isIdent() && (($this->ifc->srcConcept === $this->ifc->getParentInterface()->tgtConcept) ?? false)) {
-                $this->tgts[] = $this->makeResource($this->src->id);
-                
-            // Else try to get tgt atom from src query data (in case of uni relation in same table)
-            } else {
-                $tgtId = $this->src->getQueryData('ifc_' . $this->ifc->getIfcId(), $exists); // column is prefixed with ifc_ in query data
-                if ($exists) {
-                    if (!is_null($tgtId)) {
-                        $this->tgts[] = $this->makeResource($tgtId);
-                    }
-                } else {
-                    foreach ($this->ifc->getIfcData($this->src) as $row) {
-                        $r = $this->makeResource($row['tgt']);
-                        $r->setQueryData($row);
-                        $this->tgts[] = $r;
-                    }
-                }
-            }
-        }
-        
-        return $this->tgts;
-    }
 
     /**
      * Resource factory. Instantiates a new target resource

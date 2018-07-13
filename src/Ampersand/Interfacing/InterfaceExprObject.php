@@ -547,34 +547,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
         
         return $ifcs;
     }
-    
-    /**
-     * Returns interface data (tgt atoms) for given src atom
-     * @param \Ampersand\Core\Atom $srcAtom atom to take as source atom for this interface expression query
-     * @return array
-     */
-    public function getIfcData(Atom $srcAtom): array
-    {
-        $data = (array) $this->plug->executeIfcExpression($this, $srcAtom);
-        
-        // Integrity check
-        if ($this->isUni() && count($data) > 1) {
-            throw new Exception("Univalent (sub)interface returns more than 1 resource: " . $this->getPath(), 500);
-        }
-        
-        return $data;
-    }
-
-    /**
-     * Returns interface data for a given src atom
-     *
-     * @param \Ampersand\Core\Atom $srcAtom
-     * @return mixed
-     */
-    public function getIfcData2(Atom $srcAtom)
-    {
-        return $this->getIfcData($srcAtom);
-    }
 
     /**
      * Undocumented function
@@ -716,5 +688,53 @@ class InterfaceExprObject implements InterfaceObjectInterface
             , 'public' => $this->isPublic()
             , 'roles' => implode(',', $this->ifcRoleNames)
             ];
+    }
+
+    /**
+     * Return list of target resources
+     *
+     * @return \Ampersand\Interfacing\Resource[]
+     */
+    protected function getTgtResources(Resource $src): array
+    {
+        $tgts = [];
+        // If interface isIdent (i.e. expr = I[Concept]), and no epsilon is required (i.e. srcConcept equals tgtConcept of parent ifc) we can return the src
+        if ($this->isIdent() && $this->srcConcept === $src->concept) {
+            $tgts[] = $src;
+        } else {
+            // Try to get tgt atom from src query data (in case of uni relation in same table)
+            $tgtId = $src->getQueryData('ifc_' . $this->id, $exists); // column is prefixed with ifc_ in query data
+            if ($exists) {
+                if (!is_null($tgtId)) {
+                    $tgts[] = $this->makeResource($tgtId, $src);
+                }
+            // Evaluate interface expression
+            } else {
+                foreach ((array) $this->plug->executeIfcExpression($this, $src) as $row) {
+                    $r = $this->makeResource($row['tgt'], $src);
+                    $r->setQueryData($row);
+                    $tgts[] = $r;
+                }
+            }
+        }
+
+        // Integrity check
+        if ($this->isUni() && count($tgts) > 1) {
+            throw new Exception("Univalent (sub)interface returns more than 1 resource: " . $this->getPath(), 500);
+        }
+        
+        return $tgts;
+    }
+
+    /**
+     * Resource factory. Instantiates a new target resource
+     *
+     * @param string $resourceId
+     * @param \Ampersand\Interfacing\Resource $parent
+     * @return \Ampersand\Interfacing\Resource
+     */
+    protected function makeResource(string $resourceId, Resource $parent): Resource
+    {
+        return new Resource($resourceId, $this->tgtConcept, $ifc, $parent);
     }
 }

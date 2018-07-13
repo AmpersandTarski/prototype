@@ -235,27 +235,6 @@ class InterfaceTxtObject extends InterfaceExprObject
     {
         return [];
     }
-    
-    /**
-     * Returns interface data (tgt atoms) for given src atom
-     * @param \Ampersand\Core\Atom $srcAtom atom to take as source atom for this interface expression query
-     * @return array
-     */
-    public function getIfcData(Atom $srcAtom): array
-    {
-        throw new Exception("N.a. for InterfaceTxtObject", 500);
-    }
-
-    /**
-     * Returns interface data for a given src atom
-     *
-     * @param \Ampersand\Core\Atom $srcAtom
-     * @return mixed
-     */
-    public function getIfcData2(Atom $srcAtom)
-    {
-        return $this->txt;
-    }
 
     /**
      * Undocumented function
