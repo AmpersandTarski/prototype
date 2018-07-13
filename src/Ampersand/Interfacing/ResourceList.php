@@ -23,7 +23,7 @@ use Ampersand\Interfacing\InterfaceObjectInterface;
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class ResourceList implements IteratorAggregate
+class ResourceList
 {
     
     /**
@@ -79,14 +79,6 @@ class ResourceList implements IteratorAggregate
         }
         
         $this->ifc = $ifc;
-    }
-    
-    /**
-     * @return \ArrayIterator
-     */
-    public function getIterator(): ArrayIterator
-    {
-        return new ArrayIterator($this->getTgtResources());
     }
     
     /**
