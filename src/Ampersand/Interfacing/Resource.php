@@ -63,6 +63,13 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
     protected $ifcData = null;
 
     /**
+     * The path of this resource (including interface and path to parent resource)
+     *
+     * @var string
+     */
+    protected $path;
+
+    /**
      * Specifies if user interface data must be included when outputting (json_serialize) the Resource
      * This includes: _id_, _label_ and _view_
      *
@@ -89,6 +96,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
 
         $this->ifc = $ifc;
         $this->parent = $parent;
+        $this->setPath();
     }
 
     /**
@@ -155,42 +163,43 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
         }
         return $this->viewData;
     }
+
+    /**
+     * Undocumented function
+     *
+     * @return string
+     */
+    protected function setPath(): string
+    {
+        if (is_null($this->parent)) {
+            if ($this->concept->isSession()) {
+                $this->path = "session"; // Don't put session id here, this is implicit
+            } else {
+                $this->path = "resource/{$this->concept->name}/" . $this->id;
+            }
+        } else {
+            /* Skip resource id for ident interface expressions (I[Concept])
+            * I expressions are commonly used for adding structure to an interface using (sub) boxes
+            * This results in verbose paths
+            * e.g.: pathToApi/resource/Person/John/Person/John/Person details/John/Name
+            * By skipping ident expressions the paths are more concise without loosing information
+            * e.g.: pathToApi/resource/Person/John/Person/PersonDetails/Name
+            */
+            if ($this->ifc->isIdent()) {
+                $this->path = $parent->getPath();
+            } else {
+                $this->path = $parent->getPath() . '/' . $this->ifc->getIfcId() . '/' . $this->id;
+            }
+        }
+        return $this->path;
+    }
     
     /**
      * @return string
      */
     public function getPath()
     {
-        if (isset($this->parentList)) {
-            /* Skip resource id for ident interface expressions (I[Concept])
-             * I expressions are commonly used for adding structure to an interface using (sub) boxes
-             * This results in verbose paths
-             * e.g.: pathToApi/resource/Person/John/Person/John/Person details/John/Name
-             * By skipping ident expressions the paths are more concise without loosing information
-             * e.g.: pathToApi/resource/Person/John/Person/PersonDetails/Name
-             */
-            if ($this->parentList->getIfc()->isIdent()) {
-                return $this->parentList->getPath();
-            } else {
-                return $this->parentList->getPath() . '/' . $this->id;
-            }
-        } else {
-            if ($this->concept->isSession()) {
-                return "session"; // Don't put session id here, this is implicit
-            } else {
-                return "resource/{$this->concept->name}/" . $this->id;
-            }
-        }
-    }
-    
-    public function getURL()
-    {
-        return Config::get('serverURL') . Config::get('apiPath') . "/" . $this->getPath();
-    }
-    
-    public function getURI()
-    {
-        return Config::get('serverURL') . Config::get('apiPath') . "/resource/{$this->concept->name}/" . $this->id;
+        return $this->path;
     }
 
     /**
@@ -316,7 +325,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
                     $r = $r->all(array_shift($pathList));
                     break;
                 case 'Ampersand\Interfacing\ResourceList':
-                    // See explaination at getPath() function above why this if/else construct is here
+                    // See explaination in setPath() method above why this if/else construct is here
                     if ($r->getIfc()->isIdent()) {
                         $r = $r->one();
                     } else {
