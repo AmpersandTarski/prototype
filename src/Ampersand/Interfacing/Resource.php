@@ -216,18 +216,6 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
     }
     
     /**
-     * Return resource representation of given interface and target atom
-     *
-     * @param string $ifcId
-     * @param string $tgtId
-     * @return \Ampersand\Interfacing\Resource
-     */
-    public function one($ifcId, $tgtId): Resource
-    {
-        return $this->all($ifcId)->one($tgtId);
-    }
-    
-    /**
      * Return resource list with target atoms of given interface
      * For system use of interfaces you can skip the role check by setting the second parameters to true
      *
@@ -491,68 +479,6 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
         $this->ifc->delete($this);
         
         return $this;
-    }
-    
-/**************************************************************************************************
- * Redirect for methods to call on ResourceList
- *************************************************************************************************/
-    
-    /**
-     * Get representation of resource content given a certain interface
-     *
-     * @param string $ifcId
-     * @param int $options
-     * @param int|null $depth
-     * @param array $recursionArr
-     * @return bool|null|\Ampersand\Interfacing\Resource|\Ampersand\Interfacing\Resource[]
-     */
-    public function getList(string $ifcId, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
-    {
-        return $this->all($ifcId)->get($options, $depth, $recursionArr);
-    }
-    
-    /**
-     * Create and return a new resource as target atom to given interface
-     *
-     * @param string $ifcId
-     * @param \stdClass $resourceToPost
-     * @return \Ampersand\Interfacing\Resource
-     */
-    public function post(string $ifcId, stdClass $resourceToPost): Resource
-    {
-        return $this->all($ifcId)->post($resourceToPost);
-    }
-    
-    /**
-     * Set provided value for univalent sub interface
-     * @param string $ifcId
-     * @param string $value (value null is supported)
-     * @return boolean
-     */
-    public function set($ifcId, $value)
-    {
-        return $this->all($ifcId)->set($value);
-    }
-    
-    /**
-     * Set sub interface to null
-     * @param string $ifcId
-     * @return boolean
-     */
-    public function unset($ifcId)
-    {
-        return $this->all($ifcId)->set(null);
-    }
-    
-    /**
-     * Add provided value to sub interface
-     * @param string $ifcId
-     * @param string $value
-     * @return boolean
-     */
-    public function push($ifcId, $value)
-    {
-        return $this->all($ifcId)->add($value);
     }
     
 /**********************************************************************************************
