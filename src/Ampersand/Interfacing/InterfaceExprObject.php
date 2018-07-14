@@ -434,6 +434,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
         
         return $this->crudU;
     }
+    
     public function crudD(): bool
     {
         // If crudD not specified during object construction (e.g. in case of ref interface)
@@ -563,29 +564,70 @@ class InterfaceExprObject implements InterfaceObjectInterface
         }
     }
 
-    public function get(Resource $tgtAtom, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function get(Resource $src, Resource $tgt = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for ". $this->getPath(), 405);
         }
 
+        // The following check is needed because the frontend UI does not support root interfaces expressions with non-object target concepts (yet)
+        // Subinterfaces are not a problem
+        if ($this->isRoot() && !$this->tgtConcept->isObject()) {
+            throw new Exception("No support for root interface expressions with non-object target concept (see #745)", 501);
+        }
+
+        // Initialize result
+        $result = [];
+
+        // Object nodes
+        if ($this->tgtConcept->isObject()) {
+            foreach ($this->getTgtResources($src, true, $tgt) as $resource) {
+                $result[] = $this->getResourceContent($resource, $options, $depth, $recursionArr);
+            }
+            
+            // Special case for leave PROP: return false when result is empty, otherwise true (i.e. I atom must be present)
+            // Enables boolean functionality for editing ampersand property relations
+            if ($this->isLeaf() && $this->isProp()) {
+                if (empty($result)) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+            
+        // Non-object nodes (i.e. leaves, because subinterfaces are not allowed for non-objects)
+        // Notice that ->getResourceContent() is not called on $resource. The interface stops here.
+        } else {
+            $result = $this->getTgtAtoms($src); // for json_encode $resource->jsonSerializable() is called
+        }
+
+        // Return result
+        if ($this->isUni || !is_null($tgt)) { // single object
+            return empty($result) ? null : current($result);
+        } else { // array
+            return $result;
+        }
+    }
+
+    protected function getResourceContent(Resource $resource, $options, $depth, $recursionArr)
+    {
         $content = [];
 
         // User interface data (_id_, _label_ and _view_ and _path_)
         if ($options & Options::INCLUDE_UI_DATA) {
             // Add Ampersand atom attributes
-            $content['_id_'] = $tgtAtom->id;
-            $content['_label_'] = $tgtAtom->getLabel();
-            $content['_path_'] = $tgtAtom->getPath();
+            $content['_id_'] = $resource->id;
+            $content['_label_'] = $resource->getLabel();
+            $content['_path_'] = $resource->getPath();
         
             // Add view data if array is assoc (i.e. not sequential)
-            $data = $tgtAtom->getView();
+            $data = $resource->getView();
             if (!isSequential($data)) {
                 $content['_view_'] = $data;
             }
         // When no INCLUDE_UI_DATA and no subintefaces -> directly return resource id
         } elseif ($this->isLeaf()) {
-            return $tgtAtom->id;
+            return $resource->id;
         }
         
         // Interface(s) to navigate to for this resource
@@ -605,10 +647,10 @@ class InterfaceExprObject implements InterfaceObjectInterface
             // We only need to check LINKTO ref interfaces, because cycles may not exist in regular references (enforced by Ampersand generator)
             // If $depth is provided, no check is required, because recursion is finite
             if ($this->isLinkTo && is_null($depth)) {
-                if (in_array($tgtAtom->id, $recursionArr[$this->refInterfaceId] ?? [])) {
-                    throw new Exception("Infinite loop detected for {$tgtAtom} in " . $this->getPath(), 500);
+                if (in_array($resource->id, $recursionArr[$this->refInterfaceId] ?? [])) {
+                    throw new Exception("Infinite loop detected for {$resource} in " . $this->getPath(), 500);
                 } else {
-                    $recursionArr[$this->refInterfaceId][] = $tgtAtom->id;
+                    $recursionArr[$this->refInterfaceId][] = $resource->id;
                 }
             }
             
@@ -626,7 +668,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
                 }
                 
                 // Add content of subifc
-                $content[$subifc->getIfcId()] = $subcontent = $tgtAtom->all($subifc->getIfcId())->get($options, $depth, $recursionArr);
+                $content[$subifc->getIfcId()] = $subcontent = $subifc->get($resource, null, $options, $depth, $recursionArr);
                 
                 // Add sort data if subIfc is univalent
                 if ($subifc->isUni() && $addSortValues) {
@@ -725,29 +767,41 @@ class InterfaceExprObject implements InterfaceObjectInterface
     }
 
     /**
-     * Return list of target resources
+     * Undocumented function
      *
-     * @return \Ampersand\Interfacing\Resource[]
+     * @param \Ampersand\Interfacing\Resource $src
+     * @return \Ampersand\Core\Atom[]
      */
-    protected function getTgtResources(Resource $src): array
+    protected function getTgtAtoms(Resource $src): array
+    {
+        return $this->getTgtResources($src, false);
+    }
+
+    /**
+     * Return list of target atoms
+     * @param \Ampersand\Interfacing\Resource $src
+     * @param bool $returnClass specifies if method returns list of Resources (true) or Atoms (false)
+     * @param \Ampersand\Interfacing\Resource|null $tgt
+     * @return \Ampersand\Interfacing\Resource[]|\Ampersand\Core\Atom[]
+     */
+    protected function getTgtResources(Resource $src, bool $returnResource = true, Resource $selectTgt = null): array
     {
         $tgts = [];
+
         // If interface isIdent (i.e. expr = I[Concept]), and no epsilon is required (i.e. srcConcept equals tgtConcept of parent ifc) we can return the src
         if ($this->isIdent() && $this->srcConcept === $src->concept) {
-            $tgts[] = $src;
+            $tgts[] = $returnResource ? $this->makeResource($src->id, $src) : new Atom($src->id, $this->tgtConcept);
         } else {
             // Try to get tgt atom from src query data (in case of uni relation in same table)
             $tgtId = $src->getQueryData('ifc_' . $this->id, $exists); // column is prefixed with ifc_ in query data
             if ($exists) {
                 if (!is_null($tgtId)) {
-                    $tgts[] = $this->makeResource($tgtId, $src);
+                    $tgts[] = $returnResource ? $this->makeResource($tgtId, $src) : new Atom($src->id, $this->tgtConcept);
                 }
             // Evaluate interface expression
             } else {
                 foreach ((array) $this->plug->executeIfcExpression($this, $src) as $row) {
-                    $r = $this->makeResource($row['tgt'], $src);
-                    $r->setQueryData($row);
-                    $tgts[] = $r;
+                    $tgts[] = $returnResource ? $this->makeResource($row['tgt'], $src)->setQueryData($row) : new Atom($src->id, $this->tgtConcept);
                 }
             }
         }
@@ -755,6 +809,13 @@ class InterfaceExprObject implements InterfaceObjectInterface
         // Integrity check
         if ($this->isUni() && count($tgts) > 1) {
             throw new Exception("Univalent (sub)interface returns more than 1 resource: " . $this->getPath(), 500);
+        }
+
+        // If specific target is specified, pick that one out
+        if (!is_null($selectTgt)) {
+            return array_filter($tgts, function (Atom $item) use ($selectTgt) {
+                return $item->id == $selectTgt->id;
+            });
         }
         
         return $tgts;

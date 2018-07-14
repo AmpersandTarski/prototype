@@ -145,61 +145,6 @@ class ResourceList
 /**************************************************************************************************
  * Methods to call on ResourceList
  *************************************************************************************************/
-     
-    /**
-     * @param int $options
-     * @param int|null $depth
-     * @param array $recursionArr
-     * @return bool|null|\Ampersand\Interfacing\Resource|\Ampersand\Interfacing\Resource[]
-     */
-    public function get($options = Options::DEFAULT_OPTIONS, int $depth = null, $recursionArr = [])
-    {
-        if (!$this->ifc->crudR()) {
-            throw new Exception("Read not allowed for ". $this->ifc->getPath(), 405);
-        }
-
-        // The following check is needed because the frontend UI does not support root interfaces expressions with non-object target concepts (yet)
-        // Subinterfaces are not a problem
-        if ($this->ifc->isRoot() && !$this->ifc->tgtConcept->isObject()) {
-            throw new Exception("No support for root interface expressions with non-object target concept (see #745)", 501);
-        }
-        
-        // Initialize result
-        $result = [];
-        
-        // Object nodes
-        if ($this->ifc->tgtConcept->isObject()) {
-            foreach ($this->getTgtResources() as $resource) {
-                $result[] = $resource->get($options, $depth, $recursionArr); // for json_encode $resource->jsonSerializable() is called
-            }
-            
-            // Special case for leave PROP: return false when result is empty, otherwise true (i.e. I atom must be present)
-            // Enables boolean functionality for editing ampersand property relations
-            if ($this->ifc->isLeaf() && $this->ifc->isProp()) {
-                if (empty($result)) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-            
-        // Non-object nodes (i.e. leaves, because subinterfaces are not allowed for non-objects)
-        // Notice that ->get() is not called on $resource. The interface stops here.
-        } else {
-            foreach ($this->getTgtResources() as $resource) {
-                $result[] = $resource; // for json_encode $resource->jsonSerializable() is called
-            }
-        }
-        
-        // Return result using UNI-aspect (univalent-> value/object, non-univalent -> list of values/objects)
-        if ($this->ifc->isUni() && empty($result)) {
-            return null;
-        } elseif ($this->ifc->isUni()) {
-            return current($result);
-        } else {
-            return $result;
-        }
-    }
     
     /**
      * @param \stdClass $resourceToPost

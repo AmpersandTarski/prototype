@@ -55,7 +55,7 @@ interface InterfaceObjectInterface
 
     public function getTechDetails(): array;
 
-    public function get(Resource $tgtAtom, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
+    public function get(Resource $src, Resource $tgt = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
     public function put(Resource $src, $newTgts): bool;
     public function remove(Resource $srcAtom, $value): bool;
     public function delete(Resource $tgtAtom): bool;
