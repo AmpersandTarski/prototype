@@ -226,15 +226,6 @@ class InterfaceTxtObject extends InterfaceExprObject
     {
         return [$this];
     }
-    
-    /**
-     * @param int $options
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
-     */
-    public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS)
-    {
-        return [];
-    }
 
     /**
      * Undocumented function

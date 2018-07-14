@@ -50,7 +50,6 @@ interface InterfaceObjectInterface
     public function getSubinterface(string $ifcId): InterfaceObjectInterface;
     public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface;
     public function getInterfaceFlattened();
-    public function getSubinterfaces(int $options);
 
     public function getViewData(Atom $tgtAtom): array;
 

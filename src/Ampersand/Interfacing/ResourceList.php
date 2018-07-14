@@ -83,14 +83,6 @@ class ResourceList
     }
     
     /**
-     * @return string
-     */
-    public function getPath(): string
-    {
-        return $this->src->getPath() . '/' . $this->ifc->getIfcId();
-    }
-    
-    /**
      * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
     public function getIfc(): InterfaceObjectInterface

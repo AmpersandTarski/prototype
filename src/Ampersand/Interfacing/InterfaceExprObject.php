@@ -512,7 +512,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * @param int $options
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
-    public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS)
+    protected function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS)
     {
         if ($this->isRef() && ($options & Options::INCLUDE_REF_IFCS) // if ifc is reference to other root ifc, option to include refs must be set (= default)
             && (!$this->isLinkTo || ($options & Options::INCLUDE_LINKTO_IFCS))) { // this ref ifc must not be a LINKTO ór option is set to explicitly include linkto ifcs
