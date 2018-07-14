@@ -639,21 +639,55 @@ class InterfaceExprObject implements InterfaceObjectInterface
         return $content;
     }
 
-    public function put(Resource $resource, $newDataObject): bool
+    public function put(Resource $src, $value): bool
     {
-        foreach ($newDataObject as $ifcId => $value) {
-            if (substr($ifcId, 0, 1) == '_' && substr($ifcId, -1) == '_') {
-                continue; // skip special internal attributes
-            }
-            try {
-                $rl = $resource->all($ifcId);
-            } catch (Exception $e) {
-                Logger::getLogger('INTERFACING')->warning("Unknown attribute '{$ifcId}' in PUT data");
-                continue;
+        if ($this->isUni()) { // expect value to be object or literal
+            if (is_array($value)) {
+                throw new Exception("Non-array expected but array provided while updating " . $this->getPath(), 400);
             }
             
-            $rl->put($value);
+            if ($this->tgtConcept->isObject()) {
+                if (is_null($value) || is_string($value)) { // null object or string
+                    $this->set($value);
+                } elseif (isset($value->_id_)) { // object with _id_ attribute
+                    $this->set($value->_id_);
+                } elseif ($this->isIdent()) { // Ident object => no need for object id
+                    // go deeper into PUT when interface expression equals 'I'
+                    $this->makeResource($src->id, $src)->put($value);
+                } else {
+                    throw new Exception("Cannot identify provided object while updating " . $this->getPath(), 400);
+                }
+            } else { // expect value to be literal (i.e. non-object) or null
+                $this->set($value);
+            }
+        } else { // expect value to be array
+            if (!is_array($value)) {
+                throw new Exception("Array expected but not provided while updating " . $this->getPath(), 400);
+            }
+            
+            // First empty existing list
+            $this->removeAll();
+            
+            // Add provided values
+            foreach ($value as $item) {
+                if ($this->tgtConcept->isObject()) { // expect item to be object
+                    if (!is_object($item)) {
+                        throw new Exception("Object expected but " . gettype($item) . " provided while updating " . $this->getPath(), 400);
+                    }
+                    
+                    if (is_string($item)) { // string
+                        $this->add($item);
+                    } elseif (isset($item->_id_)) { // object with _id_ attribute
+                        $this->add($item->_id_);
+                    } else {
+                        throw new Exception("Cannot identify provided object while updating " . $this->getPath(), 400);
+                    }
+                } else { // expect item to be literal (i.e. non-object) or null
+                    $this->add($item);
+                }
+            }
         }
+        
         return true;
     }
 

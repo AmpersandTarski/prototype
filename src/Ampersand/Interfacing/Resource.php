@@ -408,7 +408,18 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
         }
 
         // Perform PUT using the interface definition
-        $this->ifc->put($this, $resourceToPut);
+        foreach ($resourceToPut as $ifcId => $value) {
+            if (substr($ifcId, 0, 1) == '_' && substr($ifcId, -1) == '_') {
+                continue; // skip special internal attributes
+            }
+            try {
+                $subifc = $this->ifc->getSubinterface($ifcId);
+            } catch (Exception $e) {
+                Logger::getLogger('INTERFACING')->warning("Unknown attribute '{$ifcId}' in PUT data");
+                continue;
+            }
+            $subifc->put($this, $value);
+        }
         
         // Clear query data
         $this->setQueryData(null);

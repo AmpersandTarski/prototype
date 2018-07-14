@@ -237,66 +237,6 @@ class ResourceList
     }
     
     /**
-     * Update a complete resource list
-     * Updates only this subinterface, not any level(s) deeper for now, except for I expressions
-     *
-     * @param mixed $value
-     * @return bool
-     */
-    public function put($value): bool
-    {
-        
-        if ($this->ifc->isUni()) { // expect value to be object or literal
-            if (is_array($value)) {
-                throw new Exception("Non-array expected but array provided while updating " . $this->ifc->getPath(), 400);
-            }
-            
-            if ($this->ifc->tgtConcept->isObject()) {
-                if (is_null($value) || is_string($value)) { // null object or string
-                    $this->set($value);
-                } elseif (isset($value->_id_)) { // object with _id_ attribute
-                    $this->set($value->_id_);
-                } elseif ($this->ifc->isIdent()) { // Ident object => no need for object id
-                    // go deeper into PUT when interface expression equals 'I'
-                    $this->one()->put($value);
-                } else {
-                    throw new Exception("Cannot identify provided object while updating " . $this->ifc->getPath(), 400);
-                }
-            } else { // expect value to be literal (i.e. non-object) or null
-                $this->set($value);
-            }
-        } else { // expect value to be array
-            if (!is_array($value)) {
-                throw new Exception("Array expected but not provided while updating " . $this->ifc->getPath(), 400);
-            }
-            
-            // First empty existing list
-            $this->removeAll();
-            
-            // Add provided values
-            foreach ($value as $item) {
-                if ($this->ifc->tgtConcept->isObject()) { // expect item to be object
-                    if (!is_object($item)) {
-                        throw new Exception("Object expected but " . gettype($item) . " provided while updating " . $this->ifc->getPath(), 400);
-                    }
-                    
-                    if (is_string($item)) { // string
-                        $this->add($item);
-                    } elseif (isset($item->_id_)) { // object with _id_ attribute
-                        $this->add($item->_id_);
-                    } else {
-                        throw new Exception("Cannot identify provided object while updating " . $this->ifc->getPath(), 400);
-                    }
-                } else { // expect item to be literal (i.e. non-object) or null
-                    $this->add($item);
-                }
-            }
-        }
-        
-        return true;
-    }
-    
-    /**
      * Alias of set() method. Used by Resource::patch() method
      * @param mixed|null $value
      * @return bool
