@@ -564,6 +564,40 @@ class InterfaceExprObject implements InterfaceObjectInterface
         }
     }
 
+    public function all(Resource $src): array
+    {
+        if (!$this->crudR()) {
+            throw new Exception("Read not allowed for " . $this->getPath(), 405);
+        }
+        
+        return $this->getTgtResources($src, true);
+    }
+
+    public function one(Resource $src, string $tgtId = null): Resource
+    {
+        if (!$this->crudR()) {
+            throw new Exception("Read not allowed for " . $this->getPath(), 405);
+        }
+
+        // If no tgtId is provided, the srcId is used. Usefull for ident interface expressions (I[Concept])
+        if (is_null($tgtId)) {
+            $tgtId = $src->id;
+        }
+        
+        $tgts = $this->getTgtResources($src, true, $tgtId);
+
+        if (!empty($tgts)) {
+            // Resource found
+            return current($tgts);
+        } elseif ($this->tgtConcept->isObject() && $this->crudC()) {
+            // Create the target if allowed
+            return $this->makeResource($tgtId, $src);
+        } else {
+            // When not found
+            throw new Exception("Resource not found", 404);
+        }
+    }
+
     public function get(Resource $src, Resource $tgt = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         if (!$this->crudR()) {
@@ -581,7 +615,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
 
         // Object nodes
         if ($this->tgtConcept->isObject()) {
-            foreach ($this->getTgtResources($src, true, $tgt) as $resource) {
+            foreach ($this->getTgtResources($src, true, $tgt->id) as $resource) {
                 $result[] = $this->getResourceContent($resource, $options, $depth, $recursionArr);
             }
             
@@ -781,10 +815,10 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * Return list of target atoms
      * @param \Ampersand\Interfacing\Resource $src
      * @param bool $returnClass specifies if method returns list of Resources (true) or Atoms (false)
-     * @param \Ampersand\Interfacing\Resource|null $tgt
+     * @param string|null $selectTgt
      * @return \Ampersand\Interfacing\Resource[]|\Ampersand\Core\Atom[]
      */
-    protected function getTgtResources(Resource $src, bool $returnResource = true, Resource $selectTgt = null): array
+    protected function getTgtResources(Resource $src, bool $returnResource = true, string $selectTgt = null): array
     {
         $tgts = [];
 
@@ -814,7 +848,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
         // If specific target is specified, pick that one out
         if (!is_null($selectTgt)) {
             return array_filter($tgts, function (Atom $item) use ($selectTgt) {
-                return $item->id == $selectTgt->id;
+                return $item->id == $selectTgt;
             });
         }
         

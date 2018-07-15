@@ -213,21 +213,6 @@ class Resource extends Atom implements ArrayAccess
         }
         return $this->parent;
     }
-    
-    /**
-     * Return resource list with target atoms of given interface
-     * For system use of interfaces you can skip the role check by setting the second parameters to true
-     *
-     * @param string $ifcId
-     * @param bool $skipAccessCheck
-     * @return \Ampersand\Interfacing\ResourceList
-     */
-    public function all($ifcId, bool $skipAccessCheck = false): ResourceList
-    {
-        $ifc = $this->ifc->getSubinterface($ifcId);
-        
-        return new ResourceList($this, $ifc, $skipAccessCheck);
-    }
 
     /**
      * Walk path from this resource. Path must end/result in a Resource

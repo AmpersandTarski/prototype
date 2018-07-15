@@ -89,36 +89,6 @@ class ResourceList
     {
         return $this->ifc;
     }
-    
-    /**
-     * @param string $tgtId
-     * @return \Ampersand\Interfacing\Resource
-     */
-    public function one($tgtId = null): Resource
-    {
-        if (!$this->ifc->crudR()) {
-            throw new Exception("Read not allowed for " . $this->ifc->getPath(), 405);
-        }
-
-        // If no tgtId is provided, the srcId is used. Usefull for ident interface expressions (I[Concept])
-        if (is_null($tgtId)) {
-            $tgtId = $this->src->id;
-        }
-        
-        foreach ($this->getTgtResources() as $resource) {
-            if ($resource->id == $tgtId) {
-                return $resource;
-            }
-        }
-
-        // Create the target atom if allowed
-        if ($this->ifc->tgtConcept->isObject() && $this->ifc->crudC()) {
-            return $this->makeResource($tgtId);
-        }
-        
-        // When not found
-        throw new Exception("Resource not found", 404);
-    }
 
     /**
      * Resource factory. Instantiates a new target resource

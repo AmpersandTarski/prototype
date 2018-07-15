@@ -46,6 +46,16 @@ interface InterfaceObjectInterface
 
     public function getQuery(): string;
 
+    public function one(Resource $src, string $tgtId = null): Resource;
+
+    /**
+     * Undocumented function
+     *
+     * @param \Ampersand\Interfacing\Resource $src
+     * @return \Ampersand\Interfacing\Resource[]
+     */
+    public function all(Resource $src): array;
+
     public function getParentInterface();
     public function getSubinterface(string $ifcId): InterfaceObjectInterface;
     public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface;
