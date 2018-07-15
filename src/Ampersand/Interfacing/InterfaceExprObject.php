@@ -893,6 +893,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
      */
     protected function makeResource(string $resourceId, Resource $parent): Resource
     {
-        return new Resource($resourceId, $this->tgtConcept, $ifc, $parent);
+        return new Resource($resourceId, $this->tgtConcept, $this, $parent);
     }
 }
