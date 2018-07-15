@@ -604,12 +604,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
             throw new Exception("Read not allowed for ". $this->getPath(), 405);
         }
 
-        // The following check is needed because the frontend UI does not support root interfaces expressions with non-object target concepts (yet)
-        // Subinterfaces are not a problem
-        if ($this->isRoot() && !$this->tgtConcept->isObject()) {
-            throw new Exception("No support for root interface expressions with non-object target concept (see #745)", 501);
-        }
-
         // Initialize result
         $result = [];
 
@@ -894,5 +888,16 @@ class InterfaceExprObject implements InterfaceObjectInterface
     protected function makeResource(string $resourceId, Resource $parent): Resource
     {
         return new Resource($resourceId, $this->tgtConcept, $this, $parent);
+    }
+
+    /**
+     * Resource factory. Instantiates a new target resource with a new (random) id
+     *
+     * @return \Ampersand\Interfacing\Resource
+     */
+    protected function makeNewResource(Resource $parent): Resource
+    {
+        $resourceId = $this->tgtConcept->createNewAtomId();
+        return $this->makeResource($resourceId, $parent);
     }
 }

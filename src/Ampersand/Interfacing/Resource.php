@@ -426,7 +426,7 @@ class Resource extends Atom implements ArrayAccess
                     if (!property_exists($patch, 'value')) {
                         throw new Exception("Cannot patch replace. No 'value' specfied for patch #{$key}", 400);
                     }
-                    $this->walkPathToResourceList($patch->path)->replace($patch->value);
+                    $this->walkPathToResourceList($patch->path)->set($patch->value);
                     break;
                 case "add":
                     if (!property_exists($patch, 'value')) {

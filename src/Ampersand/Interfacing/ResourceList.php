@@ -89,41 +89,6 @@ class ResourceList
     {
         return $this->ifc;
     }
-
-    /**
-     * Resource factory. Instantiates a new target resource
-     *
-     * @param string $tgtId
-     * @return \Ampersand\Interfacing\Resource
-     */
-    protected function makeResource(string $tgtId): Resource
-    {
-        return new Resource($tgtId, $this->ifc->tgtConcept, $this->ifc, $this->src);
-    }
-
-    /**
-     * Resource factory. Instantiates a new target resource with a new (random) id
-     *
-     * @return \Ampersand\Interfacing\Resource
-     */
-    protected function makeNewResource(): Resource
-    {
-        $cpt = $this->ifc->tgtConcept;
-        return new Resource($cpt->createNewAtomId(), $cpt, $this->ifc, $this->src);
-    }
-
-    /**
-     * Alias of set() method. Used by Resource::patch() method
-     * @param mixed|null $value
-     * @return bool
-     */
-    public function replace($value = null): bool
-    {
-        if (!$this->ifc->isUni()) {
-            throw new Exception("Cannot use replace for non-univalent interface " . $this->ifc->getPath() . ". Use add or remove instead", 400);
-        }
-        return $this->set($value);
-    }
     
     /**
      * Set provided value (for univalent interfaces)
