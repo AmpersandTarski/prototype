@@ -715,6 +715,35 @@ class InterfaceExprObject implements InterfaceObjectInterface
         return $content;
     }
 
+    public function create(Resource $src, stdClass $resourceToPost): Resource
+    {
+        if (!$this->crudC()) {
+            throw new Exception("Create not allowed for ". $this->getPath(), 405);
+        }
+        
+        // Use attribute '_id_' if provided
+        if (isset($resourceToPost->_id_)) {
+            $resource = $this->makeResource($resourceToPost->_id_, $src);
+            if ($resource->exists()) {
+                throw new Exception("Cannot create resource that already exists", 400);
+            }
+        } elseif ($this->ifc->isIdent()) {
+            $resource = $this->makeResource($src->id, $src);
+        } else {
+            $resource = $this->makeNewResource($src);
+        }
+        
+        // If interface is editable, also add tuple(src, tgt) in interface relation
+        if ($this->isEditable()) {
+            $this->add($resource->id, true);
+        } else {
+            $resource->add();
+        }
+        
+        // Put resource attributes
+        return $resource->put($resourceToPost);
+    }
+
     public function put(Resource $src, $value): bool
     {
         if ($this->isUni()) { // expect value to be object or literal

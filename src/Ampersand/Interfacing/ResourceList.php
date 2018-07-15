@@ -112,45 +112,6 @@ class ResourceList
         return new Resource($cpt->createNewAtomId(), $cpt, $this->ifc, $this->src);
     }
 
-/**************************************************************************************************
- * Methods to call on ResourceList
- *************************************************************************************************/
-    
-    /**
-     * @param \stdClass $resourceToPost
-     * @return \Ampersand\Interfacing\Resource
-     */
-    public function post(stdClass $resourceToPost): Resource
-    {
-        if (!$this->ifc->crudC()) {
-            throw new Exception("Create not allowed for ". $this->ifc->getPath(), 405);
-        }
-        
-        // Use attribute '_id_' if provided
-        if (isset($resourceToPost->_id_)) {
-            $resource = $this->makeResource($resourceToPost->_id_);
-            if ($resource->exists()) {
-                throw new Exception("Cannot create resource that already exists", 400);
-            }
-        } elseif ($this->ifc->isIdent()) {
-            $resource = $this->makeResource($this->src->id);
-        } else {
-            $resource = $this->makeNewResource();
-        }
-        
-        // If interface is editable, also add tuple(src, tgt) in interface relation
-        if ($this->ifc->isEditable()) {
-            $this->add($resource->id, true);
-        } else {
-            $resource->add();
-        }
-        
-        // Put resource attributes
-        $resource->put($resourceToPost);
-        
-        return $resource;
-    }
-    
     /**
      * Alias of set() method. Used by Resource::patch() method
      * @param mixed|null $value
