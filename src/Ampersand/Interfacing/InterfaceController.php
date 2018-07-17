@@ -139,31 +139,6 @@ class InterfaceController
         
         $list = $resource->walkPathToResourceList($ifcPath);
 
-        // Special case for file upload
-        if ($list->getIfc()->tgtConcept->isFileObject()) {
-            if (is_uploaded_file($_FILES['file']['tmp_name'])) {
-                $resource = $list->post((object) []);
-
-                $tmp_name = $_FILES['file']['tmp_name'];
-                $originalFileName = $_FILES['file']['name'];
-
-                $dest = getSafeFileName(Config::get('absolutePath') . Config::get('uploadPath'). $originalFileName);
-                $relativePath = Config::get('uploadPath') . pathinfo($dest, PATHINFO_BASENAME);
-                
-                $result = move_uploaded_file($tmp_name, $dest);
-                
-                if (!$result) {
-                    throw new Exception("Error in file upload", 500);
-                }
-                
-                // Populate filePath and originalFileName relations in database
-                $resource->link($relativePath, 'filePath[FileObject*FilePath]')->add();
-                $resource->link($originalFileName, 'originalFileName[FileObject*FileName]')->add();
-            } else {
-                throw new Exception("No file uploaded", 500);
-            }
-        } else {
-            // Perform create
             $resource = $list->post($body);
         }
 
@@ -180,13 +155,9 @@ class InterfaceController
         // Close transaction
         $transaction->close();
         if ($transaction->isCommitted()) {
-            if ($result) {
-                Logger::getUserLogger()->notice("File '{$originalFileName}' uploaded");
-            } else {
-                Logger::getUserLogger()->notice($resource->getLabel() . " created");
-            }
+            Logger::getUserLogger()->notice($resource->getLabel() . " created");
         } else {
-            // TODO: remove uploaded file
+            // TODO: remove possible uploaded file
         }
         
         $this->ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles

@@ -455,6 +455,11 @@ class Resource extends Atom implements ArrayAccess
         
         return $this;
     }
+
+    public function post($subIfcId, $resourceToPost): Resource
+    {
+        return $this->ifc->getSubinterface($subIfcId)->create($this, $resourceToPost);
+    }
     
     /**
      * Delete this resource and remove as target atom from current interface

@@ -66,7 +66,7 @@ interface InterfaceObjectInterface
 
     public function get(Resource $src, Resource $tgt = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
     public function put(Resource $src, $newTgts): bool;
-    public function create(Resource $src, stdClass $resourceToPost): Resource;
+    public function create(Resource $src, $resourceToPost): Resource;
     public function remove(Resource $srcAtom, $value): bool;
     public function delete(Resource $tgtAtom): bool;
 }
