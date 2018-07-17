@@ -19,6 +19,7 @@ use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceTxtObject;
 use Ampersand\Model\InterfaceObjectFactory;
 use Ampersand\Interfacing\InterfaceObjectInterface;
+use Ampersand\Interfacing\ResourcePath;
 
 /**
  *
@@ -192,6 +193,11 @@ class Resource extends Atom implements ArrayAccess
         }
         return $this->path;
     }
+
+    public function getIfc(): InterfaceObjectInterface
+    {
+        return $this->ifc;
+    }
     
     /**
      * @return string
@@ -214,103 +220,6 @@ class Resource extends Atom implements ArrayAccess
         return $this->parent;
     }
 
-    /**
-     * Walk path from this resource. Path must end/result in a Resource
-     * Use Resource::walkPathToResourceList if path must end in a ResourceList
-     *
-     * @param string|array $path
-     * @return \Ampersand\Interfacing\Resource
-     */
-    public function walkPathToResource($path) : Resource
-    {
-        $r = $this->walkPath($path);
-
-        // For ident interface expressions the Resource id is left out of the path. Therefore,
-        // automatically step into the (only possible) target resource
-        if (get_class($r) === 'Ampersand\Interfacing\ResourceList' && $r->getIfc()->isIdent()) {
-            $r = $r->one();
-        }
-
-        // Check if correct object is returned (Resource vs ResourceList)
-        if (get_class($r) === 'Ampersand\Interfacing\Resource') {
-            return $r;
-        } else {
-            throw new Exception("Provided path '{$path}' MUST end with a resource identifier", 400);
-        }
-    }
-
-    /**
-     * Walk path from this resource. Path must end/result in a ResourceList
-     * Use Resource::walkPathToResource if path must end in a Resource
-     *
-     * @param string|array $path
-     * @return \Ampersand\Interfacing\ResourceList
-     */
-    public function walkPathToResourceList($path): ResourceList
-    {
-        $r = $this->walkPath($path);
-
-        // Check if correct object is returned (Resource vs ResourceList)
-        if (get_class($r) === 'Ampersand\Interfacing\ResourceList') {
-            return $r;
-        } else {
-            throw new Exception("Provided path '{$path}' MUST NOT end with a resource identifier", 400);
-        }
-    }
-    
-    /**
-     * Walk path from this resource to either a Resource or a ResourceList
-     *
-     * @param string|array $path
-     * @return \Ampersand\Interfacing\Resource|\Ampersand\Interfacing\ResourceList
-     */
-    public function walkPath($path)
-    {
-        // Prepare path list
-        if (is_array($path)) {
-            $path = implode('/', $path);
-        }
-        $path = trim($path, '/'); // remove root slash (e.g. '/Projects/xyz/..') and trailing slash (e.g. '../Projects/xyz/')
-        
-        if ($path === '') {
-            $pathList = []; // support no path
-        } else {
-            $pathList = explode('/', $path);
-        }
-
-        // Try to create resource ($this) if not exists (yet)
-        if (!$this->exists()) {
-            // Automatically create if allowed
-            if ($this->ifc->crudC()) {
-                $this->add();
-            } else {
-                throw new Exception("Resource '{$this}' not found", 404);
-            }
-        }
-
-        // Walk path by alternating between $r = Resource and $r = ResourceList
-        $r = $this; // start with resource ($this)
-        while (count($pathList)) {
-            switch (get_class($r)) {
-                case 'Ampersand\Interfacing\Resource':
-                    $r = $r->all(array_shift($pathList));
-                    break;
-                case 'Ampersand\Interfacing\ResourceList':
-                    // See explaination in setPath() method above why this if/else construct is here
-                    if ($r->getIfc()->isIdent()) {
-                        $r = $r->one();
-                    } else {
-                        $r = $r->one(array_shift($pathList));
-                    }
-                    break;
-                default:
-                    throw new Exception("Unknown class type: " . get_class($r), 500);
-            }
-        }
-        
-        // Return
-        return $r;
-    }
 
 /**************************************************************************************************
  * ArrayAccess methods
@@ -419,6 +328,10 @@ class Resource extends Atom implements ArrayAccess
             if (!property_exists($patch, 'path')) {
                 throw new Exception("No 'path' specfied for patch #{$key}", 400);
             }
+
+            $resourcePath = new ResourcePath($this, $patch->path);
+            $resource = $resourcePath->getTgt();
+            $ifc = $resourcePath->getTrailingIfc();
             
             // Process patch
             switch ($patch->op) {
@@ -426,23 +339,33 @@ class Resource extends Atom implements ArrayAccess
                     if (!property_exists($patch, 'value')) {
                         throw new Exception("Cannot patch replace. No 'value' specfied for patch #{$key}", 400);
                     }
-                    $this->walkPathToResourceList($patch->path)->set($patch->value);
+                    if (is_null($ifc)) {
+                        throw new Exception("Cannot patch replace. Path for patch #{$key} MUST end with a resource property", 400);
+                    }
+                    $ifc->set($resource, $patch->value);
                     break;
                 case "add":
                     if (!property_exists($patch, 'value')) {
                         throw new Exception("Cannot patch add. No 'value' specfied for patch #{$key}", 400);
                     }
-                    $this->walkPathToResourceList($patch->path)->add($patch->value);
+                    if (is_null($ifc)) {
+                        throw new Exception("Cannot patch add. Path for patch #{$key} MUST end with a resource property", 400);
+                    }
+                    $ifc->add($resource, $patch->value);
                     break;
                 case "remove":
                     // Regular json patch remove operation, uses last part of 'path' attribuut as resource to remove from list
                     if (!property_exists($patch, 'value')) {
-                        $resource = $this->walkPathToResource($patch->path);
-                        $resource->ifc->remove($resource->getParent(), $resource->id);
-                    
+                        if(!is_null($ifc)) {
+                            throw new Exception("Cannot patch remove. Path for patch #{$key} MUST end with a resource ór contain a patch value", 400);
+                        }
+                        $resource->ifc->remove($resource->parent, $resource);
                     // Not part of official json path specification. Uses 'value' attribute that must be removed from list
                     } elseif (property_exists($patch, 'value')) {
-                        $this->walkPathToResourceList($patch->path)->remove($patch->value);
+                        if (is_null($ifc)) {
+                            throw new Exception("Cannot patch remove. Path for patch #{$key} MUST end with a resource property ór NOT contain a patch value", 400);
+                        }
+                        $ifc->remove($resource, $patch->value);
                     }
                     break;
                 default:

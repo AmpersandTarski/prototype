@@ -48,7 +48,13 @@ class InterfaceController
 
     public function get(Resource $resource, $ifcPath, int $options, $depth)
     {
-        return $resource->walkPath($ifcPath)->get($options, $depth);
+        $resourcePath = new ResourcePath($resource, $ifcPath);
+        
+        if ($resourcePath->hasTrailingIfc()) {
+            throw new Exception("Provided path '{$resourcePath}' MUST end with a resource identifier", 400);
+        }
+
+        return $resourcePath->getTgt()->get($options, $depth);
     }
 
     public function put(Resource $resource, $ifcPath, $body, $options, $depth): array
@@ -56,7 +62,11 @@ class InterfaceController
         $transaction = Transaction::getCurrentTransaction();
         
         // Perform put
-        $resource = $resource->walkPathToResource($ifcPath)->put($body);
+        $resourcePath = new ResourcePath($resource, $ifcPath);
+        if ($resourcePath->hasTrailingIfc()) {
+            throw new Exception("Provided path '{$resourcePath}' MUST end with a resource identifier", 400);
+        }
+        $resource = $resourcePath->getTgt()->put($body);
         
         // Run ExecEngine
         $transaction->runExecEngine();
@@ -102,7 +112,11 @@ class InterfaceController
         $transaction = Transaction::getCurrentTransaction();
         
         // Perform patch(es)
-        $resource = $resource->walkPathToResource($ifcPath)->patch($patches);
+        $resourcePath = new ResourcePath($resource, $ifcPath);
+        if ($resourcePath->hasTrailingIfc()) {
+            throw new Exception("Provided path '{$resourcePath}' MUST end with a resource identifier", 400);
+        }
+        $resource = $resourcePath->getTgt()->patch($patches);
 
         // Run ExecEngine
         $transaction->runExecEngine();
@@ -136,11 +150,13 @@ class InterfaceController
     public function post(Resource $resource, $ifcPath, $body, $options, $depth): array
     {
         $transaction = Transaction::getCurrentTransaction();
-        
-        $list = $resource->walkPathToResourceList($ifcPath);
 
-            $resource = $list->post($body);
+        // Perform POST
+        $resourcePath = new ResourcePath($resource, $ifcPath);
+        if (!$resourcePath->hasTrailingIfc()) {
+            throw new Exception("Provided path '{$resourcePath}' MUST NOT end with a resource identifier", 400);
         }
+        $resource = $resourcePath->getTgt()->post($resourcePath->getTrailingIfc(), $body);
 
         // Run ExecEngine
         $transaction->runExecEngine();
@@ -184,7 +200,11 @@ class InterfaceController
         $transaction = Transaction::getCurrentTransaction();
         
         // Perform delete
-        $resource->walkPathToResource($ifcPath)->delete();
+        $resourcePath = new ResourcePath($resource, $ifcPath);
+        if ($resourcePath->hasTrailingIfc()) {
+            throw new Exception("Provided path '{$resourcePath}' MUST end with a resource identifier", 400);
+        }
+        $resource = $resourcePath->getTgt()->delete();
         
         // Close transaction
         $transaction->runExecEngine()->close();
