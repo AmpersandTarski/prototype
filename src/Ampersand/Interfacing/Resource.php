@@ -194,6 +194,11 @@ class Resource extends Atom implements ArrayAccess
         return $this->path;
     }
 
+    /**
+     * Return interface for this resource
+     *
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface
+     */
     public function getIfc(): InterfaceObjectInterface
     {
         return $this->ifc;
@@ -205,19 +210,6 @@ class Resource extends Atom implements ArrayAccess
     public function getPath()
     {
         return $this->path;
-    }
-
-    /**
-     * Returns parent resource, or null is not specified (i.e. $this is entry resource)
-     *
-     * @return \Ampersand\Interfacing\Resource
-     */
-    public function getParent(): Resource
-    {
-        if (is_null($this->parent)) {
-            throw new Exception("Parent resource not provided", 400);
-        }
-        return $this->parent;
     }
 
 
@@ -261,7 +253,7 @@ class Resource extends Atom implements ArrayAccess
     }
 
 /**************************************************************************************************
- * Methods to call on Resource
+ * REST methods to call on Resource
  *************************************************************************************************/
  
     /**
