@@ -56,7 +56,6 @@ interface InterfaceObjectInterface
      */
     public function all(Resource $src): array;
 
-    public function getParentInterface();
     public function getSubinterface(string $ifcId): InterfaceObjectInterface;
     public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface;
     public function getInterfaceFlattened();

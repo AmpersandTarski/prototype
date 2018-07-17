@@ -331,7 +331,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * @throws Exception when $this is not a reference interface
      * @return InterfaceObjectInterface
      */
-    public function getRefToIfc()
+    protected function getRefToIfc()
     {
         if ($this->isRef()) {
             return InterfaceObjectFactory::getInterface($this->refInterfaceId);
@@ -456,16 +456,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
     public function getQuery(): string
     {
         return str_replace('_SESSION', session_id(), $this->query); // Replace _SESSION var with current session id.
-    }
-
-    /**
-     * Returns parent interface object (or null if not applicable)
-     *
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface|null
-     */
-    public function getParentInterface()
-    {
-        return $this->parentIfc;
     }
     
     /**

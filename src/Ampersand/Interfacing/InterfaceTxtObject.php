@@ -189,16 +189,6 @@ class InterfaceTxtObject extends InterfaceExprObject
     {
         throw new Exception("N.a. for InterfaceTxtObject", 500);
     }
-
-    /**
-     * Returns parent interface object (or null if not applicable)
-     *
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface|null
-     */
-    public function getParentInterface()
-    {
-        return $this->parentIfc;
-    }
     
     /**
      * @param string $ifcId

@@ -10,6 +10,7 @@ namespace Ampersand\Interfacing;
 use Ampersand\Core\Atom;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
+use Ampersand\Model\InterfaceObjectFactory;
 
 /**
  *
@@ -18,6 +19,11 @@ use Ampersand\Interfacing\Options;
  */
 class InterfaceNullObject implements InterfaceObjectInterface
 {
+    public function getSubinterface(string $ifcId): InterfaceObjectInterface
+    {
+        return InterfaceObjectFactory::getInterface($ifcId);
+    }
+
     public function getViewData(Atom $tgtAtom): array
     {
         return $tgtAtom->concept->getViewData($tgtAtom);
