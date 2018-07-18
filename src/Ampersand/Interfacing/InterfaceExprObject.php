@@ -16,7 +16,7 @@ use Ampersand\Misc\Config;
 use function Ampersand\Misc\isSequential;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Interfacing\Options;
-use Ampersand\Model\InterfaceObjectFactory;
+use Ampersand\Interfacing\InterfaceObjectFactory;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 

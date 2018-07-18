@@ -9,7 +9,7 @@ namespace Ampersand;
 
 use Exception;
 use Ampersand\Rule\Rule;
-use Ampersand\Model\InterfaceObjectFactory;
+use Ampersand\Interfacing\InterfaceObjectFactory;
 
 /**
  *

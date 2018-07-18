@@ -12,7 +12,7 @@ use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\IO\AbstractWriter;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Relation;
-use Ampersand\Model\InterfaceObjectFactory;
+use Ampersand\Interfacing\InterfaceObjectFactory;
 
 class Reporter
 {

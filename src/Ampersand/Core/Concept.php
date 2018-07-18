@@ -19,7 +19,6 @@ use Ampersand\Misc\Config;
 use Ampersand\Transaction;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
-use Ampersand\Model\InterfaceObjectFactory;
 
 /**
  *

@@ -5,7 +5,7 @@
  *
  */
 
-namespace Ampersand\Model;
+namespace Ampersand\Interfacing;
 
 use Exception;
 use Ampersand\Interfacing\InterfaceExprObject;

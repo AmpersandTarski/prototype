@@ -26,7 +26,7 @@ use Closure;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Misc\Generics;
-use Ampersand\Model\InterfaceObjectFactory;
+use Ampersand\Interfacing\InterfaceObjectFactory;
 
 class AmpersandApp
 {

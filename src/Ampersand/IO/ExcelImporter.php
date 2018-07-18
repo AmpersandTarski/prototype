@@ -13,7 +13,7 @@ use PHPExcel_IOFactory;
 use PHPExcel_Worksheet;
 use PHPExcel_Worksheet_Row;
 use Psr\Log\LoggerInterface;
-use Ampersand\Model\InterfaceObjectFactory;
+use Ampersand\Interfacing\InterfaceObjectFactory;
 
 class ExcelImporter
 {

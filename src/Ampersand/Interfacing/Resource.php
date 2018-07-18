@@ -17,7 +17,7 @@ use function Ampersand\Misc\isSequential;
 use Ampersand\Misc\Config;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceTxtObject;
-use Ampersand\Model\InterfaceObjectFactory;
+use Ampersand\Interfacing\InterfaceObjectFactory;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\ResourcePath;
 
