@@ -82,7 +82,7 @@ $api->group('/resource', function () {
         }
         
         // Don't save/commit new resource (yet)
-        return $response->withJson($resource, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson($resource->get(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
     $this->get('/{resourceType}/{resourceId}', function (Request $request, Response $response, $args = []) {
@@ -99,7 +99,7 @@ $api->group('/resource', function () {
             throw new Exception("Resource '{$resource}' not found", 404);
         }
 
-        return $response->withJson($resource, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson($resource->get(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
     // GET for interfaces that start with other resource
