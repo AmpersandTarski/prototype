@@ -62,13 +62,7 @@ class ResourceList
      */
     public function __construct(Resource $src, InterfaceExprObject $ifc, bool $skipAccessCheck = false)
     {
-        /** @var \Pimple\Container $container */
-        global $container; // TODO: remove dependency on global $container var
         $this->logger = Logger::getLogger('INTERFACING');
-        
-        if ($ifc->isRoot() && !$container['ampersand_app']->isAccessibleIfc($ifc) && !$skipAccessCheck) {
-            throw new Exception("Unauthorized to access interface {$ifc}", 403);
-        }
         
         // Epsilon. TODO: remove after multiple concept specifications are possible for Atom objects
         if ($src->concept !== $ifc->srcConcept) {

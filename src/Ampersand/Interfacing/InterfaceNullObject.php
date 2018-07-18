@@ -19,9 +19,18 @@ use Ampersand\Model\InterfaceObjectFactory;
  */
 class InterfaceNullObject implements InterfaceObjectInterface
 {
-    public function getSubinterface(string $ifcId): InterfaceObjectInterface
+    public function getSubinterface(string $ifcId, bool $skipAccessCheck = false): InterfaceObjectInterface
     {
-        return InterfaceObjectFactory::getInterface($ifcId);
+        /** @var \Pimple\Container $container */
+        global $container; // TODO: remove dependency on global $container var
+        
+        $ifc = InterfaceObjectFactory::getInterface($ifcId);
+
+        if (!$container['ampersand_app']->isAccessibleIfc($ifc) && !$skipAccessCheck) {
+            throw new Exception("Unauthorized to access interface {$ifc}", 403);
+        }
+
+        return $ifc;
     }
 
     public function getViewData(Atom $tgtAtom): array
