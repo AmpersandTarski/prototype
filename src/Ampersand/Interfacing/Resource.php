@@ -347,7 +347,7 @@ class Resource extends Atom implements ArrayAccess
                 case "remove":
                     // Regular json patch remove operation, uses last part of 'path' attribuut as resource to remove from list
                     if (!property_exists($patch, 'value')) {
-                        if(!is_null($ifc)) {
+                        if (!is_null($ifc)) {
                             throw new Exception("Cannot patch remove. Path for patch #{$key} MUST end with a resource ór contain a patch value", 400);
                         }
                         $resource->ifc->remove($resource->parent, $resource);

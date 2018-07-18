@@ -418,17 +418,6 @@ class Concept
     {
         return $this->mysqlConceptTable;
     }
-    
-    /**
-     *
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
-     */
-    public function getInterfaces(): array
-    {
-        return array_map(function ($ifcId) {
-            $ifc = InterfaceObjectFactory::getInterface($ifcId);
-        }, $this->interfaceIds);
-    }
 
     /**
      * Get registered plugs for this concept
