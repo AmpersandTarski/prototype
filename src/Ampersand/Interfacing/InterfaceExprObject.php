@@ -719,7 +719,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
         
         // If interface is editable, also add tuple(src, tgt) in interface relation
         if ($this->isEditable()) {
-            $this->add($resource->id, true);
+            $this->add($src, $resource->id, true);
         } else {
             $resource->add();
         }
@@ -762,9 +762,9 @@ class InterfaceExprObject implements InterfaceObjectInterface
             
             if ($this->tgtConcept->isObject()) {
                 if (is_null($value) || is_string($value)) { // null object or string
-                    $this->set($value);
+                    $this->set($src, $value);
                 } elseif (isset($value->_id_)) { // object with _id_ attribute
-                    $this->set($value->_id_);
+                    $this->set($src, $value->_id_);
                 } elseif ($this->isIdent()) { // Ident object => no need for object id
                     // go deeper into PUT when interface expression equals 'I'
                     $this->makeResource($src->id, $src)->put($value);
@@ -772,7 +772,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
                     throw new Exception("Cannot identify provided object while updating " . $this->getPath(), 400);
                 }
             } else { // expect value to be literal (i.e. non-object) or null
-                $this->set($value);
+                $this->set($src, $value);
             }
         } else { // expect value to be array
             if (!is_array($value)) {
@@ -780,7 +780,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
             }
             
             // First empty existing list
-            $this->removeAll();
+            $this->removeAll($src);
             
             // Add provided values
             foreach ($value as $item) {
@@ -790,18 +790,133 @@ class InterfaceExprObject implements InterfaceObjectInterface
                     }
                     
                     if (is_string($item)) { // string
-                        $this->add($item);
+                        $this->add($src, $item);
                     } elseif (isset($item->_id_)) { // object with _id_ attribute
-                        $this->add($item->_id_);
+                        $this->add($src, $item->_id_);
                     } else {
                         throw new Exception("Cannot identify provided object while updating " . $this->getPath(), 400);
                     }
                 } else { // expect item to be literal (i.e. non-object) or null
-                    $this->add($item);
+                    $this->add($src, $item);
                 }
             }
         }
         
+        return true;
+    }
+
+    /**
+     * Set provided value (for univalent interfaces)
+     *
+     * @param \Ampersand\Core\Atom $src
+     * @param mixed|null $value
+     * @return bool
+     */
+    public function set(Atom $src, $value = null): bool
+    {
+        if (!$this->isUni()) {
+            throw new Exception("Cannot use set() for non-univalent interface " . $this->getPath() . ". Use add or remove instead", 400);
+        }
+        
+        // Handle Ampersand properties [PROP]
+        if ($this->isProp()) {
+            if ($value === true) {
+                $this->add($src, $src->id);
+            } elseif ($value === false) {
+                $this->remove($src, $src->id);
+            } else {
+                throw new Exception("Boolean expected, non-boolean provided.", 400);
+            }
+        } else {
+            if (is_null($value)) {
+                $this->removeAll($src);
+            } else {
+                $this->add($src, $value);
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+     * Add value to resource list
+     * @param \Ampersand\Core\Atom $src
+     * @param mixed $value
+     * @param bool $skipCrudUCheck
+     * @return bool
+     */
+    public function add(Atom $src, $value, bool $skipCrudUCheck = false): bool
+    {
+        if (!isset($value)) {
+            throw new Exception("Cannot add item. Value not provided", 400);
+        }
+        if (is_object($value) || is_array($value)) {
+            throw new Exception("Literal expected but " . gettype($value) . " provided while updating " . $this->getPath(), 400);
+        }
+        
+        if (!$this->isEditable()) {
+            throw new Exception("Interface is not editable " . $this->getPath(), 405);
+        }
+        if (!$this->crudU() && !$skipCrudUCheck) {
+            throw new Exception("Update not allowed for " . $this->getPath(), 405);
+        }
+        
+        $tgt = new Atom($value, $this->tgtConcept);
+        if ($tgt->concept->isObject() && !$this->crudC() && !$tgt->exists()) {
+            throw new Exception("Create not allowed for " . $this->getPath(), 405);
+        }
+        
+        $tgt->add();
+        $src->link($tgt, $this->relation(), $this->relationIsFlipped)->add();
+        
+        return true;
+    }
+
+    /**
+     * Remove value from resource list
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    public function remove(Atom $src, $value): bool
+    {
+        if (!isset($value)) {
+            throw new Exception("Cannot remove item. Value not provided", 400);
+        }
+        if (is_object($value) || is_array($value)) {
+            throw new Exception("Literal expected but " . gettype($value) . " provided while updating " . $this->getPath(), 400);
+        }
+        
+        if (!$this->isEditable()) {
+            throw new Exception("Interface is not editable " . $this->getPath(), 405);
+        }
+        if (!$this->crudU()) {
+            throw new Exception("Update not allowed for " . $this->getPath(), 405);
+        }
+        
+        $tgt = new Atom($value, $this->tgtConcept);
+        $src->link($tgt, $this->relation(), $this->relationIsFlipped)->delete();
+        
+        return true;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param \Ampersand\Core\Atom $src
+     * @return bool
+     */
+    protected function removeAll(Atom $src): bool
+    {
+        if (!$this->isEditable()) {
+            throw new Exception("Interface is not editable " . $this->ifc->getPath(), 405);
+        }
+        if (!$this->crudU()) {
+            throw new Exception("Update not allowed for " . $this->ifc->getPath(), 405);
+        }
+        
+        $this->relation->deleteAllLinks($src, ($this->relationIsFlipped ? 'tgt' : 'src'));
+
         return true;
     }
 
