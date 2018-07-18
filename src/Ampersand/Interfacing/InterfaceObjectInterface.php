@@ -59,10 +59,9 @@ interface InterfaceObjectInterface
     public function getSubinterface(string $ifcId): InterfaceObjectInterface;
     public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface;
     public function getInterfaceFlattened();
+    public function getTechDetails(): array;
 
     public function getViewData(Atom $tgtAtom): array;
-
-    public function getTechDetails(): array;
 
     public function get(Resource $src, Resource $tgt = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
     public function put(Resource $src, $newTgts): bool;

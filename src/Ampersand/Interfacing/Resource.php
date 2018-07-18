@@ -212,6 +212,10 @@ class Resource extends Atom implements ArrayAccess
         return $this->path;
     }
 
+    public function getProperty(string $ifcId)
+    {
+        return $this->ifc->getProperty($this, $ifcId);
+    }
 
 /**************************************************************************************************
  * ArrayAccess methods
@@ -266,11 +270,6 @@ class Resource extends Atom implements ArrayAccess
     public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         return $this->ifc->get($this, $options, $depth, $recursionArr);
-    }
-
-    public function getProperty(string $ifcId)
-    {
-        return $this->ifc->getProperty($this, $ifcId);
     }
     
     /**

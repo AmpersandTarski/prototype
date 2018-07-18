@@ -25,6 +25,13 @@ class InterfaceObjectFactory
      */
     private static $allInterfaces; // contains all interface objects
     
+    public static function getNullObject(): InterfaceObjectInterface
+    {
+        static $ifc = null;
+
+        return $ifc ?? $ifc = new InterfaceNullObject();
+    }
+
     /**
      * Returns if interface exists
      * @var string $ifcId Identifier of interface
@@ -46,15 +53,8 @@ class InterfaceObjectFactory
         if (!array_key_exists($ifcId, $interfaces = self::getAllInterfaces())) {
             throw new Exception("Interface '{$ifcId}' is not defined", 500);
         }
-        
+
         return $interfaces[$ifcId];
-    }
-
-    public static function getNullObject(): InterfaceObjectInterface
-    {
-        static $ifc = null;
-
-        return $ifc ?? $ifc = new InterfaceNullObject();
     }
     
     /**
