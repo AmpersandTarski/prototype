@@ -588,7 +588,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
         }
     }
 
-    public function get(Resource $src, Resource $tgt = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for ". $this->getPath(), 405);
@@ -599,7 +599,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
 
         // Object nodes
         if ($this->tgtConcept->isObject()) {
-            foreach ($this->getTgtResources($src, true, $tgt->id) as $resource) {
+            foreach ($this->getTgtResources($src, true) as $resource) {
                 $result[] = $this->getResourceContent($resource, $options, $depth, $recursionArr);
             }
             
@@ -620,7 +620,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
         }
 
         // Return result
-        if ($this->isUni || !is_null($tgt)) { // single object
+        if ($this->isUni) { // single object
             return empty($result) ? null : current($result);
         } else { // array
             return $result;
@@ -686,7 +686,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
                 }
                 
                 // Add content of subifc
-                $content[$subifc->getIfcId()] = $subcontent = $subifc->get($resource, null, $options, $depth, $recursionArr);
+                $content[$subifc->getIfcId()] = $subcontent = $subifc->read($resource, $options, $depth, $recursionArr);
                 
                 // Add sort data if subIfc is univalent
                 if ($subifc->isUni() && $addSortValues) {

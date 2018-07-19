@@ -269,7 +269,7 @@ class Resource extends Atom implements ArrayAccess
      */
     public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
-        return $this->ifc->get($this, $options, $depth, $recursionArr);
+        return $this->ifc->read($this, $options, $depth, $recursionArr);
     }
     
     /**

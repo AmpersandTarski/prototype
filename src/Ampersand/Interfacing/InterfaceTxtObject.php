@@ -228,7 +228,7 @@ class InterfaceTxtObject extends InterfaceExprObject
         return [];
     }
 
-    public function get(Resource $src, Resource $tgt = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         return $this->txt;
     }

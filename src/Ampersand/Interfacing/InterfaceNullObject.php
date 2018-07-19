@@ -38,7 +38,7 @@ class InterfaceNullObject implements InterfaceObjectInterface
         return $tgtAtom->concept->getViewData($tgtAtom);
     }
 
-    public function get(Resource $src, Resource $tgt = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         // User interface data (_id_, _label_ and _view_ and _path_)
         if ($options & Options::INCLUDE_UI_DATA) {
