@@ -7,6 +7,7 @@ use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceController;
 use Slim\Http\Request;
 use Slim\Http\Response;
+use Ampersand\Interfacing\ResourceFactory;
 
 /**
  * @var \Slim\Slim $api
@@ -59,7 +60,7 @@ $api->group('/resource', function () {
             throw new Exception("You do not have access for this call", 403);
         }
         
-        $resources = Resource::getAllResources($args['resourceType']);
+        $resources = ResourceFactory::getAllResources($args['resourceType']);
         
         return $response->withJson($resources, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
@@ -68,7 +69,7 @@ $api->group('/resource', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['appContainer']['ampersand_app'];
 
-        $resource = Resource::makeNewResource($args['resourceType']);
+        $resource = ResourceFactory::makeNewResource($args['resourceType']);
 
         $allowed = false;
         foreach ($ampersandApp->getAccessibleInterfaces() as $ifc) {
@@ -89,7 +90,7 @@ $api->group('/resource', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['appContainer']['ampersand_app'];
 
-        $resource = Resource::makeResource($args['resourceId'], $args['resourceType']);
+        $resource = ResourceFactory::makeResource($args['resourceId'], $args['resourceType']);
         
         // Checks
         if (!$ampersandApp->isEditableConcept($resource->concept)) {
@@ -115,7 +116,7 @@ $api->group('/resource', function () {
         
         // Prepare
         $controller = new InterfaceController($ampersandApp, $angularApp);
-        $resource = Resource::makeResource($args['resourceId'], $args['resourceType']);
+        $resource = ResourceFactory::makeResource($args['resourceId'], $args['resourceType']);
 
         // Output
         return $response->withJson($controller->get($resource, $args['ifcPath'], $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -136,7 +137,7 @@ $api->group('/resource', function () {
         
         // Prepare
         $controller = new InterfaceController($ampersandApp, $angularApp);
-        $resource = Resource::makeResource($args['resourceId'], $args['resourceType']);
+        $resource = ResourceFactory::makeResource($args['resourceId'], $args['resourceType']);
 
         // Output
         switch ($request->getMethod()) {
@@ -157,7 +158,7 @@ $api->group('/resource', function () {
         /** @var \Ampersand\AngularApp $angularApp */
         $angularApp = $this['appContainer']['angular_app'];
 
-        $resource = Resource::makeResource($args['resourceId'], $args['resourceType']);
+        $resource = ResourceFactory::makeResource($args['resourceId'], $args['resourceType']);
 
         $controller = new InterfaceController($ampersandApp, $angularApp);
 

@@ -8,6 +8,7 @@ use Ampersand\Interfacing\Resource;
 use Ampersand\Log\Logger;
 use Ampersand\Transaction;
 use Ampersand\AmpersandApp;
+use Ampersand\Interfacing\ResourceFactory;
 
 /**
  * @var \Pimple\Container $container
@@ -220,11 +221,11 @@ class OAuthLoginController
             throw new Exception("No emailaddress provided to login", 500);
         }
         
-        $accounts = Resource::makeResource($email, 'UserID')->all('AccountForUserid', true);
+        $accounts = ResourceFactory::makeResource($email, 'UserID')->all('AccountForUserid', true);
         
         // Create new account
         if (iterator_count($accounts) == 0) {
-            $account = Resource::makeNewResource('Account');
+            $account = ResourceFactory::makeNewResource('Account');
             
             // Save email as accUserid
             $account->link($email, 'accUserid[Account*UserID]')->add();
@@ -232,7 +233,7 @@ class OAuthLoginController
             try {
                 // If possible, add account to organization(s) based on domain name
                 $domain = explode('@', $email)[1];
-                $orgs = Resource::makeResource($domain, 'Domain')->all('DomainOrgs', true);
+                $orgs = ResourceFactory::makeResource($domain, 'Domain')->all('DomainOrgs', true);
                 foreach ($orgs as $org) {
                     $account->link($org, 'accOrg[Account*Organization]')->add();
                 }

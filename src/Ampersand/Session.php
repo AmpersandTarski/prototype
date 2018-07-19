@@ -90,7 +90,7 @@ class Session
     protected function initSessionAtom()
     {
         $this->sessionAtom = Concept::makeSessionAtom($this->id);
-        $this->sessionResource = Resource::makeResourceFromAtom($this->sessionAtom);
+        $this->sessionResource = ResourceFactory::makeResourceFromAtom($this->sessionAtom);
         
         // Create a new Ampersand session atom if not yet in SESSION table (i.e. new php session)
         if (!$this->sessionAtom->exists()) {

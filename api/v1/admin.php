@@ -18,6 +18,7 @@ use Ampersand\Interfacing\Resource;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Ampersand\Session;
+use Ampersand\Interfacing\ResourceFactory;
 
 /**
  * @var \Slim\App $api
@@ -52,7 +53,7 @@ $api->group('/admin', function () {
         $transaction = Transaction::getCurrentTransaction();
 
         foreach ($list as $item) {
-            $resource = Resource::makeResource($item->oldId, $resourceType);
+            $resource = ResourceFactory::makeResource($item->oldId, $resourceType);
             $resource->rename($item->newId);
         }
         
