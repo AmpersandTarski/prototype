@@ -63,9 +63,15 @@ interface InterfaceObjectInterface
 
     public function getViewData(Atom $tgtAtom): array;
 
-    public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
-    public function put(Resource $src, $newTgts): bool;
-    public function create(Resource $src, $resourceToPost): Resource;
-    public function remove(Resource $srcAtom, $value): bool;
-    public function delete(Resource $tgtAtom): bool;
+    // Create
+    public function create(Atom $src, $resourceToPost): Resource;
+    // Read
+    public function read(Atom $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
+    // Update
+    public function set(Atom $src, $value = null): bool;
+    public function add(Atom $src, $value): bool;
+    public function remove(Atom $src, $value): bool;
+    public function removeAll(Atom $src): bool;
+    // Delete
+    public function delete(Atom $tgtAtom): bool;
 }
