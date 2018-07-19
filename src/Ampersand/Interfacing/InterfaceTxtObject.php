@@ -233,11 +233,6 @@ class InterfaceTxtObject extends InterfaceExprObject
         return $this->txt;
     }
 
-    public function put(Resource $tgtAtom, $value): bool
-    {
-        throw new Exception("Put operation not implemented for TXT interface object", 501);
-    }
-
     public function delete(Resource $tgtAtom): bool
     {
         throw new Exception("Detele operation not implemented for TXT interface object", 501);

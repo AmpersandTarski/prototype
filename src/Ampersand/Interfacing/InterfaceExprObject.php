@@ -753,58 +753,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
         }
     }
 
-    public function put(Resource $src, $value): bool
-    {
-        if ($this->isUni()) { // expect value to be object or literal
-            if (is_array($value)) {
-                throw new Exception("Non-array expected but array provided while updating " . $this->getPath(), 400);
-            }
-            
-            if ($this->tgtConcept->isObject()) {
-                if (is_null($value) || is_string($value)) { // null object or string
-                    $this->set($src, $value);
-                } elseif (isset($value->_id_)) { // object with _id_ attribute
-                    $this->set($src, $value->_id_);
-                } elseif ($this->isIdent()) { // Ident object => no need for object id
-                    // go deeper into PUT when interface expression equals 'I'
-                    $this->makeResource($src->id, $src)->put($value);
-                } else {
-                    throw new Exception("Cannot identify provided object while updating " . $this->getPath(), 400);
-                }
-            } else { // expect value to be literal (i.e. non-object) or null
-                $this->set($src, $value);
-            }
-        } else { // expect value to be array
-            if (!is_array($value)) {
-                throw new Exception("Array expected but not provided while updating " . $this->getPath(), 400);
-            }
-            
-            // First empty existing list
-            $this->removeAll($src);
-            
-            // Add provided values
-            foreach ($value as $item) {
-                if ($this->tgtConcept->isObject()) { // expect item to be object
-                    if (!is_object($item)) {
-                        throw new Exception("Object expected but " . gettype($item) . " provided while updating " . $this->getPath(), 400);
-                    }
-                    
-                    if (is_string($item)) { // string
-                        $this->add($src, $item);
-                    } elseif (isset($item->_id_)) { // object with _id_ attribute
-                        $this->add($src, $item->_id_);
-                    } else {
-                        throw new Exception("Cannot identify provided object while updating " . $this->getPath(), 400);
-                    }
-                } else { // expect item to be literal (i.e. non-object) or null
-                    $this->add($src, $item);
-                }
-            }
-        }
-        
-        return true;
-    }
-
     /**
      * Set provided value (for univalent interfaces)
      *
@@ -817,6 +765,10 @@ class InterfaceExprObject implements InterfaceObjectInterface
         if (!$this->isUni()) {
             throw new Exception("Cannot use set() for non-univalent interface " . $this->getPath() . ". Use add or remove instead", 400);
         }
+
+        if (is_array($value)) {
+            throw new Exception("Non-array expected but array provided while updating " . $this->getPath(), 400);
+        }
         
         // Handle Ampersand properties [PROP]
         if ($this->isProp()) {
@@ -827,6 +779,9 @@ class InterfaceExprObject implements InterfaceObjectInterface
             } else {
                 throw new Exception("Boolean expected, non-boolean provided.", 400);
             }
+        } elseif ($this->isIdent()) { // Ident object => no need for object id
+            // go deeper into PUT when interface expression equals 'I'
+            $this->makeResource($src->id, $src)->put($value);
         } else {
             if (is_null($value)) {
                 $this->removeAll($src);
@@ -906,7 +861,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * @param \Ampersand\Core\Atom $src
      * @return bool
      */
-    protected function removeAll(Atom $src): bool
+    public function removeAll(Atom $src): bool
     {
         if (!$this->isEditable()) {
             throw new Exception("Interface is not editable " . $this->ifc->getPath(), 405);

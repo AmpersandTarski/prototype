@@ -294,7 +294,30 @@ class Resource extends Atom implements ArrayAccess
                 Logger::getLogger('INTERFACING')->warning("Unknown attribute '{$ifcId}' in PUT data");
                 continue;
             }
-            $subifc->put($this, $value);
+
+            if ($subifc->isUni()) { // expect value to be object or literal
+                if (isset($value->_id_)) { // object with _id_ attribute
+                    $this->ifc->set($this, $value->_id_);
+                } else { // null object, string (object id) or literal
+                    $this->ifc->set($this, $value);
+                }
+            } else { // expect value to be array
+                if (!is_array($value)) {
+                    throw new Exception("Array expected but not provided while updating " . $subifc->getPath(), 400);
+                }
+                
+                // First empty existing list
+                $this->removeAll($src);
+                
+                // Add provided values
+                foreach ($value as $item) {
+                    if (isset($item->_id_)) { // object with _id_ attribute
+                        $this->ifc->add($this, $item->_id_);
+                    } else { // null object, string (object id) or literal
+                        $this->ifc->add($this, $item);
+                    }
+                }
+            }
         }
         
         // Clear query data

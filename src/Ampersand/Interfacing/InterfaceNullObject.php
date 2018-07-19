@@ -60,11 +60,6 @@ class InterfaceNullObject implements InterfaceObjectInterface
         }
     }
 
-    public function put(Resource $tgtAtom, $value): bool
-    {
-        throw new Exception("Cannot perform put without interface specification", 400);
-    }
-
     public function delete(Resource $tgtAtom): bool
     {
         throw new Exception("Cannot perform delete without interface specification", 400);
