@@ -932,27 +932,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
         return true;
     }
 
-    public function getTechDetails(): array
-    {
-        return
-            [ 'path' => $this->getPath()
-            , 'label' => $this->getIfcLabel()
-            , 'crudR' => $this->crudR()
-            , 'crudU' => $this->crudU()
-            , 'crudD' => $this->crudD()
-            , 'crudC' => $this->crudC()
-            , 'src' => $this->srcConcept->name
-            , 'tgt' => $this->tgtConcept->name
-            , 'view' => $this->view->label ?? ''
-            , 'relation' => $this->relation()->signature ?? ''
-            , 'flipped' => $this->relationIsFlipped
-            , 'ref' => $this->refInterfaceId
-            , 'root' => $this->isRoot()
-            , 'public' => $this->isPublic()
-            , 'roles' => implode(',', $this->ifcRoleNames)
-            ];
-    }
-
     /**
      * Undocumented function
      *
@@ -1029,5 +1008,26 @@ class InterfaceExprObject implements InterfaceObjectInterface
     {
         $resourceId = $this->tgtConcept->createNewAtomId();
         return $this->makeResource($resourceId, $parent);
+    }
+
+    public function getTechDetails(): array
+    {
+        return
+            [ 'path' => $this->getPath()
+            , 'label' => $this->getIfcLabel()
+            , 'crudR' => $this->crudR()
+            , 'crudU' => $this->crudU()
+            , 'crudD' => $this->crudD()
+            , 'crudC' => $this->crudC()
+            , 'src' => $this->srcConcept->name
+            , 'tgt' => $this->tgtConcept->name
+            , 'view' => $this->view->label ?? ''
+            , 'relation' => $this->relation()->signature ?? ''
+            , 'flipped' => $this->relationIsFlipped
+            , 'ref' => $this->refInterfaceId
+            , 'root' => $this->isRoot()
+            , 'public' => $this->isPublic()
+            , 'roles' => implode(',', $this->ifcRoleNames)
+            ];
     }
 }
