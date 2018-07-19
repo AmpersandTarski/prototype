@@ -533,7 +533,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
         if ($this->isLinkTo && $container['ampersand_app']->isAccessibleIfc($refIfc = $this->getRefToIfc())) {
             $ifcs[] = $refIfc;
         } else {
-            $ifcs = $container['ampersand_app']->getInterfacesToReadConcepts([$this->tgtConcept]);
+            $ifcs = $container['ampersand_app']->getInterfacesToReadConcept($this->tgtConcept);
         }
         
         return $ifcs;

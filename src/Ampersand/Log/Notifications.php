@@ -165,21 +165,32 @@ class Notifications
      */
     public static function addSignal(Violation $violation)
     {
+        /** @var \Pimple\Container $container */
+        global $container; // TODO: remove dependency to global $container var
+
         $ruleHash = hash('md5', $violation->rule->id);
         
         if (!isset(self::$signals[$ruleHash])) {
             self::$signals[$ruleHash]['message'] = $violation->rule->getViolationMessage();
         }
         
-        $ifcs = [];
-        foreach ($violation->getInterfaces('src') as $ifc) {
-            $ifcs[] = ['id' => $ifc->getIfcId(), 'label' => $ifc->getIfcLabel(), 'link' => "#/{$ifc->getIfcId()}/{$violation->src->id}"];
-        }
+        // Add links for src atom
+        $ifcs = array_map(function ($ifc) use ($violation) {
+            return ['id' => $ifc->getIfcId(),
+                    'label' => $ifc->getIfcLabel(),
+                    'link' => "#/{$ifc->getIfcId()}/{$violation->src->id}"
+                    ];
+        }, $container['ampersand_app']->getInterfacesToReadConcept($violation->src->concept));
+        // Add links for tgt atom (if not the same as src atom)
         if ($violation->src->concept != $violation->tgt->concept || $violation->src->id != $violation->tgt->id) {
-            foreach ($violation->getInterfaces('tgt') as $ifc) {
-                $ifcs[] = ['id' => $ifc->getIfcId(), 'label' => $ifc->getIfcLabel(), 'link' => "#/{$ifc->getIfcId()}/{$violation->tgt->id}"];
-            }
+            array_merge($ifcs, array_map(function ($ifc) use ($violation) {
+                return ['id' => $ifc->getIfcId(),
+                        'label' => $ifc->getIfcLabel(),
+                        'link' => "#/{$ifc->getIfcId()}/{$violation->tgt->id}"
+                        ];
+            }));
         }
+
         $message = $violation->getViolationMessage();
         
         self::$signals[$ruleHash]['violations'][] = ['message' => $message

@@ -445,24 +445,16 @@ class AmpersandApp
 
     /**
      * Get interfaces that are accessible in the current session to 'Read' a certain concept
-     * @param \Ampersand\Core\Concept[] $concepts
+     * @param \Ampersand\Core\Concept $cpt
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
-    public function getInterfacesToReadConcepts($concepts)
+    public function getInterfacesToReadConcept(Concept $cpt)
     {
-        return array_values(
-            array_filter($this->accessibleInterfaces, function ($ifc) use ($concepts) {
-                foreach ($concepts as $cpt) {
-                    if ($ifc->srcConcept->hasSpecialization($cpt, true)
-                        && $ifc->crudR()
-                        && (!$ifc->crudC() or ($ifc->crudU() or $ifc->crudD()))
-                        ) {
-                        return true;
-                    }
-                }
-                return false;
-            })
-        );
+        return array_filter($this->accessibleInterfaces, function ($ifc) use ($cpt) {
+            return $ifc->srcConcept->hasSpecialization($cpt, true)
+                    && $ifc->crudR()
+                    && (!$ifc->crudC() or ($ifc->crudU() or $ifc->crudD())); // exclude CRud pattern
+        });
     }
 
     /**
