@@ -64,7 +64,7 @@ interface InterfaceObjectInterface
     public function getViewData(Atom $tgtAtom): array;
 
     // Create
-    public function create(Atom $src, $resourceToPost): Resource;
+    public function create(Atom $src, $tgtId = null): Resource;
     // Read
     public function read(Atom $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
     // Update

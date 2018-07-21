@@ -395,7 +395,35 @@ class Resource extends Atom implements ArrayAccess
 
     public function post($subIfcId, $resourceToPost): Resource
     {
-        return $this->ifc->getSubinterface($subIfcId)->create($this, $resourceToPost);
+        $newResource = $this->ifc->getSubinterface($subIfcId)->create($this, $resourceToPost);
+
+        // Special case for file upload
+        if ($newResource->concept->isFileObject()) {
+            if (is_uploaded_file($_FILES['file']['tmp_name'])) {
+                $tmp_name = $_FILES['file']['tmp_name'];
+                $originalFileName = $_FILES['file']['name'];
+
+                $dest = getSafeFileName(Config::get('absolutePath') . Config::get('uploadPath'). $originalFileName);
+                $relativePath = Config::get('uploadPath') . pathinfo($dest, PATHINFO_BASENAME);
+                
+                $result = move_uploaded_file($tmp_name, $dest);
+                
+                if (!$result) {
+                    throw new Exception("Error in file upload", 500);
+                }
+                
+                // Populate filePath and originalFileName relations in database
+                $newResource->link($relativePath, 'filePath[FileObject*FilePath]')->add();
+                $newResource->link($originalFileName, 'originalFileName[FileObject*FileName]')->add();
+            } else {
+                throw new Exception("No file uploaded", 400);
+            }
+            return $newResource;
+        // Regular case
+        } else {
+            // Put resource attributes
+            return $newResource->put($resourceToPost);
+        }
     }
     
     /**

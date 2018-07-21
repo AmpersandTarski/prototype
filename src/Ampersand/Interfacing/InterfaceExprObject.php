@@ -699,20 +699,18 @@ class InterfaceExprObject implements InterfaceObjectInterface
         return $content;
     }
 
-    public function create(Resource $src, $resourceToPost): Resource
+    public function create(Resource $src, $tgtId = null): Resource
     {
         if (!$this->crudC()) {
             throw new Exception("Create not allowed for ". $this->getPath(), 405);
         }
         
-        // Use attribute '_id_' if provided
-        if (isset($resourceToPost->_id_)) {
-            $resource = $this->makeResource($resourceToPost->_id_, $src);
+        // Make new resource
+        if (isset($tgtId)) {
+            $resource = $this->makeResource($tgtId, $src);
             if ($resource->exists()) {
                 throw new Exception("Cannot create resource that already exists", 400);
             }
-        } elseif ($this->isIdent()) {
-            $resource = $this->makeResource($src->id, $src);
         } else {
             $resource = $this->makeNewResource($src);
         }
@@ -720,37 +718,10 @@ class InterfaceExprObject implements InterfaceObjectInterface
         // If interface is editable, also add tuple(src, tgt) in interface relation
         if ($this->isEditable()) {
             $this->add($src, $resource->id, true);
-        } else {
-            $resource->add();
         }
 
-        // Special case for file upload
-        if ($this->tgtConcept->isFileObject()) {
-            if (is_uploaded_file($_FILES['file']['tmp_name'])) {
-                $tmp_name = $_FILES['file']['tmp_name'];
-                $originalFileName = $_FILES['file']['name'];
-
-                $dest = getSafeFileName(Config::get('absolutePath') . Config::get('uploadPath'). $originalFileName);
-                $relativePath = Config::get('uploadPath') . pathinfo($dest, PATHINFO_BASENAME);
-                
-                $result = move_uploaded_file($tmp_name, $dest);
-                
-                if (!$result) {
-                    throw new Exception("Error in file upload", 500);
-                }
-                
-                // Populate filePath and originalFileName relations in database
-                $resource->link($relativePath, 'filePath[FileObject*FilePath]')->add();
-                $resource->link($originalFileName, 'originalFileName[FileObject*FileName]')->add();
-            } else {
-                throw new Exception("No file uploaded", 400);
-            }
-            return $resource;
-        // Regular case
-        } else {
-            // Put resource attributes
-            return $resource->put($resourceToPost);
-        }
+        // Add to plug (database) and return
+        return $resource->add();
     }
 
     /**
