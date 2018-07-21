@@ -89,86 +89,32 @@ class AngularApp
     public function getMenuItems($menu)
     {
         global $container;
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $container['ampersand_app'];
 
         switch ($menu) {
             // Items for extension menu
             case 'ext':
-                $result = array_filter($this->extMenu, function ($item) use ($ampersandApp) {
+                return array_filter($this->extMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
-                break;
             
             // Items for refresh menu
             case 'refresh':
-                $result = array_filter($this->refreshMenu, function ($item) use ($ampersandApp) {
+                return array_filter($this->refreshMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
-                break;
             
             // Items for role menu
             case 'role':
-                $result = array_filter($this->roleMenu, function ($item) use ($ampersandApp) {
+                return array_filter($this->roleMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
-                break;
-            
+
             // Items in menu to create new resources (indicated with + sign)
             case 'new':
-                $result = [];
-                foreach ($this->getNavBarIfcs('new') as $ifc) {
-                    /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifc */
-                    $sort = $ifc->tgtConcept->name; // or sort by classification tree: $sort = $ifc->tgtConcept->getLargestConcept()->name;
-
-                    if (!isset($result[$sort])) {
-                        $result[$sort] = ['label' => "New {$ifc->tgtConcept->label}", 'ifcs' => []];
-                    }
-
-                    $result[$sort]['ifcs'][] = ['id' => $ifc->getIfcId()
-                                               ,'label' => $ifc->getIfcLabel()
-                                               ,'link' => '/' . $ifc->getIfcId()
-                                               ,'resourceType' => $ifc->tgtConcept->name
-                                               ];
-                }
-                break;
-            
-            // Top level items in menu bar
-            case 'top':
-                $result = array_map(function (InterfaceObjectInterface $ifc) {
-                    return [ 'id' => $ifc->getIfcId()
-                           , 'label' => $ifc->getIfcLabel()
-                           , 'link' => '/' . $ifc->getIfcId()
-                           ];
-                }, $this->getNavBarIfcs('top'));
-                break;
-            default:
-                throw new Exception("Cannot get menu items. Unknown menu: '{$menu}'", 500);
-                break;
-        }
-        
-        return array_values($result); // reindex array
-    }
-    
-    /**
-     * Get interfaces for certain use cases
-
-     * @param string $menu
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
-     */
-    protected function getNavBarIfcs(string $menu): array
-    {
-        global $container;
-
-        // Filter interfaces for requested part of navbar
-        return array_filter($container['ampersand_app']->getAccessibleInterfaces(), function (InterfaceObjectInterface $ifc) use ($menu) {
-            switch ($menu) {
-                case 'top':
-                    if ($ifc->srcConcept->isSession() && $ifc->crudR()) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                case 'new':
+                // Filter interfaces that are capable to create new Resources
+                $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (InterfaceObjectInterface $ifc) {
                     // crudC, otherwise the atom cannot be created
                     // isIdent (interface expr = I[Concept]), because otherwise a src atom is necesarry, which we don't have wiht +-menu
                     if ($ifc->crudC() && $ifc->isIdent()) {
@@ -176,10 +122,46 @@ class AngularApp
                     } else {
                         return false;
                     }
-                default:
-                    throw new Exception("Cannot get navbar interfaces. Unknown menu: '{$menu}'", 500);
-            }
-        });
+                });
+
+                // Prepare output and group by type
+                $result = [];
+                foreach ($interfaces as $ifc) {
+                    /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifc */
+                    $type = $ifc->getTargetConcept()->name; // or sort by classification tree: $sort = $ifc->getTargetConcept()->getLargestConcept()->name;
+
+                    if (!isset($result[$type])) {
+                        $result[$type] = ['label' => "New {$ifc->getTargetConcept()->label}", 'ifcs' => []];
+                    }
+
+                    $result[$type]['ifcs'][] = ['id' => $ifc->getIfcId()
+                                               ,'label' => $ifc->getIfcLabel()
+                                               ,'link' => '/' . $ifc->getIfcId()
+                                               ,'resourceType' => $type
+                                               ];
+                }
+                return $result;
+
+            // Top level items in menu bar
+            case 'top':
+                $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (InterfaceObjectInterface $ifc) {
+                    if ($ifc->getSourceConcept()->isSession() && $ifc->crudR()) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+
+                return array_map(function (InterfaceObjectInterface $ifc) {
+                    return [ 'id' => $ifc->getIfcId()
+                           , 'label' => $ifc->getIfcLabel()
+                           , 'link' => '/' . $ifc->getIfcId()
+                           ];
+                }, $interfaces);
+                
+            default:
+                throw new Exception("Cannot get menu items. Unknown menu: '{$menu}'", 500);
+        }
     }
 
     public function getNavToResponse($case)

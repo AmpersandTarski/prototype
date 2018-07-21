@@ -12,6 +12,7 @@ use Ampersand\Core\Atom;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
+use Ampersand\Core\Concept;
 
 /**
  *
@@ -27,6 +28,8 @@ interface InterfaceObjectInterface
     public function relation(): Relation;
     public function isEditable(): bool;
     public function getEditableConcepts();
+    public function getSourceConcept(): Concept;
+    public function getTargetConcept(): Concept;
     public function isProp(): bool;
 
     public function isRoot(): bool;
