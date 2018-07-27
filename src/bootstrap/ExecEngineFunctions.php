@@ -199,19 +199,14 @@ ExecEngine::registerFunction('NewStruct', function () use ($execEngineLogger) {
     $execEngineLogger->debug("Newstruct: atom '{$atom}' created");
 });
 
-// Use: VIOLATION (TXT "InsAtom;<concept>") -- this may not be of any use in Ampersand, though.
-ExecEngine::registerFunction('InsAtom', function (string $conceptName, string $atomId = null) use ($execEngineLogger) {
-    if (func_num_args() > 2) {
-        throw new Exception("InsAtom() expects max 2 arguments, but you have provided " . func_num_args(), 500);
+// Use: VIOLATION (TXT "InsAtom;<concept>")
+ExecEngine::registerFunction('InsAtom', function (string $conceptName) use ($execEngineLogger) {
+    if (func_num_args() != 1) {
+        throw new Exception("InsAtom() expects 1 argument, but you have provided " . func_num_args(), 500);
     }
 
     $concept = Concept::getConceptByLabel($conceptName);
-
-    if (is_null($atomId)) {
-        $atom = $concept->createNewAtom();
-    } else {
-        $atom = new Atom($atomId, $concept);
-    }
+    $atom = $concept->createNewAtom();
 
     // Add atom to concept set
     $atom->add();
@@ -366,7 +361,7 @@ ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($contain
         $execEngineLogger->debug("replaced navTo string with '{$navTo}'");
     }
 
-    if (empty($navTo)) {
+    if (empty($navTo) || $navTo == '_NULL') {
         return false;
     }
 
@@ -379,7 +374,7 @@ ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($conta
         $execEngineLogger->debug("replaced navTo string with '{$navTo}'");
     }
     
-    if (empty($navTo)) {
+    if (empty($navTo) || $navTo == '_NULL') {
         return false;
     }
     
