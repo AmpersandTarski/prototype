@@ -101,13 +101,11 @@ class Session
             // TODO: can be removed when meat-grinder populates this meta-relation by itself
             if (!Config::get('loginEnabled')) {
                 foreach (Role::getAllRoles() as $role) {
-                    $this->sessionAtom->link(Concept::makeRoleAtom($role->label), 'sessionAllowedRoles[SESSION*Role]')->add();
+                    $roleAtom = Concept::makeRoleAtom($role->label);
+                    $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*Role]')->add();
+                    // Activate all allowed roles by default
+                    $this->toggleActiveRole($roleAtom, true);
                 }
-            }
-
-            // Activate all allowed roles by default
-            foreach ($this->getSessionAllowedRoles() as $atom) {
-                $this->toggleActiveRole($atom, true);
             }
         } else {
             $experationTimeStamp = time() - Config::get('sessionExpirationTime');
