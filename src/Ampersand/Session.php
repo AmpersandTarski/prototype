@@ -17,6 +17,7 @@ use Ampersand\Misc\Config;
 use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
 use Ampersand\Core\Relation;
+use Ampersand\Log\Logger;
 
 /**
  * Class of session objects
@@ -112,7 +113,7 @@ class Session
             $experationTimeStamp = time() - Config::get('sessionExpirationTime');
             if ($_SESSION['lastAccess'] < $experationTimeStamp) {
                 $this->logger->debug("Session expired");
-                // if(Config::get('loginEnabled')) \Ampersand\Log\Logger::getUserLogger()->warning("Your session has expired, please login again");
+                Logger::getUserLogger()->warning("Your session has expired");
                 $this->reset();
                 return;
             }
