@@ -108,8 +108,7 @@ class Session
                 }
             }
         } else {
-            $experationTimeStamp = time() - Config::get('sessionExpirationTime');
-            if ($_SESSION['lastAccess'] < $experationTimeStamp) {
+            if (isset($_SESSION['lastAccess']) && (time() - $_SESSION['lastAccess'] > Config::get('sessionExpirationTime'))) {
                 $this->logger->debug("Session expired");
                 Logger::getUserLogger()->warning("Your session has expired");
                 $this->reset();
