@@ -82,6 +82,7 @@ class Session
 
     public function reset()
     {
+        $this->logger->debug("Reset session {$this->id}");
         $this->sessionAtom->delete(); // Delete Ampersand representation of session
         session_regenerate_id(); // Create new php session identifier
         $this->setId();
