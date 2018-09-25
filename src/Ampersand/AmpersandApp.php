@@ -256,6 +256,9 @@ class AmpersandApp
      */
     public function login(Atom $account)
     {
+        // Renew session. See topic 'Renew the Session ID After Any Privilege Level Change' in OWASP session management cheat sheet
+        $this->session->reset();
+
         // Set sessionAccount
         $this->session->setSessionAccount($account);
 
@@ -283,6 +286,7 @@ class AmpersandApp
      */
     public function logout()
     {
+        // Renew session. See OWASP session management cheat sheet
         $this->session->reset();
         $this->setInterfacesAndRules();
     }

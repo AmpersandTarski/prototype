@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased changes
+* Fix issue with session that timed out after default expiration time of 24 min regardless of user activity.
+* Security fix: renew session id after login.
+
 ## v1.0.1 (27 july 2018)
 Several bugfixes. See commit messages.
 
