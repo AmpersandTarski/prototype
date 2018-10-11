@@ -273,16 +273,34 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     {
         $this->lastQuery = $query;
         try {
-            $this->queryCount++;
+            $this->queryCount++; // multi queries are counted as 1
+            
             if ($multiQuery) {
-                $this->dbLink->multi_query($query);
-                do { // to flush results, otherwise a connection stays open
+                // MYSQLI_REPORT_STRICT mode doesn't throw Exceptions for multi_query execution,
+                // therefore we throw exceptions
+
+                $i = 1;
+                // Execute multi query
+                if ($this->dbLink->multi_query($query) === false) { // when first query errors
+                    throw new Exception("Error in query {$i}: {$this->dbLink->error}", 500);
+                }
+
+                // Flush results, otherwise a connection stays open
+                do {
+                    $i++;
                     if ($res = $this->dbLink->store_result()) {
                         $res->free();
                     }
-                } while ($this->dbLink->more_results() && $this->dbLink->next_result());
-                return true;
+                } while ($this->dbLink->more_results() && $next = $this->dbLink->next_result());
+
+                // Return result
+                if ($next === false) { // when subsequent query errors
+                    throw new Exception("Error in query {$i}: {$this->dbLink->error}", 500);
+                } else {
+                    return true;
+                }
             } else {
+                // MYSQLI_REPORT_STRICT mode automatically throws Exceptions for query execution
                 return $this->dbLink->query($query);
             }
         } catch (Exception $e) {
