@@ -340,12 +340,12 @@ class AmpersandApp
         $transaction = Transaction::getCurrentTransaction()->runExecEngine()->close();
         if ($transaction->isRolledBack()) {
             throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
+        } else {
+            Logger::getUserLogger()->notice("Application successfully reinstalled");
         }
 
-        // Initial conjunct evaluation
-        $this->logger->info("Initial evaluation of all conjuncts after application reinstallation");
-        
         // Evaluate all conjunct and save cache
+        $this->logger->info("Initial evaluation of all conjuncts after application reinstallation");
         foreach (Conjunct::getAllConjuncts() as $conj) {
             /** @var \Ampersand\Rule\Conjunct $conj */
             $conj->evaluate()->persistCacheItem();

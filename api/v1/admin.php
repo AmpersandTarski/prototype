@@ -80,10 +80,7 @@ $api->group('/admin', function () {
             $defaultPop = true;
         }
 
-        $transaction = $ampersandApp->reinstall($defaultPop);
-        if ($transaction->isCommitted()) {
-            Logger::getUserLogger()->notice("Application successfully reinstalled");
-        }
+        $ampersandApp->reinstall($defaultPop); // Reinstall application
 
         $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
 
