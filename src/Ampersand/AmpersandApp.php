@@ -332,7 +332,7 @@ class AmpersandApp
         // Close transaction
         $transaction = Transaction::getCurrentTransaction()->runExecEngine()->close();
         if ($transaction->isRolledBack()) {
-            Logger::getUserLogger()->error("Initial installation does not satisfy invariant rules");
+            throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
         }
 
         // Initial conjunct evaluation
