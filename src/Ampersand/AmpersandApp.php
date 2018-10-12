@@ -106,60 +106,60 @@ class AmpersandApp
     public function init($allowAutoInstall = true)
     {
         try {
-        $this->logger->info('Initialize Ampersand application');
+            $this->logger->info('Initialize Ampersand application');
 
-        $defaultPlug = $this->container['default_plug'];
-        $conjunctCache = $this->container['conjunctCachePool'] ?? new MysqlConjunctCache($defaultPlug);
+            $defaultPlug = $this->container['default_plug'];
+            $conjunctCache = $this->container['conjunctCachePool'] ?? new MysqlConjunctCache($defaultPlug);
 
-        if (!$this->model->verifyChecksum() && !Config::get('productionEnv')) {
-            Logger::getUserLogger()->warning("Generated model is changed. You SHOULD reinstall your application");
-        }
-
-        // Instantiate object definitions from generated files
-        $genericsFolder = $this->model->getFolder() . '/';
-        Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULE'), $defaultPlug, $conjunctCache);
-        View::setAllViews($genericsFolder . 'views.json', $defaultPlug);
-        Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'));
-        Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'));
-        InterfaceObject::setAllInterfaces($genericsFolder . 'interfaces.json', $defaultPlug);
-        Rule::setAllRules($genericsFolder . 'rules.json', $defaultPlug, Logger::getLogger('RULE'));
-        Role::setAllRoles($genericsFolder . 'roles.json');
-
-        // Add concept plugs
-        $conceptPlugList = $this->container['conceptPlugs'] ?? [];
-        foreach (Concept::getAllConcepts() as $cpt) {
-            if (array_key_exists($cpt->label, $conceptPlugList)) {
-                foreach ($conceptPlugList[$cpt->label] as $plug) {
-                    $cpt->addPlug($plug);
-                    $this->registerStorage($plug);
-                }
-            } else {
-                $cpt->addPlug($defaultPlug);
-                $this->registerStorage($defaultPlug);
+            if (!$this->model->verifyChecksum() && !Config::get('productionEnv')) {
+                Logger::getUserLogger()->warning("Generated model is changed. You SHOULD reinstall your application");
             }
-        }
 
-        // Add relation plugs
-        $relationPlugList = $this->container['relationPlugs'] ?? [];
-        foreach (Relation::getAllRelations() as $rel) {
-            if (array_key_exists($rel->signature, $relationPlugList)) {
-                foreach ($relationPlugList[$rel->signature] as $plug) {
-                    $rel->addPlug($plug);
-                    $this->registerStorage($plug);
+            // Instantiate object definitions from generated files
+            $genericsFolder = $this->model->getFolder() . '/';
+            Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULE'), $defaultPlug, $conjunctCache);
+            View::setAllViews($genericsFolder . 'views.json', $defaultPlug);
+            Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'));
+            Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'));
+            InterfaceObject::setAllInterfaces($genericsFolder . 'interfaces.json', $defaultPlug);
+            Rule::setAllRules($genericsFolder . 'rules.json', $defaultPlug, Logger::getLogger('RULE'));
+            Role::setAllRoles($genericsFolder . 'roles.json');
+
+            // Add concept plugs
+            $conceptPlugList = $this->container['conceptPlugs'] ?? [];
+            foreach (Concept::getAllConcepts() as $cpt) {
+                if (array_key_exists($cpt->label, $conceptPlugList)) {
+                    foreach ($conceptPlugList[$cpt->label] as $plug) {
+                        $cpt->addPlug($plug);
+                        $this->registerStorage($plug);
+                    }
+                } else {
+                    $cpt->addPlug($defaultPlug);
+                    $this->registerStorage($defaultPlug);
                 }
-            } else {
-                $rel->addPlug($defaultPlug);
-                $this->registerStorage($defaultPlug);
             }
-        }
 
-        // Run registered initialization closures
-        foreach ($this->initClosures as $closure) {
-            $closure->call($this);
-        }
+            // Add relation plugs
+            $relationPlugList = $this->container['relationPlugs'] ?? [];
+            foreach (Relation::getAllRelations() as $rel) {
+                if (array_key_exists($rel->signature, $relationPlugList)) {
+                    foreach ($relationPlugList[$rel->signature] as $plug) {
+                        $rel->addPlug($plug);
+                        $this->registerStorage($plug);
+                    }
+                } else {
+                    $rel->addPlug($defaultPlug);
+                    $this->registerStorage($defaultPlug);
+                }
+            }
 
-        // Initiate session
-        $this->setSession();
+            // Run registered initialization closures
+            foreach ($this->initClosures as $closure) {
+                $closure->call($this);
+            }
+
+            // Initiate session
+            $this->setSession();
         } catch (\Ampersand\Exception\NotInstalledException $e) {
             if ($allowAutoInstall) {
                 $this->logger->info('Automatically (re)installing Ampersand application');
