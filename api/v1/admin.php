@@ -35,7 +35,12 @@ $api->group('/admin', function () {
         if (Config::get('productionEnv')) {
             throw new Exception("Not allowed in production environment", 403);
         }
+        
+        $transaction = Transaction::getCurrentTransaction();
+
         Session::deleteExpiredSessions();
+
+        $transaction->runExecEngine()->close();
     });
     
     $this->post('/resource/{resourceType}/rename', function (Request $request, Response $response, $args = []) {

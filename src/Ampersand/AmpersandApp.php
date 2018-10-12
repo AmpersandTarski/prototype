@@ -184,6 +184,9 @@ class AmpersandApp
     {
         $this->session = new Session(Logger::getLogger('SESSION'));
 
+        // Run exec engine and close transaction
+        Transaction::getCurrentTransaction()->runExecEngine()->close();
+
         // Set accessible interfaces and rules to maintain
         $this->setInterfacesAndRules();
     }
@@ -288,6 +291,10 @@ class AmpersandApp
     {
         // Renew session. See OWASP session management cheat sheet
         $this->session->reset();
+
+        // Run exec engine and close transaction
+        Transaction::getCurrentTransaction()->runExecEngine()->close();
+
         $this->setInterfacesAndRules();
     }
 
