@@ -26,6 +26,7 @@ use Ampersand\Plugs\ViewPlugInterface;
 use Ampersand\Transaction;
 use Ampersand\Rule\Conjunct;
 use Psr\Log\LoggerInterface;
+use Ampersand\Exception\NotInstalledException;
 
 /**
  *
@@ -145,9 +146,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             if (!Config::get('productionEnv')) {
                 switch ($e->getCode()) {
                     case 1049: // Error: 1049 SQLSTATE: 42000 (ER_BAD_DB_ERROR) --> Database ($this->dbName) does not (yet) exist
-                        $this->logger->info("Automatically creating new database, because it does not exist");
-                        $this->reinstallStorage();
-                        break;
+                        throw new NotInstalledException("Database {$this->dbName} does not exist");
                     default:
                         throw $e;
                 }
