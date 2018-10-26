@@ -362,6 +362,7 @@ ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($contain
     }
 
     if (empty($navTo) || $navTo == '_NULL') {
+        $execEngineLogger->debug("navTo was skipped because of `_NULL`-argument");
         return false;
     }
 
@@ -375,6 +376,7 @@ ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($conta
     }
     
     if (empty($navTo) || $navTo == '_NULL') {
+        $execEngineLogger->debug("navTo was skipped because of `_NULL`-argument");
         return false;
     }
     
