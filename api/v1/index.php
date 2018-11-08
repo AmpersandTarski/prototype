@@ -8,6 +8,7 @@ use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Container;
 use function Ampersand\Misc\stackTrace;
+use Ampersand\Exception\NotInstalledException;
 
 require_once(__DIR__ . '/../../src/bootstrap.php');
 
@@ -186,9 +187,26 @@ foreach ((array)$GLOBALS['apiFiles'] as $apiFile) {
 // Add middleware to initialize the AmpersandApp
 $api->add(function (Request $req, Response $res, callable $next) {
     /** @var \Slim\App $this */
-    $ampersandApp = $this['appContainer']['ampersand_app'];
     /** @var \Ampersand\AmpersandApp $ampersandApp */
-    $ampersandApp->init(); // initialize Ampersand application
+    $ampersandApp = $this['appContainer']['ampersand_app'];
+    
+    try {
+        $ampersandApp->init(); // initialize Ampersand application
+    } catch (NotInstalledException $e) {
+        if (Config::get('debugMode')) {
+            return $res->withJson(
+                [ 'error' => 500
+                , 'msg' => $e->getMessage()
+                // , 'html' => "Please contact the application administrator for more information"
+                , 'navTo' => "/admin/installer"
+                ],
+                500,
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+            );
+        } else {
+            throw $e; // let error handler do the response.
+        }
+    }
 
     return $next($req, $res);
 })->run();

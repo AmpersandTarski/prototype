@@ -103,7 +103,7 @@ class AmpersandApp
         $this->model = new Generics(Config::get('pathToGeneratedFiles'), $logger);
     }
 
-    public function init($allowAutoInstall = true)
+    public function init()
     {
         try {
             $this->logger->info('Initialize Ampersand application');
@@ -161,13 +161,7 @@ class AmpersandApp
             // Initiate session
             $this->setSession();
         } catch (\Ampersand\Exception\NotInstalledException $e) {
-            if ($allowAutoInstall) {
-                $this->logger->info('Automatically (re)installing Ampersand application');
-                $this->reinstall();
-                $this->init(false);
-            } else {
-                throw $e;
-            }
+            throw $e;
         }
     }
 
