@@ -12,13 +12,15 @@ use Ampersand\Exception\NotInstalledException;
 
 require_once(__DIR__ . '/../../src/bootstrap.php');
 
-/**
- * @var \Pimple\Container $container
- */
-global $container;
+/** @var \Ampersand\AmpersandApp $ampersandApp */
+global $ampersandApp;
+
+/** @var \Ampersand\AngularApp $angularApp */
+global $angularApp;
 
 $apiContainer = new Container();
-$apiContainer['appContainer'] = $container;
+$apiContainer['ampersand_app'] = $ampersandApp; // add AmpersandApp object to API DI-container
+$apiContainer['angular_app'] = $angularApp; // add AngularApp object to API DI-container
 
 // Custom NotFound handler when API path-method is not found
 // The application can also return a Resource not found, this is handled by the errorHandler below
@@ -48,7 +50,7 @@ $apiContainer['errorHandler'] = function ($c) {
                 case 401: // Unauthorized
                 case 403: // Forbidden
                     $logger->warning($exception->getMessage());
-                    if (Config::get('loginEnabled') && !$c->appContainer['ampersand_app']->getSession()->sessionUserLoggedIn()) {
+                    if (Config::get('loginEnabled') && !$c['ampersand_app']->getSession()->sessionUserLoggedIn()) {
                         $code = 401;
                         $message = "Please login to access this page";
                         $data['loginPage'] = Config::get('loginPage', 'login');
@@ -188,7 +190,7 @@ foreach ((array)$GLOBALS['apiFiles'] as $apiFile) {
 $api->add(function (Request $req, Response $res, callable $next) {
     /** @var \Slim\App $this */
     /** @var \Ampersand\AmpersandApp $ampersandApp */
-    $ampersandApp = $this['appContainer']['ampersand_app'];
+    $ampersandApp = $this['ampersand_app'];
     
     try {
         $ampersandApp->init(); // initialize Ampersand application
