@@ -88,8 +88,8 @@ class AngularApp
     
     public function getMenuItems($menu)
     {
-        global $container;
-        $ampersandApp = $container['ampersand_app'];
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp;
 
         switch ($menu) {
             // Items for extension menu
@@ -157,10 +157,11 @@ class AngularApp
      */
     protected function getNavBarIfcs(string $menu): array
     {
-        global $container;
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp;
 
         // Filter interfaces for requested part of navbar
-        return array_filter($container['ampersand_app']->getAccessibleInterfaces(), function (InterfaceObject $ifc) use ($menu) {
+        return array_filter($ampersandApp->getAccessibleInterfaces(), function (InterfaceObject $ifc) use ($menu) {
             switch ($menu) {
                 case 'top':
                     if ($ifc->srcConcept->isSession() && $ifc->crudR()) {

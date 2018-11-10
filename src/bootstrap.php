@@ -38,12 +38,10 @@ require_once(__DIR__ . '/../lib/autoload.php');
 
 // New Pimple Dependency Injection Container
 $container = new Container();
-$container['ampersand_app'] = function ($c) {
-    return new AmpersandApp($c, Logger::getLogger('APPLICATION'));
-};
-$container['angular_app'] = function ($c) {
-    return new AngularApp(Logger::getLogger('APP'));
-};
+
+// New AmpersandApp & AngularApp
+$ampersandApp = new AmpersandApp($container, Logger::getLogger('APPLICATION'));
+$angularApp = new AngularApp(Logger::getLogger('APP'));
 
 // Include/set default settings
 require_once(__DIR__ . '/defaultSettings.php');
