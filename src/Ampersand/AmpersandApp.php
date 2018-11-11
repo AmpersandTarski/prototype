@@ -135,12 +135,13 @@ class AmpersandApp
             foreach (Concept::getAllConcepts() as $cpt) {
                 if (array_key_exists($cpt->label, $conceptPlugList)) {
                     foreach ($conceptPlugList[$cpt->label] as $plug) {
+                        if (!in_array($plug, $this->storages)) {
+                            throw new Exception("Storage plug specified for concept {$cpt->label} is not registered", 500);
+                        }
                         $cpt->addPlug($plug);
-                        $this->registerStorage($plug);
                     }
                 } else {
-                    $cpt->addPlug($defaultPlug);
-                    $this->registerStorage($defaultPlug);
+                    $cpt->addPlug($this->defaultStorage);
                 }
             }
 
@@ -149,12 +150,13 @@ class AmpersandApp
             foreach (Relation::getAllRelations() as $rel) {
                 if (array_key_exists($rel->signature, $relationPlugList)) {
                     foreach ($relationPlugList[$rel->signature] as $plug) {
+                        if (!in_array($plug, $this->storages)) {
+                            throw new Exception("Storage plug specified for relation {$rel->signature} is not registered", 500);
+                        }
                         $rel->addPlug($plug);
-                        $this->registerStorage($plug);
                     }
                 } else {
-                    $rel->addPlug($defaultPlug);
-                    $this->registerStorage($defaultPlug);
+                    $rel->addPlug($this->defaultStorage);
                 }
             }
 
