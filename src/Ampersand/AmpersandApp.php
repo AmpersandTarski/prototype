@@ -63,6 +63,12 @@ class AmpersandApp
     protected $storages = [];
 
     /**
+     * Default storage plug
+     * @var \Ampersand\Plugs\StorageInterface
+     */
+    protected $defaultStorage = null;
+
+    /**
      * List with anonymous functions (closures) to be executed during initialization
      * (i.e. during AmpersandApp::init())
      *
@@ -108,8 +114,12 @@ class AmpersandApp
         try {
             $this->logger->info('Initialize Ampersand application');
 
-            $defaultPlug = $this->container['default_plug'];
             $conjunctCache = $this->container['conjunctCachePool'] ?? new MysqlConjunctCache($defaultPlug);
+            // Check for default storage plug
+            if (!in_array($this->defaultStorage, $this->storages)) {
+                throw new Exception("No default storage plug registered", 500);
+            }
+
             // Initialize storage plugs
             foreach ($this->storages as $storagePlug) {
                 $storagePlug->init();
@@ -122,12 +132,12 @@ class AmpersandApp
 
             // Instantiate object definitions from generated files
             $genericsFolder = $this->model->getFolder() . '/';
-            Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULE'), $defaultPlug, $conjunctCache);
-            View::setAllViews($genericsFolder . 'views.json', $defaultPlug);
+            Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULE'), $this->defaultStorage, $conjunctCache);
+            View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
             Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'));
             Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'));
-            InterfaceObject::setAllInterfaces($genericsFolder . 'interfaces.json', $defaultPlug);
-            Rule::setAllRules($genericsFolder . 'rules.json', $defaultPlug, Logger::getLogger('RULE'));
+            InterfaceObject::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage);
+            Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, Logger::getLogger('RULE'));
             Role::setAllRoles($genericsFolder . 'roles.json');
 
             // Add concept plugs
@@ -189,6 +199,12 @@ class AmpersandApp
             $this->logger->debug("Add storage: " . $storage->getLabel());
             $this->storages[] = $storage;
         }
+    }
+
+    public function setDefaultStorage(StorageInterface $storage)
+    {
+        $this->defaultStorage = $storage;
+        $this->registerStorage($storage);
     }
 
     protected function setSession()
