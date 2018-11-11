@@ -24,8 +24,8 @@ use Ampersand\Interfacing\View;
 use Ampersand\Rule\Rule;
 use Closure;
 use Ampersand\Rule\ExecEngine;
-use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Misc\Generics;
+use Psr\Cache\CacheItemPoolInterface;
 
 class AmpersandApp
 {
@@ -67,6 +67,12 @@ class AmpersandApp
      * @var \Ampersand\Plugs\StorageInterface
      */
     protected $defaultStorage = null;
+
+    /**
+     * Cache implementation for conjunct violation cache
+     * @var \Psr\Cache\CacheItemPoolInterface
+     */
+    protected $conjunctCache = null;
 
     /**
      * List with anonymous functions (closures) to be executed during initialization
@@ -114,7 +120,6 @@ class AmpersandApp
         try {
             $this->logger->info('Initialize Ampersand application');
 
-            $conjunctCache = $this->container['conjunctCachePool'] ?? new MysqlConjunctCache($defaultPlug);
             // Check checksum
             if (!$this->model->verifyChecksum() && !Config::get('productionEnv')) {
                 Logger::getUserLogger()->warning("Generated model is changed. You SHOULD reinstall your application");
@@ -125,6 +130,11 @@ class AmpersandApp
                 throw new Exception("No default storage plug registered", 500);
             }
 
+            // Check for conjunct cache
+            if (is_null($this->conjunctCache)) {
+                throw new Exception("No conjunct cache implementaion registered", 500);
+            }
+
             // Initialize storage plugs
             foreach ($this->storages as $storagePlug) {
                 $storagePlug->init();
@@ -132,7 +142,7 @@ class AmpersandApp
 
             // Instantiate object definitions from generated files
             $genericsFolder = $this->model->getFolder() . '/';
-            Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULE'), $this->defaultStorage, $conjunctCache);
+            Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULE'), $this->defaultStorage, $this->conjunctCache);
             View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
             Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'));
             Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'));
@@ -205,6 +215,11 @@ class AmpersandApp
     {
         $this->defaultStorage = $storage;
         $this->registerStorage($storage);
+    }
+
+    public function setConjunctCache(CacheItemPoolInterface $cache)
+    {
+        $this->conjunctCache = $cache;
     }
 
     protected function setSession()
@@ -346,9 +361,10 @@ class AmpersandApp
             $storage->reinstallStorage();
         }
 
-        // Clear atom cache
+        // Clear caches
+        $this->conjunctCache->clear(); // external cache item pool
         foreach (Concept::getAllConcepts() as $cpt) {
-            $cpt->clearAtomCache();
+            $cpt->clearAtomCache(); // local cache in Ampersand code
         }
 
         // Default population

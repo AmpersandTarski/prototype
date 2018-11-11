@@ -323,6 +323,7 @@ class Conjunct
      * @param string $fileName containing the Ampersand conjunct definitions
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Ampersand\Plugs\MysqlDB\MysqlDB $database
+     * @param \Psr\Cache\CacheItemPoolInterface $cachePool
      * @return void
      */
     public static function setAllConjuncts(string $fileName, LoggerInterface $logger, MysqlDB $database, CacheItemPoolInterface $cachePool)
