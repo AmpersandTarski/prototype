@@ -115,6 +115,11 @@ class AmpersandApp
             $this->logger->info('Initialize Ampersand application');
 
             $conjunctCache = $this->container['conjunctCachePool'] ?? new MysqlConjunctCache($defaultPlug);
+            // Check checksum
+            if (!$this->model->verifyChecksum() && !Config::get('productionEnv')) {
+                Logger::getUserLogger()->warning("Generated model is changed. You SHOULD reinstall your application");
+            }
+
             // Check for default storage plug
             if (!in_array($this->defaultStorage, $this->storages)) {
                 throw new Exception("No default storage plug registered", 500);
@@ -123,11 +128,6 @@ class AmpersandApp
             // Initialize storage plugs
             foreach ($this->storages as $storagePlug) {
                 $storagePlug->init();
-            }
-
-
-            if (!$this->model->verifyChecksum() && !Config::get('productionEnv')) {
-                Logger::getUserLogger()->warning("Generated model is changed. You SHOULD reinstall your application");
             }
 
             // Instantiate object definitions from generated files
