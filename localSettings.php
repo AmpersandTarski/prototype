@@ -4,12 +4,13 @@ use Ampersand\Log\Logger;
 use Ampersand\Log\NotificationHandler;
 use Ampersand\Log\RequestIDProcessor;
 use Ampersand\Misc\Config;
-// use Ampersand\Rule\ExecEngine;
-use Ampersand\Plugs\MysqlDB\MysqlDB;
 
-define('LOCALSETTINGS_VERSION', 1.6);
+define('LOCALSETTINGS_VERSION', 1.7);
 
 date_default_timezone_set('Europe/Amsterdam'); // See http://php.net/manual/en/timezones.php for a list of supported timezones
+
+/** @var \Ampersand\AmpersandApp $ampersandApp */
+global $ampersandApp;
 
 /**************************************************************************************************
  * LOGGING functionality
@@ -56,16 +57,15 @@ Logger::registerHandlerForChannel('USERLOG', new NotificationHandler(\Monolog\Lo
 /**************************************************************************************************
  * DATABASE settings
  *************************************************************************************************/
-$container['mysql_database'] = function ($c) {
-    $dbHost = Config::get('dbHost', 'mysqlDatabase');
-    $dbUser = Config::get('dbUser', 'mysqlDatabase');
-    $dbPass = Config::get('dbPassword', 'mysqlDatabase');
-    $dbName = Config::get('dbName', 'mysqlDatabase');
-    return new MysqlDB($dbHost, $dbUser, $dbPass, $dbName, Logger::getLogger('DATABASE'));
-};
-$container['default_plug'] = function ($c) {
-    return $c['mysql_database'];
-};
+$mysqlDB = new \Ampersand\Plugs\MysqlDB\MysqlDB(
+    Config::get('dbHost', 'mysqlDatabase'),
+    Config::get('dbUser', 'mysqlDatabase'),
+    Config::get('dbPassword', 'mysqlDatabase'),
+    Config::get('dbName', 'mysqlDatabase'),
+    Logger::getLogger('DATABASE')
+);
+$ampersandApp->setDefaultStorage($mysqlDB);
+$ampersandApp->setConjunctCache(new \Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache($mysqlDB));
 
 /**************************************************************************************************
  * LOGIN FUNCTIONALITY
