@@ -102,6 +102,9 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     /**
      * Constructor
      *
+     * Constructor of StorageInterface implementation MUST not throw Errors/Exceptions
+     * when application is not installed (yet).
+     *
      * @param string $dbHost
      * @param string $dbUser
      * @param string $dbPass
@@ -134,7 +137,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             // Convert mysqli_sql_exceptions into 500 errors
             throw new Exception("Cannot connect to database", 500);
         }
+    }
 
+    public function init()
+    {
         $this->selectDB();
     }
 

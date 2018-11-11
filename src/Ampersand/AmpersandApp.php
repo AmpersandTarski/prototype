@@ -110,6 +110,11 @@ class AmpersandApp
 
             $defaultPlug = $this->container['default_plug'];
             $conjunctCache = $this->container['conjunctCachePool'] ?? new MysqlConjunctCache($defaultPlug);
+            // Initialize storage plugs
+            foreach ($this->storages as $storagePlug) {
+                $storagePlug->init();
+            }
+
 
             if (!$this->model->verifyChecksum() && !Config::get('productionEnv')) {
                 Logger::getUserLogger()->warning("Generated model is changed. You SHOULD reinstall your application");
