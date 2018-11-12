@@ -6,6 +6,8 @@ use Ampersand\Misc\Config;
 use Ampersand\IO\Importer;
 use Ampersand\Transaction;
 use Ampersand\Plugs\StorageInterface;
+use Ampersand\Plugs\ConceptPlugInterface;
+use Ampersand\Plugs\RelationPlugInterface;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Session;
 use Ampersand\Core\Atom;
@@ -73,6 +75,18 @@ class AmpersandApp
      * @var \Psr\Cache\CacheItemPoolInterface
      */
     protected $conjunctCache = null;
+
+    /**
+     * List of custom plugs for concepts
+     * @var ['conceptLabel' => \Ampersand\Plugs\ConceptPlugInterface[]]
+     */
+    protected $customConceptPlugs = [];
+
+    /**
+     * List of custom plugs for relations
+     * @var ['relationSignature' => \Ampersand\Plugs\RelationPlugInterface[]]
+     */
+    protected $customRelationPlugs = [];
 
     /**
      * List with anonymous functions (closures) to be executed during initialization
@@ -151,13 +165,9 @@ class AmpersandApp
             Role::setAllRoles($genericsFolder . 'roles.json');
 
             // Add concept plugs
-            $conceptPlugList = $this->container['conceptPlugs'] ?? [];
             foreach (Concept::getAllConcepts() as $cpt) {
-                if (array_key_exists($cpt->label, $conceptPlugList)) {
-                    foreach ($conceptPlugList[$cpt->label] as $plug) {
-                        if (!in_array($plug, $this->storages)) {
-                            throw new Exception("Storage plug specified for concept {$cpt->label} is not registered", 500);
-                        }
+                if (array_key_exists($cpt->label, $this->customConceptPlugs)) {
+                    foreach ($this->customConceptPlugs[$cpt->label] as $plug) {
                         $cpt->addPlug($plug);
                     }
                 } else {
@@ -166,13 +176,9 @@ class AmpersandApp
             }
 
             // Add relation plugs
-            $relationPlugList = $this->container['relationPlugs'] ?? [];
             foreach (Relation::getAllRelations() as $rel) {
-                if (array_key_exists($rel->signature, $relationPlugList)) {
-                    foreach ($relationPlugList[$rel->signature] as $plug) {
-                        if (!in_array($plug, $this->storages)) {
-                            throw new Exception("Storage plug specified for relation {$rel->signature} is not registered", 500);
-                        }
+                if (array_key_exists($rel->signature, $this->customRelationPlugs)) {
+                    foreach ($this->customRelationPlugs[$rel->signature] as $plug) {
                         $rel->addPlug($plug);
                     }
                 } else {
@@ -209,6 +215,18 @@ class AmpersandApp
             $this->logger->debug("Add storage: " . $storage->getLabel());
             $this->storages[] = $storage;
         }
+    }
+
+    public function registerCustomConceptPlug(string $conceptLabel, ConceptPlugInterface $plug)
+    {
+        $this->customConceptPlugs[$conceptLabel][] = $plug;
+        $this->registerStorage($plug);
+    }
+
+    public function registerCustomRelationPlug(string $relSignature, RelationPlugInterface $plug)
+    {
+        $this->customRelationPlugs[$relSignature][] = $plug;
+        $this->registerStorage($plug);
     }
 
     public function setDefaultStorage(StorageInterface $storage)
