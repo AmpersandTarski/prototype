@@ -8,7 +8,7 @@ use Ampersand\AmpersandApp;
 use Ampersand\Misc\Generics;
 use Ampersand\AngularApp;
 
-define('LOCALSETTINGS_VERSION', 1.7);
+define('LOCALSETTINGS_VERSION', 2.0);
 date_default_timezone_set('Europe/Amsterdam'); // see http://php.net/manual/en/timezones.php for a list of supported timezones
 set_time_limit(30); // execution time limit is set to a default of 30 seconds. Use 0 to have no time limit. (not advised)
 
