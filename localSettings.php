@@ -9,20 +9,14 @@ use Ampersand\Misc\Generics;
 use Ampersand\AngularApp;
 
 define('LOCALSETTINGS_VERSION', 1.7);
-
-date_default_timezone_set('Europe/Amsterdam'); // See http://php.net/manual/en/timezones.php for a list of supported timezones
-
+date_default_timezone_set('Europe/Amsterdam'); // see http://php.net/manual/en/timezones.php for a list of supported timezones
+set_time_limit(30); // execution time limit is set to a default of 30 seconds. Use 0 to have no time limit. (not advised)
 
 /**************************************************************************************************
- * LOGGING functionality
+ * LOGGING
  *************************************************************************************************/
 error_reporting(E_ALL & ~E_NOTICE);
 ini_set("display_errors", false);
-
-/**************************************************************************************************
- * Execution time limit is set to a default of 30 seconds. Use 0 to have no time limit. (not advised)
- *************************************************************************************************/
-set_time_limit(30);
 
 Config::set('debugMode', 'global', true); // default mode = false
 
@@ -62,9 +56,8 @@ $angularApp = new AngularApp(Logger::getLogger('FRONTEND'));
 // Config::set('serverURL', 'global', 'http://www.yourdomain.nl'); // defaults to http://localhost/<ampersand context name>
 // Config::set('apiPath', 'global', '/api/v1'); // relative path to api
 
-
 /**************************************************************************************************
- * DATABASE settings
+ * DATABASE and PLUGS
  *************************************************************************************************/
 $mysqlDB = new \Ampersand\Plugs\MysqlDB\MysqlDB(
     Config::get('dbHost', 'mysqlDatabase'),
@@ -91,7 +84,7 @@ $ampersandApp->setConjunctCache(new \Ampersand\Plugs\MysqlConjunctCache\MysqlCon
 
 
 /**************************************************************************************************
- * ExecEngine
+ * EXECENGINE
  *************************************************************************************************/
 // Config::set('execEngineRoleNames', 'execEngine', ['ExecEngine']);
 // Config::set('autoRerun', 'execEngine', true);
