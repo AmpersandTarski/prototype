@@ -551,6 +551,7 @@ class InterfaceObject
     public function getNavInterfacesForTgt()
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
         $ifcs = [];
         if ($this->isLinkTo() && $ampersandApp->isAccessibleIfc($refIfc = self::getInterface($this->refInterfaceId))) {
             $ifcs[] = $refIfc;
