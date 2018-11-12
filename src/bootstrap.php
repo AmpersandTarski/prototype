@@ -1,9 +1,6 @@
 <?php
 
 use Ampersand\AmpersandApp;
-use Pimple\Container;
-use Ampersand\AngularApp;
-use Ampersand\Log\Logger;
 use Ampersand\Misc\Config;
 
 register_shutdown_function(function () {
@@ -35,13 +32,6 @@ session_start();
 
 // Composer Autoloader
 require_once(__DIR__ . '/../lib/autoload.php');
-
-// New Pimple Dependency Injection Container
-$container = new Container();
-
-// New AmpersandApp & AngularApp
-$ampersandApp = new AmpersandApp($container, Logger::getLogger('APPLICATION'));
-$angularApp = new AngularApp(Logger::getLogger('APP'));
 
 // Include/set default settings
 require_once(__DIR__ . '/defaultSettings.php');

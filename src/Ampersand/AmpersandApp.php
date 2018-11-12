@@ -20,7 +20,6 @@ use Ampersand\Log\Notifications;
 use Ampersand\IO\JSONReader;
 use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
-use Pimple\Container;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\View;
 use Ampersand\Rule\Rule;
@@ -36,13 +35,6 @@ class AmpersandApp
      * @const float
      */
     const REQ_LOCALSETTINGS_VERSION = 1.6;
-
-    /**
-     * Dependency injection container
-     *
-     * @var \Pimple\Container
-     */
-    protected $container;
 
     /**
      * Logger
@@ -120,13 +112,13 @@ class AmpersandApp
     /**
      * Constructor
      *
+     * @param \Ampersand\Misc\Generics $model
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Container $container, LoggerInterface $logger)
+    public function __construct(Generics $model, LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->container = $container;
-        $this->model = new Generics(Config::get('pathToGeneratedFiles'), $logger);
+        $this->model = $model;
     }
 
     public function init()

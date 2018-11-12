@@ -4,13 +4,14 @@ use Ampersand\Log\Logger;
 use Ampersand\Log\NotificationHandler;
 use Ampersand\Log\RequestIDProcessor;
 use Ampersand\Misc\Config;
+use Ampersand\AmpersandApp;
+use Ampersand\Misc\Generics;
+use Ampersand\AngularApp;
 
 define('LOCALSETTINGS_VERSION', 1.7);
 
 date_default_timezone_set('Europe/Amsterdam'); // See http://php.net/manual/en/timezones.php for a list of supported timezones
 
-/** @var \Ampersand\AmpersandApp $ampersandApp */
-global $ampersandApp;
 
 /**************************************************************************************************
  * LOGGING functionality
@@ -46,6 +47,14 @@ Logger::registerHandlerForChannel('EXECENGINE', $execEngineHandler);
 
 // User log handler
 Logger::registerHandlerForChannel('USERLOG', new NotificationHandler(\Monolog\Logger::INFO));
+
+/**************************************************************************************************
+ * APPLICATION
+ *************************************************************************************************/
+$logger = Logger::getLogger('APPLICATION');
+$model = new Generics(Config::get('pathToGeneratedFiles'), $logger);
+$ampersandApp = new AmpersandApp($model, $logger);
+$angularApp = new AngularApp(Logger::getLogger('FRONTEND'));
 
 /**************************************************************************************************
  * SERVER settings
