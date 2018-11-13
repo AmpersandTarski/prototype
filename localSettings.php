@@ -62,7 +62,7 @@ $angularApp = new AngularApp(Logger::getLogger('FRONTEND'));
 $mysqlDB = new \Ampersand\Plugs\MysqlDB\MysqlDB(
     $model->getSetting('mysqlSettings')->dbHost,
     $model->getSetting('mysqlSettings')->dbUser,
-    $model->getSetting('mysqlSettings')->dbPassword,
+    $model->getSetting('mysqlSettings')->dbPass,
     $model->getSetting('mysqlSettings')->dbName,
     Logger::getLogger('DATABASE')
 );
