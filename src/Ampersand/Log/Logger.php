@@ -7,8 +7,9 @@
 
 namespace Ampersand\Log;
 
-use Monolog\Handler\HandlerInterface;
 use Psr\Log\LoggerInterface;
+use Closure;
+use Psr\Log\NullLogger;
 
 /**
  *
@@ -17,57 +18,43 @@ use Psr\Log\LoggerInterface;
  */
 class Logger
 {
-    
     /**
      * Contains all instantiated loggers
-     * @var \Monolog\Logger[]
+     * @var \Ampersand\Log\Logger[]
      */
     private static $loggers = [];
-    
+
     /**
-     * Contains list of handlers that are added to a logger when it is instantiated
-     * @var \Monolog\Handler\AbstractHandler[]
+     * Factory function to create new loggers
+     * @var \Closure
      */
-    private static $genericHandlers = [];
-    
+    protected static $factoryFunction = null;
+
+    /******************
+     * STATIC METHODS
+     ******************/
+
     /**
-     * Associative array containing array with handlers for specific channels
-     * @var array
-     */
-    private static $channelHandlers = [];
-    
-    /**
+     * Get logger instance with specified channel name
      *
      * @param string $channel
      * @return \Psr\Log\LoggerInterface
      */
     public static function getLogger(string $channel): LoggerInterface
     {
-        
         if (isset(self::$loggers[$channel])) {
             return self::$loggers[$channel];
         } else {
-            $logger = new \Monolog\Logger($channel);
-            
-            // Add generic handlers (i.e. for all channels)
-            foreach (self::$genericHandlers as $handler) {
-                $logger->pushHandler($handler);
+            if (is_null(self::$factoryFunction)) {
+                return new NullLogger();
             }
-            
-            // Add handlers for specific channels
-            if (array_key_exists($channel, self::$channelHandlers)) {
-                foreach (self::$channelHandlers[$channel] as $handler) {
-                    $logger->pushHandler($handler);
-                }
-            }
-            
-            self::$loggers[$channel] = $logger;
-            
-            return $logger;
+
+            return self::$loggers[$channel] = call_user_func(self::$factoryFunction, $channel);
         }
     }
     
     /**
+     * Get logger instance to communicate to user interface
      *
      * @return \Psr\Log\LoggerInterface
      */
@@ -75,27 +62,27 @@ class Logger
     {
         return Logger::getLogger('USERLOG');
     }
-    
+
     /**
-     * Register a handler that is added when certain logger (channel) is instantiated
+     * Set logger for a certain channel
      *
      * @param string $channel
-     * @param \Monolog\Handler\HandlerInterface $handler
+     * @param \Psr\Log\LoggerInterface $logger
      * @return void
      */
-    public static function registerHandlerForChannel(string $channel, HandlerInterface $handler)
+    public static function setLogger(string $channel, LoggerInterface $logger)
     {
-        self::$channelHandlers[$channel][] = $handler;
+        self::$loggers[$channel] = $logger;
     }
     
     /**
-     * Register a handler that is added to all loggers when instantiated
+     * Register a closure that is called upon initialization of a logger
      *
-     * @param \Monolog\Handler\HandlerInterface $handler
+     * @param \Closure $closure
      * @return void
      */
-    public static function registerGenericHandler(HandlerInterface $handler)
+    public static function setFactoryFunction(Closure $closure)
     {
-        self::$genericHandlers[] = $handler;
+        self::$factoryFunction = $closure;
     }
 }

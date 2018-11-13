@@ -7,6 +7,10 @@ use Ampersand\Misc\Config;
 use Ampersand\AmpersandApp;
 use Ampersand\Misc\Generics;
 use Ampersand\AngularApp;
+use Monolog\Logger as MonoLogger;
+use Monolog\Handler\FingersCrossedHandler;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Processor\WebProcessor;
 
 define('LOCALSETTINGS_VERSION', 2.0);
 date_default_timezone_set('Europe/Amsterdam'); // see http://php.net/manual/en/timezones.php for a list of supported timezones
@@ -18,29 +22,26 @@ set_time_limit(30); // execution time limit is set to a default of 30 seconds. U
 error_reporting(E_ALL & ~E_NOTICE);
 ini_set("display_errors", false);
 
-Config::set('debugMode', 'global', true); // default mode = false
+Config::set('debugMode', 'global', $debugMode = true); // default mode = false
 
-// Log file handler
-$fileHandler = new \Monolog\Handler\RotatingFileHandler(__DIR__ . '/log/error.log', 0, \Monolog\Logger::DEBUG);
-// $fileHandler->pushProcessor(new RequestIDProcessor())->pushProcessor(new WebProcessor(null, [ 'ip' => 'REMOTE_ADDR', 'method' => 'REQUEST_METHOD', 'url' => 'REQUEST_URI'])); // Adds IP adres and url info to log records
-$wrapper = new \Monolog\Handler\FingersCrossedHandler($fileHandler, \Monolog\Logger::ERROR, 0, true, true, \Monolog\Logger::WARNING);
-Logger::registerGenericHandler($wrapper);
+// Add all channels to error and debug log file handlers
+$errorLog = new RotatingFileHandler(__DIR__ . '/log/error.log', 0, MonoLogger::DEBUG);
+// $errorLog->pushProcessor(new RequestIDProcessor())->pushProcessor(new WebProcessor(null, [ 'ip' => 'REMOTE_ADDR', 'method' => 'REQUEST_METHOD', 'url' => 'REQUEST_URI'])); // Adds IP adres and url info to log records
+$errorLog = new FingersCrossedHandler($errorLog, MonoLogger::ERROR, 0, true, true, MonoLogger::WARNING);
+$debugLog = new RotatingFileHandler(__DIR__ . '/log/debug.log', 0, MonoLogger::DEBUG);
+Logger::setFactoryFunction(function ($channel) use ($errorLog, $debugLog, $debugMode) {
+    $handlers[] = $errorLog;
+    if ($debugMode) {
+        $handlers[] = $debugLog;
+    }
+    return new MonoLogger($channel, $handlers);
+});
 
-if (Config::get('debugMode')) {
-    $fileHandler = new \Monolog\Handler\RotatingFileHandler(__DIR__ . '/log/debug.log', 0, \Monolog\Logger::DEBUG);
-    Logger::registerGenericHandler($fileHandler);
-    
-    // Browsers debuggers
-    //$browserHandler = new \Monolog\Handler\ChromePHPHandler(\Monolog\Logger::DEBUG); // Log handler for Google Chrome
-    //$browserHandler = new \Monolog\Handler\FirePHPHandler(\Monolog\Logger::DEBUG); // Log handler for Firebug in Mozilla Firefox
-    //Logger::registerGenericHandler($browserHandler);
-}
+// ExecEngine log
+Logger::getLogger('EXECENGINE')->pushHandler(new RotatingFileHandler(__DIR__ . '/log/execengine.log', 0, MonoLogger::DEBUG));
 
-$execEngineHandler = new \Monolog\Handler\RotatingFileHandler(__DIR__ . '/log/execengine.log', 0, \Monolog\Logger::DEBUG);
-Logger::registerHandlerForChannel('EXECENGINE', $execEngineHandler);
-
-// User log handler
-Logger::registerHandlerForChannel('USERLOG', new NotificationHandler(\Monolog\Logger::INFO));
+// User interface logging
+Logger::getUserLogger()->pushHandler(new NotificationHandler(MonoLogger::INFO));
 
 /**************************************************************************************************
  * APPLICATION
