@@ -363,10 +363,11 @@ class AmpersandApp
     /**
      * Function to reinstall the application. This includes database structure and load default population
      *
-     * @param boolean $installDefaultPop specifies whether or not to install the default population
+     * @param bool $installDefaultPop specifies whether or not to install the default population
+     * @param bool $ignoreInvariantRules
      * @return \Ampersand\Transaction in which application is reinstalled
      */
-    public function reinstall($installDefaultPop = true): Transaction
+    public function reinstall(bool $installDefaultPop = true, bool $ignoreInvariantRules = false): Transaction
     {
         $this->logger->info("Start application reinstall");
 
@@ -402,7 +403,7 @@ class AmpersandApp
         }
 
         // Close transaction
-        $transaction = Transaction::getCurrentTransaction()->runExecEngine()->close();
+        $transaction = Transaction::getCurrentTransaction()->runExecEngine()->close(false, $ignoreInvariantRules);
         if ($transaction->isRolledBack()) {
             throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
         } else {

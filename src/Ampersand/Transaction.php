@@ -182,9 +182,10 @@ class Transaction
      * Close transaction
      *
      * @param bool $dryRun
+     * @param bool $ignoreInvariantViolations
      * @return \Ampersand\Transaction $this
      */
-    public function close(bool $dryRun = false): Transaction
+    public function close(bool $dryRun = false, bool $ignoreInvariantViolations = false): Transaction
     {
         $this->logger->info("Request to close transaction: {$this->id}");
         
@@ -210,7 +211,7 @@ class Transaction
             if ($this->invariantRulesHold) {
                 $this->logger->info("Commit transaction");
                 $this->commit();
-            } elseif (!$this->invariantRulesHold && Config::get('ignoreInvariantViolations', 'transactions')) {
+            } elseif (!$this->invariantRulesHold && (Config::get('ignoreInvariantViolations', 'transactions') || $ignoreInvariantViolations)) {
                 $this->logger->warning("Commit transaction with invariant violations");
                 $this->commit();
             } else {

@@ -122,10 +122,13 @@ angular.module('AmpersandApp')
     $scope.installing = false;
     $scope.installed = false;
     
-    $scope.install = function(defPop){
+    $scope.install = function(defPop, ignoreInvariantRules){
         $scope.installing = true;
         $scope.installed = false;
-        Restangular.one('admin/installer').get({defaultPop : defPop}).then(function(data) {
+        Restangular
+        .one('admin/installer')
+        .get({defaultPop : defPop, ignoreInvariantRules : ignoreInvariantRules})
+        .then(function(data) {
             data = data.plain();
             NotificationService.updateNotifications(data);
             NavigationBarService.refreshNavBar();
@@ -166,6 +169,45 @@ angular.module('uiSwitch', [])
     }
   }
 });
+var app = angular.module('AmpersandApp');
+app.requires[app.requires.length] = 'angularFileUpload'; // add angularFileUpload to dependency list
+app.config(["$routeProvider", function($routeProvider) {
+    $routeProvider
+        .when('/ext/importer', {
+            controller : 'PopulationImportController',
+            templateUrl : 'app/src/importer/importer.html',
+            interfaceLabel : 'Population importer'
+        });
+}]).service('ImportService', ["FileUploader", "NotificationService", "NavigationBarService", function(FileUploader, NotificationService, NavigationBarService){
+    let uploader = new FileUploader({
+        url: 'api/v1/admin/import'
+    });
+
+    uploader.onSuccessItem = function(fileItem, response, status, headers) {
+        NotificationService.updateNotifications(response.notifications);
+        if(response.sessionRefreshAdvice) NavigationBarService.refreshNavBar();
+    };
+    
+    uploader.onErrorItem = function(item, response, status, headers){
+        let message;
+        let details;
+        if(typeof response === 'object'){
+            message = response.msg || 'Error while importing';
+            NotificationService.addError(message, status, true);
+            
+            if(response.notifications !== undefined) NotificationService.updateNotifications(response.notifications); 
+        }else{
+            message = status + ' Error while importing';
+            details = response; // html content is excepted
+            NotificationService.addError(message, status, true, details);
+        }
+    };
+    
+    return {uploader : uploader};
+}]).controller('PopulationImportController', ["$scope", "ImportService", function ($scope, ImportService) {
+    $scope.uploader = ImportService.uploader;
+}]);
+
 angular.module('AmpersandApp')
 .controller('AtomicController', ["$scope", "ResourceService", function($scope, ResourceService){
     
@@ -853,45 +895,6 @@ angular.module('AmpersandApp')
     return ResourceService;
 }]);
 
-var app = angular.module('AmpersandApp');
-app.requires[app.requires.length] = 'angularFileUpload'; // add angularFileUpload to dependency list
-app.config(["$routeProvider", function($routeProvider) {
-    $routeProvider
-        .when('/ext/importer', {
-            controller : 'PopulationImportController',
-            templateUrl : 'app/src/importer/importer.html',
-            interfaceLabel : 'Population importer'
-        });
-}]).service('ImportService', ["FileUploader", "NotificationService", "NavigationBarService", function(FileUploader, NotificationService, NavigationBarService){
-    let uploader = new FileUploader({
-        url: 'api/v1/admin/import'
-    });
-
-    uploader.onSuccessItem = function(fileItem, response, status, headers) {
-        NotificationService.updateNotifications(response.notifications);
-        if(response.sessionRefreshAdvice) NavigationBarService.refreshNavBar();
-    };
-    
-    uploader.onErrorItem = function(item, response, status, headers){
-        let message;
-        let details;
-        if(typeof response === 'object'){
-            message = response.msg || 'Error while importing';
-            NotificationService.addError(message, status, true);
-            
-            if(response.notifications !== undefined) NotificationService.updateNotifications(response.notifications); 
-        }else{
-            message = status + ' Error while importing';
-            details = response; // html content is excepted
-            NotificationService.addError(message, status, true, details);
-        }
-    };
-    
-    return {uploader : uploader};
-}]).controller('PopulationImportController', ["$scope", "ImportService", function ($scope, ImportService) {
-    $scope.uploader = ImportService.uploader;
-}]);
-
 angular.module('AmpersandApp')
 .service('LoginService', ["$location", "$localStorage", function($location, $localStorage){
     let urlLoginPage = null;
@@ -1336,7 +1339,7 @@ angular.module('AmpersandApp').run(['$templateCache', function($templateCache) {
 $templateCache.put('app/src/admin/execengine-menu-item.html','<a ng-controller="ExecEngineController" href="" ng-click="run()">\r\n\t<span class="glyphicon glyphicon-cog"></span><span> Run execution engine</span>\r\n</a>');
 $templateCache.put('app/src/admin/exporter-menu-item.html','<a ng-href="api/v1/admin/export/all">\r\n    <span class="glyphicon glyphicon-download"></span><span> Population export</span>\r\n</a>');
 $templateCache.put('app/src/admin/installer-menu-item.html','<a href="#/admin/installer">\r\n    <span class="glyphicon glyphicon-trash"></span><span> Reinstall database</span>\r\n</a>');
-$templateCache.put('app/src/admin/installer.html','<div class="container-fluid" id="Interface">\r\n    <div class="jumbotron">\r\n        <h1>Installer</h1>\r\n        <p>This action will reinstall the application and delete all content.</p>\r\n        <p>If provided, the initial population will be installed.</p>\r\n        <div class="btn-group">\r\n            <button type="button" ng-click="install(true)" class="btn btn-lg" ng-class="{\'btn-danger\' : (!installing && !installed), \'btn-warning\' : installing, \'btn-success\' : installed}" ng-disabled="installing">\r\n                <span ng-if="!installed && ! installing">Reinstall application  </span>\r\n                <span ng-if="installing">Application installing  </span>\r\n                <span ng-if="installed">Application reinstalled  </span>\r\n                <img ng-if="installing" ng-src="app/images/loading.gif" style="height:20px;"/>\r\n            </button>\r\n            <button type="button" class="btn btn-lg dropdown-toggle" ng-class="{\'btn-danger\' : (!installing && !installed), \'btn-warning\' : installing, \'btn-success\' : installed}" ng-disabled="installing" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\r\n                <span class="caret"></span>\r\n            </button>\r\n            <ul class="dropdown-menu">\r\n                <li><a href="" ng-click="install(true)">Reinstall application</a></li>\r\n                <li><a href="" ng-click="install(false)">Reinstall application (without default population)</a></li>\r\n            </ul>\r\n        </div>\r\n    </div>\r\n</div>');
+$templateCache.put('app/src/admin/installer.html','<div class="container-fluid" id="Interface">\r\n    <div class="jumbotron">\r\n        <h1>Installer</h1>\r\n        <p>This action will reinstall the application and delete all content.</p>\r\n        <p>If provided, the initial population will be installed.</p>\r\n        <div class="btn-group">\r\n            <button type="button" ng-click="install(true)" class="btn btn-lg" ng-class="{\'btn-danger\' : (!installing && !installed), \'btn-warning\' : installing, \'btn-success\' : installed}" ng-disabled="installing">\r\n                <span ng-if="!installed && ! installing">Reinstall application  </span>\r\n                <span ng-if="installing">Application installing  </span>\r\n                <span ng-if="installed">Application reinstalled  </span>\r\n                <img ng-if="installing" ng-src="app/images/loading.gif" style="height:20px;"/>\r\n            </button>\r\n            <button type="button" class="btn btn-lg dropdown-toggle" ng-class="{\'btn-danger\' : (!installing && !installed), \'btn-warning\' : installing, \'btn-success\' : installed}" ng-disabled="installing" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\r\n                <span class="caret"></span>\r\n            </button>\r\n            <ul class="dropdown-menu">\r\n                <li><a href="" ng-click="install(true, false)">Reinstall application</a></li>\r\n                <li><a href="" ng-click="install(false, false)">Reinstall application (without default population)</a></li>\r\n                <li><a href="" ng-click="install(true, true)">Reinstall application (ignore invariant rules)</a></li>\r\n            </ul>\r\n        </div>\r\n    </div>\r\n</div>');
 $templateCache.put('app/src/importer/importer.html','<style>\r\n.my-drop-zone { \r\nborder: dotted 3px lightgray;\r\n}\r\n\r\n/* Default class applied to drop zones on over */\r\n.nv-file-over {\r\n\tborder: dotted 3px green;\r\n}\r\n</style>\r\n<div class="container-fluid interface">\r\n\t<fieldset>\r\n\t\t<legend>Population importer</legend>\r\n\t\t<div class="row">\r\n\t\t\t<div class="col-md-3" nv-file-drop="" uploader="uploader">\r\n\t\t\t\t<h3>Select files</h3>\r\n\t\t\t\t\r\n\t\t\t\t<div ng-show="uploader.isHTML5">\r\n\t\t\t\t<!-- 3. nv-file-over uploader="link" over-class="className" -->\r\n\t\t\t\t\t<div class="well my-drop-zone" nv-file-over="" uploader="uploader">\r\n\t\t\t\t\t\tBase drop zone\r\n\t\t\t\t\t</div>\r\n\t\t\t\t</div>\r\n\t\t\t\t\r\n\t\t\t\t<!-- Example: nv-file-select="" uploader="{Object}" options="{Object}" filters="{String}" -->\r\n\t\t\t\tMultiple\r\n\t\t\t\t<input type="file" nv-file-select="" uploader="uploader" multiple  /><br/>\r\n\t\t\t\t\r\n\t\t\t\tSingle\r\n\t\t\t\t<input type="file" nv-file-select="" uploader="uploader" />\r\n\t\t\t</div>\t\r\n\t\t\t\r\n\t\t\t<div class="col-md-9" style="margin-bottom: 40px">\r\n\t\r\n\t\t\t\t<h3>Upload queue</h3>\r\n\t\t\t\t<p>Queue length: {{ uploader.queue.length }}</p>\r\n\t\t\t\t\r\n\t\t\t\t<table class="table">\r\n\t\t\t\t\t<thead>\r\n\t\t\t\t\t\t<tr>\r\n\t\t\t\t\t\t\t<th width="50%">Name</th>\r\n\t\t\t\t\t\t\t<th ng-show="uploader.isHTML5">Size</th>\r\n\t\t\t\t\t\t\t<th ng-show="uploader.isHTML5">Progress</th>\r\n\t\t\t\t\t\t\t<th>Status</th>\r\n\t\t\t\t\t\t\t<th>Actions</th>\r\n\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t</thead>\r\n\t\t\t\t\t<tbody>\r\n\t\t\t\t\t\t<tr ng-repeat="item in uploader.queue">\r\n\t\t\t\t\t\t\t<td><strong>{{ item.file.name }}</strong></td>\r\n\t\t\t\t\t\t\t<td ng-show="uploader.isHTML5" nowrap>{{ item.file.size/1024/1024|number:2 }} MB</td>\r\n\t\t\t\t\t\t\t<td ng-show="uploader.isHTML5">\r\n\t\t\t\t\t\t\t\t<div class="progress" style="margin-bottom: 0;">\r\n\t\t\t\t\t\t\t\t\t<div class="progress-bar" role="progressbar" ng-style="{ \'width\': item.progress + \'%\' }"></div>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</td>\r\n\t\t\t\t\t\t\t<td class="text-center">\r\n\t\t\t\t\t\t\t\t<span ng-show="item.isSuccess"><i class="glyphicon glyphicon-ok"></i></span>\r\n\t\t\t\t\t\t\t\t<span ng-show="item.isCancel"><i class="glyphicon glyphicon-ban-circle"></i></span>\r\n\t\t\t\t\t\t\t\t<span ng-show="item.isError"><i class="glyphicon glyphicon-remove"></i></span>\r\n\t\t\t\t\t\t\t\t<span ng-show="item.isUploading"><img src="app/images/loading.gif" height="20" width="20"></span>\r\n\t\t\t\t\t\t\t</td>\r\n\t\t\t\t\t\t\t<td nowrap>\r\n\t\t\t\t\t\t\t\t<button type="button" class="btn btn-success btn-xs" ng-click="item.upload()" ng-disabled="item.isReady || item.isUploading">  <!-- Removed: "|| item.isSuccess" to enable the re-upload of a file.-->\r\n\t\t\t\t\t\t\t\t\t<span class="glyphicon glyphicon-upload"></span> Upload\r\n\t\t\t\t\t\t\t\t</button>\r\n\t\t\t\t\t\t\t\t<button type="button" class="btn btn-warning btn-xs" ng-click="item.cancel()" ng-disabled="!item.isUploading">\r\n\t\t\t\t\t\t\t\t\t<span class="glyphicon glyphicon-ban-circle"></span> Cancel\r\n\t\t\t\t\t\t\t\t</button>\r\n\t\t\t\t\t\t\t\t<button type="button" class="btn btn-danger btn-xs" ng-click="item.remove()">\r\n\t\t\t\t\t\t\t\t\t<span class="glyphicon glyphicon-trash"></span> Remove\r\n\t\t\t\t\t\t\t\t</button>\r\n\t\t\t\t\t\t\t</td>\r\n\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t</tbody>\r\n\t\t\t\t</table>\r\n\t\t\t\t\r\n\t\t\t\t<div>\r\n\t\t\t\t\t<div>\r\n\t\t\t\t\t\tQueue progress:\r\n\t\t\t\t\t\t<div class="progress">\r\n\t\t\t\t\t\t\t<div class="progress-bar" role="progressbar" ng-style="{ \'width\': uploader.progress + \'%\' }"></div>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</div>\r\n\t\t\t\t\t<button type="button" class="btn btn-success btn-sm" ng-click="uploader.uploadAll()" ng-disabled="!uploader.getNotUploadedItems().length">\r\n\t\t\t\t\t\t<span class="glyphicon glyphicon-upload"></span> Upload all\r\n\t\t\t\t\t</button>\r\n\t\t\t\t\t<button type="button" class="btn btn-warning btn-sm" ng-click="uploader.cancelAll()" ng-disabled="!uploader.isUploading">\r\n\t\t\t\t\t\t<span class="glyphicon glyphicon-ban-circle"></span> Cancel all\r\n\t\t\t\t\t</button>\r\n\t\t\t\t\t<button type="button" class="btn btn-danger btn-sm" ng-click="uploader.clearQueue()" ng-disabled="!uploader.queue.length">\r\n\t\t\t\t\t\t<span class="glyphicon glyphicon-trash"></span> Remove all\r\n\t\t\t\t\t</button>\r\n\t\t\t\t</div>\t\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</fieldset>\r\n</div>');
 $templateCache.put('app/src/importer/menu-item.html','<a ng-href="#/ext/importer/">\r\n    <span class="glyphicon glyphicon-upload"></span><span> Population importer</span>\r\n</a>');
 $templateCache.put('app/src/navbar/navigationBar.html','<nav class="navbar navbar-default" role="navigation" ng-controller="NavigationBarController" cg-busy="{promise:loadingNavBar}">\r\n    <div id="navbar-wrapper" class="container">\r\n        <ul class="nav navbar-nav" id="navbar-interfaces" my-navbar-resize>\r\n            <li><a href="#/"><span class="glyphicon glyphicon-home"></span></a></li>\r\n            <li id="navbar-interfaces-dropdown" class="dropdown">\r\n                <a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-menu-hamburger"></span></a>\r\n                <ul id="navbar-interfaces-dropdown-menu" class="dropdown-menu" role="menu"></ul>\r\n            </li>\r\n            <li id="{{interface.label}}" ng-repeat="interface in navbar.top"> <!-- the interface id is there so we can style specific menu items with css -->\r\n                <a href="#/{{interface.id}}">\r\n                    <span class="glyphicon glyphicon-list-alt"></span> {{interface.label}}</a>\r\n            </li>\r\n        </ul>\r\n        <ul class="nav navbar-nav navbar-right" id="navbar-options">\r\n            <!-- hidden on extra small devices, e.g. phone (<768px) -->\r\n            <li class="dropdown hidden-xs" uib-tooltip="Notification menu" tooltip-trigger="mouseenter" tooltip-placement="left">\r\n                <a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-bullhorn"></span></a>\r\n                <ul class="dropdown-menu" role="menu" ng-click="$event.stopPropagation();">\r\n                    <li class="dropdown-header">Transaction settings</li>\r\n                        <li><switch ng-model="localStorage.notify_showSignals"> Show signals</switch></li>\r\n                        <li><switch ng-model="localStorage.notify_showInvariants"> Show invariants</switch></li>\r\n                        <li><switch ng-model="localStorage.autoSave"> Auto save changes</switch></li>\r\n                    <li class="dropdown-header">User logs</li>\r\n                        <li><switch ng-model="localStorage.notify_showErrors"> Show errors</switch></li>\r\n                        <li><switch ng-model="localStorage.notify_showWarnings"> Show warnings</switch></li>\r\n                        <li><switch ng-model="localStorage.notify_showInfos"> Show infos</switch></li>\r\n                        <li><switch ng-model="localStorage.notify_showSuccesses"> Show successes</switch></li>\r\n                        <li><switch ng-model="localStorage.notify_autoHideSuccesses"> Auto hide successes</switch></li>\r\n                    <li class="divider" role="presentation"></li>\r\n                        <li><a href="" ng-click="resetSettingsToDefault();"><span class="glyphicon glyphicon-repeat" style="margin: 4px; width: 30px;"></span> Default settings</a></li>\r\n                </ul>\r\n            </li>\r\n            \r\n            <!-- hidden on extra small devices, e.g. phone (<768px) -->\r\n            <li class="dropdown hidden-xs" uib-tooltip="Tool menu" tooltip-trigger="mouseenter" tooltip-placement="left">\r\n                <a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-th"></span></a>\r\n                <ul class="dropdown-menu" role="menu">\r\n                    <li ng-repeat="app in navbar.refresh" ng-include="app.url"/>\r\n                    <li><a href="" ng-click="reload()"><span class="glyphicon glyphicon-refresh"></span> Refresh page</a></li>\r\n                    <li ng-repeat="ext in navbar.ext" ng-include="ext.url"/>\r\n                </ul>\r\n            </li>\r\n            \r\n            <!-- hidden on extra small devices, e.g. phone (<768px) -->\r\n            <li ng-if="navbar.new.length" class="dropdown hidden-xs" uib-tooltip="Create new" tooltip-trigger="mouseenter" tooltip-placement="left">\r\n                <a href="" class="dropdown-toggle" data-toggle="dropdown">\r\n                    <span class="glyphicon glyphicon-plus"></span>\r\n                </a>\r\n                <ul class="dropdown-menu" role="menu">\r\n                    <li ng-repeat="item in navbar.new" ng-class="{\'dropdown-submenu\' : item.ifcs.length > 1}">\r\n                        <!--<a  style="position:relative; display:inline-block;">-->\r\n                        <a ng-if="item.ifcs.length > 1" tabindex="-1" href="#">{{item.label}}</a>\r\n                        <ul ng-if="item.ifcs.length > 1" class="dropdown-menu" role="menu">\r\n                            <li ng-repeat="ifc in item.ifcs">\r\n                                <a tabindex="-1" href="#" ng-click="createNewResource(ifc.resourceType, ifc.link);">{{ifc.label}}</a>\r\n                            </li>\r\n                        </ul>\r\n                        \r\n                        <a ng-if="item.ifcs.length == 1" href="" ng-click="createNewResource(item.ifcs[0].resourceType, item.ifcs[0].link);">{{item.label}}</a>\r\n                        <span ng-if="item.ifcs.length == 0">{{item.label}}</span>\r\n                    </li>\r\n                </ul>\r\n            </li>\r\n            \r\n            <li ng-if="sessionStorage.sessionRoles.length || navbar.role.length" class="dropdown" uib-tooltip="Role menu" tooltip-trigger="mouseenter" tooltip-placement="left">\r\n                <a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span></a>\r\n                <ul class="dropdown-menu" role="menu">\r\n                    <li ng-repeat="role in sessionStorage.sessionRoles" ng-click="$event.stopPropagation();"><switch ng-model="role.active" ng-click="toggleRole(role.id);"> {{role.label}}</switch></li>\r\n                    <li ng-if="navbar.role.length && sessionStorage.sessionRoles.length" class="divider" role="presentation"></li>\r\n                    <li ng-repeat="ext in navbar.role" ng-include="ext.url"/>\r\n                </ul>\r\n            </li>\r\n        </ul>\r\n    </div>\r\n</nav>');
@@ -1345,5 +1348,5 @@ $templateCache.put('app/src/shared/404.html','<!-- 404 page -->\r\n<div class="c
 $templateCache.put('app/src/shared/header.html','<!-- by default no header -->');
 $templateCache.put('app/src/shared/home.html','<!-- Home screen -->\r\n<div class="container-fluid" id="Interface">\r\n    <div class="jumbotron">\r\n        <h1>Hello, world!</h1>\r\n        <p>You\'ve successfully generated your Ampersand prototype.</p>\r\n        <p><a class="btn btn-primary btn-lg" href="https://ampersandtarski.gitbooks.io/documentation" target="_blank" role="button">See our documentation &raquo;</a></p>\r\n    </div>\r\n</div>\r\n');
 $templateCache.put('app/src/shared/myNavTo/myNavToInterfaces.html','<div ng-if="resource._ifcs_.length > 1" style="position:relative; display:inline-block;">\r\n    <a class="dropdown-toggle" data-toggle="dropdown"><ng-transclude></ng-transclude></a>\r\n    <ul class="dropdown-menu" role="menu">\r\n        <li ng-repeat="ifc in resource._ifcs_">\r\n            <a ng-href="#/{{ifc.id}}/{{resource._id_}}" target="{{target}}">{{ifc.label}}</a>\r\n        </li>\r\n    </ul>\r\n</div>\r\n<a ng-if="resource._ifcs_.length == 1" ng-href="#/{{resource._ifcs_[0].id}}/{{resource._id_}}" target="{{target}}"><ng-transclude></ng-transclude></a>\r\n<span ng-if="resource._ifcs_.length == 0 || resource._ifcs_ == undefined"><ng-transclude></ng-transclude></span>');
-$templateCache.put('app/src/shared/myNavTo/myNavToOtherInterfaces.html','<!-- Only when ifcs has more than 1 interface, otherwise, the user is already there -->\r\n<!-- This menu includes the interface where the user currently is -->\r\n<div ng-if="resource._ifcs_.length > 1" style="position:relative; display: inline-block;">\r\n    <button type="button" class="btn btn-xs dropdown-toggle" data-toggle="dropdown">\r\n        <span class="glyphicon glyphicon-menu-hamburger"></span>\r\n    </button>\r\n    <ul class="dropdown-menu dropdown-menu-right" role="menu">\r\n        <li ng-repeat="ifc in resource._ifcs_">\r\n            <a ng-href="#/{{ifc.id}}/{{resource._id_}}" target="{{target}}">{{ifc.label}}</a>\r\n        </li>\r\n    </ul>\r\n</div>');}]);
+$templateCache.put('app/src/shared/myNavTo/myNavToOtherInterfaces.html','<!-- This menu includes the interface where the user currently is -->\r\n<div ng-if="resource._ifcs_.length" style="position:relative; display: inline-block;">\r\n    <button type="button" class="btn btn-xs dropdown-toggle" data-toggle="dropdown">\r\n        <span class="glyphicon glyphicon-menu-hamburger"></span>\r\n    </button>\r\n    <ul class="dropdown-menu dropdown-menu-right" role="menu">\r\n        <li ng-repeat="ifc in resource._ifcs_">\r\n            <a ng-href="#/{{ifc.id}}/{{resource._id_}}" target="{{target}}">{{ifc.label}}</a>\r\n        </li>\r\n    </ul>\r\n</div>');}]);
 //# sourceMappingURL=ampersand.js.map

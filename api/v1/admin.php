@@ -75,12 +75,10 @@ $api->group('/admin', function () {
             throw new Exception("Reinstallation of application not allowed in production environment", 403);
         }
         
-        $defaultPop = filter_var($request->getQueryParam('defaultPop', true), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-        if (is_null($defaultPop)) {
-            $defaultPop = true;
-        }
+        $defaultPop = filter_var($request->getQueryParam('defaultPop'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
+        $ignoreInvariantRules = filter_var($request->getQueryParam('ignoreInvariantRules'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
 
-        $ampersandApp->reinstall($defaultPop); // Reinstall and initialize application
+        $ampersandApp->reinstall($defaultPop, $ignoreInvariantRules); // Reinstall and initialize application
         $ampersandApp->setSession();
 
         $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
