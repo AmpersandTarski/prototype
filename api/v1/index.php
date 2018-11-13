@@ -135,7 +135,11 @@ $apiContainer['phpErrorHandler'] = function ($c) {
 };
 
 // Settings
-$apiContainer->get('settings')->replace(['displayErrorDetails' => Config::get('debugMode')]);
+$apiContainer->get('settings')->replace(
+    [ 'displayErrorDetails' => Config::get('debugMode') // when true, additional information about exceptions are displayed by the default error handler
+    , 'determineRouteBeforeAppMiddleware' => true // the route is calculated before any middleware is executed. This means that you can inspect route parameters in middleware if you need to.
+    ]
+);
 
 // Create and configure Slim app (version 3.x)
 $api = new App($apiContainer);
@@ -196,15 +200,24 @@ $api->add(function (Request $req, Response $res, callable $next) {
         $ampersandApp->init(); // initialize Ampersand application
     } catch (NotInstalledException $e) {
         if (Config::get('debugMode')) {
-            return $res->withJson(
-                [ 'error' => 500
-                , 'msg' => $e->getMessage()
-                // , 'html' => "Please contact the application administrator for more information"
-                , 'navTo' => "/admin/installer"
-                ],
-                500,
-                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-            );
+            /** @var \Slim\Route $route */
+            $route = $req->getAttribute('route');
+            
+            // If application installer API ROUTE is called, continue
+            if ($route->getName() == 'applicationInstaller') {
+                return $next($req, $res);
+            // Else navigate user to /admin/installer page
+            } else {
+                return $res->withJson(
+                    [ 'error' => 500
+                    , 'msg' => $e->getMessage()
+                    // , 'html' => "Please contact the application administrator for more information"
+                    , 'navTo' => "/admin/installer"
+                    ],
+                    500,
+                    JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+                );
+            }
         } else {
             throw $e; // let error handler do the response.
         }

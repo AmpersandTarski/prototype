@@ -87,7 +87,7 @@ $api->group('/admin', function () {
         $content = Notifications::getAll(); // Return all notifications
 
         return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    });
+    })->setName('applicationInstaller');
 
     $this->get('/installer/checksum/update', function (Request $request, Response $response, $args = []) {
         /** @var \Slim\Container $this */

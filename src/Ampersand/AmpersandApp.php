@@ -45,7 +45,7 @@ class AmpersandApp
 
     /**
      * Ampersand application name (i.e. CONTEXT of ADL entry script)
-     * 
+     *
      * @var string
      */
     protected $name;
