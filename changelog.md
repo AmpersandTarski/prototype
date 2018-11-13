@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased changes
+* **Upgrade local settings required** -> v2.0 (see default localsettings file)
+* Refactor initialization phase of Ampersand application. Config -> Init -> Session -> Run
+* [Issue 802](https://github.com/AmpersandTarski/Ampersand/issues/802), [Issue 829](https://github.com/AmpersandTarski/Ampersand/issues/829) Fix issue with database initialization
+* Don't automatically create database table. Installer is required.
+* Remove dependency injection container for AmpersandApp (for now)
+* Move Monolog dependency from Logger class to localsettings
 * Fix issue with session that timed out after default expiration time of 24 min regardless of user activity.
 * Security fix: renew session id after login.
 

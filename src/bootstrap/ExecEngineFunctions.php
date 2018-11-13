@@ -19,12 +19,10 @@ use Ampersand\Core\Atom;
 use Ampersand\AngularApp;
 use Ampersand\Rule\ExecEngine;
 
-/**
- * @var \Pimple\Container $container
- */
-global $container; // TODO: remove dependency to gloabl $container var
-
 $execEngineLogger = ExecEngine::getLogger();
+
+/** @var \Ampersand\AngularApp $angularApp */
+global $angularApp;
 
 /*
    Example of rule that automatically inserts pairs into a relation (analogous stuff holds for DelPair):
@@ -355,7 +353,7 @@ ExecEngine::registerFunction('SetConceptCond', function ($conceptA, $conceptB, $
     call_user_func(ExecEngine::getFunction('SetConcept'), $conceptA, $conceptB, $atom);
 });
 
-ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($container, $execEngineLogger) {
+ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angularApp, $execEngineLogger) {
     if (strpos($navTo, '_NEW') !== false) {
         $navTo = str_replace('_NEW', ExecEngine::getCreatedAtom()->id, $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
         $execEngineLogger->debug("replaced navTo string with '{$navTo}'");
@@ -366,10 +364,10 @@ ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($contain
         return false;
     }
 
-    $container['angular_app']->setNavToResponse($navTo, 'COMMIT');
+    $angularApp->setNavToResponse($navTo, 'COMMIT');
 });
     
-ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($container, $execEngineLogger) {
+ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($angularApp, $execEngineLogger) {
     if (strpos($navTo, '_NEW') !== false) {
         $navTo = str_replace('_NEW', ExecEngine::getCreatedAtom()->id, $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
         $execEngineLogger->debug("replaced navTo string with '{$navTo}'");
@@ -380,5 +378,5 @@ ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($conta
         return false;
     }
     
-    $container['angular_app']->setNavToResponse($navTo, 'ROLLBACK');
+    $angularApp->setNavToResponse($navTo, 'ROLLBACK');
 });

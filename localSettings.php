@@ -4,68 +4,71 @@ use Ampersand\Log\Logger;
 use Ampersand\Log\NotificationHandler;
 use Ampersand\Log\RequestIDProcessor;
 use Ampersand\Misc\Config;
-// use Ampersand\Rule\ExecEngine;
-use Ampersand\Plugs\MysqlDB\MysqlDB;
+use Ampersand\AmpersandApp;
+use Ampersand\Misc\Generics;
+use Ampersand\AngularApp;
+use Monolog\Logger as MonoLogger;
+use Monolog\Handler\FingersCrossedHandler;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Processor\WebProcessor;
 
-define('LOCALSETTINGS_VERSION', 1.6);
-
-date_default_timezone_set('Europe/Amsterdam'); // See http://php.net/manual/en/timezones.php for a list of supported timezones
+define('LOCALSETTINGS_VERSION', 2.0);
+date_default_timezone_set('Europe/Amsterdam'); // see http://php.net/manual/en/timezones.php for a list of supported timezones
+set_time_limit(30); // execution time limit is set to a default of 30 seconds. Use 0 to have no time limit. (not advised)
 
 /**************************************************************************************************
- * LOGGING functionality
+ * LOGGING
  *************************************************************************************************/
 error_reporting(E_ALL & ~E_NOTICE);
 ini_set("display_errors", false);
 
+Config::set('debugMode', 'global', $debugMode = true); // default mode = false
+
+// Add all channels to error and debug log file handlers
+$errorLog = new RotatingFileHandler(__DIR__ . '/log/error.log', 0, MonoLogger::DEBUG);
+// $errorLog->pushProcessor(new RequestIDProcessor())->pushProcessor(new WebProcessor(null, [ 'ip' => 'REMOTE_ADDR', 'method' => 'REQUEST_METHOD', 'url' => 'REQUEST_URI'])); // Adds IP adres and url info to log records
+$errorLog = new FingersCrossedHandler($errorLog, MonoLogger::ERROR, 0, true, true, MonoLogger::WARNING);
+$debugLog = new RotatingFileHandler(__DIR__ . '/log/debug.log', 0, MonoLogger::DEBUG);
+Logger::setFactoryFunction(function ($channel) use ($errorLog, $debugLog, $debugMode) {
+    $handlers[] = $errorLog;
+    if ($debugMode) {
+        $handlers[] = $debugLog;
+    }
+    return new MonoLogger($channel, $handlers);
+});
+
+// ExecEngine log
+Logger::getLogger('EXECENGINE')->pushHandler(new RotatingFileHandler(__DIR__ . '/log/execengine.log', 0, MonoLogger::DEBUG));
+
+// User interface logging
+Logger::getUserLogger()->pushHandler(new NotificationHandler(MonoLogger::INFO));
+
 /**************************************************************************************************
- * Execution time limit is set to a default of 30 seconds. Use 0 to have no time limit. (not advised)
+ * APPLICATION
  *************************************************************************************************/
-set_time_limit(30);
-
-Config::set('debugMode', 'global', true); // default mode = false
-
-// Log file handler
-$fileHandler = new \Monolog\Handler\RotatingFileHandler(__DIR__ . '/log/error.log', 0, \Monolog\Logger::DEBUG);
-// $fileHandler->pushProcessor(new RequestIDProcessor())->pushProcessor(new WebProcessor(null, [ 'ip' => 'REMOTE_ADDR', 'method' => 'REQUEST_METHOD', 'url' => 'REQUEST_URI'])); // Adds IP adres and url info to log records
-$wrapper = new \Monolog\Handler\FingersCrossedHandler($fileHandler, \Monolog\Logger::ERROR, 0, true, true, \Monolog\Logger::WARNING);
-Logger::registerGenericHandler($wrapper);
-
-if (Config::get('debugMode')) {
-    $fileHandler = new \Monolog\Handler\RotatingFileHandler(__DIR__ . '/log/debug.log', 0, \Monolog\Logger::DEBUG);
-    Logger::registerGenericHandler($fileHandler);
-    
-    // Browsers debuggers
-    //$browserHandler = new \Monolog\Handler\ChromePHPHandler(\Monolog\Logger::DEBUG); // Log handler for Google Chrome
-    //$browserHandler = new \Monolog\Handler\FirePHPHandler(\Monolog\Logger::DEBUG); // Log handler for Firebug in Mozilla Firefox
-    //Logger::registerGenericHandler($browserHandler);
-}
-
-$execEngineHandler = new \Monolog\Handler\RotatingFileHandler(__DIR__ . '/log/execengine.log', 0, \Monolog\Logger::DEBUG);
-Logger::registerHandlerForChannel('EXECENGINE', $execEngineHandler);
-
-// User log handler
-Logger::registerHandlerForChannel('USERLOG', new NotificationHandler(\Monolog\Logger::INFO));
+$logger = Logger::getLogger('APPLICATION');
+$model = new Generics(Config::get('pathToGeneratedFiles'), $logger);
+$ampersandApp = new AmpersandApp($model, $logger);
+$angularApp = new AngularApp(Logger::getLogger('FRONTEND'));
 
 /**************************************************************************************************
  * SERVER settings
  *************************************************************************************************/
-// Config::set('serverURL', 'global', 'http://www.yourdomain.nl'); // defaults to http://localhost/<ampersand context name>
+// Config::set('serverURL', 'global', 'http://www.yourdomain.nl'); // defaults to http://localhost
 // Config::set('apiPath', 'global', '/api/v1'); // relative path to api
 
-
 /**************************************************************************************************
- * DATABASE settings
+ * DATABASE and PLUGS
  *************************************************************************************************/
-$container['mysql_database'] = function ($c) {
-    $dbHost = Config::get('dbHost', 'mysqlDatabase');
-    $dbUser = Config::get('dbUser', 'mysqlDatabase');
-    $dbPass = Config::get('dbPassword', 'mysqlDatabase');
-    $dbName = Config::get('dbName', 'mysqlDatabase');
-    return new MysqlDB($dbHost, $dbUser, $dbPass, $dbName, Logger::getLogger('DATABASE'));
-};
-$container['default_plug'] = function ($c) {
-    return $c['mysql_database'];
-};
+$mysqlDB = new \Ampersand\Plugs\MysqlDB\MysqlDB(
+    $model->getSetting('mysqlSettings')->dbHost,
+    $model->getSetting('mysqlSettings')->dbUser,
+    $model->getSetting('mysqlSettings')->dbPass,
+    $model->getSetting('mysqlSettings')->dbName,
+    Logger::getLogger('DATABASE')
+);
+$ampersandApp->setDefaultStorage($mysqlDB);
+$ampersandApp->setConjunctCache(new \Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache($mysqlDB));
 
 /**************************************************************************************************
  * LOGIN FUNCTIONALITY
@@ -82,7 +85,7 @@ $container['default_plug'] = function ($c) {
 
 
 /**************************************************************************************************
- * ExecEngine
+ * EXECENGINE
  *************************************************************************************************/
 // Config::set('execEngineRoleNames', 'execEngine', ['ExecEngine']);
 // Config::set('autoRerun', 'execEngine', true);

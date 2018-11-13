@@ -128,18 +128,18 @@ class Violation
      */
     public function getInterfaces($srcOrTgt = null): array
     {
-        /** @var \Pimple\Container $container */
-        global $container; // TODO: remove dependency to global $container var
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency to global $ampersandApp
         
         switch ($srcOrTgt) {
             case 'src':
-                return $container['ampersand_app']->getInterfacesToReadConcepts([$this->src->concept]);
+                return $ampersandApp->getInterfacesToReadConcepts([$this->src->concept]);
                 break;
             case 'tgt':
-                return $container['ampersand_app']->getInterfacesToReadConcepts([$this->tgt->concept]);
+                return $ampersandApp->getInterfacesToReadConcepts([$this->tgt->concept]);
                 break;
             default:
-                return $container['ampersand_app']->getInterfacesToReadConcepts([$this->src->concept, $this->tgt->concept]);
+                return $ampersandApp->getInterfacesToReadConcepts([$this->src->concept, $this->tgt->concept]);
                 break;
         }
     }

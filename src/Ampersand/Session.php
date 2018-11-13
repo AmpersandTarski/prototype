@@ -12,7 +12,6 @@ use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\InterfaceObject;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
-use Ampersand\Transaction;
 use Ampersand\Misc\Config;
 use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
@@ -119,12 +118,10 @@ class Session
         
         // Update session variable. This is needed because windows platform doesn't seem to update the read time of the session file
         // which will cause a php session timeout after the default timeout of (24min), regardless of user activity. By updating the
-        // session file (updating 'lastAccess' variable) we ensure the the session file timestamps are updated on every request. 
+        // session file (updating 'lastAccess' variable) we ensure the the session file timestamps are updated on every request.
         $_SESSION['lastAccess'] = time();
         // Update lastAccess time also in plug/database to allow to use this aspect in Ampersand models
         $this->sessionAtom->link(date(DATE_ATOM, $_SESSION['lastAccess']), 'lastAccess[SESSION*DateTime]', false)->add();
-        
-        Transaction::getCurrentTransaction()->runExecEngine()->close();
     }
 
     /**
@@ -299,6 +296,5 @@ class Session
                 $link->src()->delete();
             }
         }
-        Transaction::getCurrentTransaction()->runExecEngine()->close();
     }
 }

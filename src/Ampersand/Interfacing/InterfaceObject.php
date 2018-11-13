@@ -547,17 +547,16 @@ class InterfaceObject
     
     /**
      * @return InterfaceObject[]
-     * TODO: move this code, or at least remove dependency to global $container var
      */
     public function getNavInterfacesForTgt()
     {
-        /** @var \Pimple\Container $container */
-        global $container;
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
         $ifcs = [];
-        if ($this->isLinkTo() && $container['ampersand_app']->isAccessibleIfc($refIfc = self::getInterface($this->refInterfaceId))) {
+        if ($this->isLinkTo() && $ampersandApp->isAccessibleIfc($refIfc = self::getInterface($this->refInterfaceId))) {
             $ifcs[] = $refIfc;
         } else {
-            $ifcs = $container['ampersand_app']->getInterfacesToReadConcepts([$this->tgtConcept]);
+            $ifcs = $ampersandApp->getInterfacesToReadConcepts([$this->tgtConcept]);
         }
         
         return $ifcs;

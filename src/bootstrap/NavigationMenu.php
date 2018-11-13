@@ -3,13 +3,9 @@
 use Ampersand\Misc\Config;
 use Ampersand\AmpersandApp;
 
-/**
- * @var \Pimple\Container $container
- */
-global $container; // TODO: remove dependency to gloabl $container var
-
 // Navigation menu settings
-$angularApp = $container['angular_app'];
+/** @var \Ampersand\AngularApp $angularApp */
+global $angularApp;
 $angularApp->addMenuItem(
     'refresh',
     'app/src/admin/installer-menu-item.html',

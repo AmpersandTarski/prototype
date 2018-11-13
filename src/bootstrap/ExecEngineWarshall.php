@@ -31,108 +31,59 @@
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Rule\ExecEngine;
+use Ampersand\Core\Link;
 
-/**
- * @var \Pimple\Container $container
- */
-global $container; // TODO: remove dependency to gloabl $container var
-
-
-ExecEngine::registerFunction('RetrievePopulation', $RetrievePopulation = function ($relationName, $conceptName) use ($container) {
-    try {
-        $database = $container['mysql_database'];
-        
-        $concept = Concept::getConceptByLabel($conceptName);
-        $relation = Relation::getRelation($relationName, $concept, $concept);
-        $relationTable = $relation->getMysqlTable();
-        $srcCol = $relationTable->srcCol();
-        $tgtCol = $relationTable->tgtCol();
-        
-        $query = "SELECT * FROM \"{$relationTable->name}\"";
-        $result = $database->execute($query);
-        
-        // initialization of 2-dimensional array
-        $array = [];
-        foreach ($result as $row) {
-            $array[$row[$srcCol->name]][$row[$tgtCol->name]] = !is_null($row[$tgtCol->name]);
-        }
-        
-        return $array;
-    } catch (Exception $e) {
-        throw new Exception('RetrievePopulation: ' . $e->getMessage(), 500);
-    }
-});
-
-// Overwrite contents of &-relation $r with contents of php array $rArray
-ExecEngine::registerFunction('OverwritePopulation', $OverwritePopulation = function ($rArray, $relationName, $conceptName) use ($container) {
-    try {
-        $database = $container['mysql_database'];
-        
-        $concept = Concept::getConceptByLabel($conceptName);
-        $relation = Relation::getRelation($relationName, $concept, $concept);
-        $relationTable = $relation->getMysqlTable();
-        $srcCol = $relationTable->srcCol();
-        $tgtCol = $relationTable->tgtCol();
-        
-        $query = "DELETE FROM \"{$relationTable->name}\""; // Do not use TRUNCATE statement, this causes an implicit commit
-        $database->execute($query);
-        
-        foreach ($rArray as $src => $tgtArray) {
-            foreach ($tgtArray as $tgt => $bool) {
-                if ($bool) {
-                    $query = "INSERT INTO \"{$relationTable->name}\" (\"{$srcCol->name}\", \"{$tgtCol->name}\") VALUES ('$src','$tgt')";
-                    $database->execute($query);
-                }
-            }
-        }
-    } catch (Exception $e) {
-        throw new Exception('OverwritePopulation: ' . $e->getMessage(), 500);
-    }
-});
-
-ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPlus) use ($RetrievePopulation, $OverwritePopulation) {
+ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPlus) {
     if (func_num_args() != 4) {
         throw new Exception("Wrong number of arguments supplied for function TransitiveClosure(): ".func_num_args()." arguments", 500);
     }
     
+    // Check and return if this function for a particular rule is already executed in an exec-engine run
     $warshallRunCount = $GLOBALS['ext']['ExecEngine']['functions']['warshall']['runCount'];
     $execEngineRunCount = ExecEngine::$runCount;
-
     if ($GLOBALS['ext']['ExecEngine']['functions']['warshall']['warshallRuleChecked'][$r]) {
         if ($warshallRunCount == $execEngineRunCount) {
-            return;  // this is the case if we have executed this function already in this transaction
+            return;
         }
     }
-        
     $GLOBALS['ext']['ExecEngine']['functions']['warshall']['warshallRuleChecked'][$r] = true;
     $GLOBALS['ext']['ExecEngine']['functions']['warshall']['runCount'] = ExecEngine::$runCount;
+
+    // Get concept and relation objects
+    $concept = Concept::getConceptByLabel($C);
+    $relationR = Relation::getRelation($r, $concept, $concept);
+    $relationRCopy = Relation::getRelation($rCopy, $concept, $concept);
+    $relationRPlus = Relation::getRelation($rPlus, $concept, $concept);
+
+    // Empty rCopy and rPlus
+    $relationRCopy->deleteAllLinks();
+    $relationRPlus->deleteAllLinks();
+
+    // Get adjacency matrix
+    $closure = [];
+    $atoms = [];
+    foreach ($relationR->getAllLinks() as $link) {
+        /** @var \Ampersand\Core\Link $link */
+        $closure[$link->src()][$link->tgt()] = true;
+        $atoms[] = $link->src();
+        $atoms[] = $link->tgt();
+        
+        // Store a copy in rCopy relation
+        (new Link($relationRCopy, $link->src(), $link->tgt()))->add();
+    }
+    $atoms = array_unique($atoms);
     
     // Compute transitive closure following Warshall's algorithm
-    $closure = $RetrievePopulation($r, $C); // get adjacency matrix
-    
-    $OverwritePopulation($closure, $rCopy, $C); // store it in the 'rCopy' relation
-    
-    // Get all unique atoms from this population
-    $atoms = array_keys($closure); // 'Src' (left) atoms of pairs in $closure
-    
-    foreach ($closure as $tgtAtomsList) { // Loop to add 'Tgt' atoms that not yet exist
-        $tgtAtoms = array_keys($tgtAtomsList);
-        foreach ($tgtAtoms as $tgtAtom) {
-            if (!in_array($tgtAtom, $atoms)) {
-                $atoms[] = $tgtAtom;
-            }
-        }
-    }
-    
     foreach ($atoms as $k) {
         foreach ($atoms as $i) {
             if ($closure[$i][$k]) {
                 foreach ($atoms as $j) {
-                    $closure[$i][$j] = $closure[$i][$j] || $closure[$k][$j];
+                    if ($closure[$i][$j] || $closure[$k][$j]) {
+                        // Write to rPlus
+                        (new Link($relationRPlus, $i, $j))->add();
+                    }
                 }
             }
         }
     }
-    
-    $OverwritePopulation($closure, $rPlus, $C);
 });

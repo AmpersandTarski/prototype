@@ -1,9 +1,6 @@
 <?php
 
 use Ampersand\AmpersandApp;
-use Pimple\Container;
-use Ampersand\AngularApp;
-use Ampersand\Log\Logger;
 use Ampersand\Misc\Config;
 
 register_shutdown_function(function () {
@@ -30,20 +27,13 @@ if (version_compare(PHP_VERSION, '7.0.0', '<')) {
 // PHP SESSION : Start a new, or resume the existing, PHP session
 ini_set("session.use_strict_mode", true); // prevents a session ID that is never generated
 ini_set("session.cookie_httponly", true); // ensures the cookie won't be accessible by scripting languages, such as JavaScript
-if($_SERVER['HTTPS'] ?? false) ini_set("session.cookie_secure", true); // specifies whether cookies should only be sent over secure connections
+if ($_SERVER['HTTPS'] ?? false) {
+    ini_set("session.cookie_secure", true); // specifies whether cookies should only be sent over secure connections
+}
 session_start();
 
 // Composer Autoloader
 require_once(__DIR__ . '/../lib/autoload.php');
-
-// New Pimple Dependency Injection Container
-$container = new Container();
-$container['ampersand_app'] = function ($c) {
-    return new AmpersandApp($c, Logger::getLogger('APPLICATION'));
-};
-$container['angular_app'] = function ($c) {
-    return new AngularApp(Logger::getLogger('APP'));
-};
 
 // Include/set default settings
 require_once(__DIR__ . '/defaultSettings.php');

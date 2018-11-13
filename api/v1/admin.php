@@ -35,7 +35,12 @@ $api->group('/admin', function () {
         if (Config::get('productionEnv')) {
             throw new Exception("Not allowed in production environment", 403);
         }
+        
+        $transaction = Transaction::getCurrentTransaction();
+
         Session::deleteExpiredSessions();
+
+        $transaction->runExecEngine()->close();
     });
     
     $this->post('/resource/{resourceType}/rename', function (Request $request, Response $response, $args = []) {
@@ -64,7 +69,7 @@ $api->group('/admin', function () {
     $this->get('/installer', function (Request $request, Response $response, $args = []) {
         /** @var \Slim\Container $this */
         /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['appContainer']['ampersand_app'];
+        $ampersandApp = $this['ampersand_app'];
 
         if (Config::get('productionEnv')) {
             throw new Exception("Reinstallation of application not allowed in production environment", 403);
@@ -75,22 +80,20 @@ $api->group('/admin', function () {
             $defaultPop = true;
         }
 
-        $transaction = $ampersandApp->reinstall($defaultPop);
-        if ($transaction->isCommitted()) {
-            Logger::getUserLogger()->notice("Application successfully reinstalled");
-        }
+        $ampersandApp->reinstall($defaultPop); // Reinstall and initialize application
+        $ampersandApp->setSession();
 
         $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
 
         $content = Notifications::getAll(); // Return all notifications
 
         return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    });
+    })->setName('applicationInstaller');
 
     $this->get('/installer/checksum/update', function (Request $request, Response $response, $args = []) {
         /** @var \Slim\Container $this */
         /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['appContainer']['ampersand_app'];
+        $ampersandApp = $this['ampersand_app'];
 
         if (Config::get('productionEnv')) {
             throw new Exception("Checksum update is not allowed in production environment", 403);
@@ -107,7 +110,7 @@ $api->group('/admin', function () {
 
     $this->get('/execengine/run', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['appContainer']['ampersand_app'];
+        $ampersandApp = $this['ampersand_app'];
 
         // Check for required role
         if (!$ampersandApp->hasRole(Config::get('allowedRolesForRunFunction', 'execEngine'))) {
@@ -152,23 +155,26 @@ $api->group('/admin', function () {
         if (Config::get('productionEnv')) {
             throw new Exception("Export not allowed in production environment", 403);
         }
+
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
         
         // Export population to response body
         $exporter = new Exporter(new JSONWriter($response->getBody()), Logger::getLogger('IO'));
         $exporter->exportAllPopulation();
 
         // Return response
-        $filename = Config::get('contextName') . "_Population_" . date('Y-m-d\TH-i-s') . ".json";
+        $filename = $ampersandApp->getName() . "_population_" . date('Y-m-d\TH-i-s') . ".json";
         return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
                         ->withHeader('Content-Type', 'application/json;charset=utf-8');
     });
 
     $this->post('/import', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['appContainer']['ampersand_app'];
+        $ampersandApp = $this['ampersand_app'];
 
         /** @var \Ampersand\AngularApp $angularApp */
-        $angularApp = $this['appContainer']['angular_app'];
+        $angularApp = $this['angular_app'];
         
         // Check for required role
         if (!$ampersandApp->hasRole(Config::get('allowedRolesForImporter'))) {
@@ -253,12 +259,15 @@ $api->group('/admin/report', function () {
             throw new Exception("Reports are not allowed in production environment", 403);
         }
 
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get report
         $reporter = new Reporter(new CSVWriter($response->getBody()));
         $reporter->reportConjunctPerformance(Conjunct::getAllConjuncts());
         
         // Set response headers
-        $filename = Config::get('contextName') . "_Conjunct performance_" . date('Y-m-d\TH-i-s') . ".csv";
+        $filename = $ampersandApp->getName() . "_conjunct-performance_" . date('Y-m-d\TH-i-s') . ".csv";
         return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
                         ->withHeader('Content-Type', 'text/csv; charset=utf-8');
     });
@@ -268,12 +277,15 @@ $api->group('/admin/report', function () {
             throw new Exception("Reports are not allowed in production environment", 403);
         }
 
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get report
         $reporter = new Reporter(new CSVWriter($response->getBody()));
         $reporter->reportInterfaceDefinitions();
 
         // Set response headers
-        $filename = Config::get('contextName') . "_Interface definitions_" . date('Y-m-d\TH-i-s') . ".csv";
+        $filename = $ampersandApp->getName() . "_interface-definitions_" . date('Y-m-d\TH-i-s') . ".csv";
         return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
                         ->withHeader('Content-Type', 'text/csv; charset=utf-8');
     });
@@ -283,12 +295,15 @@ $api->group('/admin/report', function () {
             throw new Exception("Reports are not allowed in production environment", 403);
         }
 
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get report
         $reporter = new Reporter(new CSVWriter($response->getBody()));
         $reporter->reportInterfaceIssues();
 
         // Set response headers
-        $filename = Config::get('contextName') . "_Interface issues_" . date('Y-m-d\TH-i-s') . ".csv";
+        $filename = $ampersandApp->getName() . "_interface-issues_" . date('Y-m-d\TH-i-s') . ".csv";
         return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
                         ->withHeader('Content-Type', 'text/csv; charset=utf-8');
     });

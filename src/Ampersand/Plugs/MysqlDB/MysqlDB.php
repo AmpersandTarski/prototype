@@ -26,6 +26,7 @@ use Ampersand\Plugs\ViewPlugInterface;
 use Ampersand\Transaction;
 use Ampersand\Rule\Conjunct;
 use Psr\Log\LoggerInterface;
+use Ampersand\Exception\NotInstalledException;
 
 /**
  *
@@ -101,6 +102,9 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     /**
      * Constructor
      *
+     * Constructor of StorageInterface implementation MUST not throw Errors/Exceptions
+     * when application is not installed (yet).
+     *
      * @param string $dbHost
      * @param string $dbUser
      * @param string $dbPass
@@ -133,7 +137,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             // Convert mysqli_sql_exceptions into 500 errors
             throw new Exception("Cannot connect to database", 500);
         }
+    }
 
+    public function init()
+    {
         $this->selectDB();
     }
 
@@ -145,9 +152,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             if (!Config::get('productionEnv')) {
                 switch ($e->getCode()) {
                     case 1049: // Error: 1049 SQLSTATE: 42000 (ER_BAD_DB_ERROR) --> Database ($this->dbName) does not (yet) exist
-                        $this->logger->info("Automatically creating new database, because it does not exist");
-                        $this->reinstallStorage();
-                        break;
+                        throw new NotInstalledException("Database {$this->dbName} does not exist");
                     default:
                         throw $e;
                 }
@@ -273,16 +278,34 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     {
         $this->lastQuery = $query;
         try {
-            $this->queryCount++;
+            $this->queryCount++; // multi queries are counted as 1
+            
             if ($multiQuery) {
-                $this->dbLink->multi_query($query);
-                do { // to flush results, otherwise a connection stays open
+                // MYSQLI_REPORT_STRICT mode doesn't throw Exceptions for multi_query execution,
+                // therefore we throw exceptions
+
+                $i = 1;
+                // Execute multi query
+                if ($this->dbLink->multi_query($query) === false) { // when first query errors
+                    throw new Exception("Error in query {$i}: {$this->dbLink->error}", 500);
+                }
+
+                // Flush results, otherwise a connection stays open
+                do {
+                    $i++;
                     if ($res = $this->dbLink->store_result()) {
                         $res->free();
                     }
-                } while ($this->dbLink->more_results() && $this->dbLink->next_result());
-                return true;
+                } while ($this->dbLink->more_results() && $next = $this->dbLink->next_result());
+
+                // Return result
+                if ($next === false) { // when subsequent query errors
+                    throw new Exception("Error in query {$i}: {$this->dbLink->error}", 500);
+                } else {
+                    return true;
+                }
             } else {
+                // MYSQLI_REPORT_STRICT mode automatically throws Exceptions for query execution
                 return $this->dbLink->query($query);
             }
         } catch (Exception $e) {
@@ -292,7 +315,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                 switch ($e->getCode()) {
                     case 1146: // Error: 1146 SQLSTATE: 42S02 (ER_NO_SUCH_TABLE)
                     case 1054: // Error: 1054 SQLSTATE: 42S22 (ER_BAD_FIELD_ERROR)
-                        throw new Exception("{$e->getMessage()}. Try <a href=\"#/admin/installer\" class=\"alert-link\">reinstalling database</a>", 500);
+                        throw new Exception("{$e->getMessage()}. Try <a href=\"#/admin/installer\" class=\"alert-link\">reinstalling application</a>", 500);
                     case 1406: // Error: 1406 Data too long
                         throw new Exception("Data entry is too long ", 400);
                     default:

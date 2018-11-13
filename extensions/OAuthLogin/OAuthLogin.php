@@ -9,13 +9,10 @@ use Ampersand\Log\Logger;
 use Ampersand\Transaction;
 use Ampersand\AmpersandApp;
 
-/**
- * @var \Pimple\Container $container
- */
-global $container;
-
 // UI
-$container['angular_app']->addMenuItem(
+/** @var \Ampersand\AngularApp $angularApp */
+global $angularApp;
+$angularApp->addMenuItem(
     'role',
     'extensions/OAuthLogin/ui/views/MenuItem.html',
     function (AmpersandApp $app) {
@@ -47,6 +44,9 @@ class OAuthLoginController
 
     public function requestToken($code)
     {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp;
+
         // Setup token request
         $token_request = [
             'token_url' => $this->token_url,
@@ -63,7 +63,7 @@ class OAuthLoginController
         $curl = curl_init();
         curl_setopt_array($curl, [ CURLOPT_RETURNTRANSFER => 1
                                  , CURLOPT_URL => $token_request['token_url']
-                                 , CURLOPT_USERAGENT => Config::get('contextName')
+                                 , CURLOPT_USERAGENT => $ampersandApp->getName()
                                  , CURLOPT_POST => 1
                                  , CURLOPT_POSTFIELDS => http_build_query($token_request['arguments'])
                                  , CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded', 'Accept: application/json']
@@ -97,7 +97,9 @@ class OAuthLoginController
 
     public function requestData($api_url)
     {
-        
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp;
+
         if (!isset($this->tokenObj)) {
             throw new Exception("Error: No token set", 500);
         }
@@ -106,7 +108,7 @@ class OAuthLoginController
         $curl = curl_init();
         curl_setopt_array($curl, [ CURLOPT_RETURNTRANSFER => 1
                                  , CURLOPT_URL => $api_url
-                                 , CURLOPT_USERAGENT => Config::get('contextName')
+                                 , CURLOPT_USERAGENT => $ampersandApp->getName()
                                  , CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $this->tokenObj->access_token, 'x-li-format: json']
                                  , CURLOPT_CAINFO => __DIR__ . '/cacert.pem'
                                  ]);
@@ -213,8 +215,8 @@ class OAuthLoginController
      */
     private function login(string $email): bool
     {
-        /** @var \Pimple\Container $container */
-        global $container;
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp;
 
         if (empty($email)) {
             throw new Exception("No emailaddress provided to login", 500);
@@ -247,7 +249,7 @@ class OAuthLoginController
         
         // Login account
         $transaction = Transaction::getCurrentTransaction();
-        $container['ampersand_app']->login($account); // Automatically closes transaction
+        $ampersandApp->login($account); // Automatically closes transaction
 
         if ($transaction->isCommitted()) {
             Logger::getUserLogger()->notice("Login successfull");

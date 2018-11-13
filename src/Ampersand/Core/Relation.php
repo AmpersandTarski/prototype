@@ -282,31 +282,32 @@ class Relation
      * @param string $srcOrTgt specifies to delete all link with $atom as src, tgt or both (null/not provided)
      * @return void
      */
-    public function deleteAllLinks(Atom $atom, $srcOrTgt = null)
+    public function deleteAllLinks(Atom $atom = null, $srcOrTgt = null)
     {
-        Transaction::getCurrentTransaction()->addAffectedRelations($this); // Add relation to affected relations. Needed for conjunct evaluation and transaction management
-        switch ($srcOrTgt) {
-            case 'src':
-                $this->logger->debug("Deleting all links in relation {$this} with {$atom} set as src");
-                foreach ($this->getPlugs() as $plug) {
-                    $plug->deleteAllLinks($this, $atom, 'src');
-                }
-                break;
-            case 'tgt':
-                $this->logger->debug("Deleting all links in relation {$this} with {$atom} set as tgt");
-                foreach ($this->getPlugs() as $plug) {
-                    $plug->deleteAllLinks($this, $atom, 'tgt');
-                }
-                break;
-            case null:
-                $this->logger->debug("Deleting all links in relation {$this} with {$atom} set as src or tgt");
-                foreach ($this->getPlugs() as $plug) {
-                    $plug->deleteAllLinks($this, $atom, null);
-                }
-                break;
-            default:
-                throw new Exception("Unknown/unsupported param option '{$srcOrTgt}'. Supported options are 'src', 'tgt' or null", 500);
-                break;
+        // Add relation to affected relations. Needed for conjunct evaluation and transaction management
+        Transaction::getCurrentTransaction()->addAffectedRelations($this);
+        
+        // Checks and logging
+        if (is_null($atom)) {
+            $this->logger->debug("Deleting all links in relation {$this}");
+        } else {
+            switch ($srcOrTgt) {
+                case 'src':
+                case 'tgt':
+                    $this->logger->debug("Deleting all links in relation {$this} with {$atom} set as {$srcOrTgt}");
+                    break;
+                case null:
+                    $this->logger->debug("Deleting all links in relation {$this} with {$atom} set as src or tgt");
+                    break;
+                default:
+                    throw new Exception("Unknown/unsupported param option '{$srcOrTgt}'. Supported options are 'src', 'tgt' or null", 500);
+                    break;
+            }
+        }
+
+        // Perform delete in all plugs
+        foreach ($this->getPlugs() as $plug) {
+            $plug->deleteAllLinks($this, $atom, $srcOrTgt);
         }
     }
     

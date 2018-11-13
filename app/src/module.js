@@ -65,7 +65,10 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
                 NotificationService.addError(message, response.status, true, response.data.html);
             }
             
-            if(response.data.notifications !== undefined) NotificationService.updateNotifications(response.data.notifications); 
+            if(response.data.notifications !== undefined) NotificationService.updateNotifications(response.data.notifications);
+            if (response.data.navTo != null) {
+                $location.url(response.data.navTo);
+            }
         }else{
             message = response.status + ' ' + response.statusText;
             details = response.data; // html content is excepted

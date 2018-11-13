@@ -20,6 +20,16 @@ interface StorageInterface
     
     public function getLabel();
 
+    /**
+     * This method is called during initialization of Ampersand app.
+     *
+     * Constructor of StorageInterface implementation MUST not throw Errors/Exceptions
+     * when application is not installed (yet).
+     *
+     * @return void
+     */
+    public function init();
+
     public function startTransaction(Transaction $transaction);
     
     public function commitTransaction(Transaction $transaction);

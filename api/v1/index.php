@@ -8,16 +8,19 @@ use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Container;
 use function Ampersand\Misc\stackTrace;
+use Ampersand\Exception\NotInstalledException;
 
 require_once(__DIR__ . '/../../src/bootstrap.php');
 
-/**
- * @var \Pimple\Container $container
- */
-global $container;
+/** @var \Ampersand\AmpersandApp $ampersandApp */
+global $ampersandApp;
+
+/** @var \Ampersand\AngularApp $angularApp */
+global $angularApp;
 
 $apiContainer = new Container();
-$apiContainer['appContainer'] = $container;
+$apiContainer['ampersand_app'] = $ampersandApp; // add AmpersandApp object to API DI-container
+$apiContainer['angular_app'] = $angularApp; // add AngularApp object to API DI-container
 
 // Custom NotFound handler when API path-method is not found
 // The application can also return a Resource not found, this is handled by the errorHandler below
@@ -47,7 +50,7 @@ $apiContainer['errorHandler'] = function ($c) {
                 case 401: // Unauthorized
                 case 403: // Forbidden
                     $logger->warning($exception->getMessage());
-                    if (Config::get('loginEnabled') && !$c->appContainer['ampersand_app']->getSession()->sessionUserLoggedIn()) {
+                    if (Config::get('loginEnabled') && !$c['ampersand_app']->getSession()->sessionUserLoggedIn()) {
                         $code = 401;
                         $message = "Please login to access this page";
                         $data['loginPage'] = Config::get('loginPage', 'login');
@@ -132,7 +135,11 @@ $apiContainer['phpErrorHandler'] = function ($c) {
 };
 
 // Settings
-$apiContainer->get('settings')->replace(['displayErrorDetails' => Config::get('debugMode')]);
+$apiContainer->get('settings')->replace(
+    [ 'displayErrorDetails' => Config::get('debugMode') // when true, additional information about exceptions are displayed by the default error handler
+    , 'determineRouteBeforeAppMiddleware' => true // the route is calculated before any middleware is executed. This means that you can inspect route parameters in middleware if you need to.
+    ]
+);
 
 // Create and configure Slim app (version 3.x)
 $api = new App($apiContainer);
@@ -186,9 +193,36 @@ foreach ((array)$GLOBALS['apiFiles'] as $apiFile) {
 // Add middleware to initialize the AmpersandApp
 $api->add(function (Request $req, Response $res, callable $next) {
     /** @var \Slim\App $this */
-    $ampersandApp = $this['appContainer']['ampersand_app'];
     /** @var \Ampersand\AmpersandApp $ampersandApp */
-    $ampersandApp->init(); // initialize Ampersand application
+    $ampersandApp = $this['ampersand_app'];
+    
+    try {
+        $ampersandApp->init(); // initialize Ampersand application
+        $ampersandApp->setSession(); // initialize session
+    } catch (NotInstalledException $e) {
+        if (Config::get('debugMode')) {
+            /** @var \Slim\Route $route */
+            $route = $req->getAttribute('route');
+            
+            // If application installer API ROUTE is called, continue
+            if ($route->getName() == 'applicationInstaller') {
+                return $next($req, $res);
+            // Else navigate user to /admin/installer page
+            } else {
+                return $res->withJson(
+                    [ 'error' => 500
+                    , 'msg' => $e->getMessage()
+                    // , 'html' => "Please contact the application administrator for more information"
+                    , 'navTo' => "/admin/installer"
+                    ],
+                    500,
+                    JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+                );
+            }
+        } else {
+            throw $e; // let error handler do the response.
+        }
+    }
 
     return $next($req, $res);
 })->run();
