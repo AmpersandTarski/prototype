@@ -2,7 +2,7 @@
 
 ## Unreleased changes
 * **Upgrade local settings required** -> v2.0 (see default localsettings file)
-* Refactor initialization phase of Ampersand application. Config -> Init -> Session -> Run
+* [Issue 819](https://github.com/AmpersandTarski/Ampersand/issues/819) Refactor initialization phase of Ampersand application. Config -> Init -> Session -> Run
 * [Issue 802](https://github.com/AmpersandTarski/Ampersand/issues/802), [Issue 829](https://github.com/AmpersandTarski/Ampersand/issues/829) Fix issue with database initialization
 * Don't automatically create database table. Installer is required.
 * Remove dependency injection container for AmpersandApp (for now)
