@@ -53,17 +53,17 @@ $angularApp = new AngularApp(Logger::getLogger('FRONTEND'));
 /**************************************************************************************************
  * SERVER settings
  *************************************************************************************************/
-// Config::set('serverURL', 'global', 'http://www.yourdomain.nl'); // defaults to http://localhost/<ampersand context name>
+// Config::set('serverURL', 'global', 'http://www.yourdomain.nl'); // defaults to http://localhost
 // Config::set('apiPath', 'global', '/api/v1'); // relative path to api
 
 /**************************************************************************************************
  * DATABASE and PLUGS
  *************************************************************************************************/
 $mysqlDB = new \Ampersand\Plugs\MysqlDB\MysqlDB(
-    Config::get('dbHost', 'mysqlDatabase'),
-    Config::get('dbUser', 'mysqlDatabase'),
-    Config::get('dbPassword', 'mysqlDatabase'),
-    Config::get('dbName', 'mysqlDatabase'),
+    $model->getSetting('mysqlSettings')->dbHost,
+    $model->getSetting('mysqlSettings')->dbUser,
+    $model->getSetting('mysqlSettings')->dbPassword,
+    $model->getSetting('mysqlSettings')->dbName,
     Logger::getLogger('DATABASE')
 );
 $ampersandApp->setDefaultStorage($mysqlDB);

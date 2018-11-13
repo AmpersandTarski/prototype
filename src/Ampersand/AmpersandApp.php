@@ -44,6 +44,13 @@ class AmpersandApp
     protected $logger;
 
     /**
+     * Ampersand application name (i.e. CONTEXT of ADL entry script)
+     * 
+     * @var string
+     */
+    protected $name;
+
+    /**
      * Reference to generated Ampersand model
      *
      * @var \Ampersand\Misc\Generics
@@ -119,6 +126,12 @@ class AmpersandApp
     {
         $this->logger = $logger;
         $this->model = $model;
+        $this->name = $model->getSetting('contextName');
+    }
+
+    public function getName()
+    {
+        return $this->name;
     }
 
     public function init()

@@ -154,13 +154,16 @@ $api->group('/admin', function () {
         if (Config::get('productionEnv')) {
             throw new Exception("Export not allowed in production environment", 403);
         }
+
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
         
         // Export population to response body
         $exporter = new Exporter(new JSONWriter($response->getBody()), Logger::getLogger('IO'));
         $exporter->exportAllPopulation();
 
         // Return response
-        $filename = Config::get('contextName') . "_Population_" . date('Y-m-d\TH-i-s') . ".json";
+        $filename = $ampersandApp->getName() . "_population_" . date('Y-m-d\TH-i-s') . ".json";
         return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
                         ->withHeader('Content-Type', 'application/json;charset=utf-8');
     });
@@ -255,12 +258,15 @@ $api->group('/admin/report', function () {
             throw new Exception("Reports are not allowed in production environment", 403);
         }
 
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get report
         $reporter = new Reporter(new CSVWriter($response->getBody()));
         $reporter->reportConjunctPerformance(Conjunct::getAllConjuncts());
         
         // Set response headers
-        $filename = Config::get('contextName') . "_Conjunct performance_" . date('Y-m-d\TH-i-s') . ".csv";
+        $filename = $ampersandApp->getName() . "_conjunct-performance_" . date('Y-m-d\TH-i-s') . ".csv";
         return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
                         ->withHeader('Content-Type', 'text/csv; charset=utf-8');
     });
@@ -270,12 +276,15 @@ $api->group('/admin/report', function () {
             throw new Exception("Reports are not allowed in production environment", 403);
         }
 
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get report
         $reporter = new Reporter(new CSVWriter($response->getBody()));
         $reporter->reportInterfaceDefinitions();
 
         // Set response headers
-        $filename = Config::get('contextName') . "_Interface definitions_" . date('Y-m-d\TH-i-s') . ".csv";
+        $filename = $ampersandApp->getName() . "_interface-definitions_" . date('Y-m-d\TH-i-s') . ".csv";
         return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
                         ->withHeader('Content-Type', 'text/csv; charset=utf-8');
     });
@@ -285,12 +294,15 @@ $api->group('/admin/report', function () {
             throw new Exception("Reports are not allowed in production environment", 403);
         }
 
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get report
         $reporter = new Reporter(new CSVWriter($response->getBody()));
         $reporter->reportInterfaceIssues();
 
         // Set response headers
-        $filename = Config::get('contextName') . "_Interface issues_" . date('Y-m-d\TH-i-s') . ".csv";
+        $filename = $ampersandApp->getName() . "_interface-issues_" . date('Y-m-d\TH-i-s') . ".csv";
         return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
                         ->withHeader('Content-Type', 'text/csv; charset=utf-8');
     });
