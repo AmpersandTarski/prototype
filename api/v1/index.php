@@ -198,6 +198,7 @@ $api->add(function (Request $req, Response $res, callable $next) {
     
     try {
         $ampersandApp->init(); // initialize Ampersand application
+        $ampersandApp->setSession(); // initialize session
     } catch (NotInstalledException $e) {
         if (Config::get('debugMode')) {
             /** @var \Slim\Route $route */

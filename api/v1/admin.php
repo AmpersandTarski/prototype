@@ -80,7 +80,8 @@ $api->group('/admin', function () {
             $defaultPop = true;
         }
 
-        $ampersandApp->reinstall($defaultPop); // Reinstall application
+        $ampersandApp->reinstall($defaultPop); // Reinstall and initialize application
+        $ampersandApp->setSession();
 
         $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
 

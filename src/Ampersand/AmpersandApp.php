@@ -195,9 +195,6 @@ class AmpersandApp
             foreach ($this->initClosures as $closure) {
                 $closure->call($this);
             }
-
-            // Initiate session
-            $this->setSession();
         } catch (\Ampersand\Exception\NotInstalledException $e) {
             throw $e;
         }
@@ -245,7 +242,7 @@ class AmpersandApp
         $this->conjunctCache = $cache;
     }
 
-    protected function setSession()
+    public function setSession()
     {
         $this->session = new Session(Logger::getLogger('SESSION'));
 
@@ -384,6 +381,8 @@ class AmpersandApp
             $storage->reinstallStorage();
         }
 
+        $this->init();
+
         // Clear caches
         $this->conjunctCache->clear(); // external cache item pool
         foreach (Concept::getAllConcepts() as $cpt) {
@@ -416,9 +415,6 @@ class AmpersandApp
             /** @var \Ampersand\Rule\Conjunct $conj */
             $conj->evaluate()->persistCacheItem();
         }
-
-        // Initiate session again
-        $this->setSession();
 
         $this->logger->info("End application reinstall");
 
