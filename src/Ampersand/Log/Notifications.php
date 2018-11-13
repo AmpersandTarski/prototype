@@ -154,7 +154,7 @@ class Notifications
         self::$invariants[$hash]['ruleMessage'] = $violation->rule->getViolationMessage();
         self::$invariants[$hash]['tuples'][] = ['violationMessage' => ($violationMessage = $violation->getViolationMessage())];
         
-        Logger::getLogger('INVARIANT')->info("'{$violationMessage}' RULE: '{$violation->rule}'");
+        Logger::getLogger('RULEENGINE')->info("INVARIANT '{$violationMessage}' RULE: '{$violation->rule}'");
     }
     
     /**
@@ -186,6 +186,6 @@ class Notifications
                                                     ,'ifcs' => $ifcs
                                                     ];
         
-        Logger::getLogger('SIGNAL')->debug("'{$message}' RULE: '{$violation->rule}'");
+        Logger::getLogger('RULEENGINE')->debug("SIGNAL '{$message}' RULE: '{$violation->rule}'");
     }
 }

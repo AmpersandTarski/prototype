@@ -161,12 +161,12 @@ class AmpersandApp
 
             // Instantiate object definitions from generated files
             $genericsFolder = $this->model->getFolder() . '/';
-            Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULE'), $this->defaultStorage, $this->conjunctCache);
+            Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULEENGINE'), $this->defaultStorage, $this->conjunctCache);
             View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
             Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'));
             Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'));
             InterfaceObject::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage);
-            Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, Logger::getLogger('RULE'));
+            Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, Logger::getLogger('RULEENGINE'));
             Role::setAllRoles($genericsFolder . 'roles.json');
 
             // Add concept plugs
@@ -244,7 +244,7 @@ class AmpersandApp
 
     public function setSession()
     {
-        $this->session = new Session(Logger::getLogger('SESSION'));
+        $this->session = new Session($this->logger);
 
         // Run exec engine and close transaction
         Transaction::getCurrentTransaction()->runExecEngine()->close();
