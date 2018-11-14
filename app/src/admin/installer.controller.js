@@ -6,6 +6,8 @@ angular.module('AmpersandApp')
     $scope.install = function(defPop, ignoreInvariantRules){
         $scope.installing = true;
         $scope.installed = false;
+        NotificationService.clearNotifications();
+        
         Restangular
         .one('admin/installer')
         .get({defaultPop : defPop, ignoreInvariantRules : ignoreInvariantRules})

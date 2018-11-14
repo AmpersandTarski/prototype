@@ -212,7 +212,7 @@ $api->add(function (Request $req, Response $res, callable $next) {
                 return $res->withJson(
                     [ 'error' => 500
                     , 'msg' => $e->getMessage()
-                    // , 'html' => "Please contact the application administrator for more information"
+                    , 'html' => stackTrace($e)
                     , 'navTo' => "/admin/installer"
                     ],
                     500,
