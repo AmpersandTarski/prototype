@@ -21,10 +21,12 @@ app.config(function($routeProvider) {
         let message;
         let details;
         if(typeof response === 'object'){
-            message = response.msg || 'Error while importing';
-            NotificationService.addError(message, status, true);
-            
-            if(response.notifications !== undefined) NotificationService.updateNotifications(response.notifications); 
+            if (response.notifications !== undefined) {
+                NotificationService.updateNotifications(response.notifications);
+            } else {
+                message = response.msg || 'Error while importing';
+                NotificationService.addError(message, status, true);
+            }
         }else{
             message = status + ' Error while importing';
             details = response; // html content is excepted

@@ -179,43 +179,50 @@ $api->group('/admin', function () {
             throw new Exception("You do not have access to import population", 403);
         }
         
-        if (is_uploaded_file($_FILES['file']['tmp_name'])) {
-            $extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
-            switch ($extension) {
-                case 'json':
-                    $reader = new JSONReader();
-                    $reader->loadFile($_FILES['file']['tmp_name']);
-                    $importer = new Importer($reader, Logger::getLogger('IO'));
-                    $importer->importPopulation();
-                    break;
-                case 'xls':
-                case 'xlsx':
-                case 'ods':
-                    $importer = new ExcelImporter(Logger::getLogger('IO'));
-                    $importer->parseFile($_FILES['file']['tmp_name']);
-                    break;
-                default:
-                    throw new Exception("Unsupported file extension", 400);
-                    break;
-            }
-
-            // Commit transaction
-            $transaction = Transaction::getCurrentTransaction()->runExecEngine()->close();
-            if ($transaction->isCommitted()) {
-                Logger::getUserLogger()->notice("Imported {$_FILES['file']['name']} successfully");
-            }
-            unlink($_FILES['file']['tmp_name']);
-        } else {
+        // Check if there is a file uploaded
+        if (!is_uploaded_file($_FILES['file']['tmp_name'])) {
             Logger::getUserLogger()->error("No file uploaded");
         }
+
+        // Determine and execute import method based on extension.
+        $extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
+        switch ($extension) {
+            case 'json':
+                $reader = new JSONReader();
+                $reader->loadFile($_FILES['file']['tmp_name']);
+                $importer = new Importer($reader, Logger::getLogger('IO'));
+                $importer->importPopulation();
+                break;
+            case 'xls':
+            case 'xlsx':
+            case 'ods':
+                $importer = new ExcelImporter(Logger::getLogger('IO'));
+                $importer->parseFile($_FILES['file']['tmp_name']);
+                break;
+            default:
+                throw new Exception("Unsupported file extension", 400);
+                break;
+        }
+
+        // Commit transaction
+        $transaction = Transaction::getCurrentTransaction()->runExecEngine()->close();
+        if ($transaction->isCommitted()) {
+            Logger::getUserLogger()->notice("Imported {$_FILES['file']['name']} successfully");
+        }
+        unlink($_FILES['file']['tmp_name']);
         
         // Check all process rules that are relevant for the activate roles
         $ampersandApp->checkProcessRules();
-        $content = ['notifications' => Notifications::getAll(),
-                    'files' => $_FILES,
-                    'sessionRefreshAdvice' => $angularApp->getSessionRefreshAdvice()
-                    ];
-        return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+        // Return content
+        $content = [ 'files'                 => $_FILES
+                   , 'notifications'         => Notifications::getAll()
+                   , 'invariantRulesHold'    => $transaction->invariantRulesHold()
+                   , 'isCommitted'           => $transaction->isCommitted()
+                   , 'sessionRefreshAdvice'  => $angularApp->getSessionRefreshAdvice()
+                   ];
+        $code = $transaction->isCommitted() ? 200 : 400; // 400 'Bad request' is used to trigger error in file uploader interface
+        return $response->withJson($content, $code, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 })->add($middleWare1);
 

@@ -9,6 +9,7 @@
 * Remove dependency injection container for AmpersandApp (for now)
 * Move Monolog dependency from Logger class to localsettings
 * [Issue 823](https://github.com/AmpersandTarski/Ampersand/issues/823) Add option to ignore invariant violations for default population.
+* [Issue 822](https://github.com/AmpersandTarski/Ampersand/issues/822) Fix importer flag on error/invariant violations
 * Fix issue with session that timed out after default expiration time of 24 min regardless of user activity.
 * Security fix: renew session id after login.
 
