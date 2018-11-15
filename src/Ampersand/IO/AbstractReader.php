@@ -33,7 +33,13 @@ abstract class AbstractReader
         return stream_get_contents($this->stream, -1, 0);
     }
 
-    public function loadFile($filePath)
+    /**
+     * Undocumented function
+     *
+     * @param string $filePath
+     * @return \Ampersand\IO\AbstractReader $this
+     */
+    public function loadFile($filePath): AbstractReader
     {
         // Check if file exists
         if (!file_exists($filePath) || !is_readable($filePath)) {
@@ -45,5 +51,7 @@ abstract class AbstractReader
         if ($this->stream === false) {
             throw new Exception("Could not open {$filePath}", 500);
         }
+
+        return $this;
     }
 }
