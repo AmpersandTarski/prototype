@@ -17,7 +17,6 @@ use Ampersand\Core\Concept;
 use Ampersand\Role;
 use Ampersand\Rule\RuleEngine;
 use Ampersand\Log\Notifications;
-use Ampersand\IO\JSONReader;
 use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
 use Ampersand\Core\Relation;
@@ -379,7 +378,7 @@ class AmpersandApp
 
         // Call reinstall method on every registered storage (e.g. for MysqlDB implementation this means (re)creating database structure)
         foreach ($this->storages as $storage) {
-            $storage->reinstallStorage();
+            $storage->reinstallStorage($this->model);
         }
 
         $this->init();
@@ -394,9 +393,7 @@ class AmpersandApp
         if ($installDefaultPop) {
             $this->logger->info("Install default population");
 
-            $reader = new JSONReader();
-            $reader->loadFile(Config::get('pathToGeneratedFiles') . 'populations.json');
-            $importer = new Importer($reader, Logger::getLogger('IO'));
+            $importer = new Importer($this->model->getFile('populations'), Logger::getLogger('IO'));
             $importer->importPopulation();
         } else {
             $this->logger->info("Skip default population");

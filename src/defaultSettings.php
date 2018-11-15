@@ -3,9 +3,6 @@
 use Ampersand\Misc\Config;
 
 try {
-    Config::set('pathToGeneratedFiles', 'global', dirname(dirname(__FILE__)) . '/generics/');
-    Config::set('pathToAppFolder', 'global', dirname(dirname(__FILE__)) . '/app/');
-
     Config::set('serverURL', 'global', 'http://localhost'); // set the base url for the application
     Config::set('apiPath', 'global', '/api/v1'); // relative path to api
 

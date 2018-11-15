@@ -27,6 +27,7 @@ use Ampersand\Transaction;
 use Ampersand\Rule\Conjunct;
 use Psr\Log\LoggerInterface;
 use Ampersand\Exception\NotInstalledException;
+use Ampersand\Misc\Generics;
 
 /**
  *
@@ -183,12 +184,13 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     /**
      * The database is dropped, created again and all tables are created
      *
+     * @param \Ampersand\Misc\Generics $model
      * @return void
      */
-    public function reinstallStorage()
+    public function reinstallStorage(Generics $model)
     {
         $this->createDB();
-        $structure = file_get_contents(Config::get('pathToGeneratedFiles') . 'database.sql');
+        $structure = file_get_contents($model->getFolder() . '/database.sql');
         $this->logger->info("Execute database structure queries");
         $this->doQuery($structure, true);
 

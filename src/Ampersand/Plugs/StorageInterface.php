@@ -8,6 +8,7 @@
 namespace Ampersand\Plugs;
 
 use Ampersand\Transaction;
+use Ampersand\Misc\Generics;
 
 /**
  * Interface for storage implementations
@@ -36,7 +37,7 @@ interface StorageInterface
     
     public function rollbackTransaction(Transaction $transaction);
 
-    public function reinstallStorage();
+    public function reinstallStorage(Generics $model);
 
     public function executeCustomSQLQuery(string $query);
 }

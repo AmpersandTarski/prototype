@@ -9,6 +9,7 @@ namespace Ampersand\Misc;
 
 use Psr\Log\LoggerInterface;
 use Exception;
+use Ampersand\IO\JSONReader;
 
 /**
  *
@@ -136,16 +137,18 @@ class Generics
         return $this->folder;
     }
 
-    protected function loadFile(string $filename)
+    protected function loadFile(string $filename): JSONReader
     {
         if (!array_key_exists($filename, $this->modelFiles)) {
             throw new Exception("File '{$filename}' is not part of the specified Ampersand model files", 500);
         }
 
-        return file_get_contents($this->modelFiles[$filename]);
+        $reader = new JSONReader();
+        $reader->loadFile($this->modelFiles[$filename]);
+        return $reader;
     }
 
-    protected function getFile(string $filename)
+    public function getFile(string $filename): JSONReader
     {
         static $loadedFiles = [];
 
@@ -158,8 +161,7 @@ class Generics
 
     public function getSetting(string $setting)
     {
-        $fileContent = $this->getFile('settings');
-        $settings = json_decode($fileContent, false);
+        $settings = $this->getFile('settings')->getContent();
         
         if (!property_exists($settings, $setting)) {
             throw new Exception("Undefined setting '{$setting}'", 500);
