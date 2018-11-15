@@ -5,7 +5,7 @@ use Ampersand\Log\NotificationHandler;
 use Ampersand\Log\RequestIDProcessor;
 use Ampersand\Misc\Config;
 use Ampersand\AmpersandApp;
-use Ampersand\Misc\Generics;
+use Ampersand\Model;
 use Ampersand\AngularApp;
 use Monolog\Logger as MonoLogger;
 use Monolog\Handler\FingersCrossedHandler;
@@ -47,7 +47,7 @@ Logger::getUserLogger()->pushHandler(new NotificationHandler(MonoLogger::INFO));
  * APPLICATION
  *************************************************************************************************/
 $logger = Logger::getLogger('APPLICATION');
-$model = new Generics(dirname(__FILE__) . '/generics', $logger);
+$model = new Model(dirname(__FILE__) . '/generics', $logger);
 $ampersandApp = new AmpersandApp($model, $logger);
 $angularApp = new AngularApp(Logger::getLogger('FRONTEND'));
 

@@ -5,7 +5,7 @@
  *
  */
 
-namespace Ampersand\Misc;
+namespace Ampersand;
 
 use Psr\Log\LoggerInterface;
 use Exception;
@@ -16,7 +16,7 @@ use Ampersand\IO\JSONReader;
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class Generics
+class Model
 {
     const HASH_ALGORITHM = 'md5';
 

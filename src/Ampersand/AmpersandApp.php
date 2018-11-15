@@ -4,6 +4,7 @@ namespace Ampersand;
 
 use Ampersand\Misc\Config;
 use Ampersand\IO\Importer;
+use Ampersand\Model;
 use Ampersand\Transaction;
 use Ampersand\Plugs\StorageInterface;
 use Ampersand\Plugs\ConceptPlugInterface;
@@ -24,7 +25,6 @@ use Ampersand\Interfacing\View;
 use Ampersand\Rule\Rule;
 use Closure;
 use Ampersand\Rule\ExecEngine;
-use Ampersand\Misc\Generics;
 use Psr\Cache\CacheItemPoolInterface;
 
 class AmpersandApp
@@ -52,7 +52,7 @@ class AmpersandApp
     /**
      * Reference to generated Ampersand model
      *
-     * @var \Ampersand\Misc\Generics
+     * @var \Ampersand\Model
      */
     protected $model;
 
@@ -118,10 +118,10 @@ class AmpersandApp
     /**
      * Constructor
      *
-     * @param \Ampersand\Misc\Generics $model
+     * @param \Ampersand\Model $model
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Generics $model, LoggerInterface $logger)
+    public function __construct(Model $model, LoggerInterface $logger)
     {
         $this->logger = $logger;
         $this->model = $model;
@@ -286,9 +286,9 @@ class AmpersandApp
     /**
      * Get Ampersand model for this application
      *
-     * @return \Ampersand\Misc\Generics
+     * @return \Ampersand\Model
      */
-    public function getModel(): Generics
+    public function getModel(): Model
     {
         return $this->model;
     }

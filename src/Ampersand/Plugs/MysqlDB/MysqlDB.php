@@ -12,6 +12,7 @@ use DateTime;
 use Exception;
 use DateTimeZone;
 use Ampersand\Misc\Config;
+use Ampersand\Model;
 use Ampersand\Session;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Link;
@@ -27,7 +28,6 @@ use Ampersand\Transaction;
 use Ampersand\Rule\Conjunct;
 use Psr\Log\LoggerInterface;
 use Ampersand\Exception\NotInstalledException;
-use Ampersand\Misc\Generics;
 
 /**
  *
@@ -184,10 +184,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     /**
      * The database is dropped, created again and all tables are created
      *
-     * @param \Ampersand\Misc\Generics $model
+     * @param \Ampersand\Model $model
      * @return void
      */
-    public function reinstallStorage(Generics $model)
+    public function reinstallStorage(Model $model)
     {
         $this->createDB();
         $structure = file_get_contents($model->getFolder() . '/database.sql');
