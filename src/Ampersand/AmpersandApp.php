@@ -3,6 +3,7 @@
 namespace Ampersand;
 
 use Ampersand\Misc\Config;
+use Ampersand\Misc\Settings;
 use Ampersand\IO\Importer;
 use Ampersand\Model;
 use Ampersand\Transaction;
@@ -26,6 +27,7 @@ use Ampersand\Rule\Rule;
 use Closure;
 use Ampersand\Rule\ExecEngine;
 use Psr\Cache\CacheItemPoolInterface;
+use Ampersand\IO\JSONReader;
 
 class AmpersandApp
 {
@@ -55,6 +57,13 @@ class AmpersandApp
      * @var \Ampersand\Model
      */
     protected $model;
+
+    /**
+     * Settings object
+     *
+     * @var \Ampersand\Misc\Settings
+     */
+    protected $settings;
 
     /**
      * List with storages that are registered for this application
@@ -119,13 +128,17 @@ class AmpersandApp
      * Constructor
      *
      * @param \Ampersand\Model $model
+     * @param \Ampersand\Misc\Settings $settings
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Model $model, LoggerInterface $logger)
+    public function __construct(Model $model, Settings $settings, LoggerInterface $logger)
     {
         $this->logger = $logger;
         $this->model = $model;
-        $this->name = $model->getSetting('contextName');
+        $this->settings = $settings;
+        $this->settings->loadSettingsFile($model->getFilePath('settings'));
+
+        $this->name = $this->settings->get('contextName');
     }
 
     public function getName()
@@ -294,6 +307,16 @@ class AmpersandApp
     }
 
     /**
+     * Get settings object for this application
+     *
+     * @return \Ampersand\Misc\Settings
+     */
+    public function getSettings(): Settings
+    {
+        return $this->settings;
+    }
+
+    /**
      * Get list of accessible interfaces for the user of this Ampersand application
      *
      * @return \Ampersand\Interfacing\InterfaceObject[]
@@ -393,7 +416,8 @@ class AmpersandApp
         if ($installDefaultPop) {
             $this->logger->info("Install default population");
 
-            $importer = new Importer($this->model->getFile('populations'), Logger::getLogger('IO'));
+            $reader = (new JSONReader())->loadFile($this->model->getFilePath('populations'));
+            $importer = new Importer($reader, Logger::getLogger('IO'));
             $importer->importPopulation();
         } else {
             $this->logger->info("Skip default population");

@@ -4,6 +4,7 @@ use Ampersand\Log\Logger;
 use Ampersand\Log\NotificationHandler;
 use Ampersand\Log\RequestIDProcessor;
 use Ampersand\Misc\Config;
+use Ampersand\Misc\Settings;
 use Ampersand\AmpersandApp;
 use Ampersand\Model;
 use Ampersand\AngularApp;
@@ -48,7 +49,7 @@ Logger::getUserLogger()->pushHandler(new NotificationHandler(MonoLogger::INFO));
  *************************************************************************************************/
 $logger = Logger::getLogger('APPLICATION');
 $model = new Model(dirname(__FILE__) . '/generics', $logger);
-$ampersandApp = new AmpersandApp($model, $logger);
+$ampersandApp = new AmpersandApp($model, new Settings(), $logger);
 $angularApp = new AngularApp(Logger::getLogger('FRONTEND'));
 
 /**************************************************************************************************
@@ -61,10 +62,10 @@ $angularApp = new AngularApp(Logger::getLogger('FRONTEND'));
  * DATABASE and PLUGS
  *************************************************************************************************/
 $mysqlDB = new \Ampersand\Plugs\MysqlDB\MysqlDB(
-    $model->getSetting('mysqlSettings')->dbHost,
-    $model->getSetting('mysqlSettings')->dbUser,
-    $model->getSetting('mysqlSettings')->dbPass,
-    $model->getSetting('mysqlSettings')->dbName,
+    $ampersandApp->getSettings()->get('mysqlSettings')->dbHost,
+    $ampersandApp->getSettings()->get('mysqlSettings')->dbUser,
+    $ampersandApp->getSettings()->get('mysqlSettings')->dbPass,
+    $ampersandApp->getSettings()->get('mysqlSettings')->dbName,
     Logger::getLogger('DATABASE')
 );
 $ampersandApp->setDefaultStorage($mysqlDB);

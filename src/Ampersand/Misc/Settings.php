@@ -29,6 +29,7 @@ class Settings
      */
     public function __construct()
     {
+        $this->loadSettingsFile(dirname(__FILE__, 3) . '/defaultSettings.json');
     }
 
     /**

@@ -137,18 +137,23 @@ class Model
         return $this->folder;
     }
 
-    protected function loadFile(string $filename): JSONReader
+    public function getFilePath(string $filename): string
     {
         if (!array_key_exists($filename, $this->modelFiles)) {
             throw new Exception("File '{$filename}' is not part of the specified Ampersand model files", 500);
         }
 
+        return $this->modelFiles[$filename];
+    }
+
+    protected function loadFile(string $filename): JSONReader
+    {
         $reader = new JSONReader();
-        $reader->loadFile($this->modelFiles[$filename]);
+        $reader->loadFile($this->getFilePath($filename));
         return $reader;
     }
 
-    public function getFile(string $filename): JSONReader
+    protected function getFile(string $filename): JSONReader
     {
         static $loadedFiles = [];
 
@@ -159,7 +164,7 @@ class Model
         return $loadedFiles[$filename];
     }
 
-    public function getSetting(string $setting)
+    protected function getSetting(string $setting)
     {
         $settings = $this->getFile('settings')->getContent();
         
