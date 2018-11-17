@@ -1,6 +1,5 @@
 <?php
 
-use Ampersand\Misc\Config;
 use Ampersand\Core\Concept;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
@@ -27,7 +26,10 @@ $api->group('/resource', function () {
     /** @var \Slim\App $this */
 
     $this->get('', function (Request $request, Response $response, $args = []) {
-        if (Config::get('productionEnv')) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
+        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
             throw new Exception("List of all resource types is not available in production environment", 403);
         }
         

@@ -2,7 +2,6 @@
 
 namespace Ampersand;
 
-use Ampersand\Misc\Config;
 use Ampersand\Misc\Settings;
 use Ampersand\IO\Importer;
 use Ampersand\Model;
@@ -152,7 +151,7 @@ class AmpersandApp
             $this->logger->info('Initialize Ampersand application');
 
             // Check checksum
-            if (!$this->model->verifyChecksum() && !Config::get('productionEnv')) {
+            if (!$this->model->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
                 Logger::getUserLogger()->warning("Generated model is changed. You SHOULD reinstall your application");
             }
 

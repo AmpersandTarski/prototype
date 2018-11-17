@@ -1,7 +1,6 @@
 <?php
 
 use Ampersand\Log\Notifications;
-use Ampersand\Misc\Config;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
@@ -34,19 +33,20 @@ $api->group('/app', function () {
         $ampersandApp->checkProcessRules();
         
         $session = $ampersandApp->getSession();
+        $settings = $ampersandApp->getSettings();
         $content =  ['top' => $angularApp->getMenuItems('top')
                     ,'new' => $angularApp->getMenuItems('new')
                     ,'refresh' => $angularApp->getMenuItems('refresh')
                     ,'ext' => $angularApp->getMenuItems('ext')
                     ,'role' => $angularApp->getMenuItems('role')
-                    ,'defaultSettings' => ['notify_showSignals'        => Config::get('defaultShowSignals', 'notifications')
-                                          ,'notify_showInfos'          => Config::get('defaultShowInfos', 'notifications')
-                                          ,'notify_showSuccesses'      => Config::get('defaultShowSuccesses', 'notifications')
-                                          ,'notify_autoHideSuccesses'  => Config::get('defaultAutoHideSuccesses', 'notifications')
-                                          ,'notify_showErrors'         => Config::get('defaultShowErrors', 'notifications')
-                                          ,'notify_showWarnings'       => Config::get('defaultShowWarnings', 'notifications')
-                                          ,'notify_showInvariants'     => Config::get('defaultShowInvariants', 'notifications')
-                                          ,'autoSave'                  => Config::get('interfaceAutoSaveChanges', 'transactions')
+                    ,'defaultSettings' => ['notify_showSignals'        => $settings->get('notifications.defaultShowSignals')
+                                          ,'notify_showInfos'          => $settings->get('notifications.defaultShowInfos')
+                                          ,'notify_showSuccesses'      => $settings->get('notifications.defaultShowSuccesses')
+                                          ,'notify_autoHideSuccesses'  => $settings->get('notifications.defaultAutoHideSuccesses')
+                                          ,'notify_showErrors'         => $settings->get('notifications.defaultShowErrors')
+                                          ,'notify_showWarnings'       => $settings->get('notifications.defaultShowWarnings')
+                                          ,'notify_showInvariants'     => $settings->get('notifications.defaultShowInvariants')
+                                          ,'autoSave'                  => $settings->get('notifications.interfaceAutoSaveChanges')
                                           ]
                     ,'notifications' => Notifications::getAll()
                     ,'session' =>   ['id' => $session->getId()

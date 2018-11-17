@@ -15,7 +15,6 @@ use Ampersand\Core\Atom;
 use Ampersand\Core\Concept;
 use Ampersand\Log\Logger;
 use function Ampersand\Misc\isSequential;
-use Ampersand\Misc\Config;
 use Ampersand\Interfacing\Options;
 
 /**
@@ -178,16 +177,6 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
                 return "resource/{$this->concept->name}/" . $this->id;
             }
         }
-    }
-    
-    public function getURL()
-    {
-        return Config::get('serverURL') . Config::get('apiPath') . "/" . $this->getPath();
-    }
-    
-    public function getURI()
-    {
-        return Config::get('serverURL') . Config::get('apiPath') . "/resource/{$this->concept->name}/" . $this->id;
     }
 
     /**

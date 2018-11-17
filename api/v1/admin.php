@@ -234,10 +234,6 @@ $api->group('/admin/report', function () {
     /** @var \Slim\App $this */
 
     $this->get('/relations', function (Request $request, Response $response, $args = []) {
-        if (Config::get('productionEnv')) {
-            throw new Exception("Reports are not allowed in production environment", 403);
-        }
-
         // Get report
         $reporter = new Reporter(new JSONWriter($response->getBody()));
         $reporter->reportRelationDefinitions();
@@ -247,10 +243,6 @@ $api->group('/admin/report', function () {
     });
 
     $this->get('/conjuncts/usage', function (Request $request, Response $response, $args = []) {
-        if (Config::get('productionEnv')) {
-            throw new Exception("Reports are not allowed in production environment", 403);
-        }
-
         // Get report
         $reporter = new Reporter(new JSONWriter($response->getBody()));
         $reporter->reportConjunctUsage();
@@ -260,10 +252,6 @@ $api->group('/admin/report', function () {
     });
 
     $this->get('/conjuncts/performance', function (Request $request, Response $response, $args = []) {
-        if (Config::get('productionEnv')) {
-            throw new Exception("Reports are not allowed in production environment", 403);
-        }
-
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
@@ -278,10 +266,6 @@ $api->group('/admin/report', function () {
     });
 
     $this->get('/interfaces', function (Request $request, Response $response, $args = []) {
-        if (Config::get('productionEnv')) {
-            throw new Exception("Reports are not allowed in production environment", 403);
-        }
-
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
@@ -296,10 +280,6 @@ $api->group('/admin/report', function () {
     });
 
     $this->get('/interfaces/issues', function (Request $request, Response $response, $args = []) {
-        if (Config::get('productionEnv')) {
-            throw new Exception("Reports are not allowed in production environment", 403);
-        }
-
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
@@ -312,4 +292,13 @@ $api->group('/admin/report', function () {
         return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
                         ->withHeader('Content-Type', 'text/csv; charset=utf-8');
     });
-})->add($middleWare1);
+})->add($middleWare1)->add(function (Request $req, Response $res, callable $next) {
+    /** @var \Ampersand\AmpersandApp $ampersandApp */
+    $ampersandApp = $this['ampersand_app'];
+
+    if ($ampersandApp->getSettings()->get('global.productionEnv')) {
+        throw new Exception("Reports are not allowed in production environment", 403);
+    }
+    
+    return $next($req, $res);
+});
