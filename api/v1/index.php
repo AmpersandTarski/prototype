@@ -1,6 +1,5 @@
 <?php
 
-use Ampersand\Misc\Config;
 use Ampersand\Log\Logger;
 use Ampersand\Log\Notifications;
 use Slim\App;
@@ -42,18 +41,20 @@ $apiContainer['notFoundHandler'] = function ($c) {
 $apiContainer['errorHandler'] = function ($c) {
     return function (Request $request, Response $response, Exception $exception) use ($c) {
         try {
+            /** @var \Ampersand\AmpersandApp $ampersandApp */
+            $ampersandApp = $c['ampersand_app'];
             $logger = Logger::getLogger("API");
-            $debugMode = Config::get('debugMode');
+            $debugMode = $ampersandApp->getSettings()->get('global.debugMode');
             $data = []; // array for error context related data
 
             switch ($exception->getCode()) {
                 case 401: // Unauthorized
                 case 403: // Forbidden
                     $logger->warning($exception->getMessage());
-                    if (Config::get('loginEnabled') && !$c['ampersand_app']->getSession()->sessionUserLoggedIn()) {
+                    if ($ampersandApp->getSettings()->get('global.loginEnabled') && !$ampersandApp->getSession()->sessionUserLoggedIn()) {
                         $code = 401;
                         $message = "Please login to access this page";
-                        $data['loginPage'] = Config::get('loginPage', 'login');
+                        $data['loginPage'] = $ampersandApp->getSettings()->get('login.loginPage');
                     } else {
                         $code = 403;
                         $message = "You do not have access to this page";
@@ -95,7 +96,7 @@ $apiContainer['errorHandler'] = function ($c) {
             Logger::getLogger("API")->critical($throwable->getMessage());
             return $response->withJson(
                 [ 'error' => 500
-                , 'msg' => Config::get('debugMode') ? $throwable->getMessage() : "Something went wrong in returning an error message"
+                , 'msg' => "Something went wrong in returning an error message (debug information in server log files)"
                 , 'html' => "Please contact the application administrator for more information"
                 ],
                 500,
@@ -109,7 +110,9 @@ $apiContainer['phpErrorHandler'] = function ($c) {
     return function (Request $request, Response $response, Error $error) {
         try {
             Logger::getLogger("API")->critical($error->getMessage());
-            $debugMode = Config::get('debugMode');
+            /** @var \Ampersand\AmpersandApp $ampersandApp */
+            $ampersandApp = $c['ampersand_app'];
+            $debugMode = $ampersandApp->getSettings()->get('global.debugMode');
 
             return $response->withJson(
                 [ 'error' => 500
@@ -124,7 +127,7 @@ $apiContainer['phpErrorHandler'] = function ($c) {
             Logger::getLogger("API")->critical($throwable->getMessage());
             return $response->withJson(
                 [ 'error' => 500
-                , 'msg' => Config::get('debugMode') ? $throwable->getMessage() : "Something went wrong in returning an error message"
+                , 'msg' => "Something went wrong in returning an error message (debug information in server log files)"
                 , 'html' => "Please contact the application administrator for more information"
                 ],
                 500,
@@ -136,7 +139,7 @@ $apiContainer['phpErrorHandler'] = function ($c) {
 
 // Settings
 $apiContainer->get('settings')->replace(
-    [ 'displayErrorDetails' => Config::get('debugMode') // when true, additional information about exceptions are displayed by the default error handler
+    [ 'displayErrorDetails' => $ampersandApp->getSettings()->get('global.debugMode') // when true, additional information about exceptions are displayed by the default error handler
     , 'determineRouteBeforeAppMiddleware' => true // the route is calculated before any middleware is executed. This means that you can inspect route parameters in middleware if you need to.
     ]
 );
@@ -200,7 +203,7 @@ $api->add(function (Request $req, Response $res, callable $next) {
         $ampersandApp->init(); // initialize Ampersand application
         $ampersandApp->setSession(); // initialize session
     } catch (NotInstalledException $e) {
-        if (Config::get('debugMode')) {
+        if ($ampersandApp->getSettings()->get('global.debugMode')) {
             /** @var \Slim\Route $route */
             $route = $req->getAttribute('route');
             

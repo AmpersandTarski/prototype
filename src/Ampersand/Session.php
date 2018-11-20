@@ -17,6 +17,7 @@ use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
 use Ampersand\Core\Relation;
 use Ampersand\Log\Logger;
+use Ampersand\Misc\Settings;
 
 /**
  * Class of session objects
@@ -30,6 +31,13 @@ class Session
      * @var \Psr\Log\LoggerInterface
      */
     private $logger;
+
+    /**
+     * Reference to Ampersand app settings object
+     *
+     * @var \Ampersand\Misc\Settings
+     */
+    protected $settings;
     
     /**
      * @var string $id session identifier
@@ -54,10 +62,12 @@ class Session
      * Constructor of Session class
      *
      * @param \Psr\Log\LoggerInterface $logger
+     * @param \Ampersand\Misc\Settings $settings reference to app settings object
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger, Settings $settings)
     {
         $this->logger = $logger;
+        $this->settings = $settings;
        
         $this->setId();
         $this->initSessionAtom();
@@ -99,7 +109,7 @@ class Session
 
             // If login functionality is not enabled, add all defined roles as allowed roles
             // TODO: can be removed when meat-grinder populates this meta-relation by itself
-            if (!Config::get('loginEnabled')) {
+            if (!$this->settings->get('global.loginEnabled')) {
                 foreach (Role::getAllRoles() as $role) {
                     $roleAtom = Concept::makeRoleAtom($role->label);
                     $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*Role]')->add();
@@ -108,7 +118,7 @@ class Session
                 }
             }
         } else {
-            if (isset($_SESSION['lastAccess']) && (time() - $_SESSION['lastAccess'] > Config::get('sessionExpirationTime'))) {
+            if (isset($_SESSION['lastAccess']) && (time() - $_SESSION['lastAccess'] > $this->settings->get('global.sessionExpirationTime'))) {
                 $this->logger->debug("Session expired");
                 Logger::getUserLogger()->warning("Your session has expired");
                 $this->reset();
@@ -206,7 +216,7 @@ class Session
     {
         $this->logger->debug("Getting sessionAccount");
 
-        if (!Config::get('loginEnabled')) {
+        if (!$this->settings->get('global.loginEnabled')) {
             $this->logger->debug("No session account, because login functionality is not enabled");
             return false;
         } else {
@@ -252,7 +262,7 @@ class Session
      */
     public function sessionUserLoggedIn()
     {
-        if (!Config::get('loginEnabled')) {
+        if (!$this->settings->get('global.loginEnabled')) {
             return false;
         } elseif ($this->getSessionAccount() !== false) {
             return true;
@@ -288,7 +298,7 @@ class Session
      
     public static function deleteExpiredSessions()
     {
-        $experationTimeStamp = time() - Config::get('sessionExpirationTime');
+        $experationTimeStamp = time() - $this->settings->get('global.sessionExpirationTime');
         
         $links = Relation::getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
         foreach ($links as $link) {

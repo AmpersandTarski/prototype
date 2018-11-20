@@ -255,7 +255,7 @@ class AmpersandApp
 
     public function setSession()
     {
-        $this->session = new Session($this->logger);
+        $this->session = new Session($this->logger, $this->settings);
 
         // Run exec engine and close transaction
         Transaction::getCurrentTransaction()->runExecEngine()->close();

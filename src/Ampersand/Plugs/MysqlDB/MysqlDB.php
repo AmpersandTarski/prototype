@@ -11,7 +11,6 @@ use mysqli;
 use DateTime;
 use Exception;
 use DateTimeZone;
-use Ampersand\Misc\Config;
 use Ampersand\Model;
 use Ampersand\Session;
 use Ampersand\Core\Atom;
@@ -85,6 +84,14 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     protected $dbTransactionActive = false;
 
     /**
+     * Specifies is this object is in debug mode
+     * Affects the database exception-/error messages that are returned by this object
+     *
+     * @var bool
+     */
+    protected $debugMode = false;
+
+    /**
      * Contains the last executed query
      *
      * @var $string
@@ -112,7 +119,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      * @param string $dbName
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(string $dbHost, string $dbUser, string $dbPass, string $dbName, LoggerInterface $logger)
+    public function __construct(string $dbHost, string $dbUser, string $dbPass, string $dbName, LoggerInterface $logger, bool $debugMode = false)
     {
         $this->logger = $logger;
 
@@ -120,6 +127,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $this->dbUser = $dbUser;
         $this->dbPass = $dbPass;
         $this->dbName = $dbName;
+
+        $this->debugMode = $debugMode;
         
         try {
             // Enable mysqli errors to be thrown as Exceptions
@@ -150,7 +159,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         try {
             $this->dbLink->select_db($this->dbName);
         } catch (Exception $e) {
-            if (!Config::get('productionEnv')) {
+            if ($this->debugMode) {
                 switch ($e->getCode()) {
                     case 1049: // Error: 1049 SQLSTATE: 42000 (ER_BAD_DB_ERROR) --> Database ($this->dbName) does not (yet) exist
                         throw new NotInstalledException("Database {$this->dbName} does not exist");
@@ -312,7 +321,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             }
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
-            if (!Config::get('productionEnv')) {
+            if ($this->debugMode) {
                 // Convert mysqli_sql_exceptions into 500 errors
                 switch ($e->getCode()) {
                     case 1146: // Error: 1146 SQLSTATE: 42S02 (ER_NO_SUCH_TABLE)
@@ -817,10 +826,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     protected function checkForAffectedRows()
     {
         if ($this->dbLink->affected_rows == 0) {
-            if (Config::get('productionEnv')) {
-                $this->logger->warning("No recors affected with query '{$this->lastQuery}'");
-            } else {
+            if ($this->debugMode) {
                 throw new Exception("Oops.. something went wrong. No records affected in database", 500);
+            } else { // silent + warning in log
+                $this->logger->warning("No recors affected with query '{$this->lastQuery}'");
             }
         }
     }

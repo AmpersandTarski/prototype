@@ -1,6 +1,5 @@
 <?php
 
-use Ampersand\Misc\Config;
 use Ampersand\Log\Logger;
 use Ampersand\Log\Notifications;
 use Ampersand\Rule\Conjunct;
@@ -32,7 +31,10 @@ $api->group('/admin', function () {
     /** @var \Slim\App $this */
 
     $this->get('/sessions/delete/expired', function (Request $request, Response $response, $args = []) {
-        if (Config::get('productionEnv')) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
+        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
             throw new Exception("Not allowed in production environment", 403);
         }
         
@@ -44,7 +46,10 @@ $api->group('/admin', function () {
     });
     
     $this->post('/resource/{resourceType}/rename', function (Request $request, Response $response, $args = []) {
-        if (Config::get('productionEnv')) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+        
+        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
             throw new Exception("Not allowed in production environment", 403);
         }
         $resourceType = $args['resourceType'];
@@ -71,7 +76,7 @@ $api->group('/admin', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        if (Config::get('productionEnv')) {
+        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
             throw new Exception("Reinstallation of application not allowed in production environment", 403);
         }
         
@@ -93,7 +98,7 @@ $api->group('/admin', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        if (Config::get('productionEnv')) {
+        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
             throw new Exception("Checksum update is not allowed in production environment", 403);
         }
 
@@ -111,7 +116,8 @@ $api->group('/admin', function () {
         $ampersandApp = $this['ampersand_app'];
 
         // Check for required role
-        if (!$ampersandApp->hasRole(Config::get('allowedRolesForRunFunction', 'execEngine'))) {
+        $allowedRoles = $ampersandApp->getSettings()->get('execengine.allowedRolesForRunFunction');
+        if (!$ampersandApp->hasRole($allowedRoles)) {
             throw new Exception("You do not have access to run the exec engine", 403);
         }
             
@@ -130,7 +136,10 @@ $api->group('/admin', function () {
     });
 
     $this->get('/ruleengine/evaluate/all', function (Request $request, Response $response, $args = []) {
-        if (Config::get('productionEnv')) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+        
+        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
             throw new Exception("Evaluation of all rules not allowed in production environment", 403);
         }
 
@@ -150,12 +159,12 @@ $api->group('/admin', function () {
     });
 
     $this->get('/export/all', function (Request $request, Response $response, $args = []) {
-        if (Config::get('productionEnv')) {
-            throw new Exception("Export not allowed in production environment", 403);
-        }
-
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
+
+        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
+            throw new Exception("Export not allowed in production environment", 403);
+        }
         
         // Export population to response body
         $exporter = new Exporter(new JSONWriter($response->getBody()), Logger::getLogger('IO'));
@@ -175,7 +184,8 @@ $api->group('/admin', function () {
         $angularApp = $this['angular_app'];
         
         // Check for required role
-        if (!$ampersandApp->hasRole(Config::get('allowedRolesForImporter'))) {
+        $allowedRoles = $ampersandApp->getSettings()->get('global.allowedRolesForImporter');
+        if (!$ampersandApp->hasRole($allowedRoles)) {
             throw new Exception("You do not have access to import population", 403);
         }
         
@@ -299,6 +309,6 @@ $api->group('/admin/report', function () {
     if ($ampersandApp->getSettings()->get('global.productionEnv')) {
         throw new Exception("Reports are not allowed in production environment", 403);
     }
-    
+
     return $next($req, $res);
 });

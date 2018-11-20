@@ -66,7 +66,8 @@ $mysqlDB = new \Ampersand\Plugs\MysqlDB\MysqlDB(
     $ampersandApp->getSettings()->get('mysqlSettings')->dbUser,
     $ampersandApp->getSettings()->get('mysqlSettings')->dbPass,
     $ampersandApp->getSettings()->get('mysqlSettings')->dbName,
-    Logger::getLogger('DATABASE')
+    Logger::getLogger('DATABASE'),
+    $debugMode
 );
 $ampersandApp->setDefaultStorage($mysqlDB);
 $ampersandApp->setConjunctCache(new \Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache($mysqlDB));
