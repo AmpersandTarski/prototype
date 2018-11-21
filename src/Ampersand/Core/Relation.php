@@ -13,9 +13,9 @@ use Ampersand\Plugs\MysqlDB\MysqlDBRelationTable;
 use Ampersand\Core\Concept;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Misc\Config;
-use Ampersand\Transaction;
 use Ampersand\Plugs\RelationPlugInterface;
 use Psr\Log\LoggerInterface;
+use Ampersand\AmpersandApp;
 
 /**
  *
@@ -36,6 +36,13 @@ class Relation
      * @var \Psr\Log\LoggerInterface
      */
     private $logger;
+
+    /**
+     * Reference to Ampersand app for which this relation is defined
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $app;
     
     /**
      * Dependency injection of plug implementation
@@ -123,10 +130,12 @@ class Relation
      *
      * @param array $relationDef
      * @param \Psr\Log\LoggerInterface $logger
+     * @param \Ampersand\AmpersandApp $app
      */
-    public function __construct($relationDef, LoggerInterface $logger)
+    public function __construct($relationDef, LoggerInterface $logger, AmpersandApp $app)
     {
         $this->logger = $logger;
+        $this->app = $app;
 
         $this->name = $relationDef['name'];
         $this->srcConcept = Concept::getConcept($relationDef['srcConceptId']);
@@ -251,7 +260,7 @@ class Relation
     public function addLink(Link $link)
     {
         $this->logger->debug("Add link {$link} to plug");
-        Transaction::getCurrentTransaction()->addAffectedRelations($this); // Add relation to affected relations. Needed for conjunct evaluation and transaction management
+        $this->app->getCurrentTransaction()->addAffectedRelations($this); // Add relation to affected relations. Needed for conjunct evaluation and transaction management
         
         // Ensure that atoms exist in their concept tables
         $link->src()->add(); // TODO: remove when we know for sure that this is guaranteed by calling functions
@@ -270,7 +279,7 @@ class Relation
     public function deleteLink(Link $link)
     {
         $this->logger->debug("Delete link {$link} from plug");
-        Transaction::getCurrentTransaction()->addAffectedRelations($this); // Add relation to affected relations. Needed for conjunct evaluation and transaction management
+        $this->app->getCurrentTransaction()->addAffectedRelations($this); // Add relation to affected relations. Needed for conjunct evaluation and transaction management
         
         foreach ($this->getPlugs() as $plug) {
             $plug->deleteLink($link);
@@ -285,7 +294,7 @@ class Relation
     public function deleteAllLinks(Atom $atom = null, $srcOrTgt = null)
     {
         // Add relation to affected relations. Needed for conjunct evaluation and transaction management
-        Transaction::getCurrentTransaction()->addAffectedRelations($this);
+        $this->app->getCurrentTransaction()->addAffectedRelations($this);
         
         // Checks and logging
         if (is_null($atom)) {
@@ -417,7 +426,7 @@ class Relation
      * @param \Psr\Log\LoggerInterface $logger
      * @return void
      */
-    public static function setAllRelations(string $fileName, LoggerInterface $logger)
+    public static function setAllRelations(string $fileName, LoggerInterface $logger, AmpersandApp $app)
     {
         self::$allRelations = [];
     
@@ -425,7 +434,7 @@ class Relation
         $allRelationDefs = (array)json_decode(file_get_contents($fileName), true);
     
         foreach ($allRelationDefs as $relationDef) {
-            $relation = new Relation($relationDef, $logger);
+            $relation = new Relation($relationDef, $logger, $app);
             self::$allRelations[$relation->signature] = $relation;
         }
     }

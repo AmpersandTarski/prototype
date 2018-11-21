@@ -4,7 +4,6 @@ use Ampersand\Log\Logger;
 use Ampersand\Log\Notifications;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Rule\Rule;
-use Ampersand\Transaction;
 use Ampersand\Rule\RuleEngine;
 use Ampersand\IO\Exporter;
 use Ampersand\IO\JSONWriter;
@@ -38,7 +37,7 @@ $api->group('/admin', function () {
             throw new Exception("Not allowed in production environment", 403);
         }
         
-        $transaction = Transaction::getCurrentTransaction();
+        $transaction = $ampersandApp->newTransaction();
 
         Session::deleteExpiredSessions();
 
@@ -59,7 +58,7 @@ $api->group('/admin', function () {
             throw new Exception("Body must be array. Non-array provided", 500);
         }
 
-        $transaction = Transaction::getCurrentTransaction();
+        $transaction = $ampersandApp->newTransaction();
 
         foreach ($list as $item) {
             $resource = Resource::makeResource($item->oldId, $resourceType);
@@ -83,8 +82,9 @@ $api->group('/admin', function () {
         $defaultPop = filter_var($request->getQueryParam('defaultPop'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
         $ignoreInvariantRules = filter_var($request->getQueryParam('ignoreInvariantRules'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
 
-        $ampersandApp->reinstall($defaultPop, $ignoreInvariantRules); // Reinstall and initialize application
-        $ampersandApp->setSession();
+        $ampersandApp
+            ->reinstall($defaultPop, $ignoreInvariantRules) // reinstall and initialize application
+            ->setSession();
 
         $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
 
@@ -123,7 +123,7 @@ $api->group('/admin', function () {
             
         \Ampersand\Rule\ExecEngine::run();
         
-        $transaction = Transaction::getCurrentTransaction()->close();
+        $transaction = $ampersandApp->getCurrentTransaction()->close();
         if ($transaction->isCommitted()) {
             Logger::getUserLogger()->notice("Run completed");
         } else {
@@ -191,8 +191,10 @@ $api->group('/admin', function () {
         
         // Check if there is a file uploaded
         if (!is_uploaded_file($_FILES['file']['tmp_name'])) {
-            Logger::getUserLogger()->error("No file uploaded");
+            throw new Exception("No file uploaded", 400);
         }
+
+        $transaction = $ampersandApp->newTransaction();
 
         // Determine and execute import method based on extension.
         $extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
@@ -215,7 +217,7 @@ $api->group('/admin', function () {
         }
 
         // Commit transaction
-        $transaction = Transaction::getCurrentTransaction()->runExecEngine()->close();
+        $transaction->runExecEngine()->close();
         if ($transaction->isCommitted()) {
             Logger::getUserLogger()->notice("Imported {$_FILES['file']['name']} successfully");
         }

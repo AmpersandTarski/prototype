@@ -16,9 +16,9 @@ use Ampersand\Interfacing\View;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Atom;
 use Ampersand\Misc\Config;
-use Ampersand\Transaction;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
+use Ampersand\AmpersandApp;
 
 /**
  *
@@ -39,6 +39,13 @@ class Concept
      * @var \Psr\Log\LoggerInterface
      */
     private $logger;
+
+    /**
+     * Reference to Ampersand app for which this concept is defined
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $app;
     
     /**
      * Dependency injection of ConceptPlug implementation
@@ -160,10 +167,12 @@ class Concept
      *
      * @param array $conceptDef
      * @param \Psr\Log\LoggerInterface $logger
+     * @param \Ampersand\AmpersandApp $app
      */
-    private function __construct(array $conceptDef, LoggerInterface $logger)
+    private function __construct(array $conceptDef, LoggerInterface $logger, AmpersandApp $app)
     {
         $this->logger = $logger;
+        $this->app = $app;
         
         $this->def = $conceptDef;
         
@@ -588,7 +597,7 @@ class Concept
                 $this->logger->debug("Atom {$atom} already exists in concept");
             } else {
                 $this->logger->debug("Add atom {$atom} to plug");
-                Transaction::getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
+                $this->app->getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
                 
                 foreach ($this->getPlugs() as $plug) {
                     $plug->addAtom($atom); // Add to plug
@@ -636,7 +645,7 @@ class Concept
         // Check if atom exists
         if ($atom->exists()) {
             $this->logger->debug("Remove atom {$atom} from {$this} in plug");
-            Transaction::getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
+            $this->app->getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
             
             foreach ($this->getPlugs() as $plug) {
                 $plug->removeAtom($atom); // Remove from concept in plug
@@ -663,7 +672,7 @@ class Concept
     {
         if ($atom->exists()) {
             $this->logger->debug("Delete atom {$atom} from plug");
-            Transaction::getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
+            $this->app->getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
             
             foreach ($this->getPlugs() as $plug) {
                 $plug->deleteAtom($atom); // Delete from plug
@@ -820,14 +829,14 @@ class Concept
      * @param \Psr\Log\LoggerInterface $logger
      * @return void
      */
-    public static function setAllConcepts(string $fileName, LoggerInterface $logger)
+    public static function setAllConcepts(string $fileName, LoggerInterface $logger, AmpersandApp $app)
     {
         self::$allConcepts = [];
         
         $allConceptDefs = (array)json_decode(file_get_contents($fileName), true);
     
         foreach ($allConceptDefs as $conceptDef) {
-            self::$allConcepts[$conceptDef['id']] = new Concept($conceptDef, $logger);
+            self::$allConcepts[$conceptDef['id']] = new Concept($conceptDef, $logger, $app);
         }
     }
 }

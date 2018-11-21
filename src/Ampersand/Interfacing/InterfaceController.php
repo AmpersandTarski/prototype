@@ -11,7 +11,6 @@ use Exception;
 use Ampersand\AmpersandApp;
 use Ampersand\AngularApp;
 use Ampersand\Interfacing\Resource;
-use Ampersand\Transaction;
 use Ampersand\Log\Logger;
 use Ampersand\Log\Notifications;
 use Ampersand\Misc\Config;
@@ -53,7 +52,7 @@ class InterfaceController
 
     public function put(Resource $resource, $ifcPath, $body, $options, $depth): array
     {
-        $transaction = Transaction::getCurrentTransaction();
+        $transaction = $this->ampersandApp->newTransaction();
         
         // Perform put
         $resource = $resource->walkPathToResource($ifcPath)->put($body);
@@ -99,7 +98,7 @@ class InterfaceController
      */
     public function patch(Resource $resource, $ifcPath, array $patches, int $options, int $depth = null): array
     {
-        $transaction = Transaction::getCurrentTransaction();
+        $transaction = $this->ampersandApp->newTransaction();
         
         // Perform patch(es)
         $resource = $resource->walkPathToResource($ifcPath)->patch($patches);
@@ -135,7 +134,7 @@ class InterfaceController
 
     public function post(Resource $resource, $ifcPath, $body, $options, $depth): array
     {
-        $transaction = Transaction::getCurrentTransaction();
+        $transaction = $this->ampersandApp->newTransaction();
         
         $list = $resource->walkPathToResourceList($ifcPath);
 
@@ -210,7 +209,7 @@ class InterfaceController
      */
     public function delete(Resource $resource, $ifcPath): array
     {
-        $transaction = Transaction::getCurrentTransaction();
+        $transaction = $this->ampersandApp->newTransaction();
         
         // Perform delete
         $resource->walkPathToResource($ifcPath)->delete();

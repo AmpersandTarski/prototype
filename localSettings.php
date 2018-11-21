@@ -50,7 +50,7 @@ Logger::getUserLogger()->pushHandler(new NotificationHandler(MonoLogger::INFO));
 $logger = Logger::getLogger('APPLICATION');
 $model = new Model(dirname(__FILE__) . '/generics', $logger);
 $ampersandApp = new AmpersandApp($model, new Settings(), $logger);
-$angularApp = new AngularApp(Logger::getLogger('FRONTEND'));
+$angularApp = new AngularApp($ampersandApp, Logger::getLogger('FRONTEND'));
 
 /**************************************************************************************************
  * SERVER settings

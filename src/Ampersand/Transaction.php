@@ -26,20 +26,12 @@ use Ampersand\Rule\Rule;
  */
 class Transaction
 {
-    
     /**
-     * Points to the current/active transaction
+     * Points to the current open transaction
      *
      * @var \Ampersand\Transaction|null
      */
     private static $currentTransaction = null;
-
-    /**
-     * List of all transactions (open or closed)
-     *
-     * @var \Ampersand\Transaction[]
-     */
-    protected static $transactions = [];
     
     /**
      * Transaction number (random int)
@@ -94,35 +86,21 @@ class Transaction
     /**
      * Constructor
      *
+     * Don't use this constructor. Use AmpersandApp::newTransaction of AmpersandApp::getCurrentTransaction instead
      */
-    private function __construct()
+    public function __construct()
     {
         $this->logger = Logger::getLogger('TRANSACTION');
+
+        // Check to ensure only a single open transaction. AmpersandApp class is responsible for this.
+        if (!is_null(self::$currentTransaction)) {
+            throw new Exception("Something is wrong in the code. Only a single open transaction is allowed.", 500);
+        } else {
+            self::$currentTransaction = $this;
+        }
+        
         $this->id = rand();
         $this->logger->info("Opening transaction: {$this->id}");
-    }
-
-    /**
-     * Get current or new transaction
-     *
-     * @return \Ampersand\Transaction
-     */
-    public static function getCurrentTransaction(): Transaction
-    {
-        if (is_null(self::$currentTransaction)) {
-            self::$transactions[] = self::$currentTransaction = new Transaction();
-        }
-        return self::$currentTransaction;
-    }
-
-    /**
-     * Return all transaction object
-     *
-     * @return \Ampersand\Transaction[]
-     */
-    public static function getTransactions(): array
-    {
-        return self::$transactions;
     }
 
     /**

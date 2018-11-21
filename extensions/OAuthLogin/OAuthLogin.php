@@ -6,7 +6,6 @@ use Exception;
 use Ampersand\Misc\Config;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Log\Logger;
-use Ampersand\Transaction;
 use Ampersand\AmpersandApp;
 
 // UI
@@ -248,7 +247,7 @@ class OAuthLoginController
         }
         
         // Login account
-        $transaction = Transaction::getCurrentTransaction();
+        $transaction = $ampersandApp->getCurrentTransaction();
         $ampersandApp->login($account); // Automatically closes transaction
 
         if ($transaction->isCommitted()) {

@@ -10,6 +10,7 @@ namespace Ampersand;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Ampersand\Interfacing\InterfaceObject;
+use Ampersand\AmpersandApp;
 
 /**
  *
@@ -18,12 +19,18 @@ use Ampersand\Interfacing\InterfaceObject;
  */
 class AngularApp
 {
-    
     /**
      *
      * @var \Psr\Log\LoggerInterface
      */
     private $logger;
+
+    /**
+     * Reference to Ampersand app of which this frontend app (Angular) belongs to
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $ampersandApp;
     
     /**
      * List of items for the extensions menu (in navbar)
@@ -54,12 +61,14 @@ class AngularApp
     protected $navToResponse = [];
 
     /**
-     * Undocumented function
+     * Constructor
      *
+     * @param \Ampersand\AmpersandApp $ampersandApp
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(AmpersandApp $ampersandApp, LoggerInterface $logger)
     {
+        $this->ampersandApp = $ampersandApp;
         $this->logger = $logger;
     }
     
@@ -88,8 +97,7 @@ class AngularApp
     
     public function getMenuItems($menu)
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp;
+        $ampersandApp = $this->ampersandApp;
 
         switch ($menu) {
             // Items for extension menu
@@ -157,11 +165,8 @@ class AngularApp
      */
     protected function getNavBarIfcs(string $menu): array
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp;
-
         // Filter interfaces for requested part of navbar
-        return array_filter($ampersandApp->getAccessibleInterfaces(), function (InterfaceObject $ifc) use ($menu) {
+        return array_filter($this->ampersandApp->getAccessibleInterfaces(), function (InterfaceObject $ifc) use ($menu) {
             switch ($menu) {
                 case 'top':
                     if ($ifc->srcConcept->isSession() && $ifc->crudR()) {
@@ -224,7 +229,7 @@ class AngularApp
         static $skipRels = ['lastAccess[SESSION*DateTime]']; // these relations do not result in a session refresh advice
 
         $affectedRelations = [];
-        foreach (Transaction::getTransactions() as $transaction) {
+        foreach ($this->ampersandApp->getTransactions() as $transaction) {
             if (!$transaction->isCommitted()) {
                 continue;
             }

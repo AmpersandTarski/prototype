@@ -122,6 +122,13 @@ class AmpersandApp
      * @var \Ampersand\Rule\Rule[] $rulesToMaintain
      */
     protected $rulesToMaintain = []; // rules that are maintained by active roles
+
+    /**
+     * List of all transactions (open and closed)
+     *
+     * @var \Ampersand\Transaction[]
+     */
+    protected $transactions = [];
     
     /**
      * Constructor
@@ -174,8 +181,8 @@ class AmpersandApp
             $genericsFolder = $this->model->getFolder() . '/';
             Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULEENGINE'), $this->defaultStorage, $this->conjunctCache);
             View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
-            Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'));
-            Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'));
+            Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
+            Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'), $this);
             InterfaceObject::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage);
             Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, Logger::getLogger('RULEENGINE'));
             Role::setAllRoles($genericsFolder . 'roles.json');
@@ -258,7 +265,7 @@ class AmpersandApp
         $this->session = new Session($this->logger, $this->settings);
 
         // Run exec engine and close transaction
-        Transaction::getCurrentTransaction()->runExecEngine()->close();
+        $this->getCurrentTransaction()->runExecEngine()->close();
 
         // Set accessible interfaces and rules to maintain
         $this->setInterfacesAndRules();
@@ -335,6 +342,50 @@ class AmpersandApp
         return $this->rulesToMaintain;
     }
 
+    /**********************************************************************************************
+     * TRANSACTIONS
+     **********************************************************************************************/
+    /**
+     * Open new transaction.
+     * Note! Make sure that a open transaction is closed first
+     *
+     * @return \Ampersand\Transaction
+     */
+    public function newTransaction(): Transaction
+    {
+        return $this->transactions[] = new Transaction();
+    }
+    
+    /**
+     * Return current open transaction or open new transactions
+     *
+     * @return \Ampersand\Transaction
+     */
+    public function getCurrentTransaction(): Transaction
+    {
+        // Check and return if there is a open transaction
+        foreach ($this->transactions as $transaction) {
+            if ($transaction->isOpen()) {
+                return $transaction;
+            }
+        }
+        return $this->newTransaction();
+    }
+
+    /**
+     * Return list of all transactions in this app (open and closed)
+     *
+     * @return \Ampersand\Transaction[]
+     */
+    public function getTransactions(): array
+    {
+        return $this->transactions;
+    }
+
+    /**********************************************************************************************
+     * OTHER
+     **********************************************************************************************/
+
     /**
      * Login user and commit transaction
      *
@@ -348,10 +399,8 @@ class AmpersandApp
         // Set sessionAccount
         $this->session->setSessionAccount($account);
 
-        $transaction = Transaction::getCurrentTransaction();
-
         // Run ExecEngine to populate session related relations (e.g. sessionAllowedRoles)
-        $transaction->runExecEngine();
+        $transaction = $this->getCurrentTransaction()->runExecEngine();
 
         // Activate all allowed roles by default
         foreach ($this->session->getSessionAllowedRoles() as $atom) {
@@ -376,7 +425,7 @@ class AmpersandApp
         $this->session->reset();
 
         // Run exec engine and close transaction
-        Transaction::getCurrentTransaction()->runExecEngine()->close();
+        $this->getCurrentTransaction()->runExecEngine()->close();
 
         $this->setInterfacesAndRules();
     }
@@ -386,9 +435,9 @@ class AmpersandApp
      *
      * @param bool $installDefaultPop specifies whether or not to install the default population
      * @param bool $ignoreInvariantRules
-     * @return \Ampersand\Transaction in which application is reinstalled
+     * @return \Ampersand\AmpersandApp $this
      */
-    public function reinstall(bool $installDefaultPop = true, bool $ignoreInvariantRules = false): Transaction
+    public function reinstall(bool $installDefaultPop = true, bool $ignoreInvariantRules = false): AmpersandApp
     {
         $this->logger->info("Start application reinstall");
 
@@ -415,19 +464,19 @@ class AmpersandApp
         if ($installDefaultPop) {
             $this->logger->info("Install default population");
 
+            $transaction = $this->newTransaction();
+
             $reader = (new JSONReader())->loadFile($this->model->getFilePath('populations'));
             $importer = new Importer($reader, Logger::getLogger('IO'));
             $importer->importPopulation();
+
+            // Close transaction
+            $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
+            if ($transaction->isRolledBack()) {
+                throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
+            }
         } else {
             $this->logger->info("Skip default population");
-        }
-
-        // Close transaction
-        $transaction = Transaction::getCurrentTransaction()->runExecEngine()->close(false, $ignoreInvariantRules);
-        if ($transaction->isRolledBack()) {
-            throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
-        } else {
-            Logger::getUserLogger()->notice("Application successfully reinstalled");
         }
 
         // Evaluate all conjunct and save cache
@@ -437,9 +486,10 @@ class AmpersandApp
             $conj->evaluate()->persistCacheItem();
         }
 
+        Logger::getUserLogger()->notice("Application successfully reinstalled");
         $this->logger->info("End application reinstall");
 
-        return $transaction;
+        return $this;
     }
 
     /**
@@ -456,7 +506,7 @@ class AmpersandApp
         }
         
         // Commit transaction (exec-engine kicks also in)
-        Transaction::getCurrentTransaction()->runExecEngine()->close();
+        $this->getCurrentTransaction()->runExecEngine()->close();
 
         $this->setInterfacesAndRules();
     }
