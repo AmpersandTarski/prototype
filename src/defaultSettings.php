@@ -11,8 +11,8 @@ try {
     Config::set('debugMode', 'global', false); // set debugMode (or not = default). Impacts the way errors are returned by API
 
     Config::set('absolutePath', 'global', dirname(__DIR__) . DIRECTORY_SEPARATOR);
-    Config::set('uploadPath', 'global', 'uploads/');
-    Config::set('logPath', 'global', 'log/');
+    Config::set('uploadPath', 'global', 'uploads');
+    Config::set('logPath', 'global', 'log');
     Config::set('allowedMimeTypes', 'global', ['application/vnd.ms-excel'
             ,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             ,'application/excel'

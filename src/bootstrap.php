@@ -6,7 +6,9 @@ use Ampersand\Misc\Config;
 register_shutdown_function(function () {
     $error = error_get_last();
     if ($error['type'] & (E_ERROR | E_PARSE)) {
-        $debugMode = Config::get('debugMode');
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp;
+        $debugMode = $ampersandApp->getSettings()->get('global.debugMode');
 
         $protocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0';
         http_response_code(500);

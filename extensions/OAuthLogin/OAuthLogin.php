@@ -3,7 +3,6 @@
 namespace Ampersand\Extension\OAuthLogin;
 
 use Exception;
-use Ampersand\Misc\Config;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Log\Logger;
 use Ampersand\AmpersandApp;
@@ -141,48 +140,34 @@ class OAuthLoginController
      *
      * @param string $code
      * @param string $idp
+     * @param string $api_url
      * @return bool
      */
-    public static function authenticate(string $code, string $idp): bool
+    public function authenticate(string $code, string $idp, $api_url): bool
     {
-        $identityProviders = Config::get('identityProviders', 'OAuthLogin');
-
         if (empty($code)) {
             throw new Exception("Oops. Someting went wrong during login. Please try again", 401);
         }
 
-        if (!isset($identityProviders[$idp])) {
-            throw new Exception("Unknown identity provider", 500);
-        }
-
-        $client_id         = $identityProviders[$idp]['clientId'];
-        $client_secret     = $identityProviders[$idp]['clientSecret'];
-        $redirect_uri     = $identityProviders[$idp]['redirectUrl'];
-        $token_url         = $identityProviders[$idp]['tokenUrl'];
-        $api_url         = $identityProviders[$idp]['apiUrl'];
-
-        // instantiate authController
-        $authController = new OAuthLoginController($client_id, $client_secret, $redirect_uri, $token_url);
-
         // request token
-        if ($authController->requestToken($code)) {
+        if ($this->requestToken($code)) {
             // request data
-            if ($authController->requestData($api_url)) {
+            if ($this->requestData($api_url)) {
                 // Get email here
                 $email = null;
                 switch ($idp) {
                     case 'linkedin':
                         // Linkedin provides primary emailaddress only. This is always a verified address.
-                        $email = $authController->getData()->emailAddress;
+                        $email = $this->getData()->emailAddress;
                         break;
                     case 'google':
-                        $email = $authController->getData()->email;
-                        if (!$authController->getData()->verified_email) {
+                        $email = $this->getData()->email;
+                        if (!$this->getData()->verified_email) {
                             throw new Exception("Google emailaddress is not verified", 500);
                         }
                         break;
                     case 'github':
-                        foreach ($authController->getData() as $data) {
+                        foreach ($this->getData() as $data) {
                             if ($data->primary && $data->verified) {
                                 $email = $data->email;
                             }
@@ -196,7 +181,7 @@ class OAuthLoginController
                         break;
                 }
                 
-                return $authController->login($email);
+                return $this->login($email);
             } else {
                 return false;
             }

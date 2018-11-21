@@ -9,15 +9,15 @@ namespace Ampersand;
 
 use Exception;
 use Ampersand\Misc\Hook;
-use Ampersand\Misc\Config;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
-use Ampersand\Log\Logger;
 use Ampersand\Plugs\StorageInterface;
 use Ampersand\Rule\RuleEngine;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Log\Notifications;
 use Ampersand\Rule\Rule;
+use Ampersand\AmpersandApp;
+use Psr\Log\LoggerInterface;
 
 /**
  *
@@ -46,6 +46,13 @@ class Transaction
      * @var \Psr\Log\LoggerInterface
      */
     private $logger;
+
+    /**
+     * Reference to Ampersand app for which this transaction is instantiated
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $app;
     
     /**
      * Contains all affected Concepts during a transaction
@@ -85,12 +92,14 @@ class Transaction
     
     /**
      * Constructor
+     * Note! Don't use this constructor. Use AmpersandApp::newTransaction of AmpersandApp::getCurrentTransaction instead
      *
-     * Don't use this constructor. Use AmpersandApp::newTransaction of AmpersandApp::getCurrentTransaction instead
+     * @param \Ampersand\AmpersandApp $app
      */
-    public function __construct()
+    public function __construct(AmpersandApp $app, LoggerInterface $logger)
     {
-        $this->logger = Logger::getLogger('TRANSACTION');
+        $this->logger = $logger;
+        $this->app = $app;
 
         // Check to ensure only a single open transaction. AmpersandApp class is responsible for this.
         if (!is_null(self::$currentTransaction)) {
@@ -98,7 +107,7 @@ class Transaction
         } else {
             self::$currentTransaction = $this;
         }
-        
+
         $this->id = rand();
         $this->logger->info("Opening transaction: {$this->id}");
     }
@@ -189,7 +198,7 @@ class Transaction
             if ($this->invariantRulesHold) {
                 $this->logger->info("Commit transaction");
                 $this->commit();
-            } elseif (!$this->invariantRulesHold && (Config::get('ignoreInvariantViolations', 'transactions') || $ignoreInvariantViolations)) {
+            } elseif (!$this->invariantRulesHold && ($this->app->getSettings()->get('transactions.ignoreInvariantViolations') || $ignoreInvariantViolations)) {
                 $this->logger->warning("Commit transaction with invariant violations");
                 $this->commit();
             } else {

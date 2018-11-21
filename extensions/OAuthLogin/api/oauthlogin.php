@@ -1,6 +1,5 @@
 <?php
 
-use Ampersand\Misc\Config;
 use Ampersand\Extension\OAuthLogin\OAuthLoginController;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -19,8 +18,11 @@ $api->group('/oauthlogin', function () {
     /** @var \Slim\App $this */
 
     $this->get('/login', function (Request $request, Response $response, $args = []) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get configured identity providers
-        $identityProviders = Config::get('identityProviders', 'OAuthLogin');
+        $identityProviders = $ampersandApp->getSettings()->get('oauthlogin.identityProviders');
         if (is_null($identityProviders)) {
             throw new Exception("No identity providers specified for OAuthLogin extension", 500);
         }
@@ -60,18 +62,33 @@ $api->group('/oauthlogin', function () {
     });
 
     $this->get('/callback/{idp}', function (Request $request, Response $response, $args = []) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+        
         $code = $request->getQueryParam('code');
-        switch ($args['idp']) {
-            case 'google':
-            case 'linkedin':
-            case 'github':
-                $isLoggedIn = OAuthLoginController::authenticate($code, $args['idp']);
-                break;
-            default:
-                throw new Exception("Unsupported identity provider", 400);
+        $idp = $args['idp'];
+
+        $identityProviders = $ampersandApp->getSettings()->get('oauthlogin.identityProviders');
+        if (!isset($identityProviders[$idp])) {
+            throw new Exception("Unsupported identity provider", 400);
         }
 
-        $url = $isLoggedIn ? Config::get('redirectAfterLogin', 'OAuthLogin') : Config::get('redirectAfterLoginFailure', 'OAuthLogin');
+        // instantiate authController
+        $authController = new OAuthLoginController(
+            $identityProviders[$idp]['clientId'],
+            $identityProviders[$idp]['clientSecret'],
+            $identityProviders[$idp]['redirectUrl'],
+            $identityProviders[$idp]['tokenUrl']
+        );
+
+        $api_url = $identityProviders[$idp]['apiUrl'];
+        $isLoggedIn = $authController->authenticate($code, $idp, $api_url);
+        
+        if ($isLoggedIn) {
+            $url = $ampersandApp->getSettings()->get('oauthlogin.redirectAfterLogin');
+        } else {
+            $url = $ampersandApp->getSettings()->get('oauthlogin.redirectAfterLoginFailure');
+        }
         return $response->withRedirect($url);
     });
 });

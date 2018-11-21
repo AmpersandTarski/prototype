@@ -13,7 +13,6 @@ use Ampersand\AngularApp;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Log\Logger;
 use Ampersand\Log\Notifications;
-use Ampersand\Misc\Config;
 use function Ampersand\Misc\getSafeFileName;
 
 class InterfaceController
@@ -146,8 +145,10 @@ class InterfaceController
                 $tmp_name = $_FILES['file']['tmp_name'];
                 $originalFileName = $_FILES['file']['name'];
 
-                $dest = getSafeFileName(Config::get('absolutePath') . Config::get('uploadPath'). $originalFileName);
-                $relativePath = Config::get('uploadPath') . pathinfo($dest, PATHINFO_BASENAME);
+                $appAbsolutePath = $this->ampersandApp->getSettings()->get('global.absolutePath');
+                $uploadFolder = $this->ampersandApp->getSettings()->get('global.uploadPath');
+                $dest = getSafeFileName($appAbsolutePath . DIRECTORY_SEPARATOR . $uploadFolder . DIRECTORY_SEPARATOR . $originalFileName);
+                $relativePath = $uploadFolder . '/' . pathinfo($dest, PATHINFO_BASENAME); // use forward slash as this is used on the web
                 
                 $result = move_uploaded_file($tmp_name, $dest);
                 

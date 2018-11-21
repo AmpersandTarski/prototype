@@ -6,8 +6,8 @@
     "global.productionEnv": false, // set environment as production deployment (or not = default)
     "global.debugMode": false, // set debugMode (or not = default). Impacts the way errors are returned by API
     "global.absolutePath": "<TODO>",
-    "global.uploadPath": "uploads/",
-    "global.logPath": "log/",
+    "global.uploadPath": "uploads",
+    "global.logPath": "log",
     "global.allowedMimeTypes":
         [ "application/vnd.ms-excel"
         , "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
