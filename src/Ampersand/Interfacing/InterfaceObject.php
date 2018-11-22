@@ -59,6 +59,8 @@ class InterfaceObject
      * @var boolean
      */
     private $isRoot;
+
+    protected $isAPI;
     
     /**
      * Roles that have access to this interface
@@ -185,10 +187,11 @@ class InterfaceObject
      * @param string|null $pathEntry
      * @param bool $rootIfc Specifies if this interface object is a toplevel interface (true) or subinterface (false)
      */
-    private function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null, bool $rootIfc = false)
+    private function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null, bool $rootIfc = false, bool $isAPI = false)
     {
         $this->plug = $plug;
         $this->isRoot = $rootIfc;
+        $this->isAPI = $isAPI;
         
         // Set attributes from $ifcDef
         $this->id = $ifcDef['id'];
@@ -352,6 +355,11 @@ class InterfaceObject
     public function isRoot()
     {
         return $this->isRoot;
+    }
+
+    public function isAPI()
+    {
+        return $this->isAPI;
     }
     
     /**
@@ -660,7 +668,8 @@ class InterfaceObject
         $allInterfaceDefs = (array)json_decode(file_get_contents($fileName), true);
         
         foreach ($allInterfaceDefs as $ifcDef) {
-            $ifc = new InterfaceObject($ifcDef['ifcObject'], $defaultPlug, null, true);
+            $isAPI = $ifcDef['isAPI'] ?? false; // TODO: default value on null can be removed when this attribute is added to output of Ampersand generator
+            $ifc = new InterfaceObject($ifcDef['ifcObject'], $defaultPlug, null, true, $isAPI);
             
             // Set additional information about this toplevel interface object
             $ifc->ifcRoleNames = $ifcDef['interfaceRoles'];

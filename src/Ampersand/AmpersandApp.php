@@ -521,11 +521,12 @@ class AmpersandApp
     public function getInterfacesToReadConcepts($concepts)
     {
         return array_values(
-            array_filter($this->accessibleInterfaces, function ($ifc) use ($concepts) {
+            array_filter($this->accessibleInterfaces, function (InterfaceObject $ifc) use ($concepts) {
                 foreach ($concepts as $cpt) {
                     if ($ifc->srcConcept->hasSpecialization($cpt, true)
                         && $ifc->crudR()
                         && (!$ifc->crudC() or ($ifc->crudU() or $ifc->crudD()))
+                        && !$ifc->isAPI() // don't include API interfaces 
                         ) {
                         return true;
                     }
