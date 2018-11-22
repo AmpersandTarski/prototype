@@ -668,7 +668,8 @@ class InterfaceObject
         $allInterfaceDefs = (array)json_decode(file_get_contents($fileName), true);
         
         foreach ($allInterfaceDefs as $ifcDef) {
-            $ifc = new InterfaceObject($ifcDef['ifcObject'], $defaultPlug, null, true, $ifcDef['isAPI']);
+            $isAPI = $ifcDef['isAPI'] ?? false; // TODO: default value on null can be removed when this attribute is added to output of Ampersand generator
+            $ifc = new InterfaceObject($ifcDef['ifcObject'], $defaultPlug, null, true, $isAPI);
             
             // Set additional information about this toplevel interface object
             $ifc->ifcRoleNames = $ifcDef['interfaceRoles'];
