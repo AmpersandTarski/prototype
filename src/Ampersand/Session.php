@@ -109,7 +109,7 @@ class Session
 
             // If login functionality is not enabled, add all defined roles as allowed roles
             // TODO: can be removed when meat-grinder populates this meta-relation by itself
-            if (!$this->settings->get('global.loginEnabled')) {
+            if (!$this->settings->get('login.enabled')) {
                 foreach (Role::getAllRoles() as $role) {
                     $roleAtom = Concept::makeRoleAtom($role->label);
                     $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*Role]')->add();
@@ -118,7 +118,7 @@ class Session
                 }
             }
         } else {
-            if (isset($_SESSION['lastAccess']) && (time() - $_SESSION['lastAccess'] > $this->settings->get('global.sessionExpirationTime'))) {
+            if (isset($_SESSION['lastAccess']) && (time() - $_SESSION['lastAccess'] > $this->settings->get('session.expirationTime'))) {
                 $this->logger->debug("Session expired");
                 Logger::getUserLogger()->warning("Your session has expired");
                 $this->reset();
@@ -216,7 +216,7 @@ class Session
     {
         $this->logger->debug("Getting sessionAccount");
 
-        if (!$this->settings->get('global.loginEnabled')) {
+        if (!$this->settings->get('login.enabled')) {
             $this->logger->debug("No session account, because login functionality is not enabled");
             return false;
         } else {
@@ -262,7 +262,7 @@ class Session
      */
     public function sessionUserLoggedIn()
     {
-        if (!$this->settings->get('global.loginEnabled')) {
+        if (!$this->settings->get('login.enabled')) {
             return false;
         } elseif ($this->getSessionAccount() !== false) {
             return true;
@@ -298,7 +298,7 @@ class Session
      
     public static function deleteExpiredSessions()
     {
-        $experationTimeStamp = time() - $this->settings->get('global.sessionExpirationTime');
+        $experationTimeStamp = time() - $this->settings->get('session.expirationTime');
         
         $links = Relation::getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
         foreach ($links as $link) {

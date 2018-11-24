@@ -51,7 +51,7 @@ $apiContainer['errorHandler'] = function ($c) {
                 case 401: // Unauthorized
                 case 403: // Forbidden
                     $logger->warning($exception->getMessage());
-                    if ($ampersandApp->getSettings()->get('global.loginEnabled') && !$ampersandApp->getSession()->sessionUserLoggedIn()) {
+                    if ($ampersandApp->getSettings()->get('login.enabled') && !$ampersandApp->getSession()->sessionUserLoggedIn()) {
                         $code = 401;
                         $message = "Please login to access this page";
                         $data['loginPage'] = $ampersandApp->getSettings()->get('login.loginPage');

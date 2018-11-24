@@ -52,11 +52,6 @@ $model = new Model(dirname(__FILE__) . '/generics', $logger);
 $ampersandApp = new AmpersandApp($model, new Settings(), $logger);
 $angularApp = new AngularApp($ampersandApp, Logger::getLogger('FRONTEND'));
 
-/**************************************************************************************************
- * SERVER settings
- *************************************************************************************************/
-// Config::set('serverURL', 'global', 'http://www.yourdomain.nl'); // defaults to http://localhost
-// Config::set('apiPath', 'global', '/api/v1'); // relative path to api
 
 /**************************************************************************************************
  * DATABASE and PLUGS
@@ -81,17 +76,11 @@ $ampersandApp->setConjunctCache(new \Ampersand\Plugs\MysqlConjunctCache\MysqlCon
  * Include this file into your project
  * Uncomment the config setting below
  *************************************************************************************************/
-// Config::set('loginEnabled', 'global', true);
-// Config::set('loginPage', 'login', 'ext/Login');
-// Config::set('allowedRolesForImporter', 'global', []); // list of roles that have access to the importer
 
 
 /**************************************************************************************************
  * EXECENGINE
  *************************************************************************************************/
-// Config::set('execEngineRoleNames', 'execEngine', ['ExecEngine']);
-// Config::set('autoRerun', 'execEngine', true);
-// Config::set('maxRunCount', 'execEngine', 10);
 // chdir(__DIR__);
 // foreach(glob('execfunctions/*.php') as $filepath) require_once(__DIR__ . DIRECTORY_SEPARATOR . $filepath);
 
