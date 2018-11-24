@@ -15,7 +15,6 @@ use Ampersand\Interfacing\InterfaceObject;
 use Ampersand\Interfacing\View;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Atom;
-use Ampersand\Misc\Config;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;

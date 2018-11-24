@@ -12,7 +12,6 @@ use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 use Ampersand\Plugs\MysqlDB\MysqlDBRelationTable;
 use Ampersand\Core\Concept;
 use Ampersand\Rule\Conjunct;
-use Ampersand\Misc\Config;
 use Ampersand\Plugs\RelationPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;

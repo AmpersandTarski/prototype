@@ -1,7 +1,6 @@
 <?php
 
 use Ampersand\AmpersandApp;
-use Ampersand\Misc\Config;
 
 register_shutdown_function(function () {
     $error = error_get_last();
