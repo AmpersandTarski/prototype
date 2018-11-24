@@ -34,4 +34,6 @@ require_once(__DIR__ . '/project.php');
 
 // ExecEngine functions
 chdir(__DIR__);
-foreach(glob('execfunctions/*.php') as $filepath) require_once(__DIR__ . DIRECTORY_SEPARATOR . $filepath);
+foreach (glob('execfunctions/*.php') as $filepath) {
+    require_once(__DIR__ . DIRECTORY_SEPARATOR . $filepath);
+}
