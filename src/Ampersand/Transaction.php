@@ -18,6 +18,7 @@ use Ampersand\Log\Notifications;
 use Ampersand\Rule\Rule;
 use Ampersand\AmpersandApp;
 use Psr\Log\LoggerInterface;
+use Ampersand\Log\Logger;
 
 /**
  *
@@ -89,6 +90,13 @@ class Transaction
      * @var \Ampersand\Plugs\StorageInterface[] $storages
      */
     private $storages = [];
+
+    /**
+     * List of exec engines
+     *
+     * @var \Ampersand\Rule\ExecEngine[]
+     */
+    protected $execEngines = [];
     
     /**
      * Constructor
@@ -110,6 +118,7 @@ class Transaction
 
         $this->id = rand();
         $this->logger->info("Opening transaction: {$this->id}");
+        $this->initExecEngines();
     }
 
     /**
@@ -122,15 +131,83 @@ class Transaction
         return 'Transaction ' . $this->id;
     }
 
+    protected function initExecEngines()
+    {
+        foreach ((array) Config::get('execEngineRoleNames', 'execEngine') as $roleName) {
+            try {
+                $role = Role::getRoleByName($roleName);
+                $this->execEngines[] = new ExecEngine($role, Logger::getLogger('EXECENGINE'));
+            } catch (Exception $e) {
+                $this->logger->info("ExecEngine role '{$roleName}' configured, but role is not used/defined in &-script.");
+            }
+        }
+    }
+
+    /**
+     * Run exec engines
+     *
+     * @param bool $checkAllRules specifies if all rules must be evaluated (true) or only the affected rules in this transaction (false)
+     * @return \Ampersand\Transaction
+     */
+    public function runExecEngine(bool $checkAllRules = false): Transaction
+    {
+        $this->logger->info("ExecEngine started");
+
+        // Initial values
+        $maxRunCount = Config::get('maxRunCount', 'execEngine');
+        $autoRerun = Config::get('autoRerun', 'execEngine');
+        $doRun = true;
+        $runCounter = 1;
+
+        // Rules to check
+        $rulesToCheck = $checkAllRules ? Rule::getAllRules() : $this->getAffectedRules();
+
+        // Do run exec engines while there is work to do
+        do {
+            $this->logger->info("{+ Run #{{$runCounter}} (auto rerun: " . var_export($autoRerun, true) . ")");
+            
+            // Exec all exec engines
+            $rulesFixed = [];
+            foreach ($this->execEngines as $ee) {
+                $this->logger->debug("Select exec engine '{{$ee->getId()}}'");
+                $rulesFixed = array_merge($rulesFixed, $ee->checkFixRules($rulesToCheck));
+            }
+
+            // If no rules fixed (i.e. no violations) in this loop: stop exec engine
+            if (empty($rulesFixed)) {
+                $doRun = false;
+            }
+
+            // Prevent infinite loop in exec engine reruns
+            if ($runCounter >= $maxRunCount && $doRun) {
+                $this->logger->error("Maximum reruns exceeded (hint! rules fixed in last run:" . implode(', ', $rulesFixed) . ")");
+                Logger::getUserLogger()->error("Maximum reruns exceeded for ExecEngine");
+                $doRun = false;
+            }
+            $this->logger->info("+} Exec engine run finished");
+            $runCounter++;
+            $rulesToCheck = $this->getAffectedRules(); // next run only affected rules need to be checked
+        } while ($doRun && $autoRerun);
+
+        $this->logger->info("ExecEngine finished");
+        
+        return $this;
+    }
+
     /**
      * Run exec engine for affected rules in this transaction
      *
-     * @return Transaction
+     * @param string $id
+     * @return \Ampersand\Transaction
      */
-    public function runExecEngine(): Transaction
+    public function singleRunForExecEngine(string $id): Transaction
     {
-        // Run ExecEngine
-        ExecEngine::run($this);
+        // Find/run specific exec engine
+        foreach ($this->execEngines as $ee) {
+            if ($ee->getId() == $id) {
+                $ee->checkFixRules($this->getAffectedRules());
+            }
+        }
 
         return $this;
     }

@@ -18,8 +18,9 @@ use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
 use Ampersand\AngularApp;
 use Ampersand\Rule\ExecEngine;
+use Ampersand\Log\Logger;
 
-$execEngineLogger = ExecEngine::getLogger();
+$execEngineLogger = Logger::getLogger('EXECENGINE');
 
 /** @var \Ampersand\AngularApp $angularApp */
 global $angularApp;
@@ -33,6 +34,7 @@ global $angularApp;
 */
 // Use:  VIOLATION (TXT "InsPair;<relation>;<srcConcept>;<srcAtom>;<tgtConcept>;<tgtAtom>")
 ExecEngine::registerFunction('InsPair', function ($relationName, $srcConceptName, $srcAtom, $tgtConceptName, $tgtAtom) use ($execEngineLogger) {
+    /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 5) {
         throw new Exception("InsPair() expects 5 arguments, but you have provided ".func_num_args(), 500);
     }
@@ -50,10 +52,10 @@ ExecEngine::registerFunction('InsPair', function ($relationName, $srcConceptName
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
     if ($srcAtom == "_NEW") {
-        $srcAtom = ExecEngine::getCreatedAtom()->id;
+        $srcAtom = $this->getCreatedAtom()->id;
     }
     if ($tgtAtom == "_NEW") {
-        $tgtAtom = ExecEngine::getCreatedAtom()->id;
+        $tgtAtom = $this->getCreatedAtom()->id;
     }
     
     $srcAtomIds = explode('_AND', $srcAtom);
@@ -77,6 +79,7 @@ ExecEngine::registerFunction('InsPair', function ($relationName, $srcConceptName
 */
 // Use: VIOLATION (TXT "DelPair;<rel>;<srcConcept>;<srcAtom>;<tgtConcept>;<tgtAtom>")
 ExecEngine::registerFunction('DelPair', function ($relationName, $srcConceptName, $srcAtom, $tgtConceptName, $tgtAtom) use ($execEngineLogger) {
+    /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 5) {
         throw new Exception("DelPair() expects 5 arguments, but you have provided ".func_num_args(), 500);
     }
@@ -94,10 +97,10 @@ ExecEngine::registerFunction('DelPair', function ($relationName, $srcConceptName
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
     if ($srcAtom == "_NEW") {
-        $srcAtom = ExecEngine::getCreatedAtom()->id;
+        $srcAtom = $this->getCreatedAtom()->id;
     }
     if ($tgtAtom == "_NEW") {
-        $tgtAtom = ExecEngine::getCreatedAtom()->id;
+        $tgtAtom = $this->getCreatedAtom()->id;
     }
     
     $srcAtoms = explode('_AND', $srcAtom);
@@ -138,8 +141,10 @@ ExecEngine::registerFunction('DelPair', function ($relationName, $srcConceptName
               )
 
 */
+// Arglist: ($ConceptC[,$newAtom][,$relation,$srcConcept,$srcAtom,$tgtConcept,$tgtAtom]+)
 ExecEngine::registerFunction('NewStruct', function () use ($execEngineLogger) {
- // arglist: ($ConceptC[,$newAtom][,$relation,$srcConcept,$srcAtom,$tgtConcept,$tgtAtom]+)
+    /** @var \Ampersand\Rule\ExecEngine $this */
+
     // We start with parsing the first one or two arguments
     $c = Concept::getConceptByLabel(func_get_arg(0)); // Concept for which atom is to be created
     $atom = $c->createNewAtom(); // Default marker for atom-to-be-created.
@@ -158,7 +163,7 @@ ExecEngine::registerFunction('NewStruct', function () use ($execEngineLogger) {
     $atom->add();
 
     // Make newly created atom available within scope of violation for use of other functions
-    ExecEngine::setCreatedAtom($atom);
+    $this->setCreatedAtom($atom);
 
     // Next, for every relation that follows in the argument list, we create a link
     for ($i = func_num_args() % 5; $i < func_num_args(); $i = $i+5) {
@@ -199,6 +204,8 @@ ExecEngine::registerFunction('NewStruct', function () use ($execEngineLogger) {
 
 // Use: VIOLATION (TXT "InsAtom;<concept>")
 ExecEngine::registerFunction('InsAtom', function (string $conceptName) use ($execEngineLogger) {
+    /** @var \Ampersand\Rule\ExecEngine $this */
+
     if (func_num_args() != 1) {
         throw new Exception("InsAtom() expects 1 argument, but you have provided " . func_num_args(), 500);
     }
@@ -210,7 +217,7 @@ ExecEngine::registerFunction('InsAtom', function (string $conceptName) use ($exe
     $atom->add();
     
     // Make (newly created) atom available within scope of violation for use of other functions
-    ExecEngine::setCreatedAtom($atom);
+    $this->setCreatedAtom($atom);
 
     $execEngineLogger->debug("Atom '{$atom}' added");
 });
@@ -222,13 +229,14 @@ ExecEngine::registerFunction('InsAtom', function (string $conceptName) use ($exe
 */
 // Use: VIOLATION (TXT "DelAtom;<concept>;<atom>")
 ExecEngine::registerFunction('DelAtom', function ($concept, $atomId) use ($execEngineLogger) {
+    /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 2) {
         throw new Exception("DelAtom() expects 2 arguments, but you have provided ".func_num_args(), 500);
     }
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
     if ($atomId == "_NEW") {
-        $atom = ExecEngine::getCreatedAtom();
+        $atom = $this->getCreatedAtom();
     } else {
         $atom = new Atom($atomId, Concept::getConceptByLabel($concept));
     }
@@ -250,6 +258,7 @@ ExecEngine::registerFunction('DelAtom', function ($concept, $atomId) use ($execE
 */
 // Use: VIOLATION (TXT "{EX} MrgAtoms;<conceptA>;", SRC I, TXT ";<conceptB>;", TGT I )
 ExecEngine::registerFunction('MrgAtoms', function ($conceptA, $srcAtomId, $conceptB, $tgtAtomId) use ($execEngineLogger) {
+    /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 4) {
         throw new Exception("MrgAtoms() expects 4 arguments, but you have provided ".func_num_args(), 500);
     }
@@ -259,10 +268,10 @@ ExecEngine::registerFunction('MrgAtoms', function ($conceptA, $srcAtomId, $conce
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
     if ($srcAtomId == "_NEW") {
-        $srcAtom = ExecEngine::getCreatedAtom();
+        $srcAtom = $this->getCreatedAtom();
     }
     if ($tgtAtomId == "_NEW") {
-        $tgtAtom = ExecEngine::getCreatedAtom();
+        $tgtAtom = $this->getCreatedAtom();
     }
     
     $srcAtom->merge($tgtAtom); // union of two records plus substitution in all occurences in binary relations.
@@ -276,13 +285,14 @@ ExecEngine::registerFunction('MrgAtoms', function ($conceptA, $srcAtomId, $conce
  */
 // Use: VIOLATION (TXT "SetConcept;<ConceptA>;<ConceptB>;<atomId>")
 ExecEngine::registerFunction('SetConcept', function ($conceptA, $conceptB, $atomId) use ($execEngineLogger) {
+    /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 3) {
         throw new Exception("SetConcept() expects 3 arguments, but you have provided ".func_num_args(), 500);
     }
 
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
     if ($atomId == "_NEW") {
-        $atom = ExecEngine::getCreatedAtom();
+        $atom = $this->getCreatedAtom();
     } else {
         $atom = new Atom($atomId, Concept::getConceptByLabel($conceptA));
     }
@@ -299,6 +309,7 @@ ExecEngine::registerFunction('SetConcept', function ($conceptA, $conceptB, $atom
  */
 // Use: VIOLATION (TXT "ClearConcept;<Concept>;<atom>")
 ExecEngine::registerFunction('ClearConcept', function ($concept, $atomId) use ($execEngineLogger) {
+    /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 2) {
         throw new Exception("ClearConcept() expects 2 arguments, but you have provided ".func_num_args(), 500);
     }
@@ -307,7 +318,7 @@ ExecEngine::registerFunction('ClearConcept', function ($concept, $atomId) use ($
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
     if ($atomId == "_NEW") {
-        $atom = ExecEngine::getCreatedAtom();
+        $atom = $this->getCreatedAtom();
     } else {
         $atom = new Atom($atomId, $concept);
     }
@@ -354,8 +365,9 @@ ExecEngine::registerFunction('SetConceptCond', function ($conceptA, $conceptB, $
 });
 
 ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angularApp, $execEngineLogger) {
+    /** @var \Ampersand\Rule\ExecEngine $this */
     if (strpos($navTo, '_NEW') !== false) {
-        $navTo = str_replace('_NEW', ExecEngine::getCreatedAtom()->id, $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
+        $navTo = str_replace('_NEW', $this->getCreatedAtom()->id, $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
         $execEngineLogger->debug("replaced navTo string with '{$navTo}'");
     }
 
@@ -368,8 +380,9 @@ ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angular
 });
     
 ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($angularApp, $execEngineLogger) {
+    /** @var \Ampersand\Rule\ExecEngine $this */
     if (strpos($navTo, '_NEW') !== false) {
-        $navTo = str_replace('_NEW', ExecEngine::getCreatedAtom()->id, $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
+        $navTo = str_replace('_NEW', $this->getCreatedAtom()->id, $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
         $execEngineLogger->debug("replaced navTo string with '{$navTo}'");
     }
     

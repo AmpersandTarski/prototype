@@ -120,10 +120,9 @@ $api->group('/admin', function () {
         if (!$ampersandApp->hasRole($allowedRoles)) {
             throw new Exception("You do not have access to run the exec engine", 403);
         }
-            
-        \Ampersand\Rule\ExecEngine::run();
         
-        $transaction = $ampersandApp->getCurrentTransaction()->close();
+        $transaction = $ampersandApp->newTransaction()->runExecEngine(true)->close();
+
         if ($transaction->isCommitted()) {
             Logger::getUserLogger()->notice("Run completed");
         } else {
