@@ -71,7 +71,6 @@ class Model
             'rules' => $this->folder . '/rules.json',
             'settings' => $this->folder . '/settings.json',
             'views' => $this->folder . '/views.json',
-            'localSettings' => $this->folder . '/localSettings.json'
         ];
         
         // Write checksum file if not yet exists

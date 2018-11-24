@@ -15,10 +15,11 @@ use Monolog\Processor\WebProcessor;
 date_default_timezone_set('Europe/Amsterdam'); // see http://php.net/manual/en/timezones.php for a list of supported timezones
 set_time_limit(30); // execution time limit is set to a default of 30 seconds. Use 0 to have no time limit. (not advised)
 
-$settings = new Settings();
-$settings->loadSettingsFile($model->getFilePath('settings'));
-
+$settings = new Settings(); // includes default framework settings
+$settings->loadSettingsFile($model->getFilePath('settings')); // load model settings from Ampersand generator
+$settings->loadSettingsFile(dirname(__FILE__, 2) . '/config/projectSettings.json'); // load project specific settings
 $settings->set('global.absolutePath', dirname(__FILE__));
+
 $debugMode = $settings->get('global.debugMode');
 
 /**************************************************************************************************

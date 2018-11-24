@@ -11,7 +11,6 @@ return [
 
     "file_list" => [
         'index.php',
-        'localSettings.php'
     ],
 
     // A list of directories that should be parsed for class and
