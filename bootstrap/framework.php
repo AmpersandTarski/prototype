@@ -34,11 +34,9 @@ session_start();
 // Composer Autoloader
 require_once(__DIR__ . '/../lib/autoload.php');
 
-// Include project specific settings (i.e. localSettings.php file)
-require_once(__DIR__ . '/../localSettings.php');
+// Bootstrap project
+require_once(__DIR__ . '/project.php');
 
-// More bootstrapping
-require_once(__DIR__ . '/bootstrap/ExecEngineFunctions.php');
-require_once(__DIR__ . '/bootstrap/NavigationMenu.php');
-// require_once(__DIR__ . '/bootstrap/ExecEngineDateTime.php');
-// require_once(__DIR__ . '/bootstrap/ExecEngineWarshall.php');
+// ExecEngine functions
+chdir(__DIR__);
+foreach(glob('execfunctions/*.php') as $filepath) require_once(__DIR__ . DIRECTORY_SEPARATOR . $filepath);

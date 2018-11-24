@@ -9,7 +9,7 @@ use Slim\Container;
 use function Ampersand\Misc\stackTrace;
 use Ampersand\Exception\NotInstalledException;
 
-require_once(__DIR__ . '/../../src/bootstrap.php');
+require_once(__DIR__ . '/../../bootstrap/framework.php');
 
 /** @var \Ampersand\AmpersandApp $ampersandApp */
 global $ampersandApp;

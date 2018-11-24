@@ -16,6 +16,8 @@ date_default_timezone_set('Europe/Amsterdam'); // see http://php.net/manual/en/t
 set_time_limit(30); // execution time limit is set to a default of 30 seconds. Use 0 to have no time limit. (not advised)
 
 $settings = new Settings();
+$settings->loadSettingsFile($model->getFilePath('settings'));
+
 $settings->set('global.absolutePath', dirname(__FILE__));
 $debugMode = $settings->get('global.debugMode');
 
@@ -66,24 +68,6 @@ $mysqlDB = new \Ampersand\Plugs\MysqlDB\MysqlDB(
 );
 $ampersandApp->setDefaultStorage($mysqlDB);
 $ampersandApp->setConjunctCache(new \Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache($mysqlDB));
-
-/**************************************************************************************************
- * LOGIN FUNCTIONALITY
- *
- * The login functionality requires the ampersand SIAM module
- * The module can be downloaded at: https://github.com/AmpersandTarski/ampersand-models/tree/master/SIAM
- * Copy and rename the SIAM_Module-example.adl into SIAM_Module.adl
- * Include this file into your project
- * Uncomment the config setting below
- *************************************************************************************************/
-
-
-/**************************************************************************************************
- * EXECENGINE
- *************************************************************************************************/
-// chdir(__DIR__);
-// foreach(glob('execfunctions/*.php') as $filepath) require_once(__DIR__ . DIRECTORY_SEPARATOR . $filepath);
-
 
 /**************************************************************************************************
  * EXTENSIONS
