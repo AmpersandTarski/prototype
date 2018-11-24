@@ -3,7 +3,6 @@
 use Ampersand\Log\Logger;
 use Ampersand\Log\NotificationHandler;
 use Ampersand\Log\RequestIDProcessor;
-use Ampersand\Misc\Config;
 use Ampersand\Misc\Settings;
 use Ampersand\AmpersandApp;
 use Ampersand\Model;
@@ -16,13 +15,15 @@ use Monolog\Processor\WebProcessor;
 date_default_timezone_set('Europe/Amsterdam'); // see http://php.net/manual/en/timezones.php for a list of supported timezones
 set_time_limit(30); // execution time limit is set to a default of 30 seconds. Use 0 to have no time limit. (not advised)
 
+$settings = new Settings();
+$settings->set('global.absolutePath', dirname(__FILE__));
+$debugMode = $settings->get('global.debugMode');
+
 /**************************************************************************************************
  * LOGGING
  *************************************************************************************************/
 error_reporting(E_ALL & ~E_NOTICE);
 ini_set("display_errors", false);
-
-Config::set('debugMode', 'global', $debugMode = true); // default mode = false
 
 // Add all channels to error and debug log file handlers
 $errorLog = new RotatingFileHandler(__DIR__ . '/log/error.log', 0, MonoLogger::DEBUG);
@@ -48,7 +49,7 @@ Logger::getUserLogger()->pushHandler(new NotificationHandler(MonoLogger::INFO));
  *************************************************************************************************/
 $logger = Logger::getLogger('APPLICATION');
 $model = new Model(dirname(__FILE__) . '/generics', $logger);
-$ampersandApp = new AmpersandApp($model, new Settings(), $logger);
+$ampersandApp = new AmpersandApp($model, $settings, $logger);
 $angularApp = new AngularApp($ampersandApp, Logger::getLogger('FRONTEND'));
 
 
