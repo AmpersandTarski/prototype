@@ -56,17 +56,18 @@ class Settings
      * Get a specific setting
      *
      * @param string $setting
+     * @param mixed $defaultIfNotSet
      * @return mixed
      */
-    public function get(string $setting)
+    public function get(string $setting, $defaultIfNotSet = null)
     {
         $setting = strtolower($setting); // use lowercase
 
-        if (!array_key_exists($setting, $this->settings)) {
+        if (!array_key_exists($setting, $this->settings) && is_null($defaultIfNotSet)) {
             throw new Exception("Setting '{$setting}' is not specified", 500);
         }
 
-        return $this->settings[$setting];
+        return $this->settings[$setting] ?? $defaultIfNotSet;
     }
 
     /**
