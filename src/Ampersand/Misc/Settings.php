@@ -19,6 +19,7 @@ class Settings
 {
     /**
      * Array of all settings
+     * Setting keys (e.g. global.debugmode) are case insensitive
      *
      * @var array
      */
@@ -59,6 +60,8 @@ class Settings
      */
     public function get(string $setting)
     {
+        $setting = strtolower($setting); // use lowercase
+
         if (!array_key_exists($setting, $this->settings)) {
             throw new Exception("Setting '{$setting}' is not specified", 500);
         }
@@ -76,6 +79,8 @@ class Settings
      */
     public function set(string $setting, $value = null, $overwriteAllowed = true)
     {
+        $setting = strtolower($setting); // use lowercase
+        
         if (array_key_exists($setting, $this->settings) && !$overwriteAllowed) {
             throw new Exception("Setting '{$setting}' is set already; overwrite is not allowed", 500);
         }
