@@ -133,7 +133,8 @@ class Transaction
 
     protected function initExecEngines()
     {
-        foreach ((array) Config::get('execEngineRoleNames', 'execEngine') as $roleName) {
+        $execEngineRoleNames = $this->app->getSettings()->get('execengine.execEngineRoleNames');
+        foreach ((array) $execEngineRoleNames as $roleName) {
             try {
                 $role = Role::getRoleByName($roleName);
                 $this->execEngines[] = new ExecEngine($role, Logger::getLogger('EXECENGINE'));
@@ -154,8 +155,8 @@ class Transaction
         $this->logger->info("ExecEngine started");
 
         // Initial values
-        $maxRunCount = Config::get('maxRunCount', 'execEngine');
-        $autoRerun = Config::get('autoRerun', 'execEngine');
+        $maxRunCount = $this->app->getSettings()->get('execengine.maxRunCount');
+        $autoRerun = $this->app->getSettings()->get('execengine.autoRerun');
         $doRun = true;
         $runCounter = 1;
 
