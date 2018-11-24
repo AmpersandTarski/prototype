@@ -18,11 +18,6 @@ register_shutdown_function(function () {
     }
 });
 
-// Check PHP version
-if (version_compare(PHP_VERSION, '7.0.0', '<')) {
-    throw new Exception("PHP version >= 7.0 required. You are on " . PHP_VERSION, 500);
-}
-
 // PHP SESSION : Start a new, or resume the existing, PHP session
 ini_set("session.use_strict_mode", true); // prevents a session ID that is never generated
 ini_set("session.cookie_httponly", true); // ensures the cookie won't be accessible by scripting languages, such as JavaScript
