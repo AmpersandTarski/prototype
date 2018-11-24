@@ -37,9 +37,6 @@ session_start();
 // Composer Autoloader
 require_once(__DIR__ . '/../lib/autoload.php');
 
-// Include/set default settings
-require_once(__DIR__ . '/defaultSettings.php');
-
 // Include project specific settings (i.e. localSettings.php file)
 require_once(__DIR__ . '/../localSettings.php');
 
