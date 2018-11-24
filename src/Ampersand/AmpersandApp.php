@@ -142,8 +142,12 @@ class AmpersandApp
         $this->logger = $logger;
         $this->model = $model;
         $this->settings = $settings;
-        $this->settings->loadSettingsFile($model->getFilePath('settings'));
 
+        // Load settings
+        $this->settings->loadSettingsFile($model->getFilePath('settings'));
+        $this->settings->loadSettingsFile($model->getFilePath('localSettings'));
+
+        // Set app name
         $this->name = $this->settings->get('contextName');
     }
 
