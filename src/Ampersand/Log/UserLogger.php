@@ -18,7 +18,7 @@ use Psr\Log\LogLevel;
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class Notifications extends AbstractLogger
+class UserLogger extends AbstractLogger
 {
     private static $errors = [];
     private static $invariants = [];

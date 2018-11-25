@@ -17,9 +17,9 @@ use Ampersand\Interfacing\InterfaceObject;
 use Ampersand\Core\Concept;
 use Ampersand\Role;
 use Ampersand\Rule\RuleEngine;
-use Ampersand\Log\Notifications;
 use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
+use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\View;
 use Ampersand\Rule\Rule;
@@ -40,7 +40,7 @@ class AmpersandApp
     /**
      * User logger (i.e. logs are returned to user)
      *
-     * @var \Ampersand\Log\Notifications
+     * @var \Ampersand\Log\UserLogger
      */
     protected $userLogger;
 
@@ -141,7 +141,7 @@ class AmpersandApp
     public function __construct(Model $model, Settings $settings, LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->userLogger = new Notifications();
+        $this->userLogger = new UserLogger();
         $this->model = $model;
         $this->settings = $settings;
 
@@ -154,7 +154,7 @@ class AmpersandApp
         return $this->name;
     }
 
-    public function userLog(): Notifications
+    public function userLog(): UserLogger
     {
         return $this->userLogger;
     }
