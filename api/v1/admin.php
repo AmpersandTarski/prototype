@@ -1,7 +1,6 @@
 <?php
 
 use Ampersand\Log\Logger;
-use Ampersand\Log\Notifications;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Rule\Rule;
 use Ampersand\Rule\RuleEngine;
@@ -88,7 +87,7 @@ $api->group('/admin', function () {
 
         $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
 
-        $content = Notifications::getAll(); // Return all notifications
+        $content = $ampersandApp->userLog()->getAll(); // Return all notifications
 
         return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     })->setName('applicationInstaller');
@@ -106,7 +105,7 @@ $api->group('/admin', function () {
         
         $ampersandApp->userLog()->info('New checksum calculated for generated Ampersand model files');
 
-        $content = Notifications::getAll(); // Return all notifications
+        $content = $ampersandApp->userLog()->getAll(); // Return all notifications
 
         return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
@@ -131,7 +130,7 @@ $api->group('/admin', function () {
 
         $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
         
-        return $response->withJson(Notifications::getAll(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson($ampersandApp->userLog()->getAll(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
     $this->get('/ruleengine/evaluate/all', function (Request $request, Response $response, $args = []) {
@@ -148,13 +147,13 @@ $api->group('/admin', function () {
         }
         
         foreach (RuleEngine::getViolations(Rule::getAllInvRules()) as $violation) {
-            Notifications::addInvariant($violation);
+            $ampersandApp->userLog()->invariant($violation);
         }
         foreach (RuleEngine::getViolations(Rule::getAllSigRules()) as $violation) {
-            Notifications::addSignal($violation);
+            $ampersandApp->userLog()->signal($violation);
         }
         
-        return $response->withJson(Notifications::getAll(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson($ampersandApp->userLog()->getAll(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
     $this->get('/export/all', function (Request $request, Response $response, $args = []) {
@@ -227,7 +226,7 @@ $api->group('/admin', function () {
 
         // Return content
         $content = [ 'files'                 => $_FILES
-                   , 'notifications'         => Notifications::getAll()
+                   , 'notifications'         => $ampersandApp->userLog()->getAll()
                    , 'invariantRulesHold'    => $transaction->invariantRulesHold()
                    , 'isCommitted'           => $transaction->isCommitted()
                    , 'sessionRefreshAdvice'  => $angularApp->getSessionRefreshAdvice()

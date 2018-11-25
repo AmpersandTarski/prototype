@@ -40,7 +40,7 @@ class AmpersandApp
     /**
      * User logger (i.e. logs are returned to user)
      *
-     * @var \Psr\Log\LoggerInterface
+     * @var \Ampersand\Log\Notifications
      */
     protected $userLogger;
 
@@ -154,7 +154,7 @@ class AmpersandApp
         return $this->name;
     }
 
-    public function userLog(): LoggerInterface
+    public function userLog(): Notifications
     {
         return $this->userLogger;
     }
@@ -449,7 +449,7 @@ class AmpersandApp
         $this->logger->info("Start application reinstall");
 
         // Clear notifications
-        Notifications::clearAll();
+        $this->userLogger->clearAll();
 
         // Write new checksum file of generated Ampersand moel
         $this->model->writeChecksumFile();
@@ -648,7 +648,7 @@ class AmpersandApp
         
         // Check rules and signal notifications for all violations
         foreach (RuleEngine::getViolationsFromCache($this->getRulesToMaintain()) as $violation) {
-            Notifications::addSignal($violation);
+            $this->userLogger->signal($violation);
         }
     }
 }

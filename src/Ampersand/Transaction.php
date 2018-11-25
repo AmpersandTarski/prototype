@@ -14,7 +14,6 @@ use Ampersand\Core\Relation;
 use Ampersand\Plugs\StorageInterface;
 use Ampersand\Rule\RuleEngine;
 use Ampersand\Rule\ExecEngine;
-use Ampersand\Log\Notifications;
 use Ampersand\Rule\Rule;
 use Ampersand\AmpersandApp;
 use Psr\Log\LoggerInterface;
@@ -449,7 +448,7 @@ class Transaction
         $rulesHold = true;
         foreach (RuleEngine::getViolations($affectedInvRules) as $violation) {
             $rulesHold = false; // set to false if there is one or more violation
-            Notifications::addInvariant($violation); // notify user of broken invariant rules
+            $this->app->userLog()->invariant($violation); // notify user of broken invariant rules
         }
 
         return $rulesHold;

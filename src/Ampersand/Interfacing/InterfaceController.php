@@ -11,7 +11,6 @@ use Exception;
 use Ampersand\AmpersandApp;
 use Ampersand\AngularApp;
 use Ampersand\Interfacing\Resource;
-use Ampersand\Log\Notifications;
 use function Ampersand\Misc\getSafeFileName;
 
 class InterfaceController
@@ -75,7 +74,7 @@ class InterfaceController
 
         // Return result
         return [ 'content'               => $content
-               , 'notifications'         => Notifications::getAll()
+               , 'notifications'         => $this->ampersandApp->userLog()->getAll()
                , 'invariantRulesHold'    => $transaction->invariantRulesHold()
                , 'isCommitted'           => $transaction->isCommitted()
                , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()
@@ -122,7 +121,7 @@ class InterfaceController
         // Return result
         return [ 'patches'               => $patches
                , 'content'               => $content
-               , 'notifications'         => Notifications::getAll()
+               , 'notifications'         => $this->ampersandApp->userLog()->getAll()
                , 'invariantRulesHold'    => $transaction->invariantRulesHold()
                , 'isCommitted'           => $transaction->isCommitted()
                , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()
@@ -192,7 +191,7 @@ class InterfaceController
     
         // Return result
         return [ 'content'               => $content
-               , 'notifications'         => Notifications::getAll()
+               , 'notifications'         => $this->ampersandApp->userLog()->getAll()
                , 'invariantRulesHold'    => $transaction->invariantRulesHold()
                , 'isCommitted'           => $transaction->isCommitted()
                , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()
@@ -223,7 +222,7 @@ class InterfaceController
         $this->ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
         
         // Return result
-        return [ 'notifications'         => Notifications::getAll()
+        return [ 'notifications'         => $this->ampersandApp->userLog()->getAll()
                , 'invariantRulesHold'    => $transaction->invariantRulesHold()
                , 'isCommitted'           => $transaction->isCommitted()
                , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()

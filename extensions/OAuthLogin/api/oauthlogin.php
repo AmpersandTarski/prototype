@@ -3,7 +3,6 @@
 use Ampersand\Extension\OAuthLogin\OAuthLoginController;
 use Slim\Http\Request;
 use Slim\Http\Response;
-use Ampersand\Log\Notifications;
 
 /**
  * @var \Slim\App $api
@@ -49,7 +48,7 @@ $api->group('/oauthlogin', function () {
                       ];
         }
         
-        return $response->withJson(['identityProviders' => $idps, 'notifications' => Notifications::getAll()], 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson(['identityProviders' => $idps, 'notifications' => $ampersandApp->userLog()->getAll()], 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
     $this->get('/logout', function (Request $request, Response $response, $args = []) {
@@ -58,7 +57,7 @@ $api->group('/oauthlogin', function () {
 
         $ampersandApp->logout();
         $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
-        return $response->withJson(['notifications' => Notifications::getAll()], 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson(['notifications' => $ampersandApp->userLog()->getAll()], 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
     $this->get('/callback/{idp}', function (Request $request, Response $response, $args = []) {

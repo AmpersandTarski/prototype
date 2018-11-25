@@ -1,7 +1,6 @@
 <?php
 
 use Ampersand\Log\Logger;
-use Ampersand\Log\Notifications;
 use Slim\App;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -86,7 +85,7 @@ $apiContainer['errorHandler'] = function ($c) {
                 [ 'error' => $code
                 , 'msg' => $message
                 , 'data' => $data
-                , 'notifications' => Notifications::getAll()
+                , 'notifications' => $ampersandApp->userLog()->getAll()
                 , 'html' => $debugMode ? stackTrace($exception) : null
                 ],
                 $code,
@@ -117,7 +116,7 @@ $apiContainer['phpErrorHandler'] = function ($c) {
             return $response->withJson(
                 [ 'error' => 500
                 , 'msg' => $debugMode ? $error->getMessage() : "An error occured (debug information in server log files)"
-                , 'notifications' => Notifications::getAll()
+                , 'notifications' => $ampersandApp->userLog()->getAll()
                 , 'html' => $debugMode ? stackTrace($error) : "Please contact the application administrator for more information"
                 ],
                 500,

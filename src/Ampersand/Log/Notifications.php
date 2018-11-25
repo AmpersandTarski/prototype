@@ -20,7 +20,6 @@ use Psr\Log\LogLevel;
  */
 class Notifications extends AbstractLogger
 {
-    
     private static $errors = [];
     private static $invariants = [];
     private static $warnings = [];
@@ -47,27 +46,33 @@ class Notifications extends AbstractLogger
     public function log($level, $message, array $context = array())
     {
         switch ($level) {
+            case LogLevel::DEBUG:
+                break;
             case LogLevel::INFO: // Info
-                self::addInfo($message);
+                self::$infos[] = ['message' => $message];
                 break;
             case LogLevel::NOTICE: // Notice
-                self::addSuccess($message);
+                self::$successes[] = ['message' => $message];
                 break;
             case LogLevel::WARNING: // Warning
-                self::addWarning($message);
+                $hash = hash('md5', $message);
+                self::$warnings[$hash]['message'] = $message;
+                self::$warnings[$hash]['count']++;
                 break;
             case LogLevel::ERROR: // Error
             case LogLevel::CRITICAL: // Critical
             case LogLevel::ALERT: // Alert
             case LogLevel::EMERGENCY: // Emergency
-                self::addError($message);
+                $errorHash = hash('md5', $message);
+                self::$errors[$errorHash]['message'] = $message;
+                self::$errors[$errorHash]['count']++;
                 break;
             default:
                 throw new Exception("Unsupported log level: {$level}", 500);
         }
     }
 
-    public static function getAll()
+    public function getAll()
     {
         return [ 'errors' => array_values(self::$errors)
                , 'warnings' => array_values(self::$warnings)
@@ -83,7 +88,7 @@ class Notifications extends AbstractLogger
      *
      * @return void
      */
-    public static function clearAll()
+    public function clearAll()
     {
         self::$errors = [];
         self::$warnings = [];
@@ -93,101 +98,13 @@ class Notifications extends AbstractLogger
         self::$signals = [];
     }
 
-/**************************************************************************************************
- *
- * Notifications for: user logs (info, notice (success), warning and error)
- *
- *************************************************************************************************/
-    
     /**
-     * Add notifications from userlog user (e.g. catched exceptions)
-     *
-     * @param int $level
-     * @param string $message
-     * @return void
-     * @throws Exception when notification level is not supported
-     */
-    public static function addNotification($level, $message)
-    {
-        switch ($level) {
-            case 200: // Info
-                self::addInfo($message);
-                break;
-            case 250: // Notice
-                self::addSuccess($message);
-                break;
-            case 300: // Warning
-                self::addWarning($message);
-                break;
-            case 400: // Error
-            case 500: // Critical
-            case 550: // Alert
-            case 600: // Emergency
-                self::addError($message);
-                break;
-            default:
-                throw new Exception("Unsupported notification level: {$level}", 500);
-        }
-    }
-    
-    /**
-     * Add error notification for user
-     * @param string $message
-     * @return void
-     */
-    private static function addError($message)
-    {
-        $errorHash = hash('md5', $message);
-        
-        self::$errors[$errorHash]['message'] = $message;
-        self::$errors[$errorHash]['count']++;
-    }
-    
-    /**
-     * Add warning notification for user
-     * @param string $message
-     * @return void
-     */
-    private static function addWarning($message)
-    {
-        $hash = hash('md5', $message);
-        
-        self::$warnings[$hash]['message'] = $message;
-        self::$warnings[$hash]['count']++;
-    }
-    
-    /**
-     * Add success notification for user
-     * @param string $message
-     * @return void
-     */
-    private static function addSuccess($message)
-    {
-        self::$successes[] = ['message' => $message];
-    }
-    
-    /**
-     * Add info notification for user
-     * @param string $message
-     * @return void
-     */
-    private static function addInfo($message)
-    {
-        self::$infos[] = ['message' => $message];
-    }
-
-/**************************************************************************************************
- *
- * Notifications for: invariant and signal rule violations
- *
- *************************************************************************************************/
-    /**
-     * Undocumented function
+     * Notify user of invariant rule violation
      *
      * @param \Ampersand\Rule\Violation $violation
      * @return void
      */
-    public static function addInvariant(Violation $violation)
+    public function invariant(Violation $violation)
     {
         $hash = hash('md5', $violation->rule->id);
             
@@ -198,12 +115,12 @@ class Notifications extends AbstractLogger
     }
     
     /**
-     * Undocumented function
+     * Notify user of signal rule violation
      *
      * @param \Ampersand\Rule\Violation $violation
      * @return void
      */
-    public static function addSignal(Violation $violation)
+    public function signal(Violation $violation)
     {
         $ruleHash = hash('md5', $violation->rule->id);
         

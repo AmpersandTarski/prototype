@@ -1,6 +1,5 @@
 <?php
 
-use Ampersand\Log\Notifications;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
@@ -48,7 +47,7 @@ $api->group('/app', function () {
                                           ,'notify_showInvariants'     => $settings->get('notifications.defaultShowInvariants')
                                           ,'autoSave'                  => $settings->get('notifications.interfaceAutoSaveChanges')
                                           ]
-                    ,'notifications' => Notifications::getAll()
+                    ,'notifications' => $ampersandApp->userLog()->getAll()
                     ,'session' =>   ['id' => $session->getId()
                                     ,'loggedIn' => $session->sessionUserLoggedIn()
                                     ]
@@ -63,6 +62,6 @@ $api->group('/app', function () {
         $ampersandApp = $this['ampersand_app'];
 
         $ampersandApp->checkProcessRules();
-        return $response->withJson(Notifications::getAll(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson($ampersandApp->userLog()->getAll(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 })->add($middleWare1);
