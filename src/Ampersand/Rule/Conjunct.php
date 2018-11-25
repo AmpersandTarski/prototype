@@ -10,7 +10,6 @@ namespace Ampersand\Rule;
 use Exception;
 use Generator;
 use Ampersand\AmpersandApp;
-use Ampersand\Log\Logger;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
@@ -248,7 +247,7 @@ class Conjunct
 
             return $this;
         } catch (Exception $e) {
-            Logger::getUserLogger()->error("Error while evaluating conjunct '{$this->id}'");
+            $this->app->userLog()->error("Error while evaluating conjunct '{$this->id}'");
             $this->logger->error($e->getMessage());
 
             return $this;

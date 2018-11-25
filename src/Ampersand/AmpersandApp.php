@@ -38,6 +38,13 @@ class AmpersandApp
     protected $logger;
 
     /**
+     * User logger (i.e. logs are returned to user)
+     *
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $userLogger;
+
+    /**
      * Ampersand application name (i.e. CONTEXT of ADL entry script)
      *
      * @var string
@@ -131,9 +138,10 @@ class AmpersandApp
      * @param \Ampersand\Misc\Settings $settings
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Model $model, Settings $settings, LoggerInterface $logger)
+    public function __construct(Model $model, Settings $settings, LoggerInterface $logger, LoggerInterface $userLogger)
     {
         $this->logger = $logger;
+        $this->userLogger = $userLogger;
         $this->model = $model;
         $this->settings = $settings;
 
@@ -144,6 +152,11 @@ class AmpersandApp
     public function getName()
     {
         return $this->name;
+    }
+
+    public function userLog(): LoggerInterface
+    {
+        return $this->userLogger;
     }
 
     public function init()
