@@ -59,8 +59,8 @@ class Notifications
  *************************************************************************************************/
     
     /**
-     * Add notifications from userlog  user (e.g. catched exceptions)
-     * DON't use this function in code. Log via userlogger instead => Logger::getUserLogger()->...
+     * Add notifications from userlog user (e.g. catched exceptions)
+     *
      * @param int $level
      * @param string $message
      * @return void

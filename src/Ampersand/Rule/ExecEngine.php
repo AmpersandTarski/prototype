@@ -15,6 +15,7 @@ use Ampersand\Core\Atom;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 use Closure;
+use Ampersand\AmpersandApp;
 
 class ExecEngine extends RuleEngine
 {
@@ -47,6 +48,13 @@ class ExecEngine extends RuleEngine
      * @var \Ampersand\Rule\Rule[]
      */
     protected $maintainsRules;
+
+    /**
+     * Reference to Ampersand app for which this ExecEngine is instantiated
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $ampersandApp;
     
     /**
      * Specifies latest atom created by a Newstruct/InsAtom function call.
@@ -62,10 +70,11 @@ class ExecEngine extends RuleEngine
      * @param \Ampersand\Role $role
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Role $role, LoggerInterface $logger)
+    public function __construct(Role $role, AmpersandApp $app, LoggerInterface $logger)
     {
         $this->logger = $logger;
         $this->maintainsRules = $role->maintains();
+        $this->ampersandApp = $app;
     }
 
     public function getId(): string
@@ -203,7 +212,7 @@ class ExecEngine extends RuleEngine
                 $closure->call($this, ...$params);
             // Catch exceptions from ExecEngine functions and log to user
             } catch (Exception $e) {
-                Logger::getUserLogger()->error("{$functionName}: {$e->getMessage()}");
+                $this->ampersandApp->userLog()->error("{$functionName}: {$e->getMessage()}");
             }
         }
     }

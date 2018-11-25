@@ -11,7 +11,6 @@ use Exception;
 use Ampersand\AmpersandApp;
 use Ampersand\AngularApp;
 use Ampersand\Interfacing\Resource;
-use Ampersand\Log\Logger;
 use Ampersand\Log\Notifications;
 use function Ampersand\Misc\getSafeFileName;
 
@@ -69,7 +68,7 @@ class InterfaceController
         // Close transaction
         $transaction->close();
         if ($transaction->isCommitted()) {
-            Logger::getUserLogger()->notice($resource->getLabel() . " updated");
+            $this->ampersandApp->userLog()->notice($resource->getLabel() . " updated");
         }
         
         $this->ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
@@ -115,7 +114,7 @@ class InterfaceController
         // Close transaction
         $transaction->close();
         if ($transaction->isCommitted()) {
-            Logger::getUserLogger()->notice($resource->getLabel() . " updated");
+            $this->ampersandApp->userLog()->notice($resource->getLabel() . " updated");
         }
         
         $this->ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
@@ -181,9 +180,9 @@ class InterfaceController
         $transaction->close();
         if ($transaction->isCommitted()) {
             if ($result) {
-                Logger::getUserLogger()->notice("File '{$originalFileName}' uploaded");
+                $this->ampersandApp->userLog()->notice("File '{$originalFileName}' uploaded");
             } else {
-                Logger::getUserLogger()->notice($resource->getLabel() . " created");
+                $this->ampersandApp->userLog()->notice($resource->getLabel() . " created");
             }
         } else {
             // TODO: remove uploaded file
@@ -218,7 +217,7 @@ class InterfaceController
         // Close transaction
         $transaction->runExecEngine()->close();
         if ($transaction->isCommitted()) {
-            Logger::getUserLogger()->notice("Resource deleted");
+            $this->ampersandApp->userLog()->notice("Resource deleted");
         }
         
         $this->ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles

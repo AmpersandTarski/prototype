@@ -137,7 +137,7 @@ class Transaction
         foreach ((array) $execEngineRoleNames as $roleName) {
             try {
                 $role = Role::getRoleByName($roleName);
-                $this->execEngines[] = new ExecEngine($role, Logger::getLogger('EXECENGINE'));
+                $this->execEngines[] = new ExecEngine($role, $this->app, Logger::getLogger('EXECENGINE'));
             } catch (Exception $e) {
                 $this->logger->info("ExecEngine role '{$roleName}' configured, but role is not used/defined in &-script.");
             }
@@ -182,7 +182,7 @@ class Transaction
             // Prevent infinite loop in exec engine reruns
             if ($runCounter >= $maxRunCount && $doRun) {
                 $this->logger->error("Maximum reruns exceeded (hint! rules fixed in last run:" . implode(', ', $rulesFixed) . ")");
-                Logger::getUserLogger()->error("Maximum reruns exceeded for ExecEngine");
+                $this->app->userLog()->error("Maximum reruns exceeded for ExecEngine");
                 $doRun = false;
             }
             $this->logger->info("+} Exec engine run finished");

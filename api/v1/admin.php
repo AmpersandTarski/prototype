@@ -104,7 +104,7 @@ $api->group('/admin', function () {
 
         $ampersandApp->getModel()->writeChecksumFile();
         
-        Logger::getUserLogger()->info('New checksum calculated for generated Ampersand model files');
+        $ampersandApp->userLog()->info('New checksum calculated for generated Ampersand model files');
 
         $content = Notifications::getAll(); // Return all notifications
 
@@ -124,9 +124,9 @@ $api->group('/admin', function () {
         $transaction = $ampersandApp->newTransaction()->runExecEngine(true)->close();
 
         if ($transaction->isCommitted()) {
-            Logger::getUserLogger()->notice("Run completed");
+            $ampersandApp->userLog()->notice("Run completed");
         } else {
-            Logger::getUserLogger()->warning("Run completed but transaction not committed");
+            $ampersandApp->userLog()->warning("Run completed but transaction not committed");
         }
 
         $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
@@ -218,7 +218,7 @@ $api->group('/admin', function () {
         // Commit transaction
         $transaction->runExecEngine()->close();
         if ($transaction->isCommitted()) {
-            Logger::getUserLogger()->notice("Imported {$_FILES['file']['name']} successfully");
+            $ampersandApp->userLog()->notice("Imported {$_FILES['file']['name']} successfully");
         }
         unlink($_FILES['file']['tmp_name']);
         

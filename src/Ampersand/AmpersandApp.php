@@ -166,7 +166,7 @@ class AmpersandApp
 
             // Check checksum
             if (!$this->model->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
-                Logger::getUserLogger()->warning("Generated model is changed. You SHOULD reinstall your application");
+                $this->userLogger->warning("Generated model is changed. You SHOULD reinstall your application");
             }
 
             // Check for default storage plug
@@ -191,7 +191,7 @@ class AmpersandApp
             Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
             Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'), $this);
             InterfaceObject::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage);
-            Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, Logger::getLogger('RULEENGINE'));
+            Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, $this, Logger::getLogger('RULEENGINE'));
             Role::setAllRoles($genericsFolder . 'roles.json');
 
             // Add concept plugs
@@ -269,7 +269,7 @@ class AmpersandApp
 
     public function setSession()
     {
-        $this->session = new Session($this->logger, $this->settings);
+        $this->session = new Session($this->logger, $this);
 
         // Run exec engine and close transaction
         $this->getCurrentTransaction()->runExecEngine()->close();
@@ -493,7 +493,7 @@ class AmpersandApp
             $conj->evaluate()->persistCacheItem();
         }
 
-        Logger::getUserLogger()->notice("Application successfully reinstalled");
+        $this->userLogger->notice("Application successfully reinstalled");
         $this->logger->info("End application reinstall");
 
         return $this;

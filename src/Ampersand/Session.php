@@ -15,7 +15,6 @@ use Ampersand\Core\Atom;
 use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
 use Ampersand\Core\Relation;
-use Ampersand\Log\Logger;
 use Ampersand\Misc\Settings;
 
 /**
@@ -30,6 +29,13 @@ class Session
      * @var \Psr\Log\LoggerInterface
      */
     private $logger;
+
+    /**
+     * Reference to Ampersand app for which this session is defined
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $ampersandApp;
 
     /**
      * Reference to Ampersand app settings object
@@ -61,12 +67,13 @@ class Session
      * Constructor of Session class
      *
      * @param \Psr\Log\LoggerInterface $logger
-     * @param \Ampersand\Misc\Settings $settings reference to app settings object
+     * @param \Ampersand\AmpersandApp $app
      */
-    public function __construct(LoggerInterface $logger, Settings $settings)
+    public function __construct(LoggerInterface $logger, AmpersandApp $app)
     {
         $this->logger = $logger;
-        $this->settings = $settings;
+        $this->ampersandApp = $app;
+        $this->settings = $app->getSettings(); // shortcut to settings object
        
         $this->setId();
         $this->initSessionAtom();
@@ -119,7 +126,7 @@ class Session
         } else {
             if (isset($_SESSION['lastAccess']) && (time() - $_SESSION['lastAccess'] > $this->settings->get('session.expirationTime'))) {
                 $this->logger->debug("Session expired");
-                Logger::getUserLogger()->warning("Your session has expired");
+                $this->ampersandApp->userLog()->warning("Your session has expired");
                 $this->reset();
                 return;
             }

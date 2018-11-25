@@ -247,10 +247,8 @@ class Conjunct
 
             return $this;
         } catch (Exception $e) {
-            $this->app->userLog()->error("Error while evaluating conjunct '{$this->id}'");
-            $this->logger->error($e->getMessage());
-
-            return $this;
+            $this->logger->error("Error evaluating conjunct '{$this->id}': " . $e->getMessage());
+            throw $e;
         }
     }
 

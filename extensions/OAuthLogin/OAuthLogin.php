@@ -4,7 +4,6 @@ namespace Ampersand\Extension\OAuthLogin;
 
 use Exception;
 use Ampersand\Interfacing\Resource;
-use Ampersand\Log\Logger;
 use Ampersand\AmpersandApp;
 
 // UI
@@ -236,7 +235,7 @@ class OAuthLoginController
         $ampersandApp->login($account); // Automatically closes transaction
 
         if ($transaction->isCommitted()) {
-            Logger::getUserLogger()->notice("Login successfull");
+            $ampersandApp->userLog()->notice("Login successfull");
             return true;
         } else {
             return false;
