@@ -8,10 +8,10 @@
 namespace Ampersand\Log;
 
 use Exception;
-use Ampersand\Log\Logger;
 use Ampersand\Rule\Violation;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
+use Psr\Log\LoggerInterface;
 
 /**
  *
@@ -20,6 +20,14 @@ use Psr\Log\LogLevel;
  */
 class UserLogger extends AbstractLogger
 {
+    /**
+     * Logger instance
+     * All notifications/logs for the user are also logged to this logger
+     *
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $logger;
+
     protected $errors = [];
     protected $invariants = [];
     protected $warnings = [];
@@ -29,9 +37,12 @@ class UserLogger extends AbstractLogger
 
     /**
      * Constructor
+     *
+     * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct()
+    public function __construct(LoggerInterface $logger)
     {
+        $this->logger = $logger;
     }
 
     /**
@@ -45,6 +56,10 @@ class UserLogger extends AbstractLogger
      */
     public function log($level, $message, array $context = array())
     {
+        // Also log to non-user log
+        $this->logger->log($level, $message, $context);
+
+        // Add to notification list for UI
         switch ($level) {
             case LogLevel::DEBUG:
                 break;
@@ -90,6 +105,8 @@ class UserLogger extends AbstractLogger
      */
     public function clearAll()
     {
+        $this->logger->debug("Clear user notification lists");
+        
         $this->errors = [];
         $this->warnings = [];
         $this->infos = [];
@@ -111,7 +128,7 @@ class UserLogger extends AbstractLogger
         $this->invariants[$hash]['ruleMessage'] = $violation->rule->getViolationMessage();
         $this->invariants[$hash]['tuples'][] = ['violationMessage' => ($violationMessage = $violation->getViolationMessage())];
         
-        Logger::getLogger('RULEENGINE')->info("INVARIANT '{$violationMessage}' RULE: '{$violation->rule}'");
+        $this->logger->info("INVARIANT '{$violationMessage}' RULE: '{$violation->rule}'");
     }
     
     /**
@@ -143,6 +160,6 @@ class UserLogger extends AbstractLogger
                                                     ,'ifcs' => $ifcs
                                                     ];
         
-        Logger::getLogger('RULEENGINE')->debug("SIGNAL '{$message}' RULE: '{$violation->rule}'");
+        $this->logger->debug("SIGNAL '{$message}' RULE: '{$violation->rule}'");
     }
 }

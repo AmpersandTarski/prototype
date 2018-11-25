@@ -141,7 +141,7 @@ class AmpersandApp
     public function __construct(Model $model, Settings $settings, LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->userLogger = new UserLogger();
+        $this->userLogger = new UserLogger($logger);
         $this->model = $model;
         $this->settings = $settings;
 
