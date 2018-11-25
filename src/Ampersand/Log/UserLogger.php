@@ -20,12 +20,12 @@ use Psr\Log\LogLevel;
  */
 class UserLogger extends AbstractLogger
 {
-    private static $errors = [];
-    private static $invariants = [];
-    private static $warnings = [];
-    private static $signals = [];
-    private static $infos = [];
-    private static $successes = [];
+    protected $errors = [];
+    protected $invariants = [];
+    protected $warnings = [];
+    protected $signals = [];
+    protected $infos = [];
+    protected $successes = [];
 
     /**
      * Constructor
@@ -49,23 +49,23 @@ class UserLogger extends AbstractLogger
             case LogLevel::DEBUG:
                 break;
             case LogLevel::INFO: // Info
-                self::$infos[] = ['message' => $message];
+                $this->infos[] = ['message' => $message];
                 break;
             case LogLevel::NOTICE: // Notice
-                self::$successes[] = ['message' => $message];
+                $this->successes[] = ['message' => $message];
                 break;
             case LogLevel::WARNING: // Warning
                 $hash = hash('md5', $message);
-                self::$warnings[$hash]['message'] = $message;
-                self::$warnings[$hash]['count']++;
+                $this->warnings[$hash]['message'] = $message;
+                $this->warnings[$hash]['count']++;
                 break;
             case LogLevel::ERROR: // Error
             case LogLevel::CRITICAL: // Critical
             case LogLevel::ALERT: // Alert
             case LogLevel::EMERGENCY: // Emergency
                 $errorHash = hash('md5', $message);
-                self::$errors[$errorHash]['message'] = $message;
-                self::$errors[$errorHash]['count']++;
+                $this->errors[$errorHash]['message'] = $message;
+                $this->errors[$errorHash]['count']++;
                 break;
             default:
                 throw new Exception("Unsupported log level: {$level}", 500);
@@ -74,12 +74,12 @@ class UserLogger extends AbstractLogger
 
     public function getAll()
     {
-        return [ 'errors' => array_values(self::$errors)
-               , 'warnings' => array_values(self::$warnings)
-               , 'infos' => array_values(self::$infos)
-               , 'successes' => array_values(self::$successes)
-               , 'invariants' => array_values(self::$invariants)
-               , 'signals' => array_values(self::$signals)
+        return [ 'errors' => array_values($this->errors)
+               , 'warnings' => array_values($this->warnings)
+               , 'infos' => array_values($this->infos)
+               , 'successes' => array_values($this->successes)
+               , 'invariants' => array_values($this->invariants)
+               , 'signals' => array_values($this->signals)
                ];
     }
 
@@ -90,12 +90,12 @@ class UserLogger extends AbstractLogger
      */
     public function clearAll()
     {
-        self::$errors = [];
-        self::$warnings = [];
-        self::$infos = [];
-        self::$successes = [];
-        self::$invariants = [];
-        self::$signals = [];
+        $this->errors = [];
+        $this->warnings = [];
+        $this->infos = [];
+        $this->successes = [];
+        $this->invariants = [];
+        $this->signals = [];
     }
 
     /**
@@ -108,8 +108,8 @@ class UserLogger extends AbstractLogger
     {
         $hash = hash('md5', $violation->rule->id);
             
-        self::$invariants[$hash]['ruleMessage'] = $violation->rule->getViolationMessage();
-        self::$invariants[$hash]['tuples'][] = ['violationMessage' => ($violationMessage = $violation->getViolationMessage())];
+        $this->invariants[$hash]['ruleMessage'] = $violation->rule->getViolationMessage();
+        $this->invariants[$hash]['tuples'][] = ['violationMessage' => ($violationMessage = $violation->getViolationMessage())];
         
         Logger::getLogger('RULEENGINE')->info("INVARIANT '{$violationMessage}' RULE: '{$violation->rule}'");
     }
@@ -124,8 +124,8 @@ class UserLogger extends AbstractLogger
     {
         $ruleHash = hash('md5', $violation->rule->id);
         
-        if (!isset(self::$signals[$ruleHash])) {
-            self::$signals[$ruleHash]['message'] = $violation->rule->getViolationMessage();
+        if (!isset($this->signals[$ruleHash])) {
+            $this->signals[$ruleHash]['message'] = $violation->rule->getViolationMessage();
         }
         
         $ifcs = [];
@@ -139,7 +139,7 @@ class UserLogger extends AbstractLogger
         }
         $message = $violation->getViolationMessage();
         
-        self::$signals[$ruleHash]['violations'][] = ['message' => $message
+        $this->signals[$ruleHash]['violations'][] = ['message' => $message
                                                     ,'ifcs' => $ifcs
                                                     ];
         
