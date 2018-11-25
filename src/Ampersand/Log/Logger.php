@@ -52,16 +52,6 @@ class Logger
             return self::$loggers[$channel] = call_user_func(self::$factoryFunction, $channel);
         }
     }
-    
-    /**
-     * Get logger instance to communicate to user interface
-     *
-     * @return \Psr\Log\LoggerInterface
-     */
-    public static function getUserLogger(): LoggerInterface
-    {
-        return Logger::getLogger('USERLOG');
-    }
 
     /**
      * Set logger for a certain channel

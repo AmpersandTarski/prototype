@@ -10,13 +10,15 @@ namespace Ampersand\Log;
 use Exception;
 use Ampersand\Log\Logger;
 use Ampersand\Rule\Violation;
+use Psr\Log\AbstractLogger;
+use Psr\Log\LogLevel;
 
 /**
  *
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class Notifications
+class Notifications extends AbstractLogger
 {
     
     private static $errors = [];
@@ -25,6 +27,45 @@ class Notifications
     private static $signals = [];
     private static $infos = [];
     private static $successes = [];
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+    }
+
+    /**
+     * Logs with an arbitrary level.
+     *
+     * @param mixed  $level
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    public function log($level, $message, array $context = array())
+    {
+        switch ($level) {
+            case LogLevel::INFO: // Info
+                self::addInfo($message);
+                break;
+            case LogLevel::NOTICE: // Notice
+                self::addSuccess($message);
+                break;
+            case LogLevel::WARNING: // Warning
+                self::addWarning($message);
+                break;
+            case LogLevel::ERROR: // Error
+            case LogLevel::CRITICAL: // Critical
+            case LogLevel::ALERT: // Alert
+            case LogLevel::EMERGENCY: // Emergency
+                self::addError($message);
+                break;
+            default:
+                throw new Exception("Unsupported log level: {$level}", 500);
+        }
+    }
 
     public static function getAll()
     {

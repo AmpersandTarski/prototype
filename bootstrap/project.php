@@ -1,7 +1,6 @@
 <?php
 
 use Ampersand\Log\Logger;
-use Ampersand\Log\NotificationHandler;
 use Ampersand\Log\RequestIDProcessor;
 use Ampersand\Misc\Settings;
 use Ampersand\AmpersandApp;
@@ -44,15 +43,12 @@ Logger::setFactoryFunction(function ($channel) use ($errorLog, $debugLog, $debug
 // ExecEngine log
 Logger::getLogger('EXECENGINE')->pushHandler(new RotatingFileHandler(__DIR__ . '/log/execengine.log', 0, MonoLogger::DEBUG));
 
-// User interface logging
-Logger::getUserLogger()->pushHandler(new NotificationHandler(MonoLogger::INFO));
-
 /**************************************************************************************************
  * APPLICATION
  *************************************************************************************************/
 $logger = Logger::getLogger('APPLICATION');
 $model = new Model(dirname(__FILE__) . '/generics', $logger);
-$ampersandApp = new AmpersandApp($model, $settings, $logger, Logger::getUserLogger());
+$ampersandApp = new AmpersandApp($model, $settings, $logger);
 $angularApp = new AngularApp($ampersandApp, Logger::getLogger('FRONTEND'));
 
 

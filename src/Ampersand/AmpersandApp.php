@@ -138,10 +138,10 @@ class AmpersandApp
      * @param \Ampersand\Misc\Settings $settings
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Model $model, Settings $settings, LoggerInterface $logger, LoggerInterface $userLogger)
+    public function __construct(Model $model, Settings $settings, LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->userLogger = $userLogger;
+        $this->userLogger = new Notifications();
         $this->model = $model;
         $this->settings = $settings;
 
