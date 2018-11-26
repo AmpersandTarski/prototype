@@ -20,6 +20,13 @@ abstract class AbstractReader
     protected $stream = null;
 
     /**
+     * Tailing name component of filepath
+     *
+     * @var string
+     */
+    protected $filename;
+
+    /**
      * Constructor
      *
      * @param array $options Configuration options
@@ -45,6 +52,8 @@ abstract class AbstractReader
         if (!file_exists($filePath) || !is_readable($filePath)) {
             throw new Exception("Could not open {$filePath}. File does not exist", 500);
         }
+
+        $this->filename = pathinfo($filePath, PATHINFO_BASENAME);
 
         // Open file
         $this->stream = fopen($filePath, 'r');
