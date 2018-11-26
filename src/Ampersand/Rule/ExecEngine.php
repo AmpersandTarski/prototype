@@ -252,6 +252,6 @@ class ExecEngine extends RuleEngine
             throw new Exception("ExecEngine function '{$name}' already exists", 500);
         }
         self::$closures[$name] = $closure;
-        self::getLogger()->debug("ExecEngine function '{$name}' registered");
+        Logger::getLogger('EXECENGINE')->debug("ExecEngine function '{$name}' registered");
     }
 }
