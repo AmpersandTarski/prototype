@@ -9,7 +9,9 @@ namespace Ampersand\Log;
 
 use Psr\Log\LoggerInterface;
 use Closure;
-use Psr\Log\NullLogger;
+use Cascade\Cascade;
+use Monolog\Registry;
+use Exception;
 
 /**
  *
@@ -42,14 +44,10 @@ class Logger
      */
     public static function getLogger(string $channel): LoggerInterface
     {
-        if (isset(self::$loggers[$channel])) {
-            return self::$loggers[$channel];
+        if (Registry::hasLogger($channel)) {
+            return Cascade::getLogger($channel);
         } else {
-            if (is_null(self::$factoryFunction)) {
-                return new NullLogger();
-            }
-
-            return self::$loggers[$channel] = call_user_func(self::$factoryFunction, $channel);
+            throw new Exception("Log channel '{$channel}' not configured");
         }
     }
 
