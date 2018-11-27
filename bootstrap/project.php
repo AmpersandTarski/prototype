@@ -21,15 +21,15 @@ Cascade::fileConfig(dirname(__FILE__, 2) . '/config/logging.yaml'); // loads log
 /**************************************************************************************************
  * APPLICATION
  *************************************************************************************************/
+$logger = Logger::getLogger('APPLICATION');
+$model = new Model(dirname(__FILE__, 2) . '/generics', $logger);
+
 $settings = new Settings(); // includes default framework settings
 $settings->loadSettingsFile($model->getFilePath('settings')); // load model settings from Ampersand generator
 $settings->loadSettingsFile(dirname(__FILE__, 2) . '/config/projectSettings.json'); // load project specific settings
 $settings->set('global.absolutePath', dirname(__FILE__));
-
 $debugMode = $settings->get('global.debugMode');
 
-$logger = Logger::getLogger('APPLICATION');
-$model = new Model(dirname(__FILE__) . '/generics', $logger);
 $ampersandApp = new AmpersandApp($model, $settings, $logger);
 $angularApp = new AngularApp($ampersandApp, Logger::getLogger('FRONTEND'));
 

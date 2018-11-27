@@ -55,8 +55,11 @@ class Model
      */
     public function __construct(string $folder, LoggerInterface $logger)
     {
-        $this->folder = realpath($folder);
         $this->logger = $logger;
+
+        if (($this->folder = realpath($folder)) === false) {
+            throw new Exception("Specified folder for Ampersand model does not exist: '{$folder}'", 500);
+        }
 
         $this->checksumFile = "{$this->folder}/checksums.txt";
         
