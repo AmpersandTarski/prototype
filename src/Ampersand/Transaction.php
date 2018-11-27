@@ -151,7 +151,8 @@ class Transaction
      */
     public function runExecEngine(bool $checkAllRules = false): Transaction
     {
-        $this->logger->info("ExecEngine started");
+        $logger = Logger::getLogger('EXECENGINE');
+        $logger->info("ExecEngine started");
 
         // Initial values
         $maxRunCount = $this->app->getSettings()->get('execengine.maxRunCount');
@@ -164,12 +165,12 @@ class Transaction
 
         // Do run exec engines while there is work to do
         do {
-            $this->logger->info("{+ Run #{{$runCounter}} (auto rerun: " . var_export($autoRerun, true) . ")");
+            $logger->info("{+ Run #{{$runCounter}} (auto rerun: " . var_export($autoRerun, true) . ")");
             
             // Exec all exec engines
             $rulesFixed = [];
             foreach ($this->execEngines as $ee) {
-                $this->logger->debug("Select exec engine '{{$ee->getId()}}'");
+                $logger->debug("Select exec engine '{{$ee->getId()}}'");
                 $rulesFixed = array_merge($rulesFixed, $ee->checkFixRules($rulesToCheck));
             }
 
@@ -180,16 +181,16 @@ class Transaction
 
             // Prevent infinite loop in exec engine reruns
             if ($runCounter >= $maxRunCount && $doRun) {
-                $this->logger->error("Maximum reruns exceeded (hint! rules fixed in last run:" . implode(', ', $rulesFixed) . ")");
+                $logger->error("Maximum reruns exceeded (hint! rules fixed in last run:" . implode(', ', $rulesFixed) . ")");
                 $this->app->userLog()->error("Maximum reruns exceeded for ExecEngine");
                 $doRun = false;
             }
-            $this->logger->info("+} Exec engine run finished");
+            $logger->info("+} Exec engine run finished");
             $runCounter++;
             $rulesToCheck = $this->getAffectedRules(); // next run only affected rules need to be checked
         } while ($doRun && $autoRerun);
 
-        $this->logger->info("ExecEngine finished");
+        $logger->info("ExecEngine finished");
         
         return $this;
     }

@@ -14,7 +14,7 @@ loggers:
   RULEENGINE:
     handlers: [error_log, debug_log]
   TRANSACTION:
-    handlers: [error_log, debug_log]
+    handlers: [exec_engine_log, error_log, debug_log]
   INTERFACING:
     handlers: [error_log, debug_log]
   HOOKS:
