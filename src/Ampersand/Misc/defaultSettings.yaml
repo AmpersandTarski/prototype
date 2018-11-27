@@ -19,7 +19,11 @@ settings:
     - application/excel
     - application/pdf
     - text/xml
-  global.allowedRolesForImporter: null # null implies that everyone has access, use empty list [] to disable for all, or specify a list with allowed roles
+
+  ### RBAC (Role Based Access Control)
+  # null implies that everyone has access, use empty list [] to disable for all, or specify a list with allowed roles
+  rbac.importerRoles: null
+  rbac.adminRoles: null
 
   ### Session
   session.expirationTime: 3600 # expiration time in seconds

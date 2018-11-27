@@ -115,7 +115,7 @@ $api->group('/admin', function () {
         $ampersandApp = $this['ampersand_app'];
 
         // Check for required role
-        $allowedRoles = $ampersandApp->getSettings()->get('execengine.allowedRolesForRunFunction');
+        $allowedRoles = $ampersandApp->getSettings()->get('rbac.adminRoles');
         if (!$ampersandApp->hasRole($allowedRoles)) {
             throw new Exception("You do not have access to run the exec engine", 403);
         }
@@ -182,7 +182,7 @@ $api->group('/admin', function () {
         $angularApp = $this['angular_app'];
         
         // Check for required role
-        $allowedRoles = $ampersandApp->getSettings()->get('global.allowedRolesForImporter');
+        $allowedRoles = $ampersandApp->getSettings()->get('rbac.importerRoles');
         if (!$ampersandApp->hasRole($allowedRoles)) {
             throw new Exception("You do not have access to import population", 403);
         }

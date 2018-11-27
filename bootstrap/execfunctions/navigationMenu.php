@@ -25,7 +25,7 @@ $angularApp->addMenuItem(
     'refresh',
     'app/src/admin/execengine-menu-item.html',
     function (AmpersandApp $app) {
-        $roles = $app->getSettings()->get('execengine.allowedRolesForRunFunction');
+        $roles = $app->getSettings()->get('rbac.adminRoles');
         return $app->hasActiveRole($roles);
     }
 );
@@ -34,7 +34,7 @@ $angularApp->addMenuItem(
     'ext',
     'app/src/importer/menu-item.html',
     function (AmpersandApp $app) {
-        $roles = $app->getSettings()->get('global.allowedRolesForImporter');
+        $roles = $app->getSettings()->get('rbac.importerRoles');
         return $app->hasActiveRole($roles);
     }
 );
