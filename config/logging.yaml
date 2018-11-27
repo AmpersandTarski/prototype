@@ -24,12 +24,12 @@ loggers:
 formatters:
 handlers:
   debug_log:
-    class: Monolog\Handler\RotatingFileHandler
+    class: Ampersand\Log\RotatingFileHandler
     level: DEBUG
     maxFiles: 0
     filename: ./log/debug.log
   error_log_file:
-    class: Monolog\Handler\RotatingFileHandler
+    class: Ampersand\Log\RotatingFileHandler
     level: DEBUG
     maxFiles: 0
     filename: ./log/error.log
@@ -43,7 +43,7 @@ handlers:
     stopBuffering: true
     passthruLevel: WARNING
   exec_engine_log:
-    class: Monolog\Handler\RotatingFileHandler
+    class: Ampersand\Log\RotatingFileHandler
     level: DEBUG
     maxFiles: 0
     filename: ./log/execengine.log
