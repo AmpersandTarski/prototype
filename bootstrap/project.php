@@ -25,8 +25,8 @@ $logger = Logger::getLogger('APPLICATION');
 $model = new Model(dirname(__FILE__, 2) . '/generics', $logger);
 
 $settings = new Settings(); // includes default framework settings
-$settings->loadSettingsFile($model->getFilePath('settings')); // load model settings from Ampersand generator
-$settings->loadSettingsFile(dirname(__FILE__, 2) . '/config/projectSettings.json'); // load project specific settings
+$settings->loadSettingsJsonFile($model->getFilePath('settings')); // load model settings from Ampersand generator
+$settings->loadSettingsJsonFile(dirname(__FILE__, 2) . '/config/projectSettings.json'); // load project specific settings
 $settings->set('global.absolutePath', dirname(__FILE__));
 $debugMode = $settings->get('global.debugMode');
 

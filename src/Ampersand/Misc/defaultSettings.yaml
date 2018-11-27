@@ -1,0 +1,53 @@
+# Ampersand Prototype Framework default settings
+# This file contains a list of all settings that are used by the prototype framework
+# Specific settings can be overwritten by placing a 'projectSettings.yaml' file in the /config folder
+
+settings:
+  ### Application global settings
+  global.productionEnv: false # set environment as production deployment (or not = default)
+  global.debugMode: true # set debugMode (or not = default). Impacts the way errors are returned by API
+
+  global.serverURL: http://localhost # set the base url for the application (e.g. http://www.yourdomain.nl)
+  global.apiPath: api/v1 # relative path to current api
+  global.absolutePath: null # is set during application bootstrap
+  global.uploadPath: uploads
+  global.logPath: log
+
+  global.allowedMimeTypes:
+    - application/vnd.ms-excel
+    - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+    - application/excel
+    - application/pdf
+    - text/xml
+  global.allowedRolesForImporter: null # null implies that everyone has access, use empty list [] to disable for all, or specify a list with allowed roles
+
+  ### Session
+  session.expirationTime: 3600 # expiration time in seconds
+
+  ### Login
+  login.enabled: false # enable/disable login functionality (requires SIAM module)
+  login.loginPage: null # other example: '/ext/Login'
+
+  ### Transaction settings
+  transactions.ignoreInvariantViolations: false # for debugging can be set to true (transactions will be committed regardless off invariant violations)
+  transactions.skipUniInjConjuncts: false # TODO: remove after fix for issue #535
+  transactions.interfaceAutoCommitChanges: true # specifies whether changes in an interface are automatically commited when allowed (all invariants hold)
+  transactions.interfaceAutoSaveChanges: true # specifies whether changes in interface are directly communicated (saved) to server
+  transactions.defaultCrudC: true
+  transactions.defaultCrudR: true
+  transactions.defaultCrudU: true
+  transactions.defaultCrudD: true
+
+  ### Notification settings
+  notifications.defaultShowSignals: true
+  notifications.defaultShowInfos: true
+  notifications.defaultShowWarnings: true
+  notifications.defaultShowSuccesses: true
+  notifications.defaultAutoHideSuccesses: true
+  notifications.defaultShowErrors: true
+  notifications.defaultShowInvariants: true
+
+  ### ExecEngine settings
+  execengine.execEngineRoleNames: [ExecEngine]
+  execengine.autoRerun: true
+  execengine.maxRunCount: 10

@@ -9,6 +9,7 @@ namespace Ampersand\Misc;
 
 use Ampersand\IO\JSONReader;
 use Exception;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  *
@@ -30,7 +31,7 @@ class Settings
      */
     public function __construct()
     {
-        $this->loadSettingsFile(dirname(__FILE__) . '/defaultSettings.json');
+        $this->loadSettingsYamlFile(dirname(__FILE__) . '/defaultSettings.yaml');
     }
 
     /**
@@ -40,7 +41,7 @@ class Settings
      * @param bool $overwriteAllowed specifies if already set settings may be overwritten
      * @return \Ampersand\Misc\Settings $this
      */
-    public function loadSettingsFile(string $filePath, bool $overwriteAllowed = true): Settings
+    public function loadSettingsJsonFile(string $filePath, bool $overwriteAllowed = true): Settings
     {
         $reader = new JSONReader();
         $settings = $reader->loadFile($filePath)->getContent();
@@ -49,6 +50,22 @@ class Settings
             $this->set($setting, $value, $overwriteAllowed);
         }
         
+        return $this;
+    }
+
+    /**
+     * Load settings file (yaml format)
+     *
+     * @param string $filePath
+     * @param bool $overwriteAllowed specifies if already set settings may be overwritten
+     * @return \Ampersand\Misc\Settings $this
+     */
+    public function loadSettingsYamlFile(string $filePath, bool $overwriteAllowed = true): Settings
+    {
+        $settings = Yaml::parseFile($filePath);
+        foreach ($settings as $setting => $value) {
+            $this->set($setting, $value, $overwriteAllowed);
+        }
         return $this;
     }
 
