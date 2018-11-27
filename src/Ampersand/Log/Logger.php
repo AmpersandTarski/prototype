@@ -7,11 +7,11 @@
 
 namespace Ampersand\Log;
 
-use Psr\Log\LoggerInterface;
 use Closure;
+use Exception;
 use Cascade\Cascade;
 use Monolog\Registry;
-use Exception;
+use Psr\Log\LoggerInterface;
 
 /**
  *
@@ -20,18 +20,6 @@ use Exception;
  */
 class Logger
 {
-    /**
-     * Contains all instantiated loggers
-     * @var \Ampersand\Log\Logger[]
-     */
-    private static $loggers = [];
-
-    /**
-     * Factory function to create new loggers
-     * @var \Closure
-     */
-    protected static $factoryFunction = null;
-
     /******************
      * STATIC METHODS
      ******************/
@@ -47,30 +35,7 @@ class Logger
         if (Registry::hasLogger($channel)) {
             return Cascade::getLogger($channel);
         } else {
-            throw new Exception("Log channel '{$channel}' not configured");
+            throw new Exception("Log channel '{$channel}' not configured", 500);
         }
-    }
-
-    /**
-     * Set logger for a certain channel
-     *
-     * @param string $channel
-     * @param \Psr\Log\LoggerInterface $logger
-     * @return void
-     */
-    public static function setLogger(string $channel, LoggerInterface $logger)
-    {
-        self::$loggers[$channel] = $logger;
-    }
-    
-    /**
-     * Register a closure that is called upon initialization of a logger
-     *
-     * @param \Closure $closure
-     * @return void
-     */
-    public static function setFactoryFunction(Closure $closure)
-    {
-        self::$factoryFunction = $closure;
     }
 }
