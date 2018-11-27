@@ -137,8 +137,10 @@ $api->group('/admin', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
         
-        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
-            throw new Exception("Evaluation of all rules not allowed in production environment", 403);
+        // Check for required role
+        $allowedRoles = $ampersandApp->getSettings()->get('rbac.adminRoles');
+        if (!$ampersandApp->hasRole($allowedRoles)) {
+            throw new Exception("You do not have access to evaluate all rules", 403);
         }
 
         foreach (Conjunct::getAllConjuncts() as $conj) {
