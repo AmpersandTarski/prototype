@@ -274,13 +274,13 @@ class Transaction
             $this->rollback();
         } else {
             if ($this->invariantRulesHold) {
-                $this->logger->info("Commit transaction");
+                $this->logger->info("Commit transaction: {$this->id}");
                 $this->commit();
             } elseif (!$this->invariantRulesHold && ($this->app->getSettings()->get('transactions.ignoreInvariantViolations') || $ignoreInvariantViolations)) {
-                $this->logger->warning("Commit transaction with invariant violations");
+                $this->logger->warning("Commit transaction {$this->id} with invariant violations");
                 $this->commit();
             } else {
-                $this->logger->info("Rollback transaction, because invariant rules do not hold");
+                $this->logger->info("Rollback transaction {$this->id}, because invariant rules do not hold");
                 $this->rollback();
             }
         }
