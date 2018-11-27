@@ -45,7 +45,7 @@ $api->group('/app', function () {
                                           ,'notify_showErrors'         => $settings->get('notifications.defaultShowErrors')
                                           ,'notify_showWarnings'       => $settings->get('notifications.defaultShowWarnings')
                                           ,'notify_showInvariants'     => $settings->get('notifications.defaultShowInvariants')
-                                          ,'autoSave'                  => $settings->get('notifications.interfaceAutoSaveChanges')
+                                          ,'autoSave'                  => $settings->get('transactions.interfaceAutoSaveChanges')
                                           ]
                     ,'notifications' => $ampersandApp->userLog()->getAll()
                     ,'session' =>   ['id' => $session->getId()

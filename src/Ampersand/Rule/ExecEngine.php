@@ -73,6 +73,7 @@ class ExecEngine extends RuleEngine
     public function __construct(Role $role, AmpersandApp $app, LoggerInterface $logger)
     {
         $this->logger = $logger;
+        $this->id = $role->id;
         $this->maintainsRules = $role->maintains();
         $this->ampersandApp = $app;
     }
@@ -135,6 +136,7 @@ class ExecEngine extends RuleEngine
             return in_array($rule, $affectedRules);
         });
 
+        $rulesFixed = [];
         foreach ($rulesToCheck as $rule) {
             /** @var \Ampersand\Rule\Rule $rule */
             $violations = $rule->checkRule(true); // param true to force (re)evaluation of conjuncts

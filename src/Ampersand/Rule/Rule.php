@@ -8,6 +8,7 @@
 namespace Ampersand\Rule;
 
 use Exception;
+use Ampersand\AmpersandApp;
 use Ampersand\Core\Concept;
 use Ampersand\Plugs\ViewPlugInterface;
 use Psr\Log\LoggerInterface;

@@ -106,7 +106,7 @@ $apiContainer['errorHandler'] = function ($c) {
 };
 
 $apiContainer['phpErrorHandler'] = function ($c) {
-    return function (Request $request, Response $response, Error $error) {
+    return function (Request $request, Response $response, Error $error) use ($c) {
         try {
             Logger::getLogger("API")->critical($error->getMessage());
             /** @var \Ampersand\AmpersandApp $ampersandApp */

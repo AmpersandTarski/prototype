@@ -62,8 +62,8 @@ class Settings
      */
     public function loadSettingsYamlFile(string $filePath, bool $overwriteAllowed = true): Settings
     {
-        $settings = Yaml::parseFile($filePath);
-        foreach ($settings as $setting => $value) {
+        $file = Yaml::parseFile($filePath);
+        foreach ($file['settings'] as $setting => $value) {
             $this->set($setting, $value, $overwriteAllowed);
         }
         return $this;
