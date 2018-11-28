@@ -4,7 +4,7 @@ app = angular.module('AmpersandApp')
         // default start page
         .when('/ext/Login', {
             controller : 'LoginExtLoginController',
-            templateUrl : 'extensions/OAuthLogin/ui/views/Login.html',
+            templateUrl : 'app/ext/OAuthLogin/views/Login.html',
             interfaceLabel : 'Login'
         });
 });

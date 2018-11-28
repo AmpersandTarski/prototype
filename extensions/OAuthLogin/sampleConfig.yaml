@@ -1,0 +1,39 @@
+settings:
+  # path 'redirect-after-login' triggers frontend to route back to page where status 401 was raised.
+  oauthlogin.redirectAfterLogin: https://[server]/#/redirect-after-login
+  oauthlogin.redirectAfterLoginFailure: https://[server]/#/
+
+  oauthlogin.identityProviders:
+    linkedin:
+      name: LinkedIn
+      logoUrl: app/ext/OAuthLogin/images/logo-linkedin.png
+      authBase: https://www.linkedin.com/uas/oauth2/authorization
+      redirectUrl: https://[server]/api/v1/oauthlogin/callback/linkedin
+      clientId: <string>
+      clientSecret: <string>
+      tokenUrl: https://www.linkedin.com/uas/oauth2/accessToken
+      apiUrl: https://api.linkedin.com/v1/people/~:(emailAddress)?format=json
+      scope: r_emailaddress
+      state: <string> # A unique string value of your choice that is hard to guess. Used to prevent CSRF
+    google:
+      name: Google
+      logoUrl: app/ext/OAuthLogin/images/logo-google.png
+      authBase: https://accounts.google.com/o/oauth2/auth
+      redirectUrl: https://[server]/api/v1/oauthlogin/callback/google
+      clientId: <string>
+      clientSecret: <string>
+      tokenUrl: https://accounts.google.com/o/oauth2/token
+      apiUrl: https://www.googleapis.com/userinfo/v2/me
+      scope: https://www.googleapis.com/auth/userinfo.email
+      state: <string> # A unique string value of your choice that is hard to guess. Used to prevent CSRF
+    github:
+      name: GitHub
+      logoUrl: app/ext/OAuthLogin/images/logo-github.png
+      authBase: https://github.com/login/oauth/authorize
+      redirectUrl: https://[server]/api/v1/oauthlogin/callback/github
+      clientId: <string>
+      clientSecret: <string>
+      tokenUrl: https://github.com/login/oauth/access_token
+      apiUrl: https://api.github.com/user/emails
+      scope: user:email
+      state: <string> # A unique string value of your choice that is hard to guess. Used to prevent CSRF
