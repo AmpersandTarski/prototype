@@ -139,7 +139,7 @@ class Hook
             $params = [];
             foreach ($hook->paramMap as $param) {
                 // Variable
-                if (substr((string)$param, 0, 1) == '$') {
+                if (substr((string)$param, 0, 1) === '$') {
                     $varName = substr($param, 1);
                     if (in_array($varName, $callingScopeVariables)) {
                         $params[] = $callingScopeVariables[$varName];

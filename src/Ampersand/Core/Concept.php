@@ -243,7 +243,7 @@ class Concept
      */
     public function isInteger(): bool
     {
-        return $this->type == "INTEGER";
+        return $this->type === "INTEGER";
     }
     
     /**
@@ -253,7 +253,7 @@ class Concept
      */
     public function isObject(): bool
     {
-        return $this->type == "OBJECT";
+        return $this->type === "OBJECT";
     }
     
     /**
@@ -264,7 +264,7 @@ class Concept
     public function isFileObject(): bool
     {
         foreach ($this->getGeneralizationsIncl() as $concept) {
-            if ($concept->label == 'FileObject') {
+            if ($concept->label === 'FileObject') {
                 return true;
             }
         }
@@ -279,7 +279,7 @@ class Concept
     public function isSession(): bool
     {
         foreach ($this->getGeneralizationsIncl() as $concept) {
-            if ($concept->label == 'SESSION') {
+            if ($concept->label === 'SESSION') {
                 return true;
             }
         }

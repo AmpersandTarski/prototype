@@ -207,7 +207,7 @@ $api->add(function (Request $req, Response $res, callable $next) {
             $route = $req->getAttribute('route');
             
             // If application installer API ROUTE is called, continue
-            if ($route->getName() == 'applicationInstaller') {
+            if ($route->getName() === 'applicationInstaller') {
                 return $next($req, $res);
             // Else navigate user to /admin/installer page
             } else {

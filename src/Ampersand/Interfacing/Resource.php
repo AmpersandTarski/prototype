@@ -483,7 +483,7 @@ class Resource extends Atom implements ArrayAccess, IteratorAggregate
         }
         
         foreach ($resourceToPut as $ifcId => $value) {
-            if (substr($ifcId, 0, 1) == '_' && substr($ifcId, -1) == '_') {
+            if (substr($ifcId, 0, 1) === '_' && substr($ifcId, -1) === '_') {
                 continue; // skip special internal attributes
             }
             try {

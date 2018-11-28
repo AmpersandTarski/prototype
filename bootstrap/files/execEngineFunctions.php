@@ -42,16 +42,16 @@ ExecEngine::registerFunction('InsPair', function ($relationName, $srcConceptName
     $relation = Relation::getRelation($relationName, $srcConcept, $tgtConcept);
     
     // if either srcAtomIdStr or tgtAtom is not provided by the pairview function (i.e. value set to '_NULL'): skip the insPair
-    if ($srcAtom == '_NULL' or $tgtAtom == '_NULL') {
+    if ($srcAtom === '_NULL' or $tgtAtom === '_NULL') {
         $this->debug("InsPair ignored because src and/or tgt atom is _NULL");
         return;
     }
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
-    if ($srcAtom == "_NEW") {
+    if ($srcAtom === "_NEW") {
         $srcAtom = $this->getCreatedAtom()->id;
     }
-    if ($tgtAtom == "_NEW") {
+    if ($tgtAtom === "_NEW") {
         $tgtAtom = $this->getCreatedAtom()->id;
     }
     
@@ -87,16 +87,16 @@ ExecEngine::registerFunction('DelPair', function ($relationName, $srcConceptName
     $relation = Relation::getRelation($relationName, $srcConcept, $tgtConcept);
     
     // if either srcAtomIdStr or tgtAtom is not provided by the pairview function (i.e. value set to '_NULL'): skip the insPair
-    if ($srcAtom == '_NULL' or $tgtAtom == '_NULL') {
+    if ($srcAtom === '_NULL' or $tgtAtom === '_NULL') {
         $this->debug("DelPair ignored because src and/or tgt atom is _NULL");
         return;
     }
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
-    if ($srcAtom == "_NEW") {
+    if ($srcAtom === "_NEW") {
         $srcAtom = $this->getCreatedAtom()->id;
     }
-    if ($tgtAtom == "_NEW") {
+    if ($tgtAtom === "_NEW") {
         $tgtAtom = $this->getCreatedAtom()->id;
     }
     
@@ -170,13 +170,13 @@ ExecEngine::registerFunction('NewStruct', function () {
         $tgtConcept = Concept::getConceptByLabel(func_get_arg($i+3));
         $tgtAtomId    = func_get_arg($i+4);
         
-        if ($srcAtomId == "NULL" or $tgtAtomId == "NULL") {
+        if ($srcAtomId === "NULL" or $tgtAtomId === "NULL") {
             throw new Exception("NewStruct: use of keyword NULL is deprecated, use '_NEW'", 500);
         }
         
         // NewStruct requires that atom $srcAtomId or $tgtAtomId must be _NEW
         // Note: when populating a [PROP] relation, both atoms can be new
-        if (!($srcAtomId == '_NEW' or $tgtAtomId == '_NEW')) {
+        if (!($srcAtomId === '_NEW' or $tgtAtomId === '_NEW')) {
             throw new Exception("NewStruct: relation '{$relation}' requires that atom '{$srcAtomId}' or '{$tgtAtomId}' must be '_NEW'", 500);
         }
         
@@ -186,10 +186,10 @@ ExecEngine::registerFunction('NewStruct', function () {
         }
     
         // Replace atom by the newstruct atom if _NEW is used
-        if (in_array($srcConcept, $c->getGeneralizationsIncl()) && $srcAtomId == '_NEW') {
+        if (in_array($srcConcept, $c->getGeneralizationsIncl()) && $srcAtomId === '_NEW') {
             $srcAtomId = $atom->id;
         }
-        if (in_array($tgtConcept, $c->getGeneralizationsIncl()) && $tgtAtomId == '_NEW') {
+        if (in_array($tgtConcept, $c->getGeneralizationsIncl()) && $tgtAtomId === '_NEW') {
             $tgtAtomId = $atom->id;
         }
         
@@ -232,7 +232,7 @@ ExecEngine::registerFunction('DelAtom', function ($concept, $atomId) {
     }
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
-    if ($atomId == "_NEW") {
+    if ($atomId === "_NEW") {
         $atom = $this->getCreatedAtom();
     } else {
         $atom = new Atom($atomId, Concept::getConceptByLabel($concept));
@@ -264,10 +264,10 @@ ExecEngine::registerFunction('MrgAtoms', function ($conceptA, $srcAtomId, $conce
     $tgtAtom = new Atom($tgtAtomId, Concept::getConceptByLabel($conceptB));
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
-    if ($srcAtomId == "_NEW") {
+    if ($srcAtomId === "_NEW") {
         $srcAtom = $this->getCreatedAtom();
     }
-    if ($tgtAtomId == "_NEW") {
+    if ($tgtAtomId === "_NEW") {
         $tgtAtom = $this->getCreatedAtom();
     }
     
@@ -288,7 +288,7 @@ ExecEngine::registerFunction('SetConcept', function ($conceptA, $conceptB, $atom
     }
 
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
-    if ($atomId == "_NEW") {
+    if ($atomId === "_NEW") {
         $atom = $this->getCreatedAtom();
     } else {
         $atom = new Atom($atomId, Concept::getConceptByLabel($conceptA));
@@ -314,7 +314,7 @@ ExecEngine::registerFunction('ClearConcept', function ($concept, $atomId) {
     $concept = Concept::getConceptByLabel($concept);
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
-    if ($atomId == "_NEW") {
+    if ($atomId === "_NEW") {
         $atom = $this->getCreatedAtom();
     } else {
         $atom = new Atom($atomId, $concept);
@@ -370,8 +370,8 @@ ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angular
         $this->debug("replaced navTo string with '{$navTo}'");
     }
 
-    if (empty($navTo) || $navTo == '_NULL') {
-        $this->debug("navTo was skipped because of `_NULL`-argument");
+    if (empty($navTo) || $navTo === '_NULL') {
+        $this->debug("navTo was skipped because of '_NULL'-argument");
         return false;
     }
 
@@ -385,8 +385,8 @@ ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($angul
         $this->debug("replaced navTo string with '{$navTo}'");
     }
     
-    if (empty($navTo) || $navTo == '_NULL') {
-        $this->debug("navTo was skipped because of `_NULL`-argument");
+    if (empty($navTo) || $navTo === '_NULL') {
+        $this->debug("navTo was skipped because of '_NULL'-argument");
         return false;
     }
     

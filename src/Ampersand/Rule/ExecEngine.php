@@ -183,7 +183,7 @@ class ExecEngine extends RuleEngine
             }
             
             // Determine delimiter
-            if (substr($action, 0, 2) == '_;') {
+            if (substr($action, 0, 2) === '_;') {
                 $delimiter = '_;';
                 $action = substr($action, 2);
             } else {
@@ -200,7 +200,7 @@ class ExecEngine extends RuleEngine
                 // Limited security issue, because '{php}' can only be specified in &-script. '{php}' in user input is filtered out when getting violation message
                 // Only 1 php statement can be executed, due to semicolon issue: PHP statements must be properly terminated using a semicolon, but the semicolon is already used to seperate the parameters
                 // e.g. {php}date(DATE_ISO8601) returns the current datetime in ISO 8601 date format
-                if (substr($param, 0, 5) == '{php}') {
+                if (substr($param, 0, 5) === '{php}') {
                     $code = 'return('.substr($param, 5).');';
                     $param = eval($code);
                 }

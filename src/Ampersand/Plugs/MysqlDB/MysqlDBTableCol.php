@@ -45,7 +45,7 @@ class MysqlDBTableCol
      */
     public function __construct(string $name, bool $null = null, bool $unique = null)
     {
-        if ($name == '') {
+        if ($name === '') {
             throw new Exception("Database table column name is an empty string", 500);
         }
         $this->name = $name;
