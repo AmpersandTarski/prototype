@@ -71,14 +71,18 @@ class Settings
     public function loadSettingsYamlFile(string $filePath, bool $overwriteAllowed = true): Settings
     {
         $file = Yaml::parseFile($filePath);
-        foreach ($file['settings'] as $setting => $value) {
+        foreach ((array)$file['settings'] as $setting => $value) {
             $this->set($setting, $value, $overwriteAllowed);
         }
 
-        foreach ($file['extensions'] as $extName => $data) {
+        foreach ((array)$file['extensions'] as $extName => $data) {
             $bootstrapFile = $data['bootstrap'] ?? null;
             $configFile = $data['config'] ?? null;
             $this->extensions[] = new Extension($extName, $bootstrapFile, $configFile);
+
+            if (!is_null($configFile)) {
+                $this->loadSettingsYamlFile($configFile, false); // extensions settings are not allowed to overwrite existing settings
+            }
         }
 
         return $this;
