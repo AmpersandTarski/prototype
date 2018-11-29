@@ -1,0 +1,1 @@
+Application log files will be written to this folder.
