@@ -1,6 +1,6 @@
 # Ampersand Prototype Framework default settings
 # This file contains a list of all settings that are used by the prototype framework
-# Specific settings can be overwritten by placing a 'projectSettings.yaml' file in the /config folder
+# Specific settings can be overwritten by placing a 'project.yaml' file in the /config folder
 
 settings:
   ### Application global settings

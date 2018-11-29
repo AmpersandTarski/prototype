@@ -61,7 +61,7 @@ $model = new Model(dirname(__FILE__, 2) . '/generics', $logger);
 
 $settings = new Settings(); // includes default framework settings
 $settings->loadSettingsJsonFile($model->getFilePath('settings')); // load model settings from Ampersand generator
-$settings->loadSettingsYamlFile(dirname(__FILE__, 2) . '/config/projectSettings.yaml'); // load project specific settings
+$settings->loadSettingsYamlFile(dirname(__FILE__, 2) . '/config/project.yaml'); // load project specific settings
 $settings->set('global.absolutePath', dirname(__FILE__));
 
 $ampersandApp = new AmpersandApp($model, $settings, $logger);

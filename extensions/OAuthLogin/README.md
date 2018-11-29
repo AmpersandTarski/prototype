@@ -5,7 +5,7 @@ The OAuthLogin extension allows you to easily add a user (account) registration 
 
 ## How to INSTALL the extension
 * Run 'gulp project' command after generating the prototype to include javascript and html resources
-* Include the extension in your projectSettings.yaml file. See below
+* Include the extension in your project.yaml file. See below
 
 ## How to CONFIGURE the extension
 Step 1: Choose identity providers you would like to support (e.g. Github, LinkedIn, Google, etc)
@@ -13,7 +13,7 @@ Step 1: Choose identity providers you would like to support (e.g. Github, Linked
     - Configure supported identity providers in a config yaml file (see sampleConfig.yaml)
     - Place the config file in the /config folder
 
-Step 2: Add the following part to the projectSettings.yaml under 'extensions' to include the extensions
+Step 2: Add the following part to the project.yaml under 'extensions' to include the extensions
     OAuthLogin:
       bootstrap: .\extensions\OAuthLogin\bootstrap.php
       config: .\config\oauth.yaml
