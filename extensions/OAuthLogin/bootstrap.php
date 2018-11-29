@@ -2,6 +2,7 @@
 
 // Includes
 require('./src/OAuthLoginController.php');
+require('./api/oauthlogin.php');
 
 // UI
 /** @var \Ampersand\AngularApp $angularApp */

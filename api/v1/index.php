@@ -188,8 +188,8 @@ include(__DIR__ . '/resources.php'); // API calls starting with '/resource/'
 include(__DIR__ . '/admin.php'); // API calls starting with '/admin/'
 include(__DIR__ . '/app.php'); // API calls starting with '/app/'
 
-foreach ((array)$GLOBALS['apiFiles'] as $apiFile) {
-    include_once($apiFile); // include api path added by extensions
+foreach ($ampersandApp->getSettings()->getExtensions() as $ext) {
+    $ext->bootstrap();
 }
 
 // Add middleware to initialize the AmpersandApp

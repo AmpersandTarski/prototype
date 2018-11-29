@@ -4,3 +4,8 @@
 # See defaultSettings.yaml for list of all possible settings
 
 settings:
+
+extensions:
+  # ExtensionXYZ
+    # bootstrap:
+    # config:

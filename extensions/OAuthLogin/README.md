@@ -16,7 +16,6 @@ Step 1: Choose identity providers you would like to support (e.g. Github, Linked
 Step 2: Add the following part to the projectSettings.yaml under 'extensions' to include the extensions
     OAuthLogin:
       bootstrap: .\extensions\OAuthLogin\bootstrap.php
-      api: .\extensions\OAuthLogin\api\oauthlogin.php
       config: .\config\oauth.yaml
 
 Step 3: Add required concepts and relations to your Ampersand script. See SIAM OAuth module.

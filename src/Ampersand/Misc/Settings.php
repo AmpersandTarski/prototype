@@ -10,6 +10,7 @@ namespace Ampersand\Misc;
 use Ampersand\IO\JSONReader;
 use Exception;
 use Symfony\Component\Yaml\Yaml;
+use Ampersand\Misc\Extension;
 
 /**
  *
@@ -24,7 +25,14 @@ class Settings
      *
      * @var array
      */
-    public $settings = [];
+    protected $settings = [];
+
+    /**
+     * List of configured extensions
+     *
+     * @var \Ampersand\Misc\Extension[]
+     */
+    protected $extensions = [];
 
     /**
      * Constructor
@@ -66,6 +74,13 @@ class Settings
         foreach ($file['settings'] as $setting => $value) {
             $this->set($setting, $value, $overwriteAllowed);
         }
+
+        foreach ($file['extensions'] as $extName => $data) {
+            $bootstrapFile = $data['bootstrap'] ?? null;
+            $configFile = $data['config'] ?? null;
+            $this->extensions[] = new Extension($extName, $bootstrapFile, $configFile);
+        }
+
         return $this;
     }
 
@@ -104,5 +119,15 @@ class Settings
         }
 
         $this->settings[$setting] = $value;
+    }
+
+    /**
+     * Get list of configured extensions
+     *
+     * @return \Ampersand\Misc\Extension[]
+     */
+    public function getExtensions()
+    {
+        return $this->extensions;
     }
 }

@@ -47,7 +47,3 @@ $mysqlDB = new \Ampersand\Plugs\MysqlDB\MysqlDB(
 );
 $ampersandApp->setDefaultStorage($mysqlDB);
 $ampersandApp->setConjunctCache(new \Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache($mysqlDB));
-
-/**************************************************************************************************
- * EXTENSIONS
- *************************************************************************************************/
