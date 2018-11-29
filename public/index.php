@@ -1,6 +1,6 @@
 <?php
 
-$html = file_get_contents('app' . DIRECTORY_SEPARATOR . 'index.html');
+$html = file_get_contents('app/index.html');
 
 if (strpos($html, '<!--[PROJECT_PLACEHOLDER]-->')) {
     $replace = '';
