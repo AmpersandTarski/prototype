@@ -394,6 +394,9 @@ class Resource extends Atom implements ArrayAccess
 
     public function post($subIfcId, $resourceToPost): Resource
     {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp;
+        
         $newResource = $this->ifc->getSubinterface($subIfcId)->create($this, $resourceToPost);
 
         // Special case for file upload
@@ -402,8 +405,10 @@ class Resource extends Atom implements ArrayAccess
                 $tmp_name = $_FILES['file']['tmp_name'];
                 $originalFileName = $_FILES['file']['name'];
 
-                $dest = getSafeFileName(Config::get('absolutePath') . Config::get('uploadPath'). $originalFileName);
-                $relativePath = Config::get('uploadPath') . pathinfo($dest, PATHINFO_BASENAME);
+                $appAbsolutePath = $ampersandApp->getSettings()->get('global.absolutePath');
+                $uploadFolder = $ampersandApp->getSettings()->get('global.uploadPath');
+                $dest = getSafeFileName($appAbsolutePath . DIRECTORY_SEPARATOR . $uploadFolder . DIRECTORY_SEPARATOR . $originalFileName);
+                $relativePath = $uploadFolder . '/' . pathinfo($dest, PATHINFO_BASENAME); // use forward slash as this is used on the web
                 
                 $result = move_uploaded_file($tmp_name, $dest);
                 

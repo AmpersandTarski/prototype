@@ -21,12 +21,12 @@ class InterfaceNullObject implements InterfaceObjectInterface
 {
     public function getSubinterface(string $ifcId, bool $skipAccessCheck = false): InterfaceObjectInterface
     {
-        /** @var \Pimple\Container $container */
-        global $container; // TODO: remove dependency on global $container var
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
         
         $ifc = InterfaceObjectFactory::getInterface($ifcId);
 
-        if (!$container['ampersand_app']->isAccessibleIfc($ifc) && !$skipAccessCheck) {
+        if (!$ampersandApp->isAccessibleIfc($ifc) && !$skipAccessCheck) {
             throw new Exception("Unauthorized to access interface {$ifc}", 403);
         }
 

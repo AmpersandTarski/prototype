@@ -12,7 +12,6 @@ use Ampersand\Core\Relation;
 use Ampersand\Core\Concept;
 use Ampersand\Interfacing\View;
 use Ampersand\Core\Atom;
-use Ampersand\Misc\Config;
 use function Ampersand\Misc\isSequential;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Interfacing\Options;
@@ -523,17 +522,16 @@ class InterfaceExprObject implements InterfaceObjectInterface
     
     /**
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
-     * TODO: move this code, or at least remove dependency to global $container var
      */
     protected function getNavInterfacesForTgt()
     {
-        /** @var \Pimple\Container $container */
-        global $container;
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
         $ifcs = [];
-        if ($this->isLinkTo && $container['ampersand_app']->isAccessibleIfc($refIfc = $this->getRefToIfc())) {
+        if ($this->isLinkTo && $ampersandApp->isAccessibleIfc($refIfc = $this->getRefToIfc())) {
             $ifcs[] = $refIfc;
         } else {
-            $ifcs = $container['ampersand_app']->getInterfacesToReadConcept($this->tgtConcept);
+            $ifcs = $ampersandApp->getInterfacesToReadConcept($this->tgtConcept);
         }
         
         return $ifcs;
