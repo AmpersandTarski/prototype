@@ -7,6 +7,11 @@
 
 namespace Ampersand\Interfacing;
 
+use Ampersand\Interfacing\InterfaceObjectFactory;
+use Ampersand\Interfacing\InterfaceObjectInterface;
+use Ampersand\Plugs\IfcPlugInterface;
+use Exception;
+
 /**
  *
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
@@ -40,10 +45,11 @@ class Ifc
      *
      * @var bool
      */
-    protected $isApi;
+    protected $isAPI;
 
     /**
-     * Roles that have access to this interface
+     * Roles that have access to this interface.
+     * Empty list implies public interface (i.e. for everyone)
      *
      * @var string[]
      */
@@ -58,9 +64,21 @@ class Ifc
 
     /**
      * Constructor
+     *
+     * @param string $id
+     * @param string $label
+     * @param bool $isAPI
+     * @param array $ifcRoleNames
+     * @param array $objectDef
+     * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
      */
-    public function __construct()
+    public function __construct(string $id, string $label, bool $isAPI, array $ifcRoleNames, array $objectDef, IfcPlugInterface $defaultPlug)
     {
+        $this->id = $id;
+        $this->label = $label;
+        $this->isAPI = $isAPI;
+        $this->ifcRoleNames = $ifcRoleNames;
+        $this->ifcObject = InterfaceObjectFactory::newObject($objectDef, $defaultPlug);
     }
 
     /**

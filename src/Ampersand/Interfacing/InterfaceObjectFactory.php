@@ -11,6 +11,8 @@ use Exception;
 use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\InterfaceNullObject;
+use Ampersand\Interfacing\InterfaceTxtObject;
+use Ampersand\Plugs\IfcPlugInterface;
 
 /**
  *
@@ -19,6 +21,21 @@ use Ampersand\Interfacing\InterfaceNullObject;
  */
 class InterfaceObjectFactory
 {
+    public static function newObject(array $objectDef, IfcPlugInterface $defaultPlug): InterfaceObjectInterface
+    {
+        switch ($objectDef['type']) {
+            case 'ObjExpression':
+                return new InterfaceExprObject($objectDef, $defaultPlug, null, true);
+                break;
+            case 'ObjText':
+                return new InterfaceTxtObject($objectDef, $defaultPlug, null, true);
+                break;
+            default:
+                throw new Exception("Unsupported/unknown InterfaceObject type specified: '{$objectDef['type']}' is not supported", 500);
+                break;
+        }
+    }
+    
     public static function getNullObject(): InterfaceObjectInterface
     {
         static $ifc = null;
