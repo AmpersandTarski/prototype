@@ -25,10 +25,10 @@ class InterfaceObjectFactory
     {
         switch ($objectDef['type']) {
             case 'ObjExpression':
-                return new InterfaceExprObject($objectDef, $defaultPlug, null, true);
+                return new InterfaceExprObject($objectDef, $defaultPlug, null);
                 break;
             case 'ObjText':
-                return new InterfaceTxtObject($objectDef, $defaultPlug, null, true);
+                return new InterfaceTxtObject($objectDef, $defaultPlug, null);
                 break;
             default:
                 throw new Exception("Unsupported/unknown InterfaceObject type specified: '{$objectDef['type']}' is not supported", 500);

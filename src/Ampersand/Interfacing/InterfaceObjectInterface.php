@@ -32,9 +32,7 @@ interface InterfaceObjectInterface
     public function getTargetConcept(): Concept;
     public function isProp(): bool;
 
-    public function isRoot(): bool;
     public function isLeaf(): bool;
-    public function isPublic(): bool;
 
     public function isIdent(): bool;
     public function isUni(): bool;

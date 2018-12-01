@@ -35,16 +35,14 @@ class InterfaceTxtObject extends InterfaceExprObject
      * @param array $ifcDef Interface object definition as provided by Ampersand generator
      * @param \Ampersand\Plugs\IfcPlugInterface $plug
      * @param string|null $pathEntry
-     * @param bool $rootIfc Specifies if this interface object is a toplevel interface (true) or subinterface (false)
      */
-    public function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null, bool $rootIfc = false)
+    public function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null)
     {
         if ($ifcDef['type'] != 'ObjText') {
             throw new Exception("Provided interface definition is not of type ObjText", 500);
         }
 
         $this->plug = $plug;
-        $this->isRoot = $rootIfc;
         
         // Set attributes from $ifcDef
         $this->id = $ifcDef['id'];
@@ -110,30 +108,12 @@ class InterfaceTxtObject extends InterfaceExprObject
     }
     
     /**
-     * Returns if interface object is a top level interface
-     * @return bool
-     */
-    public function isRoot(): bool
-    {
-        return $this->isRoot;
-    }
-    
-    /**
      * Returns if interface object is a leaf node
      * @return bool
      */
     public function isLeaf(): bool
     {
         return true;
-    }
-    
-    /**
-     * Returns if interface is a public interface (i.e. accessible every role, incl. no role)
-     * @return bool
-     */
-    public function isPublic(): bool
-    {
-        return empty($this->ifcRoleNames) && $this->isRoot();
     }
     
     /**
@@ -253,8 +233,6 @@ class InterfaceTxtObject extends InterfaceExprObject
             , 'relation' => 'n.a.'
             , 'flipped' => 'n.a.'
             , 'ref' => 'n.a.'
-            , 'root' => $this->isRoot()
-            , 'public' => $this->isPublic()
             , 'roles' => implode(',', $this->ifcRoleNames)
             ];
     }

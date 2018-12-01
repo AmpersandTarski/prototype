@@ -51,12 +51,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
     protected $label;
     
     /**
-     * Specifies if this interface object is a toplevel interface (true) or subinterface (false)
-     * @var boolean
-     */
-    protected $isRoot;
-    
-    /**
      * Roles that have access to this interface
      * Only applies to top level interface objects
      * @var string[]
@@ -180,16 +174,14 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * @param array $ifcDef Interface object definition as provided by Ampersand generator
      * @param \Ampersand\Plugs\IfcPlugInterface $plug
      * @param string|null $pathEntry
-     * @param bool $rootIfc Specifies if this interface object is a toplevel interface (true) or subinterface (false)
      */
-    public function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null, bool $rootIfc = false)
+    public function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null)
     {
         if ($ifcDef['type'] != 'ObjExpression') {
             throw new Exception("Provided interface definition is not of type ObjExpression", 500);
         }
 
         $this->plug = $plug;
-        $this->isRoot = $rootIfc;
         
         // Set attributes from $ifcDef
         $this->id = $ifcDef['id'];
@@ -341,30 +333,12 @@ class InterfaceExprObject implements InterfaceObjectInterface
     }
     
     /**
-     * Returns if interface object is a top level interface
-     * @return bool
-     */
-    public function isRoot(): bool
-    {
-        return $this->isRoot;
-    }
-    
-    /**
      * Returns if interface object is a leaf node
      * @return bool
      */
     public function isLeaf(): bool
     {
         return empty($this->getSubinterfaces());
-    }
-    
-    /**
-     * Returns if interface is a public interface (i.e. accessible every role, incl. no role)
-     * @return bool
-     */
-    public function isPublic(): bool
-    {
-        return empty($this->ifcRoleNames) && $this->isRoot();
     }
     
     /**
@@ -950,8 +924,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
             , 'relation' => $this->relation()->signature ?? ''
             , 'flipped' => $this->relationIsFlipped
             , 'ref' => $this->refInterfaceId
-            , 'root' => $this->isRoot()
-            , 'public' => $this->isPublic()
             , 'roles' => implode(',', $this->ifcRoleNames)
             ];
     }
