@@ -91,6 +91,21 @@ class Ifc
         return $this->id;
     }
 
+    public function getLabel(): string
+    {
+        return $this->label;
+    }
+
+    public function isPublic(): bool
+    {
+        return empty($this->ifcRoleNames);
+    }
+
+    public function getIfcObject(): InterfaceObjectInterface
+    {
+        return $this->ifcObject;
+    }
+
     /**********************************************************************************************
      * STATIC METHODS
     **********************************************************************************************/
@@ -151,12 +166,13 @@ class Ifc
     }
     
     /**
-     * Returns all toplevel interface objects that are public (i.e. not assigned to a role)
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
+     * Returns all interfaces that are public (i.e. not assigned to a role)
+     *
+     * @return \Ampersand\Interfacing\Ifc[]
      */
     public static function getPublicInterfaces(): array
     {
-        return array_values(array_filter(self::getAllInterfaces(), function ($ifc) {
+        return array_values(array_filter(self::getAllInterfaces(), function (Ifc $ifc) {
             return $ifc->isPublic();
         }));
     }

@@ -13,7 +13,6 @@ use Ampersand\Rule\Conjunct;
 use Ampersand\Session;
 use Ampersand\Core\Atom;
 use Exception;
-use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Core\Concept;
 use Ampersand\Role;
 use Ampersand\Rule\RuleEngine;
@@ -114,7 +113,7 @@ class AmpersandApp
     /**
      * List of accessible interfaces for the user of this Ampersand application
      *
-     * @var \Ampersand\Interfacing\InterfaceObjectInterface[] $accessibleInterfaces
+     * @var \Ampersand\Interfacing\Ifc[]
      */
     protected $accessibleInterfaces = [];
     
@@ -333,7 +332,7 @@ class AmpersandApp
     /**
      * Get list of accessible interfaces for the user of this Ampersand application
      *
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
+     * @return \Ampersand\Interfacing\Ifc[]
      */
     public function getAccessibleInterfaces()
     {
@@ -596,15 +595,17 @@ class AmpersandApp
 
     /**
      * Get interfaces that are accessible in the current session to 'Read' a certain concept
+     *
      * @param \Ampersand\Core\Concept $cpt
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
+     * @return \Ampersand\Interfacing\Ifc[]
      */
     public function getInterfacesToReadConcept(Concept $cpt)
     {
-        return array_filter($this->accessibleInterfaces, function ($ifc) use ($cpt) {
-            return $ifc->srcConcept->hasSpecialization($cpt, true)
-                    && $ifc->crudR()
-                    && (!$ifc->crudC() or ($ifc->crudU() or $ifc->crudD())); // exclude CRud pattern
+        return array_filter($this->accessibleInterfaces, function (Ifc $ifc) use ($cpt) {
+            $ifcObj = $ifc->getIfcObject();
+            return $ifcObj->srcConcept->hasSpecialization($cpt, true)
+                    && $ifcObj->crudR()
+                    && (!$ifcObj->crudC() or ($ifcObj->crudU() or $ifcObj->crudD())); // exclude CRud pattern
         });
     }
 
@@ -615,17 +616,18 @@ class AmpersandApp
      */
     public function isEditableConcept(Concept $concept)
     {
-        return array_reduce($this->accessibleInterfaces, function ($carry, $ifc) use ($concept) {
-            return ($carry || in_array($concept, $ifc->getEditableConcepts()));
+        return array_reduce($this->accessibleInterfaces, function ($carry, Ifc $ifc) use ($concept) {
+            $ifcObj = $ifc->getIfcObject();
+            return ($carry || in_array($concept, $ifcObj->getEditableConcepts()));
         }, false);
     }
     
     /**
      * Determine if provided interface is accessible in the current session
-     * @param \Ampersand\Interfacing\InterfaceObjectInterface $ifc
+     * @param \Ampersand\Interfacing\Ifc $ifc
      * @return boolean
      */
-    public function isAccessibleIfc(InterfaceObjectInterface $ifc)
+    public function isAccessibleIfc(Ifc $ifc)
     {
         return in_array($ifc, $this->accessibleInterfaces, true);
     }

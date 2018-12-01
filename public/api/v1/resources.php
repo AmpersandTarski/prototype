@@ -75,7 +75,8 @@ $api->group('/resource', function () {
 
         $allowed = false;
         foreach ($ampersandApp->getAccessibleInterfaces() as $ifc) {
-            if ($ifc->isRoot() && $ifc->crudC() && $ifc->tgtConcept == $resource->concept) {
+            $ifcObj = $ifc->getIfcObject();
+            if ($ifcObj->isRoot() && $ifcObj->crudC() && $ifcObj->tgtConcept == $resource->concept) {
                 $allowed = true;
                 break;
             }

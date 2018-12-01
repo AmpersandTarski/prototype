@@ -9,8 +9,8 @@ namespace Ampersand;
 
 use Exception;
 use Psr\Log\LoggerInterface;
-use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\AmpersandApp;
+use Ampersand\Interfacing\Ifc;
 
 /**
  *
@@ -121,10 +121,11 @@ class AngularApp
             // Items in menu to create new resources (indicated with + sign)
             case 'new':
                 // Filter interfaces that are capable to create new Resources
-                $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (InterfaceObjectInterface $ifc) {
+                $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (Ifc $ifc) {
+                    $ifcObj = $ifc->getIfcObject();
                     // crudC, otherwise the atom cannot be created
                     // isIdent (interface expr = I[Concept]), because otherwise a src atom is necesarry, which we don't have wiht +-menu
-                    if ($ifc->crudC() && $ifc->isIdent()) {
+                    if ($ifcObj->crudC() && $ifcObj->isIdent()) {
                         return true;
                     } else {
                         return false;
@@ -134,16 +135,18 @@ class AngularApp
                 // Prepare output and group by type
                 $result = [];
                 foreach ($interfaces as $ifc) {
-                    /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifc */
-                    $type = $ifc->getTargetConcept()->name; // or sort by classification tree: $sort = $ifc->getTargetConcept()->getLargestConcept()->name;
+                    /** @var \Ampersand\Interfacing\Ifc $ifc */
+
+                    $ifcObj = $ifc->getIfcObject();
+                    $type = $ifcObj->getTargetConcept()->name; // or sort by classification tree: $sort = $ifcObj->getTargetConcept()->getLargestConcept()->name;
 
                     if (!isset($result[$type])) {
-                        $result[$type] = ['label' => "New {$ifc->getTargetConcept()->label}", 'ifcs' => []];
+                        $result[$type] = ['label' => "New {$ifcObj->getTargetConcept()->label}", 'ifcs' => []];
                     }
 
-                    $result[$type]['ifcs'][] = ['id' => $ifc->getIfcId()
-                                               ,'label' => $ifc->getIfcLabel()
-                                               ,'link' => '/' . $ifc->getIfcId()
+                    $result[$type]['ifcs'][] = ['id' => $ifc->getId()
+                                               ,'label' => $ifc->getLabel()
+                                               ,'link' => '/' . $ifc->getId()
                                                ,'resourceType' => $type
                                                ];
                 }
@@ -151,18 +154,19 @@ class AngularApp
 
             // Top level items in menu bar
             case 'top':
-                $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (InterfaceObjectInterface $ifc) {
-                    if ($ifc->getSourceConcept()->isSession() && $ifc->crudR()) {
+                $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (Ifc $ifc) {
+                    $ifcObj = $ifc->getIfcObject();
+                    if ($ifcObj->getSourceConcept()->isSession() && $ifcObj->crudR()) {
                         return true;
                     } else {
                         return false;
                     }
                 });
 
-                return array_map(function (InterfaceObjectInterface $ifc) {
-                    return [ 'id' => $ifc->getIfcId()
-                           , 'label' => $ifc->getIfcLabel()
-                           , 'link' => '/' . $ifc->getIfcId()
+                return array_map(function (Ifc $ifc) {
+                    return [ 'id' => $ifc->getId()
+                           , 'label' => $ifc->getLabel()
+                           , 'link' => '/' . $ifc->getId()
                            ];
                 }, $interfaces);
                 

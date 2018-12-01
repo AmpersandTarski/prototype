@@ -521,7 +521,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
     }
     
     /**
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
+     * @return \Ampersand\Interfacing\Ifc[]
      */
     protected function getNavInterfacesForTgt()
     {
@@ -648,8 +648,8 @@ class InterfaceExprObject implements InterfaceObjectInterface
         
         // Interface(s) to navigate to for this resource
         if (($options & Options::INCLUDE_NAV_IFCS)) {
-            $content['_ifcs_'] = array_map(function (InterfaceObjectInterface $o) {
-                return ['id' => $o->getIfcId(), 'label' => $o->getIfcLabel()];
+            $content['_ifcs_'] = array_map(function (Ifc $o) {
+                return ['id' => $o->getId(), 'label' => $o->getLabel()];
             }, $this->getNavInterfacesForTgt());
         }
         
