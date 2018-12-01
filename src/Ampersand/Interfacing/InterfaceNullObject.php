@@ -30,7 +30,7 @@ class InterfaceNullObject implements InterfaceObjectInterface
             throw new Exception("Unauthorized to access interface {$ifc}", 403);
         }
 
-        return $ifc;
+        return $ifc->getIfcObject();
     }
 
     public function getViewData(Atom $tgtAtom): array

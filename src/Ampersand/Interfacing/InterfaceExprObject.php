@@ -327,13 +327,14 @@ class InterfaceExprObject implements InterfaceObjectInterface
     
     /**
      * Returns referenced interface object
+     *
      * @throws Exception when $this is not a reference interface
-     * @return InterfaceObjectInterface
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    protected function getRefToIfc()
+    protected function getRefToIfc(): InterfaceObjectInterface
     {
         if ($this->isRef()) {
-            return Ifc::getInterface($this->refInterfaceId);
+            return Ifc::getInterface($this->refInterfaceId)->getIfcObject();
         } else {
             throw new Exception("Interface is not a reference interface: " . $this->getPath(), 500);
         }

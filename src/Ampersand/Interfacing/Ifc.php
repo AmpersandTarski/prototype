@@ -123,9 +123,9 @@ class Ifc
      * Returns toplevel interface object
      * @param string $ifcId
      * @throws \Exception when interface does not exist
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface
+     * @return \Ampersand\Interfacing\Ifc
      */
-    public static function getInterface(string $ifcId): InterfaceObjectInterface
+    public static function getInterface(string $ifcId): Ifc
     {
         if (!array_key_exists($ifcId, $interfaces = self::getAllInterfaces())) {
             throw new Exception("Interface '{$ifcId}' is not defined", 500);
@@ -139,12 +139,12 @@ class Ifc
      *
      * @param string $ifcLabel
      * @throws \Exception when interface does not exist
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface
+     * @return \Ampersand\Interfacing\Ifc
      */
-    public static function getInterfaceByLabel(string $ifcLabel): InterfaceObjectInterface
+    public static function getInterfaceByLabel(string $ifcLabel): Ifc
     {
         foreach (self::getAllInterfaces() as $interface) {
-            if ($interface->getIfcLabel() == $ifcLabel) {
+            if ($interface->getLabel === $ifcLabel) {
                 return $interface;
             }
         }
@@ -153,8 +153,9 @@ class Ifc
     }
     
     /**
-     * Returns all toplevel interface objects
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
+     * Returns all interfaces
+     *
+     * @return \Ampersand\Interfacing\Ifc[]
      */
     public static function getAllInterfaces(): array
     {
@@ -178,7 +179,7 @@ class Ifc
     }
     
     /**
-     * Import all interface object definitions from json file and instantiate InterfaceObjectInterface objects
+     * Import all interface object definitions from json file and instantiate interfaces
      *
      * @param string $fileName containing the Ampersand interface definitions
      * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug

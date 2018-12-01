@@ -56,7 +56,7 @@ class ExcelImporter
                 $this->parseWorksheet($worksheet); // Older two-header-row format
                 continue;
             }
-            $this->parseWorksheetWithIfc($worksheet, $ifc);
+            $this->parseWorksheetWithIfc($worksheet, $ifc->getIfcObject());
         }
         
         $this->logger->info("Excel import completed");
