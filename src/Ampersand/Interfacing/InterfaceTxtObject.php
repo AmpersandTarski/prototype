@@ -86,7 +86,7 @@ class InterfaceTxtObject extends InterfaceExprObject
      */
     public function isEditable(): bool
     {
-        throw new Exception("N.a. for InterfaceTxtObject", 500);
+        return false;
     }
     
     /**
@@ -96,15 +96,6 @@ class InterfaceTxtObject extends InterfaceExprObject
     public function getEditableConcepts()
     {
         return [];
-    }
-
-    /**
-     * Returns if interface expression relation is a property
-     * @return bool
-     */
-    public function isProp(): bool
-    {
-        return false;
     }
     
     /**

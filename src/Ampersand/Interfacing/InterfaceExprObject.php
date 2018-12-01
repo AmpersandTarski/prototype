@@ -303,7 +303,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * Returns if interface expression relation is a property
      * @return bool
      */
-    public function isProp(): bool
+    protected function isProp(): bool
     {
         return is_null($this->relation) ? false : ($this->relation->isProp && !$this->isIdent());
     }
@@ -926,5 +926,50 @@ class InterfaceExprObject implements InterfaceObjectInterface
             , 'ref' => $this->refInterfaceId
             , 'roles' => implode(',', $this->ifcRoleNames)
             ];
+    }
+
+    public function diagnostics(): array
+    {
+        $diagnostics = [];
+
+        if ($this->crudU() && !$this->isEditable()) {
+            $diagnostics[] = [ 'interface' => $this->getPath()
+                             , 'message' => "Update rights (crUd) specified while interface expression is not an editable relation!"
+                             ];
+        }
+
+        if ($this->crudC() && !$this->tgtConcept->isObject()) {
+            $diagnostics[] = [ 'interface' => $this->getPath()
+                             , 'message' => "Create rights (Crud) specified while target concept is a scalar. This has no affect!"
+                             ];
+        }
+
+        if ($this->crudD() && !$this->tgtConcept->isObject()) {
+            $diagnostics[] = [ 'interface' => $this->getPath()
+                             , 'message' => "Delete rights (cruD) specified while target concept is a scalar. This has no affect!"
+                             ];
+        }
+
+        if (!$this->crudR()) {
+            $diagnostics[] = [ 'interface' => $this->getPath()
+                             , 'message' => "No read rights specified. Are you sure?"
+                             ];
+        }
+
+        // Check for unsupported patchReplace functionality due to missing 'old value'. Related with issue #318. TODO: still needed??
+        if ($this->isEditable() && $this->crudU() && !$this->tgtConcept->isObject() && $this->isUni()) {
+            // Only applies to editable relations
+            // Only applies to crudU, because issue is with patchReplace, not with add/remove
+            // Only applies to scalar, because objects don't use patchReplace, but Remove and Add
+            // Only if interface expression (not! the relation) is univalent, because else a add/remove option is used in the UI
+            if ((!$this->relationIsFlipped && $this->relation()->getMysqlTable()->tableOf === 'tgt')
+                    || ($this->relationIsFlipped && $this->relation()->getMysqlTable()->tableOf === 'src')) {
+                $diagnostics[] = [ 'interface' => $this->getPath()
+                                 , 'message' => "Unsupported edit functionality due to combination of factors. See issue #318"
+                                 ];
+            }
+        }
+
+        return $diagnostics;
     }
 }

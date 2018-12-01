@@ -115,43 +115,8 @@ class Reporter
         foreach (Ifc::getAllInterfaces() as $key => $interface) {
             /** @var \Ampersand\Interfacing\Ifc $interface */
             foreach ($interface->getIfcObject()->getInterfaceFlattened() as $ifcObj) {
-                if ($ifcObj->crudU() && !$ifcObj->isEditable()) {
-                    $content[] = [ 'interface' => $ifcObj->getPath()
-                                 , 'message' => "Update rights (crUd) specified while interface expression is not an editable relation!"
-                                 ];
-                }
-
-                if ($ifcObj->crudC() && !$ifcObj->tgtConcept->isObject()) {
-                    $content[] = [ 'interface' => $ifcObj->getPath()
-                                 , 'message' => "Create rights (Crud) specified while target concept is a scalar. This has no affect!"
-                                 ];
-                }
-
-                if ($ifcObj->crudD() && !$ifcObj->tgtConcept->isObject()) {
-                    $content[] = [ 'interface' => $ifcObj->getPath()
-                                 , 'message' => "Delete rights (cruD) specified while target concept is a scalar. This has no affect!"
-                                 ];
-                }
-
-                if (!$ifcObj->crudR()) {
-                    $content[] = [ 'interface' => $ifcObj->getPath()
-                                 , 'message' => "No read rights specified. Are you sure?"
-                                 ];
-                }
-                
-                // Check for unsupported patchReplace functionality due to missing 'old value'. Related with issue #318. TODO: still needed??
-                if ($ifcObj->isEditable() && $ifcObj->crudU() && !$ifcObj->tgtConcept->isObject() && $ifcObj->isUni()) {
-                    // Only applies to editable relations
-                    // Only applies to crudU, because issue is with patchReplace, not with add/remove
-                    // Only applies to scalar, because objects don't use patchReplace, but Remove and Add
-                    // Only if interface expression (not! the relation) is univalent, because else a add/remove option is used in the UI
-                    if ((!$ifcObj->relationIsFlipped && $ifcObj->relation()->getMysqlTable()->tableOf === 'tgt')
-                            || ($ifcObj->relationIsFlipped && $ifcObj->relation()->getMysqlTable()->tableOf === 'src')) {
-                        $content[] = [ 'interface' => $ifcObj->getPath()
-                                     , 'message' => "Unsupported edit functionality due to combination of factors. See issue #318"
-                                     ];
-                    }
-                }
+                /** @var InterfaceObjectInterface $ifcObj */
+                $content = array_merge($content, $ifcObj->diagnostics());
             }
         }
 

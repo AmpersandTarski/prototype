@@ -25,12 +25,10 @@ interface InterfaceObjectInterface
     public function getIfcId(): string;
     public function getIfcLabel(): string;
 
-    public function relation(): Relation;
     public function isEditable(): bool;
     public function getEditableConcepts();
     public function getSourceConcept(): Concept;
     public function getTargetConcept(): Concept;
-    public function isProp(): bool;
 
     public function isLeaf(): bool;
 
@@ -61,6 +59,7 @@ interface InterfaceObjectInterface
     public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface;
     public function getInterfaceFlattened();
     public function getTechDetails(): array;
+    public function diagnostics(): array;
 
     public function getViewData(Atom $tgtAtom): array;
 
