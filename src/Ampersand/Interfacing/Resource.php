@@ -16,7 +16,6 @@ use Ampersand\Log\Logger;
 use function Ampersand\Misc\isSequential;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceTxtObject;
-use Ampersand\Interfacing\InterfaceObjectFactory;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\ResourcePath;
 

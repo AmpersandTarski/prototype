@@ -13,7 +13,7 @@ use PHPExcel_IOFactory;
 use PHPExcel_Worksheet;
 use PHPExcel_Worksheet_Row;
 use Psr\Log\LoggerInterface;
-use Ampersand\Interfacing\InterfaceObjectFactory;
+use Ampersand\Interfacing\Ifc;
 
 class ExcelImporter
 {
@@ -50,7 +50,7 @@ class ExcelImporter
             /** @var \PHPExcel_Worksheet $worksheet */
             try {
                 // First check if there is an interface with the same id as the worksheet
-                $ifc = InterfaceObjectFactory::getInterfaceByLabel($worksheet->getTitle());
+                $ifc = Ifc::getInterfaceByLabel($worksheet->getTitle());
             } catch (Exception $e) {
                 $this->logger->warning("No interface found with name as title of worksheet '{$worksheet->getTitle()}'. Parsing file without interface");
                 $this->parseWorksheet($worksheet); // Older two-header-row format

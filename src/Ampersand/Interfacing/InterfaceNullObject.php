@@ -10,7 +10,7 @@ namespace Ampersand\Interfacing;
 use Ampersand\Core\Atom;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
-use Ampersand\Interfacing\InterfaceObjectFactory;
+use Ampersand\Interfacing\Ifc;
 
 /**
  *
@@ -24,7 +24,7 @@ class InterfaceNullObject implements InterfaceObjectInterface
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
         
-        $ifc = InterfaceObjectFactory::getInterface($ifcId);
+        $ifc = Ifc::getInterface($ifcId);
 
         if (!$ampersandApp->isAccessibleIfc($ifc) && !$skipAccessCheck) {
             throw new Exception("Unauthorized to access interface {$ifc}", 403);

@@ -15,7 +15,7 @@ use Ampersand\Core\Atom;
 use function Ampersand\Misc\isSequential;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Interfacing\Options;
-use Ampersand\Interfacing\InterfaceObjectFactory;
+use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 
@@ -333,7 +333,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
     protected function getRefToIfc()
     {
         if ($this->isRef()) {
-            return InterfaceObjectFactory::getInterface($this->refInterfaceId);
+            return Ifc::getInterface($this->refInterfaceId);
         } else {
             throw new Exception("Interface is not a reference interface: " . $this->getPath(), 500);
         }

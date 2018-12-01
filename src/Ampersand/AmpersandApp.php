@@ -27,7 +27,7 @@ use Closure;
 use Ampersand\Rule\ExecEngine;
 use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\IO\JSONReader;
-use Ampersand\Interfacing\InterfaceObjectFactory;
+use Ampersand\Interfacing\Ifc;
 
 class AmpersandApp
 {
@@ -191,7 +191,7 @@ class AmpersandApp
             View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
             Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
             Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'), $this);
-            InterfaceObjectFactory::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage);
+            Ifc::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage);
             Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, $this, Logger::getLogger('RULEENGINE'));
             Role::setAllRoles($genericsFolder . 'roles.json');
 
@@ -282,7 +282,7 @@ class AmpersandApp
     protected function setInterfacesAndRules()
     {
         // Add public interfaces
-        $this->accessibleInterfaces = InterfaceObjectFactory::getPublicInterfaces();
+        $this->accessibleInterfaces = Ifc::getPublicInterfaces();
 
         // Add interfaces and rules for all active session roles
         foreach ($this->getActiveRoles() as $roleAtom) {
