@@ -55,7 +55,7 @@ gulp.task('build-lib', function (done) {
         // library fonts
         .pipe(filterFonts)
         .pipe(flatten())
-        .pipe(gulp.dest('public/app/dist/fonts'))
+        .pipe(gulp.dest('public/app/fonts'))
         .pipe(filterFonts.restore)
     done()
 })
