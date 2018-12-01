@@ -1,0 +1,11 @@
+# Ampersand Prototype Framework project specific settings
+# This file contains a list of all settings that overwrite the default settings
+# This file is automatically loaded when located at '/config/project.yaml'
+# See defaultSettings.yaml for list of all possible settings
+
+settings:
+
+extensions:
+  # ExtensionXYZ
+    # bootstrap:
+    # config:

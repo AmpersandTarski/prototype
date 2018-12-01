@@ -11,12 +11,11 @@ use Exception;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
-use Ampersand\Transaction;
-use Ampersand\Misc\Config;
 use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\InterfaceObjectFactory;
+use Ampersand\Misc\Settings;
 
 /**
  * Class of session objects
@@ -30,6 +29,20 @@ class Session
      * @var \Psr\Log\LoggerInterface
      */
     private $logger;
+
+    /**
+     * Reference to Ampersand app for which this session is defined
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $ampersandApp;
+
+    /**
+     * Reference to Ampersand app settings object
+     *
+     * @var \Ampersand\Misc\Settings
+     */
+    protected $settings;
     
     /**
      * @var string $id session identifier
@@ -54,10 +67,13 @@ class Session
      * Constructor of Session class
      *
      * @param \Psr\Log\LoggerInterface $logger
+     * @param \Ampersand\AmpersandApp $app
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger, AmpersandApp $app)
     {
         $this->logger = $logger;
+        $this->ampersandApp = $app;
+        $this->settings = $app->getSettings(); // shortcut to settings object
        
         $this->setId();
         $this->initSessionAtom();
@@ -81,6 +97,7 @@ class Session
 
     public function reset()
     {
+        $this->logger->debug("Reset session {$this->id}");
         $this->sessionAtom->delete(); // Delete Ampersand representation of session
         session_regenerate_id(); // Create new php session identifier
         $this->setId();
@@ -98,33 +115,29 @@ class Session
 
             // If login functionality is not enabled, add all defined roles as allowed roles
             // TODO: can be removed when meat-grinder populates this meta-relation by itself
-            if (!Config::get('loginEnabled')) {
+            if (!$this->settings->get('login.enabled')) {
                 foreach (Role::getAllRoles() as $role) {
-                    $this->sessionAtom->link(Concept::makeRoleAtom($role->label), 'sessionAllowedRoles[SESSION*Role]')->add();
+                    $roleAtom = Concept::makeRoleAtom($role->label);
+                    $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*Role]')->add();
+                    // Activate all allowed roles by default
+                    $this->toggleActiveRole($roleAtom, true);
                 }
             }
-
-            // Activate all allowed roles by default
-            foreach ($this->getSessionAllowedRoles() as $atom) {
-                $this->toggleActiveRole($atom, true);
-            }
         } else {
-            $experationTimeStamp = time() - Config::get('sessionExpirationTime');
-            $lastAccessTime = $this->sessionAtom->getLinks('lastAccess[SESSION*DateTime]'); // lastAccess is UNI, therefore we expect max one DateTime from getLinks()
-            
-            // strtotime() returns Unix timestamp of lastAccessTime (in UTC). time() does also. Those can be compared
-            if (count($lastAccessTime) && strtotime(current($lastAccessTime)->tgt()->getLabel()) < $experationTimeStamp) {
+            if (isset($_SESSION['lastAccess']) && (time() - $_SESSION['lastAccess'] > $this->settings->get('session.expirationTime'))) {
                 $this->logger->debug("Session expired");
-                // if(Config::get('loginEnabled')) \Ampersand\Log\Logger::getUserLogger()->warning("Your session has expired, please login again");
+                $this->ampersandApp->userLog()->warning("Your session has expired");
                 $this->reset();
                 return;
             }
         }
         
-        // Set lastAccess time
-        $this->sessionAtom->link(date(DATE_ATOM), 'lastAccess[SESSION*DateTime]', false)->add();
-        
-        Transaction::getCurrentTransaction()->runExecEngine()->close();
+        // Update session variable. This is needed because windows platform doesn't seem to update the read time of the session file
+        // which will cause a php session timeout after the default timeout of (24min), regardless of user activity. By updating the
+        // session file (updating 'lastAccess' variable) we ensure the the session file timestamps are updated on every request.
+        $_SESSION['lastAccess'] = time();
+        // Update lastAccess time also in plug/database to allow to use this aspect in Ampersand models
+        $this->sessionAtom->link(date(DATE_ATOM, $_SESSION['lastAccess']), 'lastAccess[SESSION*DateTime]', false)->add();
     }
 
     /**
@@ -209,7 +222,7 @@ class Session
     {
         $this->logger->debug("Getting sessionAccount");
 
-        if (!Config::get('loginEnabled')) {
+        if (!$this->settings->get('login.enabled')) {
             $this->logger->debug("No session account, because login functionality is not enabled");
             return false;
         } else {
@@ -255,7 +268,7 @@ class Session
      */
     public function sessionUserLoggedIn()
     {
-        if (!Config::get('loginEnabled')) {
+        if (!$this->settings->get('login.enabled')) {
             return false;
         } elseif ($this->getSessionAccount() !== false) {
             return true;
@@ -291,7 +304,7 @@ class Session
      
     public static function deleteExpiredSessions()
     {
-        $experationTimeStamp = time() - Config::get('sessionExpirationTime');
+        $experationTimeStamp = time() - $this->settings->get('session.expirationTime');
         
         $links = Relation::getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
         foreach ($links as $link) {
@@ -299,6 +312,5 @@ class Session
                 $link->src()->delete();
             }
         }
-        Transaction::getCurrentTransaction()->runExecEngine()->close();
     }
 }

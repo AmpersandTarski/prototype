@@ -2,10 +2,13 @@
 
 namespace Ampersand;
 
-use Ampersand\Misc\Config;
+use Ampersand\Misc\Settings;
 use Ampersand\IO\Importer;
+use Ampersand\Model;
 use Ampersand\Transaction;
 use Ampersand\Plugs\StorageInterface;
+use Ampersand\Plugs\ConceptPlugInterface;
+use Ampersand\Plugs\RelationPlugInterface;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Session;
 use Ampersand\Core\Atom;
@@ -14,35 +17,20 @@ use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Core\Concept;
 use Ampersand\Role;
 use Ampersand\Rule\RuleEngine;
-use Ampersand\Log\Notifications;
-use Ampersand\IO\JSONReader;
 use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
-use Pimple\Container;
+use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\View;
 use Ampersand\Rule\Rule;
 use Closure;
 use Ampersand\Rule\ExecEngine;
-use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
-use Ampersand\Misc\Generics;
+use Psr\Cache\CacheItemPoolInterface;
+use Ampersand\IO\JSONReader;
 use Ampersand\Interfacing\InterfaceObjectFactory;
 
 class AmpersandApp
 {
-    /**
-     * Specifies the required version of the localsettings file that
-     * @const float
-     */
-    const REQ_LOCALSETTINGS_VERSION = 1.6;
-
-    /**
-     * Dependency injection container
-     *
-     * @var \Pimple\Container
-     */
-    protected $container;
-
     /**
      * Logger
      *
@@ -51,17 +39,62 @@ class AmpersandApp
     protected $logger;
 
     /**
+     * User logger (i.e. logs are returned to user)
+     *
+     * @var \Ampersand\Log\UserLogger
+     */
+    protected $userLogger;
+
+    /**
+     * Ampersand application name (i.e. CONTEXT of ADL entry script)
+     *
+     * @var string
+     */
+    protected $name;
+
+    /**
      * Reference to generated Ampersand model
      *
-     * @var \Ampersand\Misc\Generics
+     * @var \Ampersand\Model
      */
     protected $model;
+
+    /**
+     * Settings object
+     *
+     * @var \Ampersand\Misc\Settings
+     */
+    protected $settings;
 
     /**
      * List with storages that are registered for this application
      * @var \Ampersand\Plugs\StorageInterface[]
      */
     protected $storages = [];
+
+    /**
+     * Default storage plug
+     * @var \Ampersand\Plugs\StorageInterface
+     */
+    protected $defaultStorage = null;
+
+    /**
+     * Cache implementation for conjunct violation cache
+     * @var \Psr\Cache\CacheItemPoolInterface
+     */
+    protected $conjunctCache = null;
+
+    /**
+     * List of custom plugs for concepts
+     * @var ['conceptLabel' => \Ampersand\Plugs\ConceptPlugInterface[]]
+     */
+    protected $customConceptPlugs = [];
+
+    /**
+     * List of custom plugs for relations
+     * @var ['relationSignature' => \Ampersand\Plugs\RelationPlugInterface[]]
+     */
+    protected $customRelationPlugs = [];
 
     /**
      * List with anonymous functions (closures) to be executed during initialization
@@ -91,75 +124,106 @@ class AmpersandApp
      * @var \Ampersand\Rule\Rule[] $rulesToMaintain
      */
     protected $rulesToMaintain = []; // rules that are maintained by active roles
+
+    /**
+     * List of all transactions (open and closed)
+     *
+     * @var \Ampersand\Transaction[]
+     */
+    protected $transactions = [];
     
     /**
      * Constructor
      *
+     * @param \Ampersand\Model $model
+     * @param \Ampersand\Misc\Settings $settings
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Container $container, LoggerInterface $logger)
+    public function __construct(Model $model, Settings $settings, LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->container = $container;
-        $this->model = new Generics(Config::get('pathToGeneratedFiles'), $logger);
+        $this->userLogger = new UserLogger($logger);
+        $this->model = $model;
+        $this->settings = $settings;
+
+        // Set app name
+        $this->name = $this->settings->get('contextName');
+    }
+
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    public function userLog(): UserLogger
+    {
+        return $this->userLogger;
     }
 
     public function init()
     {
-        $this->logger->info('Initialize Ampersand application');
+        try {
+            $this->logger->info('Initialize Ampersand application');
 
-        $defaultPlug = $this->container['default_plug'];
-        $conjunctCache = $this->container['conjunctCachePool'] ?? new MysqlConjunctCache($defaultPlug);
-
-        if (!$this->model->verifyChecksum() && !Config::get('productionEnv')) {
-            Logger::getUserLogger()->warning("Generated model is changed. You SHOULD reinstall your application");
-        }
-
-        // Instantiate object definitions from generated files
-        $genericsFolder = $this->model->getFolder() . '/';
-        Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULE'), $defaultPlug, $conjunctCache);
-        View::setAllViews($genericsFolder . 'views.json', $defaultPlug);
-        Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'));
-        Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'));
-        InterfaceObjectFactory::setAllInterfaces($genericsFolder . 'interfaces.json', $defaultPlug);
-        Rule::setAllRules($genericsFolder . 'rules.json', $defaultPlug, Logger::getLogger('RULE'));
-        Role::setAllRoles($genericsFolder . 'roles.json');
-
-        // Add concept plugs
-        $conceptPlugList = $this->container['conceptPlugs'] ?? [];
-        foreach (Concept::getAllConcepts() as $cpt) {
-            if (array_key_exists($cpt->label, $conceptPlugList)) {
-                foreach ($conceptPlugList[$cpt->label] as $plug) {
-                    $cpt->addPlug($plug);
-                    $this->registerStorage($plug);
-                }
-            } else {
-                $cpt->addPlug($defaultPlug);
-                $this->registerStorage($defaultPlug);
+            // Check checksum
+            if (!$this->model->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
+                $this->userLogger->warning("Generated model is changed. You SHOULD reinstall your application");
             }
-        }
 
-        // Add relation plugs
-        $relationPlugList = $this->container['relationPlugs'] ?? [];
-        foreach (Relation::getAllRelations() as $rel) {
-            if (array_key_exists($rel->signature, $relationPlugList)) {
-                foreach ($relationPlugList[$rel->signature] as $plug) {
-                    $rel->addPlug($plug);
-                    $this->registerStorage($plug);
-                }
-            } else {
-                $rel->addPlug($defaultPlug);
-                $this->registerStorage($defaultPlug);
+            // Check for default storage plug
+            if (!in_array($this->defaultStorage, $this->storages)) {
+                throw new Exception("No default storage plug registered", 500);
             }
-        }
 
-        // Run registered initialization closures
-        foreach ($this->initClosures as $closure) {
-            $closure->call($this);
-        }
+            // Check for conjunct cache
+            if (is_null($this->conjunctCache)) {
+                throw new Exception("No conjunct cache implementaion registered", 500);
+            }
 
-        // Initiate session
-        $this->setSession();
+            // Initialize storage plugs
+            foreach ($this->storages as $storagePlug) {
+                $storagePlug->init();
+            }
+
+            // Instantiate object definitions from generated files
+            $genericsFolder = $this->model->getFolder() . '/';
+            Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULEENGINE'), $this, $this->defaultStorage, $this->conjunctCache);
+            View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
+            Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
+            Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'), $this);
+            InterfaceObjectFactory::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage);
+            Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, $this, Logger::getLogger('RULEENGINE'));
+            Role::setAllRoles($genericsFolder . 'roles.json');
+
+            // Add concept plugs
+            foreach (Concept::getAllConcepts() as $cpt) {
+                if (array_key_exists($cpt->label, $this->customConceptPlugs)) {
+                    foreach ($this->customConceptPlugs[$cpt->label] as $plug) {
+                        $cpt->addPlug($plug);
+                    }
+                } else {
+                    $cpt->addPlug($this->defaultStorage);
+                }
+            }
+
+            // Add relation plugs
+            foreach (Relation::getAllRelations() as $rel) {
+                if (array_key_exists($rel->signature, $this->customRelationPlugs)) {
+                    foreach ($this->customRelationPlugs[$rel->signature] as $plug) {
+                        $rel->addPlug($plug);
+                    }
+                } else {
+                    $rel->addPlug($this->defaultStorage);
+                }
+            }
+
+            // Run registered initialization closures
+            foreach ($this->initClosures as $closure) {
+                $closure->call($this);
+            }
+        } catch (\Ampersand\Exception\NotInstalledException $e) {
+            throw $e;
+        }
     }
 
     /**
@@ -181,9 +245,35 @@ class AmpersandApp
         }
     }
 
-    protected function setSession()
+    public function registerCustomConceptPlug(string $conceptLabel, ConceptPlugInterface $plug)
     {
-        $this->session = new Session(Logger::getLogger('SESSION'));
+        $this->customConceptPlugs[$conceptLabel][] = $plug;
+        $this->registerStorage($plug);
+    }
+
+    public function registerCustomRelationPlug(string $relSignature, RelationPlugInterface $plug)
+    {
+        $this->customRelationPlugs[$relSignature][] = $plug;
+        $this->registerStorage($plug);
+    }
+
+    public function setDefaultStorage(StorageInterface $storage)
+    {
+        $this->defaultStorage = $storage;
+        $this->registerStorage($storage);
+    }
+
+    public function setConjunctCache(CacheItemPoolInterface $cache)
+    {
+        $this->conjunctCache = $cache;
+    }
+
+    public function setSession()
+    {
+        $this->session = new Session($this->logger, $this);
+
+        // Run exec engine and close transaction
+        $this->getCurrentTransaction()->runExecEngine()->close();
 
         // Set accessible interfaces and rules to maintain
         $this->setInterfacesAndRules();
@@ -223,11 +313,21 @@ class AmpersandApp
     /**
      * Get Ampersand model for this application
      *
-     * @return \Ampersand\Misc\Generics
+     * @return \Ampersand\Model
      */
-    public function getModel(): Generics
+    public function getModel(): Model
     {
         return $this->model;
+    }
+
+    /**
+     * Get settings object for this application
+     *
+     * @return \Ampersand\Misc\Settings
+     */
+    public function getSettings(): Settings
+    {
+        return $this->settings;
     }
 
     /**
@@ -250,6 +350,50 @@ class AmpersandApp
         return $this->rulesToMaintain;
     }
 
+    /**********************************************************************************************
+     * TRANSACTIONS
+     **********************************************************************************************/
+    /**
+     * Open new transaction.
+     * Note! Make sure that a open transaction is closed first
+     *
+     * @return \Ampersand\Transaction
+     */
+    public function newTransaction(): Transaction
+    {
+        return $this->transactions[] = new Transaction($this, Logger::getLogger('TRANSACTION'));
+    }
+    
+    /**
+     * Return current open transaction or open new transactions
+     *
+     * @return \Ampersand\Transaction
+     */
+    public function getCurrentTransaction(): Transaction
+    {
+        // Check and return if there is a open transaction
+        foreach ($this->transactions as $transaction) {
+            if ($transaction->isOpen()) {
+                return $transaction;
+            }
+        }
+        return $this->newTransaction();
+    }
+
+    /**
+     * Return list of all transactions in this app (open and closed)
+     *
+     * @return \Ampersand\Transaction[]
+     */
+    public function getTransactions(): array
+    {
+        return $this->transactions;
+    }
+
+    /**********************************************************************************************
+     * OTHER
+     **********************************************************************************************/
+
     /**
      * Login user and commit transaction
      *
@@ -257,13 +401,14 @@ class AmpersandApp
      */
     public function login(Atom $account)
     {
+        // Renew session. See topic 'Renew the Session ID After Any Privilege Level Change' in OWASP session management cheat sheet
+        $this->session->reset();
+
         // Set sessionAccount
         $this->session->setSessionAccount($account);
 
-        $transaction = Transaction::getCurrentTransaction();
-
         // Run ExecEngine to populate session related relations (e.g. sessionAllowedRoles)
-        $transaction->runExecEngine();
+        $transaction = $this->getCurrentTransaction()->runExecEngine();
 
         // Activate all allowed roles by default
         foreach ($this->session->getSessionAllowedRoles() as $atom) {
@@ -284,69 +429,75 @@ class AmpersandApp
      */
     public function logout()
     {
+        // Renew session. See OWASP session management cheat sheet
         $this->session->reset();
+
+        // Run exec engine and close transaction
+        $this->getCurrentTransaction()->runExecEngine()->close();
+
         $this->setInterfacesAndRules();
     }
 
     /**
      * Function to reinstall the application. This includes database structure and load default population
      *
-     * @param boolean $installDefaultPop specifies whether or not to install the default population
-     * @return \Ampersand\Transaction in which application is reinstalled
+     * @param bool $installDefaultPop specifies whether or not to install the default population
+     * @param bool $ignoreInvariantRules
+     * @return \Ampersand\AmpersandApp $this
      */
-    public function reinstall($installDefaultPop = true): Transaction
+    public function reinstall(bool $installDefaultPop = true, bool $ignoreInvariantRules = false): AmpersandApp
     {
         $this->logger->info("Start application reinstall");
 
         // Clear notifications
-        Notifications::clearAll();
+        $this->userLogger->clearAll();
 
         // Write new checksum file of generated Ampersand moel
         $this->model->writeChecksumFile();
 
         // Call reinstall method on every registered storage (e.g. for MysqlDB implementation this means (re)creating database structure)
         foreach ($this->storages as $storage) {
-            $storage->reinstallStorage();
+            $storage->reinstallStorage($this->model);
         }
 
-        // Clear atom cache
+        $this->init();
+
+        // Clear caches
+        $this->conjunctCache->clear(); // external cache item pool
         foreach (Concept::getAllConcepts() as $cpt) {
-            $cpt->clearAtomCache();
+            $cpt->clearAtomCache(); // local cache in Ampersand code
         }
 
         // Default population
         if ($installDefaultPop) {
             $this->logger->info("Install default population");
 
-            $reader = new JSONReader();
-            $reader->loadFile(Config::get('pathToGeneratedFiles') . 'populations.json');
+            $transaction = $this->newTransaction();
+
+            $reader = (new JSONReader())->loadFile($this->model->getFilePath('populations'));
             $importer = new Importer($reader, Logger::getLogger('IO'));
             $importer->importPopulation();
+
+            // Close transaction
+            $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
+            if ($transaction->isRolledBack()) {
+                throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
+            }
         } else {
             $this->logger->info("Skip default population");
         }
 
-        // Close transaction
-        $transaction = Transaction::getCurrentTransaction()->runExecEngine()->close();
-        if ($transaction->isRolledBack()) {
-            Logger::getUserLogger()->error("Initial installation does not satisfy invariant rules");
-        }
-
-        // Initial conjunct evaluation
-        $this->logger->info("Initial evaluation of all conjuncts after application reinstallation");
-        
         // Evaluate all conjunct and save cache
+        $this->logger->info("Initial evaluation of all conjuncts after application reinstallation");
         foreach (Conjunct::getAllConjuncts() as $conj) {
             /** @var \Ampersand\Rule\Conjunct $conj */
             $conj->evaluate()->persistCacheItem();
         }
 
-        // Initiate session again
-        $this->setSession();
-
+        $this->userLogger->notice("Application successfully reinstalled");
         $this->logger->info("End application reinstall");
 
-        return $transaction;
+        return $this;
     }
 
     /**
@@ -363,7 +514,7 @@ class AmpersandApp
         }
         
         // Commit transaction (exec-engine kicks also in)
-        Transaction::getCurrentTransaction()->runExecEngine()->close();
+        $this->getCurrentTransaction()->runExecEngine()->close();
 
         $this->setInterfacesAndRules();
     }
@@ -490,7 +641,7 @@ class AmpersandApp
         
         // Check rules and signal notifications for all violations
         foreach (RuleEngine::getViolationsFromCache($this->getRulesToMaintain()) as $violation) {
-            Notifications::addSignal($violation);
+            $this->userLogger->signal($violation);
         }
     }
 }

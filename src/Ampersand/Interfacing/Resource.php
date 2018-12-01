@@ -14,7 +14,6 @@ use Ampersand\Core\Atom;
 use Ampersand\Core\Concept;
 use Ampersand\Log\Logger;
 use function Ampersand\Misc\isSequential;
-use Ampersand\Misc\Config;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceTxtObject;
 use Ampersand\Interfacing\InterfaceObjectFactory;
@@ -285,7 +284,7 @@ class Resource extends Atom implements ArrayAccess
 
         // Perform PUT using the interface definition
         foreach ($resourceToPut as $ifcId => $value) {
-            if (substr($ifcId, 0, 1) == '_' && substr($ifcId, -1) == '_') {
+            if (substr($ifcId, 0, 1) === '_' && substr($ifcId, -1) === '_') {
                 continue; // skip special internal attributes
             }
             try {

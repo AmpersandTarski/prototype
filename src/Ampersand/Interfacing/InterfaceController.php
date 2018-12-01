@@ -11,10 +11,6 @@ use Exception;
 use Ampersand\AmpersandApp;
 use Ampersand\AngularApp;
 use Ampersand\Interfacing\Resource;
-use Ampersand\Transaction;
-use Ampersand\Log\Logger;
-use Ampersand\Log\Notifications;
-use Ampersand\Misc\Config;
 use function Ampersand\Misc\getSafeFileName;
 
 class InterfaceController
@@ -59,7 +55,7 @@ class InterfaceController
 
     public function put(Resource $resource, $ifcPath, $body, $options, $depth): array
     {
-        $transaction = Transaction::getCurrentTransaction();
+        $transaction = $this->ampersandApp->newTransaction();
         
         // Perform put
         $resourcePath = new ResourcePath($resource, $ifcPath);
@@ -81,14 +77,14 @@ class InterfaceController
         // Close transaction
         $transaction->close();
         if ($transaction->isCommitted()) {
-            Logger::getUserLogger()->notice($resource->getLabel() . " updated");
+            $this->ampersandApp->userLog()->notice($resource->getLabel() . " updated");
         }
         
         $this->ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
 
         // Return result
         return [ 'content'               => $content
-               , 'notifications'         => Notifications::getAll()
+               , 'notifications'         => $this->ampersandApp->userLog()->getAll()
                , 'invariantRulesHold'    => $transaction->invariantRulesHold()
                , 'isCommitted'           => $transaction->isCommitted()
                , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()
@@ -109,7 +105,7 @@ class InterfaceController
      */
     public function patch(Resource $resource, $ifcPath, array $patches, int $options, int $depth = null): array
     {
-        $transaction = Transaction::getCurrentTransaction();
+        $transaction = $this->ampersandApp->newTransaction();
         
         // Perform patch(es)
         $resourcePath = new ResourcePath($resource, $ifcPath);
@@ -131,7 +127,7 @@ class InterfaceController
         // Close transaction
         $transaction->close();
         if ($transaction->isCommitted()) {
-            Logger::getUserLogger()->notice($resource->getLabel() . " updated");
+            $this->ampersandApp->userLog()->notice($resource->getLabel() . " updated");
         }
         
         $this->ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
@@ -139,7 +135,7 @@ class InterfaceController
         // Return result
         return [ 'patches'               => $patches
                , 'content'               => $content
-               , 'notifications'         => Notifications::getAll()
+               , 'notifications'         => $this->ampersandApp->userLog()->getAll()
                , 'invariantRulesHold'    => $transaction->invariantRulesHold()
                , 'isCommitted'           => $transaction->isCommitted()
                , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()
@@ -149,7 +145,7 @@ class InterfaceController
 
     public function post(Resource $resource, $ifcPath, $body, $options, $depth): array
     {
-        $transaction = Transaction::getCurrentTransaction();
+        $transaction = $this->ampersandApp->newTransaction();
 
         // Perform POST
         $resourcePath = new ResourcePath($resource, $ifcPath);
@@ -180,7 +176,7 @@ class InterfaceController
     
         // Return result
         return [ 'content'               => $content
-               , 'notifications'         => Notifications::getAll()
+               , 'notifications'         => $this->ampersandApp->userLog()->getAll()
                , 'invariantRulesHold'    => $transaction->invariantRulesHold()
                , 'isCommitted'           => $transaction->isCommitted()
                , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()
@@ -197,7 +193,7 @@ class InterfaceController
      */
     public function delete(Resource $resource, $ifcPath): array
     {
-        $transaction = Transaction::getCurrentTransaction();
+        $transaction = $this->ampersandApp->newTransaction();
         
         // Perform delete
         $resourcePath = new ResourcePath($resource, $ifcPath);
@@ -209,13 +205,13 @@ class InterfaceController
         // Close transaction
         $transaction->runExecEngine()->close();
         if ($transaction->isCommitted()) {
-            Logger::getUserLogger()->notice("Resource deleted");
+            $this->ampersandApp->userLog()->notice("Resource deleted");
         }
         
         $this->ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
         
         // Return result
-        return [ 'notifications'         => Notifications::getAll()
+        return [ 'notifications'         => $this->ampersandApp->userLog()->getAll()
                , 'invariantRulesHold'    => $transaction->invariantRulesHold()
                , 'isCommitted'           => $transaction->isCommitted()
                , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()

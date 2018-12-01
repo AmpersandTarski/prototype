@@ -143,8 +143,8 @@ class Reporter
                     // Only applies to crudU, because issue is with patchReplace, not with add/remove
                     // Only applies to scalar, because objects don't use patchReplace, but Remove and Add
                     // Only if interface expression (not! the relation) is univalent, because else a add/remove option is used in the UI
-                    if ((!$ifc->relationIsFlipped && $ifc->relation()->getMysqlTable()->tableOf == 'tgt')
-                            || ($ifc->relationIsFlipped && $ifc->relation()->getMysqlTable()->tableOf == 'src')) {
+                    if ((!$ifc->relationIsFlipped && $ifc->relation()->getMysqlTable()->tableOf === 'tgt')
+                            || ($ifc->relationIsFlipped && $ifc->relation()->getMysqlTable()->tableOf === 'src')) {
                         $content[] = [ 'interface' => $ifc->getPath()
                                      , 'message' => "Unsupported edit functionality due to combination of factors. See issue #318"
                                      ];

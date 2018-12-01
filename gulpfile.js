@@ -13,10 +13,10 @@ var flatten = require('gulp-flatten')
 var clean = require('gulp-clean')
 const jsValidate = require('gulp-jsvalidate')
 
-function prepareTemplates(folder) {
+function prepareTemplates(folder, prefix) {
     return gulp.src(folder + '**/*.html')
         //.pipe(minify and preprocess the template html here)
-        .pipe(templateCache('templates.js', { root: folder, module: 'AmpersandApp' }));
+        .pipe(templateCache('templates.js', { root: prefix, module: 'AmpersandApp' }));
 }
 
 /**
@@ -44,18 +44,18 @@ gulp.task('build-lib', function (done) {
         .pipe(filterJS)
         .pipe(concat('lib.min.js'))
         .pipe(uglify())
-        .pipe(gulp.dest('app/dist/lib'))
+        .pipe(gulp.dest('public/app/dist'))
         .pipe(filterJS.restore)
         // library css
         .pipe(filterCSS)
         .pipe(concat('lib.min.css'))
         .pipe(minifycss())
-        .pipe(gulp.dest('app/dist/lib'))
+        .pipe(gulp.dest('public/app/dist'))
         .pipe(filterCSS.restore)
         // library fonts
         .pipe(filterFonts)
         .pipe(flatten())
-        .pipe(gulp.dest('app/dist/fonts'))
+        .pipe(gulp.dest('public/app/fonts'))
         .pipe(filterFonts.restore)
     done()
 })
@@ -66,25 +66,25 @@ gulp.task('build-lib', function (done) {
 gulp.task('build-ampersand', function (done) {
     // js
     gulp.src(['app/src/module.js', 'app/src/**/*.js'])
-        .pipe(addStream.obj(prepareTemplates('app/src/')))
+        .pipe(addStream.obj(prepareTemplates('app/src/', 'app/src/')))
         .pipe(sourcemaps.init())
         .pipe(concat('ampersand.js'))
         .pipe(jsValidate())
         .pipe(ngAnnotate())
         .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('app/dist'))
+        .pipe(gulp.dest('public/app/dist'))
         .pipe(filter('**/*.js')) // only .js files go through
         .pipe(rename({ suffix: '.min' }))
         .pipe(uglify())
         .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('app/dist'))
+        .pipe(gulp.dest('public/app/dist'))
     // css
     gulp.src(['app/src/module.css', 'app/src/**/*.css'])
         .pipe(concat('ampersand.css'))
-        .pipe(gulp.dest('app/dist'))
+        .pipe(gulp.dest('public/app/dist'))
         .pipe(rename({ suffix: '.min' }))
         .pipe(minifycss())
-        .pipe(gulp.dest('app/dist'))
+        .pipe(gulp.dest('public/app/dist'))
     done()
 })
 
@@ -93,31 +93,31 @@ gulp.task('build-ampersand', function (done) {
  */
 gulp.task('build-project', function (done) {
     // css
-    gulp.src(['app/project/**/*.css', 'extensions/**/*.css', '!extensions/**/lib/**/*'])
+    gulp.src(['public/app/project/**/*.css', 'public/app/ext/**/*.css', '!public/app/ext/**/lib/**/*'])
         .pipe(concat('project.css'))
         .pipe(gulp.dest('app/dist'))
         .pipe(rename({ suffix: '.min' }))
         .pipe(minifycss())
-        .pipe(gulp.dest('app/dist'))
+        .pipe(gulp.dest('public/app/dist'))
     // js
-    gulp.src(['app/project/**/*.js', 'extensions/**/*.js', '!extensions/**/lib/**/*'])
-        .pipe(addStream.obj(prepareTemplates('app/project/')))
+    gulp.src(['public/app/project/**/*.js', 'public/app/ext/**/*.js', '!public/app/ext/**/lib/**/*'])
+        .pipe(addStream.obj(prepareTemplates('public/app/project/', 'app/project/')))
         .pipe(sourcemaps.init())
         .pipe(concat('project.js'))
         .pipe(jsValidate())
         .pipe(ngAnnotate())
         .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('app/dist'))
+        .pipe(gulp.dest('public/app/dist'))
         .pipe(filter('**/*.js')) // only .js files go through
         .pipe(rename({ suffix: '.min' }))
         .pipe(uglify())
         .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('app/dist'))
+        .pipe(gulp.dest('public/app/dist'))
     done()
 })
 
 gulp.task('clean', function (done) {
-    gulp.src('app/dist', { read: false, allowEmpty: true })
+    gulp.src('public/app/dist', { read: false, allowEmpty: true })
         .pipe(clean())
     done()
 })

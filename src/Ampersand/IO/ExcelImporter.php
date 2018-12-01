@@ -113,11 +113,11 @@ class ExcelImporter
             $firstCol = (string)$cell->getCalculatedValue();
             
             // If cell Ax is empty, skip complete row
-            if ($firstCol == '') {
+            if ($firstCol === '') {
                 $this->logger->notice("Skipping row {$rowNr} in sheet {$worksheet->getTitle()}, because column A is empty");
                 continue;
             } // If cell Ax contains '_NEW', this means to automatically create a new atom
-            elseif ($firstCol == '_NEW') {
+            elseif ($firstCol === '_NEW') {
                 if (!$ifc->crudC()) {
                     throw new Exception("Trying to create new atom in cell '{$cell->getWorksheet()->getTitle()}!{$cell->getCoordinate()}'. This is not allowed.", 400);
                 }
@@ -141,7 +141,7 @@ class ExcelImporter
                 $cell = $worksheet->getCell($columnLetter . $rowNr);
                 $cellvalue = (string)$cell->getCalculatedValue();
                 
-                if ($cellvalue == '') {
+                if ($cellvalue === '') {
                     continue; // skip if not value provided
                 }
                  
@@ -244,11 +244,11 @@ class ExcelImporter
                         $leftConcept = Concept::getConceptByLabel($line2[$col]);
                         $header[$col] = ['concept' => $leftConcept, 'relation' => null, 'flipped' => null];
                     } else {
-                        if ($line1[$col] == '' || $line2[$col] == '') {
+                        if ($line1[$col] === '' || $line2[$col] === '') {
                             // Skipping column
                             $this->logger->notice("Skipping column {$col} in sheet {$worksheet->getTitle()}, because header is not complete");
                         } // Relation is flipped when last character is a tilde (~)
-                        elseif (substr($line1[$col], -1) == '~') {
+                        elseif (substr($line1[$col], -1) === '~') {
                             $rightConcept = Concept::getConceptByLabel($line2[$col]);
                             
                             $header[$col] = ['concept' => $rightConcept
@@ -299,13 +299,13 @@ class ExcelImporter
             }
 
             // Determine $leftAtom using column A
-            if ($col == 'A') {
+            if ($col === 'A') {
                 // If cell Ax is empty, skip complete row
-                if ($cellvalue == '') {
+                if ($cellvalue === '') {
                     $this->logger->notice("Skipping row {$row->getRowIndex()}, because column A is empty");
                     return; // stop processing complete row
                 } // If cell Ax contains '_NEW', this means to automatically create a new atom
-                elseif ($cellvalue == '_NEW') {
+                elseif ($cellvalue === '_NEW') {
                     $leftAtom = $headerInfo[$col]['concept']->createNewAtom()->add();
                 } // Else instantiate atom with given atom identifier
                 else {
@@ -315,9 +315,9 @@ class ExcelImporter
             // Process other columns
             } else {
                 // If cell is empty, skip column
-                if ($cellvalue == '') {
+                if ($cellvalue === '') {
                     continue; // continue to next cell
-                } elseif ($cellvalue == '_NEW') {
+                } elseif ($cellvalue === '_NEW') {
                     $rightAtom = $leftAtom;
                 } else {
                     $rightAtom = (new Atom($cellvalue, $headerInfo[$col]['concept']))->add();
