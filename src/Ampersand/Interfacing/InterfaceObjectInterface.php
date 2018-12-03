@@ -55,6 +55,13 @@ interface InterfaceObjectInterface
      */
     public function all(Resource $src): array;
 
+    /**
+     * Return list of sub interface objects
+     *
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
+     */
+    public function getSubinterfaces(): array;
+
     public function getSubinterface(string $ifcId): InterfaceObjectInterface;
     public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface;
     public function getInterfaceFlattened();

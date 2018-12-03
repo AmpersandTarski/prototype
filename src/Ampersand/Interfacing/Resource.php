@@ -122,34 +122,6 @@ class Resource extends Atom implements ArrayAccess
     }
     
     /**
-     * Function is called when object encoded to json with json_encode()
-     *
-     * @return array|string
-     */
-    public function jsonSerialize()
-    {
-        $content = [];
-        if ($this->inclUserInterfaceData) {
-            // Add Ampersand atom attributes
-            $content['_id_'] = $this->id;
-            $content['_label_'] = $this->getLabel();
-            $content['_path_'] = $this->getPath();
-        
-            // Add view data if array is assoc (i.e. not sequential)
-            $data = $this->getView();
-            if (!isSequential($data)) {
-                $content['_view_'] = $data;
-            }
-        // Not inclUserInterfaceData and ifcData is null -> directly return $this->id
-        } elseif (is_null($this->ifcData)) {
-            return $this->id;
-        }
-        
-        // Merge with inerface data (which is set when get() method is called before)
-        return array_merge($content, (array)$this->ifcData); // cast to array: null => empty array
-    }
-    
-    /**
      * Returns view array of key-value pairs for this atom
      * @return array
      */
@@ -263,11 +235,35 @@ class Resource extends Atom implements ArrayAccess
      * @param int $options
      * @param int|null $depth
      * @param array $recursionArr
-     * @return mixed
+     * @return array|string
      */
     public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
-        return $this->ifc->read($this, $options, $depth, $recursionArr);
+        // Set resource data
+        foreach ($this->ifc->getSubinterfaces() as $ifcObj) {
+            /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcObj */
+            $this->ifcData[$ifcObj->getIfcId()] = $ifcObj->read($this, $options, $depth, $recursionArr);
+        }
+
+        $content = [];
+        if ($this->inclUserInterfaceData) {
+            // Add Ampersand atom attributes
+            $content['_id_'] = $this->id;
+            $content['_label_'] = $this->getLabel();
+            $content['_path_'] = $this->getPath();
+        
+            // Add view data if array is assoc (i.e. not sequential, because then it is a label)
+            $data = $this->getView();
+            if (!isSequential($data)) {
+                $content['_view_'] = $data;
+            }
+        // Not inclUserInterfaceData and ifcData is null (i.e. no subinterfaces) -> directly return $this->id
+        } elseif (is_null($this->ifcData)) {
+            return $this->id;
+        }
+        
+        // Merge with inerface data (which is set when get() method is called before)
+        return array_merge($content, (array)$this->ifcData); // cast to array: null => empty array
     }
     
     /**
