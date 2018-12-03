@@ -803,10 +803,10 @@ class InterfaceExprObject implements InterfaceObjectInterface
     public function removeAll(Atom $src): bool
     {
         if (!$this->isEditable()) {
-            throw new Exception("Interface is not editable " . $this->ifc->getPath(), 405);
+            throw new Exception("Interface is not editable " . $this->getPath(), 405);
         }
         if (!$this->crudU()) {
-            throw new Exception("Update not allowed for " . $this->ifc->getPath(), 405);
+            throw new Exception("Update not allowed for " . $this->getPath(), 405);
         }
         
         $this->relation->deleteAllLinks($src, ($this->relationIsFlipped ? 'tgt' : 'src'));
