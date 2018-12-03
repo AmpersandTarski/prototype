@@ -102,7 +102,7 @@ class InterfaceTxtObject extends InterfaceExprObject
      * Returns if interface object is a leaf node
      * @return bool
      */
-    public function isLeaf(): bool
+    public function isLeaf(int $options = Options::DEFAULT_OPTIONS): bool
     {
         return true;
     }
@@ -186,17 +186,6 @@ class InterfaceTxtObject extends InterfaceExprObject
     public function getInterfaceFlattened()
     {
         return [$this];
-    }
-
-    /**
-     * Undocumented function
-     *
-     * @param \Ampersand\Core\Atom $tgtAtom the atom for which to get view data
-     * @return array
-     */
-    public function getViewData(Atom $tgtAtom): array
-    {
-        return [];
     }
 
     public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])

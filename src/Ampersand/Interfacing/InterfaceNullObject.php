@@ -33,28 +33,24 @@ class InterfaceNullObject implements InterfaceObjectInterface
         return $ifc->getIfcObject();
     }
 
-    public function getViewData(Atom $tgtAtom): array
-    {
-        return $tgtAtom->concept->getViewData($tgtAtom);
-    }
-
     public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
-        // User interface data (_id_, _label_ and _view_ and _path_)
+        // Init content array
+        $content = [];
+
+        // Basic UI data of a resource
         if ($options & Options::INCLUDE_UI_DATA) {
-            $content = [];
+            $viewData = $src->concept->getViewData($src); // default concept view
 
             // Add Ampersand atom attributes
             $content['_id_'] = $src->id;
-            $content['_label_'] = $src->getLabel();
+            $content['_label_'] = empty($viewData) ? $src->getLabel() : implode('', $viewData);
             $content['_path_'] = $src->getPath();
         
-            // Add view data if array is assoc (i.e. not sequential)
-            $data = $src->getView();
-            if (!isSequential($data)) {
-                $content['_view_'] = $data;
+            // Add view data if array is assoc (i.e. not sequential, because then it is a label)
+            if (!isSequential($viewData)) {
+                $content['_view_'] = $viewData;
             }
-            return $content;
         } else {
             return $src->id;
         }

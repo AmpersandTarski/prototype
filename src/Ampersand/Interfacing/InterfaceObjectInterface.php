@@ -30,7 +30,7 @@ interface InterfaceObjectInterface
     public function getSourceConcept(): Concept;
     public function getTargetConcept(): Concept;
 
-    public function isLeaf(): bool;
+    public function isLeaf(int $options): bool;
 
     public function isIdent(): bool;
     public function isUni(): bool;
@@ -67,8 +67,6 @@ interface InterfaceObjectInterface
     public function getInterfaceFlattened();
     public function getTechDetails(): array;
     public function diagnostics(): array;
-
-    public function getViewData(Atom $tgtAtom): array;
 
     // Create
     public function create(Atom $src, $tgtId = null): Resource;
