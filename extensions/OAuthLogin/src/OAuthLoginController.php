@@ -6,6 +6,7 @@ use Exception;
 use Ampersand\Interfacing\Resource;
 use Ampersand\AmpersandApp;
 use Ampersand\Interfacing\ResourceFactory;
+use Ampersand\Interfacing\Ifc;
 
 class OAuthLoginController
 {
@@ -192,19 +193,20 @@ class OAuthLoginController
             throw new Exception("No emailaddress provided to login", 500);
         }
         
-        $accounts = ResourceFactory::makeResource($email, 'UserID')->all('AccountForUserid', true);
+        $userID = ResourceFactory::makeResource($email, 'UserID');
+        $accounts = Ifc::getInterface('AccountForUserid')->getIfcObject()->all($userID);
         
         // Create new account
         if (iterator_count($accounts) == 0) {
             $account = ResourceFactory::makeNewResource('Account');
             
             // Save email as accUserid
-            $account->link($email, 'accUserid[Account*UserID]')->add();
+            $account->link($userID, 'accUserid[Account*UserID]')->add();
             
             try {
                 // If possible, add account to organization(s) based on domain name
-                $domain = explode('@', $email)[1];
-                $orgs = ResourceFactory::makeResource($domain, 'Domain')->all('DomainOrgs', true);
+                $domain = ResourceFactory::makeResource(explode('@', $email)[1], 'Domain');
+                $orgs = Ifc::getInterface('DomainOrgs')->getIfcObject()->all($domain);
                 foreach ($orgs as $org) {
                     $account->link($org, 'accOrg[Account*Organization]')->add();
                 }

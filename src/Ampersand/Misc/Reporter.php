@@ -91,7 +91,7 @@ class Reporter
         $content = [];
         foreach (Ifc::getAllInterfaces() as $key => $ifc) {
             /** @var \Ampersand\Interfacing\Ifc $ifc */
-            $content = array_merge($content, $ifc->getIfcObject()->getInterfaceFlattened());
+            $content = array_merge($content, $ifc->getIfcObject()->getIfcObjFlattened());
         }
         
         $content = array_map(function (InterfaceObjectInterface $ifcObj) {
@@ -112,9 +112,9 @@ class Reporter
     public function reportInterfaceIssues(): Reporter
     {
         $content = [];
-        foreach (Ifc::getAllInterfaces() as $key => $interface) {
+        foreach (Ifc::getAllInterfaces() as $interface) {
             /** @var \Ampersand\Interfacing\Ifc $interface */
-            foreach ($interface->getIfcObject()->getInterfaceFlattened() as $ifcObj) {
+            foreach ($interface->getIfcObject()->getIfcObjFlattened() as $ifcObj) {
                 /** @var InterfaceObjectInterface $ifcObj */
                 $content = array_merge($content, $ifcObj->diagnostics());
             }

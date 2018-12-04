@@ -152,13 +152,9 @@ class InterfaceTxtObject extends InterfaceExprObject
         return false;
     }
 
-    /**
-     * Returns generated query for this interface expression
-     * @return string
-     */
-    public function getQuery(): string
+    public function hasSubinterface(string $ifcId): bool
     {
-        throw new Exception("N.a. for InterfaceTxtObject", 500);
+        return false;
     }
     
     /**
@@ -180,10 +176,11 @@ class InterfaceTxtObject extends InterfaceExprObject
     }
     
     /**
-     * Return array with all sub interface recursively (incl. the interface itself)
+     * Return list of all sub interface objects recursively (incl. the current object itself)
+     *
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
-    public function getInterfaceFlattened()
+    public function getIfcObjFlattened()
     {
         return [$this];
     }
@@ -213,7 +210,6 @@ class InterfaceTxtObject extends InterfaceExprObject
             , 'relation' => 'n.a.'
             , 'flipped' => 'n.a.'
             , 'ref' => 'n.a.'
-            , 'roles' => implode(',', $this->ifcRoleNames)
             ];
     }
 }

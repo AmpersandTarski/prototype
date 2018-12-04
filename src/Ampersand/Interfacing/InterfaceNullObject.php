@@ -19,6 +19,11 @@ use Ampersand\Interfacing\Ifc;
  */
 class InterfaceNullObject implements InterfaceObjectInterface
 {
+    public function hasSubinterface(string $ifcId): bool
+    {
+        return Ifc::interfaceExists($ifcId);
+    }
+
     public function getSubinterface(string $ifcId, bool $skipAccessCheck = false): InterfaceObjectInterface
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */

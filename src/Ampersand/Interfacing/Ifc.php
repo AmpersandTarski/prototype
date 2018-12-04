@@ -11,6 +11,7 @@ use Ampersand\Interfacing\InterfaceObjectFactory;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Plugs\IfcPlugInterface;
 use Exception;
+use Ampersand\Core\Concept;
 
 /**
  *
@@ -56,9 +57,9 @@ class Ifc
     protected $ifcRoleNames = [];
 
     /**
-     * Root interface object
+     * Root interface object (must be a InterfaceExprObject)
      *
-     * @var \Ampersand\Interfacing\InterfaceObjectInterface
+     * @var \Ampersand\Interfacing\InterfaceExprObject
      */
     protected $ifcObject;
 
@@ -78,7 +79,7 @@ class Ifc
         $this->label = $label;
         $this->isAPI = $isAPI;
         $this->ifcRoleNames = $ifcRoleNames;
-        $this->ifcObject = InterfaceObjectFactory::newObject($objectDef, $defaultPlug);
+        $this->ifcObject = InterfaceObjectFactory::newExprObject($objectDef, $defaultPlug);
     }
 
     /**
@@ -104,6 +105,16 @@ class Ifc
     public function getIfcObject(): InterfaceObjectInterface
     {
         return $this->ifcObject;
+    }
+
+    public function getSrcConcept(): Concept
+    {
+        return $this->ifcObject->srcConcept;
+    }
+
+    public function getTgtConcept(): Concept
+    {
+        return $this->ifcObject->tgtConcept;
     }
 
     /**********************************************************************************************
@@ -175,6 +186,13 @@ class Ifc
     {
         return array_values(array_filter(self::getAllInterfaces(), function (Ifc $ifc) {
             return $ifc->isPublic();
+        }));
+    }
+
+    public static function getInterfacesForConcept(Concept $cpt): array
+    {
+        return array_values(array_filter(self::getAllInterfaces(), function (Ifc $ifc) {
+            return $this->getSrcConcept()->hasSpecialization($cpt, true);
         }));
     }
     

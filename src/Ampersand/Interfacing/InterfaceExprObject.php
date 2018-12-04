@@ -51,13 +51,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
     protected $label;
     
     /**
-     * Roles that have access to this interface
-     * Only applies to top level interface objects
-     * @var string[]
-     */
-    public $ifcRoleNames = [];
-    
-    /**
      *
      * @var boolean
      */
@@ -162,13 +155,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
     private $subInterfaces = [];
 
     /**
-     * Parent interface (when not root interface)
-     *
-     * @var \Ampersand\Interfacing\InterfaceObjectInterface
-     */
-    protected $parentIfc = null;
-
-    /**
      * Constructor
      *
      * @param array $ifcDef Interface object definition as provided by Ampersand generator
@@ -223,8 +209,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
             
             // Inline subinterface definitions
             foreach ((array)$ifcDef['subinterfaces']['ifcObjects'] as $subIfcDef) {
-                $ifc = $subIfcDef['type'] == 'ObjText' ? new InterfaceTxtObject($subIfcDef, $this->plug, $this->path) : new InterfaceExprObject($subIfcDef, $this->plug, $this->path);
-                $ifc->parentIfc = $this;
+                $ifc = InterfaceObjectFactory::newObject($subIfcDef, $this->plug, $this->path);
                 $this->subInterfaces[$ifc->id] = $ifc;
             }
         }
@@ -431,6 +416,17 @@ class InterfaceExprObject implements InterfaceObjectInterface
     {
         return str_replace('_SESSION', session_id(), $this->query); // Replace _SESSION var with current session id.
     }
+
+    /**
+     * Returns if subinterface is defined
+     *
+     * @param string $ifcId
+     * @return bool
+     */
+    public function hasSubinterface(string $ifcId): bool
+    {
+        return array_key_exists($ifcId, $this->getSubinterfaces());
+    }
     
     /**
      * @param string $ifcId
@@ -461,14 +457,15 @@ class InterfaceExprObject implements InterfaceObjectInterface
     }
     
     /**
-     * Return array with all sub interface recursively (incl. the interface itself)
+     * Return list of all sub interface objects recursively (incl. the current object itself)
+     *
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
-    public function getInterfaceFlattened()
+    public function getIfcObjFlattened()
     {
         $arr = [$this];
-        foreach ($this->getSubinterfaces(Options::DEFAULT_OPTIONS & ~Options::INCLUDE_REF_IFCS) as $ifc) {
-            $arr = array_merge($arr, $ifc->getInterfaceFlattened());
+        foreach ($this->getSubinterfaces(Options::DEFAULT_OPTIONS & ~Options::INCLUDE_REF_IFCS) as $subObj) {
+            $arr = array_merge($arr, $subObj->getIfcObjFlattened());
         }
         return $arr;
     }
@@ -527,27 +524,28 @@ class InterfaceExprObject implements InterfaceObjectInterface
         }
     }
 
-    public function all(Resource $src): array
+    /**
+     * Undocumented function
+     *
+     * @param \Ampersand\Core\Atom $src
+     * @return \Ampersand\Core\Atom[]
+     */
+    public function all(Atom $src): array
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for " . $this->getPath(), 405);
         }
         
-        return $this->getTgtResources($src, true);
+        return $this->getTgtAtoms($src);
     }
 
-    public function one(Resource $src, string $tgtId = null): Resource
+    public function one(Atom $src, string $tgtId = null): Atom
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for " . $this->getPath(), 405);
         }
-
-        // If no tgtId is provided, the srcId is used. Usefull for ident interface expressions (I[Concept])
-        if (is_null($tgtId)) {
-            $tgtId = $src->id;
-        }
         
-        $tgts = $this->getTgtResources($src, true, $tgtId);
+        $tgts = $this->getTgtAtoms($src, $tgtId);
 
         if (!empty($tgts)) {
             // Resource found
@@ -557,7 +555,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
             return $this->makeResource($tgtId, $src);
         } else {
             // When not found
-            throw new Exception("Resource not found", 404);
+            throw new Exception("Resource '{$tgtId}' not found", 404);
         }
     }
 
@@ -572,8 +570,8 @@ class InterfaceExprObject implements InterfaceObjectInterface
 
         // Object nodes
         if ($this->tgtConcept->isObject()) {
-            foreach ($this->getTgtResources($src, true) as $resource) {
-                $result[] = $this->getResourceContent($resource, $options, $depth, $recursionArr);
+            foreach ($this->getTgtAtoms($src) as $tgt) {
+                $result[] = $this->getResourceContent($this->makeResource($tgt->id, $src), $options, $depth, $recursionArr);
             }
             
             // Special case for leave PROP: return false when result is empty, otherwise true (i.e. I atom must be present)
@@ -718,9 +716,8 @@ class InterfaceExprObject implements InterfaceObjectInterface
             } else {
                 throw new Exception("Boolean expected, non-boolean provided.", 400);
             }
-        } elseif ($this->isIdent()) { // Ident object => no need for object id
-            // go deeper into PUT when interface expression equals 'I'
-            $this->makeResource($src->id, $src)->put($value);
+        } elseif ($this->isIdent()) { // Ident object => no need to set
+            return true;
         } else {
             if (is_null($value)) {
                 $this->removeAll($src);
@@ -827,41 +824,33 @@ class InterfaceExprObject implements InterfaceObjectInterface
     }
 
     /**
-     * Undocumented function
+     * Return list of target atoms
      *
-     * @param \Ampersand\Interfacing\Resource $src
+     *
+     * @param \Ampersand\Core\Atom $src
+     * @param string|null $selectTgt
      * @return \Ampersand\Core\Atom[]
      */
-    protected function getTgtAtoms(Resource $src): array
-    {
-        return $this->getTgtResources($src, false);
-    }
-
-    /**
-     * Return list of target atoms
-     * @param \Ampersand\Interfacing\Resource $src
-     * @param bool $returnClass specifies if method returns list of Resources (true) or Atoms (false)
-     * @param string|null $selectTgt
-     * @return \Ampersand\Interfacing\Resource[]|\Ampersand\Core\Atom[]
-     */
-    protected function getTgtResources(Resource $src, bool $returnResource = true, string $selectTgt = null): array
+    protected function getTgtAtoms(Atom $src, string $selectTgt = null): array
     {
         $tgts = [];
 
         // If interface isIdent (i.e. expr = I[Concept]), and no epsilon is required (i.e. srcConcept equals tgtConcept of parent ifc) we can return the src
         if ($this->isIdent() && $this->srcConcept === $src->concept) {
-            $tgts[] = $returnResource ? $this->makeResource($src->id, $src) : new Atom($src->id, $this->tgtConcept);
+            $tgts[] = $src;
         } else {
             // Try to get tgt atom from src query data (in case of uni relation in same table)
             $tgtId = $src->getQueryData('ifc_' . $this->id, $exists); // column is prefixed with ifc_ in query data
             if ($exists) {
                 if (!is_null($tgtId)) {
-                    $tgts[] = $returnResource ? $this->makeResource($tgtId, $src) : new Atom($src->id, $this->tgtConcept);
+                    $tgts[] = new Atom($tgtId, $this->tgtConcept);
                 }
             // Evaluate interface expression
             } else {
                 foreach ((array) $this->plug->executeIfcExpression($this, $src) as $row) {
-                    $tgts[] = $returnResource ? $this->makeResource($row['tgt'], $src)->setQueryData($row) : new Atom($src->id, $this->tgtConcept);
+                    $tgtAtom = new Atom($row['tgt'], $this->tgtConcept);
+                    $tgtAtom->setQueryData($row);
+                    $tgts[] = $tgtAtom;
                 }
             }
         }
@@ -874,7 +863,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
         // If specific target is specified, pick that one out
         if (!is_null($selectTgt)) {
             return array_filter($tgts, function (Atom $item) use ($selectTgt) {
-                return $item->id == $selectTgt;
+                return $item->id === $selectTgt;
             });
         }
         
@@ -919,7 +908,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
             , 'relation' => $this->relation()->signature ?? ''
             , 'flipped' => $this->relationIsFlipped
             , 'ref' => $this->refInterfaceId
-            , 'roles' => implode(',', $this->ifcRoleNames)
             ];
     }
 

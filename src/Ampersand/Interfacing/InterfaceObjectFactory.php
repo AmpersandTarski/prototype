@@ -35,6 +35,15 @@ class InterfaceObjectFactory
                 break;
         }
     }
+
+    public static function newExprObject(array $objectDef, IfcPlugInterface $defaultPlug): InterfaceExprObject
+    {
+        if ($objectDef['type'] !== 'ObjExpression') {
+            throw new Exception("Interface expression object definition required, but '{$objectDef['type']}' provided.", 500);
+        }
+
+        return new InterfaceExprObject($objectDef, $defaultPlug, null);
+    }
     
     public static function getNullObject(): InterfaceObjectInterface
     {

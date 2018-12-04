@@ -40,12 +40,6 @@ class Resource extends Atom implements ArrayAccess
      * @var \Ampersand\Interfacing\Resource
      */
     protected $parent = null;
-    
-    /**
-     * Contains the interface data filled by the get() method
-     * @var array|null $ifcData
-     */
-    protected $ifcData = null;
 
     /**
      * The path of this resource (including interface and path to parent resource)
@@ -135,48 +129,36 @@ class Resource extends Atom implements ArrayAccess
         return $this->path;
     }
 
-    public function getProperty(string $ifcId)
-    {
-        return $this->ifc->getProperty($this, $ifcId);
-    }
-
 /**************************************************************************************************
  * ArrayAccess methods
  *************************************************************************************************/
     public function offsetExists($offset)
     {
-        // Get data (1 level deep) if icfData is not (yet) set
-        if (is_null($this->ifcData)) {
-            $this->get(Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS, 1);
-        }
-        return isset($this->ifcData[$offset]);
+        return $this->ifc->hasSubinterface($offset); // TODO: add option (Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS)
     }
 
     public function offsetGet($offset)
     {
-        // Get data (1 level deep) if icfData is not (yet) set
-        if (is_null($this->ifcData)) {
-            $this->get(Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS, 1);
-        }
+        $ifcObj = $this->ifc->getSubinterface($offset); // TODO: add option (Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS)
+        $tgts = $ifcObj->all($this);
 
-        if ($this->ifc->getSubinterface($offset)->isUni()) {
-            // Value can be Atom/Resource or scalar
-            return $this->ifcData[$offset]->id ?? $this->ifcData[$offset] ?? null;
+        if ($ifcObj->isUni()) {
+            return empty($tgts) ? null : current($tgts);
         } else {
-            return array_map(function (Resource $resource) {
-                return $resource->id ?? $resource; // value can be Atom/Resource or scalar
-            }, $this->ifcData[$offset]);
+            return $tgts;
         }
     }
 
     public function offsetSet($offset, $value)
     {
-        throw new Exception("ArrayAccess::offsetSet() not implemented on Resource class", 500);
+        $ifcObj = $this->ifc->getSubinterface($offset); // TODO: add option (Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS)
+        $ifcObj->set($this, $value);
     }
 
     public function offsetUnset($offset)
     {
-        throw new Exception("ArrayAccess::offsetUnset() not implemented on Resource class", 500);
+        $ifcObj = $this->ifc->getSubinterface($offset); // TODO: add option (Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS)
+        $ifcObj->set($this, null);
     }
 
 /**************************************************************************************************
@@ -192,7 +174,7 @@ class Resource extends Atom implements ArrayAccess
      */
     public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null)
     {
-        return $this->ifcData = $this->ifc->read($this, $options, $depth);
+        return $this->ifc->read($this, $options, $depth);
     }
     
     /**

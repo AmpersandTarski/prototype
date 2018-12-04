@@ -136,7 +136,7 @@ class ResourcePath
             // If the subifc isIdent, step into next Resource.
             // See explaination in Resource::setPath() method why this elseif construct is here
             if ($subifc->isIdent()) {
-                $resource = $subifc->one($resource);
+                $resource = $subifc->one($resource, $resource->id);
             // Elseif there is at one more part of the path
             } elseif (count($pathList)) {
                 $resource = $subifc->one($resource, array_shift($pathList));

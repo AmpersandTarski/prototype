@@ -16,6 +16,9 @@ use Ampersand\Core\Link;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Misc\Settings;
+use Ampersand\Interfacing\ResourceFactory;
+use Ampersand\Interfacing\ResourcePath;
+use Ampersand\Interfacing\Options;
 
 /**
  * Class of session objects
@@ -286,7 +289,8 @@ class Session
         if (Ifc::interfaceExists('SessionVars')) {
             try {
                 $this->logger->debug("Getting interface 'SessionVars' for {$this->sessionResource}");
-                return $this->sessionResource->all('SessionVars', true)->get();
+                $path = new ResourcePath($this->sessionResource, 'SessionVars');
+                return $path->getTgt()->get(Options::INCLUDE_NOTHING);
             } catch (Exception $e) {
                 $this->logger->error("Error while getting SessionVars interface: " . $e->getMessage());
                 return false;

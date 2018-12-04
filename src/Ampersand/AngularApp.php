@@ -136,12 +136,10 @@ class AngularApp
                 $result = [];
                 foreach ($interfaces as $ifc) {
                     /** @var \Ampersand\Interfacing\Ifc $ifc */
-
-                    $ifcObj = $ifc->getIfcObject();
-                    $type = $ifcObj->getTargetConcept()->name; // or sort by classification tree: $sort = $ifcObj->getTargetConcept()->getLargestConcept()->name;
+                    $type = $ifc->getTgtConcept()->name;
 
                     if (!isset($result[$type])) {
-                        $result[$type] = ['label' => "New {$ifcObj->getTargetConcept()->label}", 'ifcs' => []];
+                        $result[$type] = ['label' => "New {$ifc->getTgtConcept()->label}", 'ifcs' => []];
                     }
 
                     $result[$type]['ifcs'][] = ['id' => $ifc->getId()
@@ -156,7 +154,7 @@ class AngularApp
             case 'top':
                 $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (Ifc $ifc) {
                     $ifcObj = $ifc->getIfcObject();
-                    if ($ifcObj->getSourceConcept()->isSession() && $ifcObj->crudR()) {
+                    if ($ifc->getSrcConcept()->isSession() && $ifcObj->crudR()) {
                         return true;
                     } else {
                         return false;

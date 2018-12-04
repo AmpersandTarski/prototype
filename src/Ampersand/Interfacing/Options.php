@@ -16,8 +16,9 @@ class Options
 {
 
     const
-    /** Default options */
-    DEFAULT_OPTIONS     = 0b00001111,
+    INCLUDE_NOTHING     = 0b00000000,
+
+    DEFAULT_OPTIONS     = 0b00001111, // default options
     
     INCLUDE_UI_DATA     = 0b00000001, // includes _id_, _label_, _view_ and _path_
     

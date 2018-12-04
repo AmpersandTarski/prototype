@@ -25,16 +25,13 @@ interface InterfaceObjectInterface
     public function getIfcId(): string;
     public function getIfcLabel(): string;
 
-    public function isEditable(): bool;
     public function getEditableConcepts();
-    public function getSourceConcept(): Concept;
-    public function getTargetConcept(): Concept;
 
     public function isLeaf(int $options): bool;
-
     public function isIdent(): bool;
     public function isUni(): bool;
     public function isTot(): bool;
+    public function isEditable(): bool;
 
     public function getPath(): string;
 
@@ -43,40 +40,72 @@ interface InterfaceObjectInterface
     public function crudU(): bool;
     public function crudD(): bool;
 
-    public function getQuery(): string;
-
-    public function one(Resource $src, string $tgtId = null): Resource;
+    /**********************************************************************************************
+     * METHODS to walk through interface
+     *********************************************************************************************/
+    /**
+     * Returns specific target atom
+     *
+     * @param \Ampersand\Core\Atom $src
+     * @param string $tgtId
+     * @return \Ampersand\Core\Atom
+     */
+    public function one(Atom $src, string $tgtId): Atom;
 
     /**
-     * Undocumented function
+     * Returns list of target atoms
      *
-     * @param \Ampersand\Interfacing\Resource $src
-     * @return \Ampersand\Interfacing\Resource[]
+     * @param \Ampersand\Core\Atom $src
+     * @return \Ampersand\Core\Atom[]
      */
-    public function all(Resource $src): array;
+    public function all(Atom $src): array;
 
+    /**********************************************************************************************
+     * Sub interface objects METHODS
+     *********************************************************************************************/
     /**
      * Return list of sub interface objects
      *
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getSubinterfaces(): array;
-
+    public function hasSubinterface(string $ifcId): bool;
     public function getSubinterface(string $ifcId): InterfaceObjectInterface;
     public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface;
-    public function getInterfaceFlattened();
-    public function getTechDetails(): array;
-    public function diagnostics(): array;
 
-    // Create
-    public function create(Atom $src, $tgtId = null): Resource;
-    // Read
+    /**********************************************************************************************
+     * CRUD METHODS
+     *********************************************************************************************/
+    public function create(Atom $src, $tgtId = null): Atom;
     public function read(Atom $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
-    // Update
     public function set(Atom $src, $value = null): bool;
     public function add(Atom $src, $value): bool;
     public function remove(Atom $src, $value): bool;
     public function removeAll(Atom $src): bool;
-    // Delete
     public function delete(Atom $tgtAtom): bool;
+
+    /**********************************************************************************************
+     * HELPER METHODS
+     *********************************************************************************************/
+    
+    /**
+     * Return list of all sub interface objects recursively (incl. the current object itself)
+     *
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
+     */
+    public function getIfcObjFlattened();
+
+    /**
+     * Return properties of interface object
+     *
+     * @return array
+     */
+    public function getTechDetails(): array;
+
+    /**
+     * Return diagnostic information of interface object
+     *
+     * @return array
+     */
+    public function diagnostics(): array;
 }
