@@ -36,17 +36,11 @@ class Resource extends Atom implements ArrayAccess
     protected $ifc;
 
     /**
-     * The parent resource (or null when $this resource is entry resource)
-     * @var \Ampersand\Interfacing\Resource
+     * Parent resource
+     *
+     * @var \Ampersand\Interfacing\Resource|null
      */
     protected $parent = null;
-
-    /**
-     * The path of this resource (including interface and path to parent resource)
-     *
-     * @var string
-     */
-    protected $path;
     
     /**
      * Constructor
@@ -54,7 +48,7 @@ class Resource extends Atom implements ArrayAccess
      * @param string $resourceId Ampersand atom identifier
      * @param \Ampersand\Core\Concept $cpt
      * @param \Ampersand\Interfacing\InterfaceObjectInterface $ifc
-     * @param \Ampersand\Interfacing\Resource $parent
+     * @param \Ampersand\Interfacing\Resource|null $parent
      */
     public function __construct(string $resourceId, Concept $cpt, InterfaceObjectInterface $ifc, Resource $parent = null)
     {
@@ -63,11 +57,10 @@ class Resource extends Atom implements ArrayAccess
         }
         
         // Call Atom constructor
-        parent::__construct(rawurldecode($resourceId), $cpt); // url decode resource identifier
+        parent::__construct($resourceId, $cpt);
 
         $this->ifc = $ifc;
         $this->parent = $parent;
-        $this->setPath();
     }
 
     /**
@@ -82,36 +75,6 @@ class Resource extends Atom implements ArrayAccess
     }
 
     /**
-     * Undocumented function
-     *
-     * @return string
-     */
-    protected function setPath(): string
-    {
-        if (is_null($this->parent)) {
-            if ($this->concept->isSession()) {
-                $this->path = "session"; // Don't put session id here, this is implicit
-            } else {
-                $this->path = "resource/{$this->concept->name}/" . $this->id;
-            }
-        } else {
-            /* Skip resource id for ident interface expressions (I[Concept])
-            * I expressions are commonly used for adding structure to an interface using (sub) boxes
-            * This results in verbose paths
-            * e.g.: pathToApi/resource/Person/John/Person/John/Person details/John/Name
-            * By skipping ident expressions the paths are more concise without loosing information
-            * e.g.: pathToApi/resource/Person/John/Person/PersonDetails/Name
-            */
-            if ($this->ifc->isIdent()) {
-                $this->path = $parent->getPath();
-            } else {
-                $this->path = $parent->getPath() . '/' . $this->ifc->getIfcId() . '/' . $this->id;
-            }
-        }
-        return $this->path;
-    }
-
-    /**
      * Return interface for this resource
      *
      * @return \Ampersand\Interfacing\InterfaceObjectInterface
@@ -122,16 +85,19 @@ class Resource extends Atom implements ArrayAccess
     }
     
     /**
+     * Return path to this resource
+     *
      * @return string
      */
-    public function getPath()
+    public function getPath(): string
     {
-        return $this->path;
+        return $this->ifc->buildResourcePath($this, $this->parent);
     }
 
 /**************************************************************************************************
  * ArrayAccess methods
  *************************************************************************************************/
+
     public function offsetExists($offset)
     {
         return $this->ifc->hasSubinterface($offset); // TODO: add option (Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS)

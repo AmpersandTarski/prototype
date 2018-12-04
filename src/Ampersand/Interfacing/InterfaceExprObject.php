@@ -527,8 +527,8 @@ class InterfaceExprObject implements InterfaceObjectInterface
     /**
      * Undocumented function
      *
-     * @param \Ampersand\Core\Atom $src
-     * @return \Ampersand\Core\Atom[]
+     * @param \Ampersand\Interfacing\Resource $src
+     * @return \Ampersand\Interfacing\Resource[]
      */
     public function all(Atom $src): array
     {
@@ -536,10 +536,12 @@ class InterfaceExprObject implements InterfaceObjectInterface
             throw new Exception("Read not allowed for " . $this->getPath(), 405);
         }
         
-        return $this->getTgtAtoms($src);
+        return array_map(function ($atom) {
+            return $this->makeResource($atom->id, $src);
+        }, $this->getTgtAtoms($src));
     }
 
-    public function one(Atom $src, string $tgtId = null): Atom
+    public function one(Resource $src, string $tgtId = null): Resource
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for " . $this->getPath(), 405);
@@ -549,13 +551,33 @@ class InterfaceExprObject implements InterfaceObjectInterface
 
         if (!empty($tgts)) {
             // Resource found
-            return current($tgts);
+            return $this->makeResource(current($tgts)->id, $src);
         } elseif ($this->tgtConcept->isObject() && $this->crudC()) {
             // Create the target if allowed
             return $this->makeResource($tgtId, $src);
         } else {
             // When not found
             throw new Exception("Resource '{$tgtId}' not found", 404);
+        }
+    }
+
+    public function buildResourcePath(Resource $tgt, Resource $parent = null): string
+    {
+        if (is_null($parent)) {
+            throw new Exception("Parent must be provided to build resource path in interface expression object", 500);
+        } else {
+            /* Skip resource id for ident interface expressions (I[Concept])
+            * I expressions are commonly used for adding structure to an interface using (sub) boxes
+            * This results in verbose paths
+            * e.g.: pathToApi/resource/Person/John/PersonIfc/John/PersonDetails/John/Name
+            * By skipping ident expressions the paths are more concise without loosing information
+            * e.g.: pathToApi/resource/Person/John/PersonIfc/PersonDetails/Name
+            */
+            if ($this->isIdent()) {
+                return $parent->getPath() . '/' . $this->getIfcId();
+            } else {
+                return $parent->getPath() . '/' . $this->getIfcId() . '/' . $tgt->id;
+            }
         }
     }
 
@@ -665,7 +687,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
         return $content;
     }
 
-    public function create(Resource $src, $tgtId = null): Resource
+    public function create(Resource $src, $tgtId = null): Atom
     {
         if (!$this->crudC()) {
             throw new Exception("Create not allowed for ". $this->getPath(), 405);

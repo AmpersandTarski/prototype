@@ -28,7 +28,7 @@ class InterfaceObjectFactory
                 return new InterfaceExprObject($objectDef, $defaultPlug, null);
                 break;
             case 'ObjText':
-                return new InterfaceTxtObject($objectDef, $defaultPlug, null);
+                return new InterfaceTxtObject($objectDef, null);
                 break;
             default:
                 throw new Exception("Unsupported/unknown InterfaceObject type specified: '{$objectDef['type']}' is not supported", 500);
@@ -47,8 +47,8 @@ class InterfaceObjectFactory
     
     public static function getNullObject(): InterfaceObjectInterface
     {
-        static $ifc = null;
+        static $ifcObj = null;
 
-        return $ifc ?? $ifc = new InterfaceNullObject();
+        return $ifcObj ?? $ifcObj = new InterfaceNullObject();
     }
 }

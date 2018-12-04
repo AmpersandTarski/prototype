@@ -20,35 +20,34 @@ use Ampersand\Interfacing\Resource;
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class InterfaceTxtObject extends InterfaceExprObject
+class InterfaceTxtObject implements InterfaceObjectInterface
 {
     /**
      * The string that is the content of this interface object
      *
      * @var string
      */
-    private $txt;
+    protected $txt;
 
     /**
      * Constructor
      *
      * @param array $ifcDef Interface object definition as provided by Ampersand generator
-     * @param \Ampersand\Plugs\IfcPlugInterface $plug
      * @param string|null $pathEntry
      */
-    public function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null)
+    public function __construct(array $ifcDef, string $pathEntry = null)
     {
         if ($ifcDef['type'] != 'ObjText') {
             throw new Exception("Provided interface definition is not of type ObjText", 500);
         }
-
-        $this->plug = $plug;
         
         // Set attributes from $ifcDef
         $this->id = $ifcDef['id'];
         $this->label = $ifcDef['label'];
-        $this->path = is_null($pathEntry) ? $this->label : "{$pathEntry}/{$this->label}"; // Use label, because path is only used for human readable purposes (e.g. Exception messages)
         $this->txt = $ifcDef['txt'];
+
+        // Use label for path, because this is only used for human readable purposes (e.g. Exception messages)
+        $this->path = is_null($pathEntry) ? $this->label : "{$pathEntry}/{$this->label}";
     }
     
     /**
@@ -68,16 +67,6 @@ class InterfaceTxtObject extends InterfaceExprObject
     public function getIfcLabel(): string
     {
         return $this->label;
-    }
-    
-    /**
-     * Returns interface relation (when interface expression = relation), throws exception otherwise
-     * @throws \Exception when interface expression is not an (editable) relation
-     * @return \Ampersand\Core\Relation
-     */
-    public function relation(): Relation
-    {
-        throw new Exception("N.a. for InterfaceTxtObject", 500);
     }
     
     /**

@@ -19,6 +19,15 @@ use Ampersand\Interfacing\Ifc;
  */
 class InterfaceNullObject implements InterfaceObjectInterface
 {
+    public function buildResourcePath(Resource $tgt, Resource $parent = null): string
+    {
+        if ($tgt->concept->isSession()) {
+            return "session"; // Don't put session id here, this is implicit
+        } else {
+            return "resource/{$tgt->concept->name}/{$tgt->id}";
+        }
+    }
+
     public function hasSubinterface(string $ifcId): bool
     {
         return Ifc::interfaceExists($ifcId);

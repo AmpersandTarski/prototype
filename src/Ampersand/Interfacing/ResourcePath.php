@@ -7,6 +7,10 @@
 
 namespace Ampersand\Interfacing;
 
+use Ampersand\Core\Atom;
+use Ampersand\Interfacing\Resource;
+use Ampersand\Interfacing\InterfaceObjectInterface;
+
 /**
  *
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
@@ -15,9 +19,9 @@ namespace Ampersand\Interfacing;
 class ResourcePath
 {
     /**
-     * Undocumented variable
+     * Source atom of this resource path
      *
-     * @var \Ampersand\Interfacing\Resource
+     * @var \Ampersand\Core\Atom
      */
     protected $src;
 
@@ -29,21 +33,14 @@ class ResourcePath
     protected $pathList;
 
     /**
-     * Undocumented variable
+     * Last atom of this resource path (can be the same as $src)
      *
-     * @var boolean
+     * @var \Ampersand\Interfacing\Resource
      */
-    protected $isEvaluated = false;
+    protected $tgt;
 
     /**
-     * Undocumented variable
-     *
-     * @var \Ampersand\Interfacing\Resource|null
-     */
-    protected $tgt = null;
-
-    /**
-     * Undocumented variable
+     * A trailing interface object (or null if path ends with an atom)
      *
      * @var \Ampersand\Interfacing\InterfaceObjectInterface|null
      */
@@ -63,46 +60,38 @@ class ResourcePath
         if (is_array($path)) {
             $path = implode('/', $path);
         }
-        
         $path = trim($path, '/'); // remove root slash (e.g. '/Projects/xyz/..') and trailing slash (e.g. '../Projects/xyz/')
-        
         if ($path === '') {
             $this->pathList = []; // support no path
         } else {
             $this->pathList = explode('/', $path);
         }
+
+        $this->tgt = $this->walkPath($src, $this->pathList);
     }
 
     public function __toString(): string
     {
-        return implode('/', $this->pathList);
+        return $this->src . '/' . implode('/', $this->pathList);
     }
 
     /**
-     * Returns the target (last Resource) of this path
+     * Returns the last atom of this path
      *
      * @return \Ampersand\Interfacing\Resource
      */
     public function getTgt(): Resource
     {
-        if (!$this->isEvaluated) {
-            $this->walkPath($this->src, $this->pathList);
-        }
-
         return $this->tgt;
     }
 
     /**
-     * Returns the trailing interface (or null if this path ends with a Resource)
+     * Returns the trailing interface (or null if this path ends with an atom)
      *
      * @return \Ampersand\Interfacing\InterfaceObjectInterface|null
      */
     public function getTrailingIfc()
     {
-        if (!$this->isEvaluated) {
-            $this->walkPath($this->src, $this->pathList);
-        }
-
         return $this->trailingIfc;
     }
 
@@ -116,9 +105,9 @@ class ResourcePath
         return !is_null($this->getTrailingIfc());
     }
 
-    protected function walkPath(Resource $src, $pathList): Resource
+    protected function walkPath(Resource $src, array $pathList): Resource
     {
-        // Try to create resource ($this) if not exists (yet)
+        // Try to create atom ($this) if not exists (yet)
         if (!$src->exists()) {
             // Automatically create if allowed
             // if ($this->ifc->crudC()) {
@@ -133,19 +122,18 @@ class ResourcePath
             // Peel off first part of path (= ifc identifier)
             $subifc = $resource->getIfc()->getSubinterface(array_shift($pathList));
 
-            // If the subifc isIdent, step into next Resource.
-            // See explaination in Resource::setPath() method why this elseif construct is here
+            // If the subifc isIdent, step into next resource.
             if ($subifc->isIdent()) {
                 $resource = $subifc->one($resource, $resource->id);
             // Elseif there is at one more part of the path
             } elseif (count($pathList)) {
                 $resource = $subifc->one($resource, array_shift($pathList));
-            // Else, this path end with an ifc
+            // Else, this path ends with an ifc
             } else {
                 $this->trailingIfc = $subifc;
             }
         }
 
-        return $this->tgt = $resource;
+        return $resource;
     }
 }

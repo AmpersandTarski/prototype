@@ -44,21 +44,30 @@ interface InterfaceObjectInterface
      * METHODS to walk through interface
      *********************************************************************************************/
     /**
-     * Returns specific target atom
+     * Returns specific target atom as Resource object
      *
-     * @param \Ampersand\Core\Atom $src
+     * @param \Ampersand\Interfacing\Resource $src
      * @param string $tgtId
-     * @return \Ampersand\Core\Atom
+     * @return \Ampersand\Interfacing\Resource
      */
-    public function one(Atom $src, string $tgtId): Atom;
+    public function one(Resource $src, string $tgtId): Resource;
 
     /**
      * Returns list of target atoms
      *
-     * @param \Ampersand\Core\Atom $src
-     * @return \Ampersand\Core\Atom[]
+     * @param \Ampersand\Interfacing\Resource $src
+     * @return \Ampersand\Interfacing\Resource[]
      */
-    public function all(Atom $src): array;
+    public function all(Resource $src): array;
+
+    /**
+     * Returns path for given tgt resource
+     *
+     * @param \Ampersand\Interfacing\Resource $tgt
+     * @param \Ampersand\Interfacing\Resource|null $parent
+     * @return string
+     */
+    public function buildResourcePath(Resource $tgt, Resource $parent = null): string;
 
     /**********************************************************************************************
      * Sub interface objects METHODS
