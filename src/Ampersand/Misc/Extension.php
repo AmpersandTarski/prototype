@@ -7,8 +7,6 @@
 
 namespace Ampersand\Misc;
 
-use Ampersand\Misc\Settings;
-
 /**
  *
  * @author Michiel Stornebrink (https://github.com/Michiel-s)

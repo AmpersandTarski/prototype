@@ -7,7 +7,6 @@ use Ampersand\Core\Atom;
 use Ampersand\Core\Concept;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Core\Relation;
-use PHPExcel_Cell;
 use PHPExcel_Shared_Date;
 use PHPExcel_IOFactory;
 use PHPExcel_Worksheet;

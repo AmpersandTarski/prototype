@@ -8,10 +8,7 @@
 namespace Ampersand\Interfacing;
 
 use Exception;
-use Ampersand\Core\Atom;
-use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Interfacing\Options;
-use Ampersand\Core\Relation;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 

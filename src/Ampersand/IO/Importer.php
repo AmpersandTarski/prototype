@@ -7,7 +7,6 @@
 
 namespace Ampersand\IO;
 
-use Exception;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Relation;

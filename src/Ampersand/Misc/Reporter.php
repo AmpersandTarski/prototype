@@ -7,7 +7,6 @@
 
 namespace Ampersand\Misc;
 
-use Exception;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\IO\AbstractWriter;
 use Ampersand\Rule\Conjunct;

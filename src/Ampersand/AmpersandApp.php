@@ -23,7 +23,6 @@ use Ampersand\Core\Relation;
 use Ampersand\Interfacing\View;
 use Ampersand\Rule\Rule;
 use Closure;
-use Ampersand\Rule\ExecEngine;
 use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\IO\JSONReader;
 use Ampersand\Interfacing\Ifc;

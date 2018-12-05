@@ -7,12 +7,10 @@
 
 namespace Ampersand\Interfacing;
 
-use Ampersand\Core\Relation;
 use Ampersand\Core\Atom;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
-use Ampersand\Core\Concept;
 
 /**
  *

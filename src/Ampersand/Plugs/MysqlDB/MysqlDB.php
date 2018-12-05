@@ -7,12 +7,10 @@
 
 namespace Ampersand\Plugs\MysqlDB;
 
-use mysqli;
 use DateTime;
 use Exception;
 use DateTimeZone;
 use Ampersand\Model;
-use Ampersand\Session;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Link;
 use Ampersand\Core\Concept;
@@ -24,7 +22,6 @@ use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Plugs\RelationPlugInterface;
 use Ampersand\Plugs\ViewPlugInterface;
 use Ampersand\Transaction;
-use Ampersand\Rule\Conjunct;
 use Psr\Log\LoggerInterface;
 use Ampersand\Exception\NotInstalledException;
 

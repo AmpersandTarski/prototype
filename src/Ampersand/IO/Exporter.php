@@ -7,7 +7,6 @@
 
 namespace Ampersand\IO;
 
-use Exception;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\IO\AbstractWriter;

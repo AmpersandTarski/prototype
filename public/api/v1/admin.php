@@ -11,7 +11,6 @@ use Ampersand\IO\Importer;
 use Ampersand\IO\JSONReader;
 use Ampersand\IO\ExcelImporter;
 use Ampersand\Misc\Reporter;
-use Ampersand\Interfacing\Resource;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Ampersand\Session;

@@ -1,7 +1,6 @@
 <?php
 
 use Ampersand\Core\Concept;
-use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceController;
 use Slim\Http\Request;

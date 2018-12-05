@@ -7,7 +7,6 @@
 
 namespace Ampersand\Log;
 
-use Closure;
 use Exception;
 use Cascade\Cascade;
 use Monolog\Registry;

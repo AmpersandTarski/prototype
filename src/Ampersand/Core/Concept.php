@@ -10,8 +10,6 @@ namespace Ampersand\Core;
 use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTable;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
-use Ampersand\Interfacing\Resource;
-use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\View;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Atom;

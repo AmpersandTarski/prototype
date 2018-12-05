@@ -8,14 +8,12 @@
 namespace Ampersand;
 
 use Exception;
-use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
 use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\Ifc;
-use Ampersand\Misc\Settings;
 use Ampersand\Interfacing\ResourceFactory;
 use Ampersand\Interfacing\ResourcePath;
 use Ampersand\Interfacing\Options;

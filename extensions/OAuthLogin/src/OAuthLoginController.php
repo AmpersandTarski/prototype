@@ -3,8 +3,6 @@
 namespace Ampersand\Extension\OAuthLogin;
 
 use Exception;
-use Ampersand\Interfacing\Resource;
-use Ampersand\AmpersandApp;
 use Ampersand\Interfacing\ResourceFactory;
 use Ampersand\Interfacing\Ifc;
 

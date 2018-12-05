@@ -7,7 +7,6 @@
 
 namespace Ampersand\Interfacing;
 
-use Ampersand\Core\Atom;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\Ifc;
