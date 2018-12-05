@@ -100,7 +100,7 @@ interface InterfaceObjectInterface
      *
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
-    public function getIfcObjFlattened();
+    public function getIfcObjFlattened(): array;
 
     /**
      * Return properties of interface object

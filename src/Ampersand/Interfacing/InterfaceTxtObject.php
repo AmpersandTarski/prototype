@@ -11,6 +11,7 @@ use Exception;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
+use Ampersand\Core\Atom;
 
 /**
  *
@@ -20,11 +21,32 @@ use Ampersand\Interfacing\Resource;
 class InterfaceTxtObject implements InterfaceObjectInterface
 {
     /**
+     * Interface id (i.e. safe name) to use in framework
+     *
+     * @var string
+     */
+    protected $id;
+
+    /**
+     * Interface name to show in UI
+     *
+     * @var string
+     */
+    protected $label;
+
+    /**
      * The string that is the content of this interface object
      *
      * @var string
      */
     protected $txt;
+
+    /**
+     * Path to this interface object (for debugging purposes)
+     *
+     * @var string
+     */
+    protected $path;
 
     /**
      * Constructor
@@ -138,6 +160,33 @@ class InterfaceTxtObject implements InterfaceObjectInterface
         return false;
     }
 
+    /**********************************************************************************************
+     * METHODS to walk through interface
+     *********************************************************************************************/
+    public function one(Resource $src, string $tgtId): Resource
+    {
+        throw new Exception("Method one() is n.a. for InterfaceTxtObject and must not be called", 500);
+    }
+
+    public function all(Resource $src): array
+    {
+        throw new Exception("Method all() is n.a. for InterfaceTxtObject and must not be called", 500);
+    }
+    
+    public function buildResourcePath(Resource $tgt, Resource $parent = null): string
+    {
+        throw new Exception("Method buildResourcePath() is n.a. for InterfaceTxtObject and must not be called", 500);
+    }
+
+    /**********************************************************************************************
+     * Sub interface objects METHODS
+     *********************************************************************************************/
+
+    public function getSubinterfaces(): array
+    {
+        return [];
+    }
+
     public function hasSubinterface(string $ifcId): bool
     {
         return false;
@@ -160,25 +209,57 @@ class InterfaceTxtObject implements InterfaceObjectInterface
     {
         throw new Exception("N.a. for InterfaceTxtObject", 500);
     }
+
+    /**********************************************************************************************
+     * CRUD METHODS
+     *********************************************************************************************/
+    public function create(Atom $src, $tgtId = null): Resource
+    {
+        throw new Exception("Create operation not implemented for TXT interface object", 501);
+    }
     
+    public function read(Atom $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    {
+        return $this->txt;
+    }
+
+    public function set(Atom $src, $value = null): bool
+    {
+        throw new Exception("Set operation not implemented for TXT interface object", 501);
+    }
+
+    public function add(Atom $src, $value): bool
+    {
+        throw new Exception("Add operation not implemented for TXT interface object", 501);
+    }
+
+    public function remove(Atom $src, $value): bool
+    {
+        throw new Exception("Remove operation not implemented for TXT interface object", 501);
+    }
+
+    public function removeAll(Atom $src): bool
+    {
+        throw new Exception("Remove operation not implemented for TXT interface object", 501);
+    }
+
+    public function delete(Atom $tgtAtom): bool
+    {
+        throw new Exception("Detele operation not implemented for TXT interface object", 501);
+    }
+
+    /**********************************************************************************************
+     * HELPER METHODS
+     *********************************************************************************************/
+
     /**
      * Return list of all sub interface objects recursively (incl. the current object itself)
      *
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
-    public function getIfcObjFlattened()
+    public function getIfcObjFlattened(): array
     {
         return [$this];
-    }
-
-    public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
-    {
-        return $this->txt;
-    }
-
-    public function delete(Resource $tgtAtom): bool
-    {
-        throw new Exception("Detele operation not implemented for TXT interface object", 501);
     }
 
     public function getTechDetails(): array
@@ -197,5 +278,10 @@ class InterfaceTxtObject implements InterfaceObjectInterface
             , 'flipped' => 'n.a.'
             , 'ref' => 'n.a.'
             ];
+    }
+
+    public function diagnostics(): array
+    {
+        return [];
     }
 }

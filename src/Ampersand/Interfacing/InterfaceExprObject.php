@@ -461,7 +461,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
      *
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
-    public function getIfcObjFlattened()
+    public function getIfcObjFlattened(): array
     {
         $arr = [$this];
         foreach ($this->getSubinterfaces(Options::DEFAULT_OPTIONS & ~Options::INCLUDE_REF_IFCS) as $subObj) {
