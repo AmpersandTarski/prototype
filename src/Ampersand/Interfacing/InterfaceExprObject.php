@@ -687,7 +687,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
         return $content;
     }
 
-    public function create(Resource $src, $tgtId = null): Atom
+    public function create(Resource $src, $tgtId = null): Resource
     {
         if (!$this->crudC()) {
             throw new Exception("Create not allowed for ". $this->getPath(), 405);
@@ -702,14 +702,16 @@ class InterfaceExprObject implements InterfaceObjectInterface
         } else {
             $resource = $this->makeNewResource($src);
         }
+
+        // Add to plug (database) and return
+        $resource->add();
         
         // If interface is editable, also add tuple(src, tgt) in interface relation
         if ($this->isEditable()) {
             $this->add($src, $resource->id, true);
         }
 
-        // Add to plug (database) and return
-        return $resource->add();
+        return $resource;
     }
 
     /**

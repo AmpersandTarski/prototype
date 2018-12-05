@@ -13,11 +13,10 @@ use Exception;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Concept;
 use Ampersand\Log\Logger;
-use function Ampersand\Misc\isSequential;
 use Ampersand\Interfacing\Options;
-use Ampersand\Interfacing\InterfaceTxtObject;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\ResourcePath;
+use function Ampersand\Misc\getSafeFileName;
 
 /**
  *
@@ -167,9 +166,9 @@ class Resource extends Atom implements ArrayAccess
 
             if ($subifc->isUni()) { // expect value to be object or literal
                 if (isset($value->_id_)) { // object with _id_ attribute
-                    $this->ifc->set($this, $value->_id_);
+                    $subifc->set($this, $value->_id_);
                 } else { // null object, string (object id) or literal
-                    $this->ifc->set($this, $value);
+                    $subifc->set($this, $value);
                 }
             } else { // expect value to be array
                 if (!is_array($value)) {
@@ -177,14 +176,14 @@ class Resource extends Atom implements ArrayAccess
                 }
                 
                 // First empty existing list
-                $this->removeAll($src);
+                $subifc->removeAll($this);
                 
                 // Add provided values
                 foreach ($value as $item) {
                     if (isset($item->_id_)) { // object with _id_ attribute
-                        $this->ifc->add($this, $item->_id_);
+                        $subifc->add($this, $item->_id_);
                     } else { // null object, string (object id) or literal
-                        $this->ifc->add($this, $item);
+                        $subifc->add($this, $item);
                     }
                 }
             }

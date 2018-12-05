@@ -7,9 +7,8 @@
 
 namespace Ampersand\Interfacing;
 
-use Ampersand\Core\Atom;
 use Ampersand\Interfacing\Resource;
-use Ampersand\Interfacing\InterfaceObjectInterface;
+use Exception;
 
 /**
  *
@@ -21,7 +20,7 @@ class ResourcePath
     /**
      * Source atom of this resource path
      *
-     * @var \Ampersand\Core\Atom
+     * @var \Ampersand\Interfacing\Resource
      */
     protected $src;
 

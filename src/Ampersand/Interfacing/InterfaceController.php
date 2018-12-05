@@ -11,7 +11,6 @@ use Exception;
 use Ampersand\AmpersandApp;
 use Ampersand\AngularApp;
 use Ampersand\Interfacing\Resource;
-use function Ampersand\Misc\getSafeFileName;
 
 class InterfaceController
 {
