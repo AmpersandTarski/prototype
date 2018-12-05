@@ -1,0 +1,279 @@
+bootstrap\files\execEngineDateTime.php:21 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineDateTime.php:28 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineDateTime.php:46 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineDateTime.php:64 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineDateTime.php:99 PhanTypeSuspiciousStringExpression Suspicious type false of a variable or expression encapsulated within a string. (Expected this to be able to cast to a string)
+bootstrap\files\execEngineDateTime.php:102 PhanTypeSuspiciousStringExpression Suspicious type false of a variable or expression encapsulated within a string. (Expected this to be able to cast to a string)
+bootstrap\files\execEngineDateTime.php:106 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineDateTime.php:110 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineDateTime.php:119 PhanTypeSuspiciousStringExpression Suspicious type false of a variable or expression encapsulated within a string. (Expected this to be able to cast to a string)
+bootstrap\files\execEngineDateTime.php:122 PhanTypeSuspiciousStringExpression Suspicious type false of a variable or expression encapsulated within a string. (Expected this to be able to cast to a string)
+bootstrap\files\execEngineDateTime.php:126 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineDateTime.php:127 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineDateTime.php:135 PhanTypeSuspiciousStringExpression Suspicious type false of a variable or expression encapsulated within a string. (Expected this to be able to cast to a string)
+bootstrap\files\execEngineDateTime.php:138 PhanTypeSuspiciousStringExpression Suspicious type false of a variable or expression encapsulated within a string. (Expected this to be able to cast to a string)
+bootstrap\files\execEngineDateTime.php:145 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineDateTime.php:147 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineDateTime.php:155 PhanTypeSuspiciousStringExpression Suspicious type false of a variable or expression encapsulated within a string. (Expected this to be able to cast to a string)
+bootstrap\files\execEngineDateTime.php:158 PhanTypeSuspiciousStringExpression Suspicious type false of a variable or expression encapsulated within a string. (Expected this to be able to cast to a string)
+bootstrap\files\execEngineDateTime.php:165 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineDateTime.php:167 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:19 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace AngularApp (\Ampersand\AngularApp)
+bootstrap\files\execEngineFunctions.php:46 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:52 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:55 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:65 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:91 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:97 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:100 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:117 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:149 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:163 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:197 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:199 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:217 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:219 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:236 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:242 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:268 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:271 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:275 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:292 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:299 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:318 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:324 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:342 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:346 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:359 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:363 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:369 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:370 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:374 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:384 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:385 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineFunctions.php:389 PhanUndeclaredVariable Variable $this is undeclared
+bootstrap\files\execEngineWarshall.php:43 PhanUndeclaredStaticProperty Static property 'runCount' on \Ampersand\Rule\ExecEngine is undeclared
+bootstrap\files\execEngineWarshall.php:50 PhanUndeclaredStaticProperty Static property 'runCount' on \Ampersand\Rule\ExecEngine is undeclared
+bootstrap\files\execEngineWarshall.php:67 PhanTypeMismatchDimAssignment When appending to a value of type array{}, found an array access index of type \Ampersand\Core\Atom, but expected the index to be of type int|string
+bootstrap\files\execEngineWarshall.php:79 PhanTypeMismatchDimFetch When fetching an array index from a value of type array{}|true[][], found an array index of type \Ampersand\Core\Atom, but expected the index to be of type int|string
+bootstrap\files\execEngineWarshall.php:79 PhanTypeMismatchDimFetch When fetching an array index from a value of type true[], found an array index of type \Ampersand\Core\Atom, but expected the index to be of type int|string
+bootstrap\files\execEngineWarshall.php:81 PhanTypeMismatchDimFetch When fetching an array index from a value of type array{}|true[][], found an array index of type \Ampersand\Core\Atom, but expected the index to be of type int|string
+bootstrap\files\execEngineWarshall.php:81 PhanTypeMismatchDimFetch When fetching an array index from a value of type true[], found an array index of type \Ampersand\Core\Atom, but expected the index to be of type int|string
+bootstrap\framework.php:14 PhanTypeArraySuspiciousNullable Suspicious array access to nullable ?array
+bootstrap\framework.php:24 PhanTypeArraySuspiciousNullable Suspicious array access to nullable ?array
+bootstrap\framework.php:36 PhanTypeMismatchArgumentInternal Argument 2 (newvalue) is true but \ini_set() takes string
+bootstrap\framework.php:37 PhanTypeMismatchArgumentInternal Argument 2 (newvalue) is true but \ini_set() takes string
+bootstrap\framework.php:39 PhanTypeMismatchArgumentInternal Argument 2 (newvalue) is true but \ini_set() takes string
+bootstrap\framework.php:52 PhanTypeMismatchArgumentInternal Argument 2 (newvalue) is false but \ini_set() takes string
+extensions\OAuthLogin\api\oauthlogin.php:21 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+extensions\OAuthLogin\api\oauthlogin.php:56 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+extensions\OAuthLogin\api\oauthlogin.php:65 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+extensions\OAuthLogin\bootstrap.php:13 PhanUndeclaredTypeParameter Parameter $app has undeclared type \AmpersandApp
+extensions\OAuthLogin\src\OAuthLoginController.php:6 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Resource (\Ampersand\Interfacing\Resource)
+extensions\OAuthLogin\src\OAuthLoginController.php:7 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace AmpersandApp (\Ampersand\AmpersandApp)
+extensions\OAuthLogin\src\OAuthLoginController.php:200 PhanTypeMismatchArgumentInternal Argument 1 (it) is \Ampersand\Core\Atom[]|\Ampersand\Interfacing\Resource[]|\ArrayAccess[]|\JsonSerializable[]|string[] but \iterator_count() takes \Traversable
+extensions\OAuthLogin\src\OAuthLoginController.php:216 PhanTypeMismatchArgumentInternal Argument 1 (it) is \Ampersand\Core\Atom[]|\Ampersand\Interfacing\Resource[]|\ArrayAccess[]|\JsonSerializable[]|string[] but \iterator_count() takes \Traversable
+extensions\OAuthLogin\src\OAuthLoginController.php:217 PhanNonClassMethodCall Call to method getIterator on non-class type \Ampersand\Interfacing\Resource[]
+public/api\v1\admin.php:14 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Resource (\Ampersand\Interfacing\Resource)
+public/api\v1\admin.php:34 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\admin.php:49 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\admin.php:76 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\admin.php:99 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\admin.php:116 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\admin.php:139 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\admin.php:164 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\admin.php:182 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\admin.php:185 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\admin.php:269 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\admin.php:283 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\admin.php:297 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\admin.php:310 PhanUndeclaredVariable Variable $this is undeclared
+public/api\v1\app.php:20 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\app.php:28 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\app.php:30 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\app.php:62 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\index.php:199 PhanUndeclaredVariable Variable $this is undeclared
+public/api\v1\resources.php:4 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Resource (\Ampersand\Interfacing\Resource)
+public/api\v1\resources.php:31 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:50 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:72 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:94 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:112 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:114 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:131 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:133 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:160 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:162 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:182 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:184 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:201 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:203 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:230 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+public/api\v1\resources.php:232 PhanTypeArraySuspicious Suspicious array access to \Slim\App
+src\Ampersand\AmpersandApp.php:26 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace ExecEngine (\Ampersand\Rule\ExecEngine)
+src\Ampersand\AmpersandApp.php:88 PhanUnextractableAnnotation Saw unextractable annotation for comment '* @var ['conceptLabel' => \Ampersand\Plugs\ConceptPlugInterface[]]'
+src\Ampersand\AmpersandApp.php:94 PhanUnextractableAnnotation Saw unextractable annotation for comment '* @var ['relationSignature' => \Ampersand\Plugs\RelationPlugInterface[]]'
+src\Ampersand\AmpersandApp.php:189 PhanTypeMismatchArgument Argument 4 (database) is \Ampersand\Plugs\StorageInterface but \Ampersand\Rule\Conjunct::setAllConjuncts() takes \Ampersand\Plugs\MysqlDB\MysqlDB defined at src\Ampersand\Rule\Conjunct.php:337
+src\Ampersand\AmpersandApp.php:190 PhanTypeMismatchArgument Argument 2 (defaultPlug) is \Ampersand\Plugs\StorageInterface but \Ampersand\Interfacing\View::setAllViews() takes \Ampersand\Plugs\ViewPlugInterface defined at src\Ampersand\Interfacing\View.php:155
+src\Ampersand\AmpersandApp.php:193 PhanTypeMismatchArgument Argument 2 (defaultPlug) is \Ampersand\Plugs\StorageInterface but \Ampersand\Interfacing\Ifc::setAllInterfaces() takes \Ampersand\Plugs\IfcPlugInterface defined at src\Ampersand\Interfacing\Ifc.php:206
+src\Ampersand\AmpersandApp.php:194 PhanTypeMismatchArgument Argument 2 (defaultPlug) is \Ampersand\Plugs\StorageInterface but \Ampersand\Rule\Rule::setAllRules() takes \Ampersand\Plugs\ViewPlugInterface defined at src\Ampersand\Rule\Rule.php:325
+src\Ampersand\AmpersandApp.php:204 PhanTypeMismatchArgument Argument 1 (plug) is \Ampersand\Plugs\StorageInterface but \Ampersand\Core\Concept::addPlug() takes \Ampersand\Plugs\ConceptPlugInterface defined at src\Ampersand\Core\Concept.php:448
+src\Ampersand\AmpersandApp.php:215 PhanTypeMismatchArgument Argument 1 (plug) is \Ampersand\Plugs\StorageInterface but \Ampersand\Core\Relation::addPlug() takes \Ampersand\Plugs\RelationPlugInterface defined at src\Ampersand\Core\Relation.php:221
+src\Ampersand\AmpersandApp.php:606 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceObjectInterface->srcConcept
+src\Ampersand\AngularApp.php:78 PhanUnextractableAnnotationElementName Saw possibly unextractable annotation for a fragment of comment '* @param callable function which returns true/false determining to add the menu item or not': after callable, did not see an element name (will guess based on comment order)
+src\Ampersand\Core\Concept.php:13 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Resource (\Ampersand\Interfacing\Resource)
+src\Ampersand\Core\Concept.php:14 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace InterfaceObjectInterface (\Ampersand\Interfacing\InterfaceObjectInterface)
+src\Ampersand\Core\Concept.php:496 PhanTypeInvalidUnaryOperandIncOrDec Invalid operator: unary operand of ++(expr) is null (expected int or string or float)
+src\Ampersand\Core\Concept.php:508 PhanTypeMismatchArgumentInternal Argument 2 (vars) is ?string but \sprintf() takes float|int|string
+src\Ampersand\Core\Relation.php:289 PhanTypeMismatchDeclaredParamNullable Doc-block of $atom in deleteAllLinks is phpdoc param type \Ampersand\Core\Atom which is not a permitted replacement of the nullable param type ?\Ampersand\Core\Atom declared in the signature ('?T' should be documented as 'T|null' or '?T')
+src\Ampersand\IO\AbstractWriter.php:34 PhanTypeMismatchArgument Argument 1 (string) is array<int,array<int,string>> but \Psr\Http\Message\StreamInterface::write() takes string defined at lib\psr\http-message\src\StreamInterface.php:115
+src\Ampersand\IO\AbstractWriter.php:34 PhanTypeMismatchArgument Argument 1 (string) is array<string,array<int,array{concept:string,atoms:array}>>|array<string,array<int,array{relation:string,links:\Ampersand\Core\Link[]}>>|array<string,array{}> but \Psr\Http\Message\StreamInterface::write() takes string defined at lib\psr\http-message\src\StreamInterface.php:115
+src\Ampersand\IO\AbstractWriter.php:34 PhanTypeMismatchArgument Argument 1 (string) is array<string,array<int,string>> but \Psr\Http\Message\StreamInterface::write() takes string defined at lib\psr\http-message\src\StreamInterface.php:115
+src\Ampersand\IO\AbstractWriter.php:34 PhanTypeMismatchArgument Argument 1 (string) is array<string,array<string,array{invRules:array<int,string>}>>[]|array<string,array<string,array{sigRules:array<int,string>}>>[]|array<string,array<string,array{}>>[]|array<string,array{}>[]|array<string,string>[] but \Psr\Http\Message\StreamInterface::write() takes string defined at lib\psr\http-message\src\StreamInterface.php:115
+src\Ampersand\IO\AbstractWriter.php:34 PhanTypeMismatchArgument Argument 1 (string) is array<string,float>|array<string,string> but \Psr\Http\Message\StreamInterface::write() takes string defined at lib\psr\http-message\src\StreamInterface.php:115
+src\Ampersand\IO\AbstractWriter.php:34 PhanTypeMismatchArgument Argument 1 (string) is array[] but \Psr\Http\Message\StreamInterface::write() takes string defined at lib\psr\http-message\src\StreamInterface.php:115
+src\Ampersand\IO\ExcelImporter.php:10 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace PHPExcel_Cell (\PHPExcel_Cell)
+src\Ampersand\IO\ExcelImporter.php:83 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceObjectInterface->tgtConcept
+src\Ampersand\IO\ExcelImporter.php:93 PhanDeprecatedFunction Call to deprecated function \PHPExcel_Cell::getCalculatedValue() defined at lib\phpoffice\phpexcel\Classes\PHPExcel\Cell.php:270
+src\Ampersand\IO\ExcelImporter.php:113 PhanDeprecatedFunction Call to deprecated function \PHPExcel_Cell::getCalculatedValue() defined at lib\phpoffice\phpexcel\Classes\PHPExcel\Cell.php:270
+src\Ampersand\IO\ExcelImporter.php:142 PhanDeprecatedFunction Call to deprecated function \PHPExcel_Cell::getCalculatedValue() defined at lib\phpoffice\phpexcel\Classes\PHPExcel\Cell.php:270
+src\Ampersand\IO\ExcelImporter.php:154 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceObjectInterface->tgtConcept
+src\Ampersand\IO\ExcelImporter.php:156 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceObjectInterface->tgtConcept
+src\Ampersand\IO\ExcelImporter.php:157 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceObjectInterface->tgtConcept
+src\Ampersand\IO\ExcelImporter.php:163 PhanUndeclaredMethod Call to undeclared method \Ampersand\Interfacing\InterfaceObjectInterface::relation
+src\Ampersand\IO\ExcelImporter.php:163 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceObjectInterface->relationIsFlipped
+src\Ampersand\IO\ExcelImporter.php:193 PhanDeprecatedFunction Call to deprecated function \PHPExcel_Cell::getCalculatedValue() defined at lib\phpoffice\phpexcel\Classes\PHPExcel\Cell.php:270
+src\Ampersand\IO\ExcelImporter.php:255 PhanUndeclaredVariable Variable $leftConcept is undeclared
+src\Ampersand\IO\ExcelImporter.php:261 PhanUndeclaredVariable Variable $leftConcept is undeclared
+src\Ampersand\IO\ExcelImporter.php:283 PhanTypeNoAccessiblePropertiesForeach Class \PHPExcel_Worksheet_CellIterator was passed to foreach, but it does not extend Traversable and none of its declared properties are accessible from this context. (This check excludes dynamic properties)
+src\Ampersand\IO\ExcelImporter.php:321 PhanUndeclaredVariable Variable $leftAtom is undeclared
+src\Ampersand\IO\ExcelImporter.php:326 PhanUndeclaredVariable Variable $leftAtom is undeclared
+src\Ampersand\IO\Exporter.php:10 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Exception (\Exception)
+src\Ampersand\IO\Importer.php:10 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Exception (\Exception)
+src\Ampersand\IO\Importer.php:60 PhanTypeExpectedObjectPropAccess Expected an object instance when accessing an instance property, but saw an expression with type false|string
+src\Ampersand\IO\Importer.php:66 PhanTypeExpectedObjectPropAccess Expected an object instance when accessing an instance property, but saw an expression with type false|string
+src\Ampersand\IO\Importer.php:72 PhanTypeExpectedObjectPropAccess Expected an object instance when accessing an instance property, but saw an expression with type false|string
+src\Ampersand\IO\Importer.php:73 PhanTypeExpectedObjectPropAccess Expected an object instance when accessing an instance property, but saw an expression with type false|string
+src\Ampersand\IO\JSONReader.php:20 PhanUndeclaredClassMethod Call to method __construct from undeclared class \Ampersand\IO\Exception (Did you mean class \Exception)
+src\Ampersand\IO\JSONReader.php:20 PhanUndeclaredStaticProperty Static property '_messages' on \Ampersand\IO\JSONReader is undeclared
+src\Ampersand\Interfacing\Ifc.php:158 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\Ifc->getLabel (Did you mean ->getLabel())
+src\Ampersand\Interfacing\Ifc.php:195 PhanUndeclaredVariable Variable $this is undeclared
+src\Ampersand\Interfacing\InterfaceController.php:14 PhanUnreferencedUseFunction Possibly zero references to use statement for function getSafeFileName (\Ampersand\Misc\getSafeFileName)
+src\Ampersand\Interfacing\InterfaceController.php:170 PhanUndeclaredClassMethod Call to method getUserLogger from undeclared class \Ampersand\Interfacing\Logger
+src\Ampersand\Interfacing\InterfaceExprObject.php:212 PhanParamTooMany Call with 3 arg(s) to \Ampersand\Interfacing\InterfaceObjectFactory::newObject() which only takes 2 arg(s) defined at src\Ampersand\Interfacing\InterfaceObjectFactory.php:24
+src\Ampersand\Interfacing\InterfaceExprObject.php:213 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceObjectInterface->id
+src\Ampersand\Interfacing\InterfaceExprObject.php:451 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceObjectInterface->label
+src\Ampersand\Interfacing\InterfaceExprObject.php:477 PhanAccessSignatureMismatch Access level to function getSubinterfaces(int $options = null) : \Ampersand\Interfacing\InterfaceObjectInterface[] must be compatible with function getSubinterfaces() : \Ampersand\Interfacing\InterfaceObjectInterface[]|array defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:80
+src\Ampersand\Interfacing\InterfaceExprObject.php:477 PhanParamSignatureRealMismatchReturnType Declaration of function getSubinterfaces(int $options = null) should be compatible with function getSubinterfaces() : array (method returning '' cannot override method returning 'array') defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:80
+src\Ampersand\Interfacing\InterfaceExprObject.php:489 PhanParamTooMany Call with 1 arg(s) to \Ampersand\Interfacing\InterfaceObjectInterface::getSubinterfaces() which only takes 0 arg(s) defined at src\Ampersand\Interfacing\InterfaceObjectInterface.php:80
+src\Ampersand\Interfacing\InterfaceExprObject.php:530 PhanParamSignatureRealMismatchParamType Declaration of function all(\Ampersand\Core\Atom $src) : array should be compatible with function all(\Ampersand\Interfacing\Resource $src) : array (parameter #1 of type '\Ampersand\Core\Atom' cannot replace original parameter of type '\Ampersand\Interfacing\Resource') defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:61
+src\Ampersand\Interfacing\InterfaceExprObject.php:540 PhanUndeclaredVariable Variable $src is undeclared
+src\Ampersand\Interfacing\InterfaceExprObject.php:557 PhanTypeMismatchArgument Argument 1 (resourceId) is ?string but \Ampersand\Interfacing\InterfaceExprObject::makeResource() takes string defined at src\Ampersand\Interfacing\InterfaceExprObject.php:902
+src\Ampersand\Interfacing\InterfaceExprObject.php:584 PhanParamSignatureMismatch Declaration of function read(\Ampersand\Interfacing\Resource $src, int $options = null, ?int $depth = null, array $recursionArr = null) should be compatible with function read(\Ampersand\Core\Atom $src, int $options = null, ?int $depth = null, array $recursionArr = null) defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:89
+src\Ampersand\Interfacing\InterfaceExprObject.php:584 PhanParamSignatureRealMismatchParamType Declaration of function read(\Ampersand\Interfacing\Resource $src, int $options = null, ?int $depth = null, array $recursionArr = null) should be compatible with function read(\Ampersand\Core\Atom $src, int $options = null, ?int $depth = null, array $recursionArr = null) (parameter #1 of type '\Ampersand\Interfacing\Resource' cannot replace original parameter of type '\Ampersand\Core\Atom') defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:89
+src\Ampersand\Interfacing\InterfaceExprObject.php:690 PhanParamSignatureMismatch Declaration of function create(\Ampersand\Interfacing\Resource $src, mixed $tgtId = null) : \Ampersand\Core\Atom should be compatible with function create(\Ampersand\Core\Atom $src, mixed $tgtId = null) : \Ampersand\Core\Atom defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:88
+src\Ampersand\Interfacing\InterfaceExprObject.php:690 PhanParamSignatureRealMismatchParamType Declaration of function create(\Ampersand\Interfacing\Resource $src, $tgtId = null) : \Ampersand\Core\Atom should be compatible with function create(\Ampersand\Core\Atom $src, $tgtId = null) : \Ampersand\Core\Atom (parameter #1 of type '\Ampersand\Interfacing\Resource' cannot replace original parameter of type '\Ampersand\Core\Atom') defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:88
+src\Ampersand\Interfacing\InterfaceExprObject.php:836 PhanParamSignatureMismatch Declaration of function delete(\Ampersand\Interfacing\Resource $tgtAtom) : bool should be compatible with function delete(\Ampersand\Core\Atom $tgtAtom) : bool defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:94
+src\Ampersand\Interfacing\InterfaceExprObject.php:836 PhanParamSignatureRealMismatchParamType Declaration of function delete(\Ampersand\Interfacing\Resource $tgtAtom) : bool should be compatible with function delete(\Ampersand\Core\Atom $tgtAtom) : bool (parameter #1 of type '\Ampersand\Interfacing\Resource' cannot replace original parameter of type '\Ampersand\Core\Atom') defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:94
+src\Ampersand\Interfacing\InterfaceNullObject.php:10 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Atom (\Ampersand\Core\Atom)
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::__toString declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:24
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::add declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:91
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::all declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:61
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::create declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:88
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::crudC declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:38
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::crudD declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:41
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::crudR declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:39
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::crudU declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:40
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::diagnostics declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:119
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::getEditableConcepts declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:28
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::getIfcId declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:25
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::getIfcLabel declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:26
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::getIfcObjFlattened declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:105
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::getPath declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:36
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::getSubinterfaceByLabel declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:83
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::getSubinterfaces declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:80
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::getTechDetails declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:112
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::isEditable declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:34
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::isIdent declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:31
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::isLeaf declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:30
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::isTot declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:33
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::isUni declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:32
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::one declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:53
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::remove declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:92
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::removeAll declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:93
+src\Ampersand\Interfacing\InterfaceNullObject.php:20 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceNullObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::set declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:90
+src\Ampersand\Interfacing\InterfaceNullObject.php:44 PhanTypeSuspiciousStringExpression Suspicious type \Ampersand\Interfacing\Ifc of a variable or expression encapsulated within a string. (Expected this to be able to cast to a string)
+src\Ampersand\Interfacing\InterfaceNullObject.php:44 PhanUndeclaredClassMethod Call to method __construct from undeclared class \Ampersand\Interfacing\Exception (Did you mean class \Exception)
+src\Ampersand\Interfacing\InterfaceNullObject.php:50 PhanParamSignatureMismatch Declaration of function read(\Ampersand\Interfacing\Resource $src, int $options = null, ?int $depth = null, array $recursionArr = null) should be compatible with function read(\Ampersand\Core\Atom $src, int $options = null, ?int $depth = null, array $recursionArr = null) defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:89
+src\Ampersand\Interfacing\InterfaceNullObject.php:50 PhanParamSignatureRealMismatchParamType Declaration of function read(\Ampersand\Interfacing\Resource $src, int $options = null, ?int $depth = null, array $recursionArr = null) should be compatible with function read(\Ampersand\Core\Atom $src, int $options = null, ?int $depth = null, array $recursionArr = null) (parameter #1 of type '\Ampersand\Interfacing\Resource' cannot replace original parameter of type '\Ampersand\Core\Atom') defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:89
+src\Ampersand\Interfacing\InterfaceNullObject.php:65 PhanUndeclaredFunction Call to undeclared function \isSequential()
+src\Ampersand\Interfacing\InterfaceNullObject.php:73 PhanParamSignatureMismatch Declaration of function delete(\Ampersand\Interfacing\Resource $tgtAtom) : bool should be compatible with function delete(\Ampersand\Core\Atom $tgtAtom) : bool defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:94
+src\Ampersand\Interfacing\InterfaceNullObject.php:73 PhanParamSignatureRealMismatchParamType Declaration of function delete(\Ampersand\Interfacing\Resource $tgtAtom) : bool should be compatible with function delete(\Ampersand\Core\Atom $tgtAtom) : bool (parameter #1 of type '\Ampersand\Interfacing\Resource' cannot replace original parameter of type '\Ampersand\Core\Atom') defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:94
+src\Ampersand\Interfacing\InterfaceNullObject.php:75 PhanUndeclaredClassMethod Call to method __construct from undeclared class \Ampersand\Interfacing\Exception (Did you mean class \Exception)
+src\Ampersand\Interfacing\InterfaceObjectInterface.php:10 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Relation (\Ampersand\Core\Relation)
+src\Ampersand\Interfacing\InterfaceObjectInterface.php:15 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Concept (\Ampersand\Core\Concept)
+src\Ampersand\Interfacing\InterfaceTxtObject.php:11 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Atom (\Ampersand\Core\Atom)
+src\Ampersand\Interfacing\InterfaceTxtObject.php:12 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace IfcPlugInterface (\Ampersand\Plugs\IfcPlugInterface)
+src\Ampersand\Interfacing\InterfaceTxtObject.php:14 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Relation (\Ampersand\Core\Relation)
+src\Ampersand\Interfacing\InterfaceTxtObject.php:23 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceTxtObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::add declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:91
+src\Ampersand\Interfacing\InterfaceTxtObject.php:23 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceTxtObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::all declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:61
+src\Ampersand\Interfacing\InterfaceTxtObject.php:23 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceTxtObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::buildResourcePath declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:70
+src\Ampersand\Interfacing\InterfaceTxtObject.php:23 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceTxtObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::create declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:88
+src\Ampersand\Interfacing\InterfaceTxtObject.php:23 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceTxtObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::diagnostics declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:119
+src\Ampersand\Interfacing\InterfaceTxtObject.php:23 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceTxtObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::getSubinterfaces declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:80
+src\Ampersand\Interfacing\InterfaceTxtObject.php:23 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceTxtObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::one declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:53
+src\Ampersand\Interfacing\InterfaceTxtObject.php:23 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceTxtObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::remove declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:92
+src\Ampersand\Interfacing\InterfaceTxtObject.php:23 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceTxtObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::removeAll declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:93
+src\Ampersand\Interfacing\InterfaceTxtObject.php:23 PhanClassContainsAbstractMethod non-abstract class \Ampersand\Interfacing\InterfaceTxtObject contains abstract method \Ampersand\Interfacing\InterfaceObjectInterface::set declared at src\Ampersand\Interfacing\InterfaceObjectInterface.php:90
+src\Ampersand\Interfacing\InterfaceTxtObject.php:45 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceTxtObject->id
+src\Ampersand\Interfacing\InterfaceTxtObject.php:46 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceTxtObject->label
+src\Ampersand\Interfacing\InterfaceTxtObject.php:50 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceTxtObject->label
+src\Ampersand\Interfacing\InterfaceTxtObject.php:50 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceTxtObject->path
+src\Ampersand\Interfacing\InterfaceTxtObject.php:59 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceTxtObject->id
+src\Ampersand\Interfacing\InterfaceTxtObject.php:64 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceTxtObject->id
+src\Ampersand\Interfacing\InterfaceTxtObject.php:69 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceTxtObject->label
+src\Ampersand\Interfacing\InterfaceTxtObject.php:122 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceTxtObject->path
+src\Ampersand\Interfacing\InterfaceTxtObject.php:177 PhanParamSignatureMismatch Declaration of function read(\Ampersand\Interfacing\Resource $src, int $options = null, ?int $depth = null, array $recursionArr = null) should be compatible with function read(\Ampersand\Core\Atom $src, int $options = null, ?int $depth = null, array $recursionArr = null) defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:89
+src\Ampersand\Interfacing\InterfaceTxtObject.php:177 PhanParamSignatureRealMismatchParamType Declaration of function read(\Ampersand\Interfacing\Resource $src, int $options = null, ?int $depth = null, array $recursionArr = null) should be compatible with function read(\Ampersand\Core\Atom $src, int $options = null, ?int $depth = null, array $recursionArr = null) (parameter #1 of type '\Ampersand\Interfacing\Resource' cannot replace original parameter of type '\Ampersand\Core\Atom') defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:89
+src\Ampersand\Interfacing\InterfaceTxtObject.php:182 PhanParamSignatureMismatch Declaration of function delete(\Ampersand\Interfacing\Resource $tgtAtom) : bool should be compatible with function delete(\Ampersand\Core\Atom $tgtAtom) : bool defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:94
+src\Ampersand\Interfacing\InterfaceTxtObject.php:182 PhanParamSignatureRealMismatchParamType Declaration of function delete(\Ampersand\Interfacing\Resource $tgtAtom) : bool should be compatible with function delete(\Ampersand\Core\Atom $tgtAtom) : bool (parameter #1 of type '\Ampersand\Interfacing\Resource' cannot replace original parameter of type '\Ampersand\Core\Atom') defined in src\Ampersand\Interfacing\InterfaceObjectInterface.php:94
+src\Ampersand\Interfacing\Resource.php:16 PhanUnreferencedUseFunction Possibly zero references to use statement for function isSequential (\Ampersand\Misc\isSequential)
+src\Ampersand\Interfacing\Resource.php:18 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace InterfaceTxtObject (\Ampersand\Interfacing\InterfaceTxtObject)
+src\Ampersand\Interfacing\Resource.php:138 PhanCommentParamWithoutRealParam Saw an @param annotation for recursionArr, but it was not found in the param list of function get(int $options = null, ?int $depth = null) : array|string
+src\Ampersand\Interfacing\Resource.php:181 PhanUndeclaredMethod Call to undeclared method \Ampersand\Interfacing\Resource::removeAll
+src\Ampersand\Interfacing\Resource.php:282 PhanUndeclaredFunction Call to undeclared function \getSafeFileName()
+src\Ampersand\Interfacing\Resource.php:301 PhanUndeclaredMethod Call to undeclared method \Ampersand\Core\Atom::put
+src\Ampersand\Interfacing\ResourceFactory.php:82 PhanTypeMismatchDeclaredParam Doc-block of $atom in makeResourceFromAtom contains phpdoc param type \Ampersand\Core\Atom which is incompatible with the param type \Ampersand\Interfacing\Atom declared in the signature
+src\Ampersand\Interfacing\ResourceFactory.php:85 PhanUndeclaredTypeParameter Parameter $atom has undeclared type \Ampersand\Interfacing\Atom
+src\Ampersand\Interfacing\ResourceFactory.php:87 PhanUndeclaredClassProperty Reference to instance property concept from undeclared class \Ampersand\Interfacing\Atom
+src\Ampersand\Interfacing\ResourceFactory.php:87 PhanUndeclaredClassProperty Reference to instance property id from undeclared class \Ampersand\Interfacing\Atom
+src\Ampersand\Interfacing\ResourcePath.php:10 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Atom (\Ampersand\Core\Atom)
+src\Ampersand\Interfacing\ResourcePath.php:12 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace InterfaceObjectInterface (\Ampersand\Interfacing\InterfaceObjectInterface)
+src\Ampersand\Interfacing\ResourcePath.php:116 PhanUndeclaredClassMethod Call to method __construct from undeclared class \Ampersand\Interfacing\Exception (Did you mean class \Exception)
+src\Ampersand\Log\Logger.php:10 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Closure (\Closure)
+src\Ampersand\Log\UserLogger.php:149 PhanUndeclaredMethod Call to undeclared method \Ampersand\Rule\Violation::getInterfaces
+src\Ampersand\Log\UserLogger.php:153 PhanUndeclaredMethod Call to undeclared method \Ampersand\Rule\Violation::getInterfaces
+src\Ampersand\Misc\Extension.php:10 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Settings (\Ampersand\Misc\Settings)
+src\Ampersand\Misc\Extension.php:29 PhanTypeMismatchDeclaredParamNullable Doc-block of $bootstrapFile in __construct is phpdoc param type string which is not a permitted replacement of the nullable param type ?string declared in the signature ('?T' should be documented as 'T|null' or '?T')
+src\Ampersand\Misc\Extension.php:30 PhanTypeMismatchDeclaredParamNullable Doc-block of $configFile in __construct is phpdoc param type string which is not a permitted replacement of the nullable param type ?string declared in the signature ('?T' should be documented as 'T|null' or '?T')
+src\Ampersand\Misc\Reporter.php:10 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Exception (\Exception)
+src\Ampersand\Misc\Settings.php:57 PhanTypeMismatchForeach false|string passed to foreach instead of array
+src\Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache.php:81 PhanTypeInvalidThrowsIsInterface @throws annotation of getItem has suspicious interface type \Psr\Cache\InvalidArgumentException for an @throws annotation, expected class (PHP allows interfaces to be caught, so this might be intentional) (Did you mean class \InvalidArgumentException)
+src\Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache.php:110 PhanTypeInvalidThrowsIsInterface @throws annotation of getItems has suspicious interface type \Psr\Cache\InvalidArgumentException for an @throws annotation, expected class (PHP allows interfaces to be caught, so this might be intentional) (Did you mean class \InvalidArgumentException)
+src\Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache.php:146 PhanTypeInvalidThrowsIsInterface @throws annotation of hasItem has suspicious interface type \Psr\Cache\InvalidArgumentException for an @throws annotation, expected class (PHP allows interfaces to be caught, so this might be intentional) (Did you mean class \InvalidArgumentException)
+src\Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache.php:178 PhanTypeInvalidThrowsIsInterface @throws annotation of deleteItem has suspicious interface type \Psr\Cache\InvalidArgumentException for an @throws annotation, expected class (PHP allows interfaces to be caught, so this might be intentional) (Did you mean class \InvalidArgumentException)
+src\Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache.php:196 PhanTypeInvalidThrowsIsInterface @throws annotation of deleteItems has suspicious interface type \Psr\Cache\InvalidArgumentException for an @throws annotation, expected class (PHP allows interfaces to be caught, so this might be intentional) (Did you mean class \InvalidArgumentException)
+src\Ampersand\Plugs\MysqlDB\MysqlDB.php:10 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace mysqli (\mysqli)
+src\Ampersand\Plugs\MysqlDB\MysqlDB.php:15 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Session (\Ampersand\Session)
+src\Ampersand\Plugs\MysqlDB\MysqlDB.php:27 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Conjunct (\Ampersand\Rule\Conjunct)
+src\Ampersand\Plugs\MysqlDB\MysqlDB.php:141 PhanTypeMismatchArgumentInternal Argument 4 (dbname) is null but \mysqli::real_connect() takes string
+src\Ampersand\Plugs\MysqlDB\MysqlDB.php:141 PhanTypeMismatchArgumentInternal Argument 5 (port) is null but \mysqli::real_connect() takes int
+src\Ampersand\Plugs\MysqlDB\MysqlDB.php:141 PhanTypeMismatchArgumentInternal Argument 6 (socket) is null but \mysqli::real_connect() takes string
+src\Ampersand\Plugs\MysqlDB\MysqlDBRelationTable.php:70 PhanAccessPropertyPrivate Cannot access private property \Ampersand\Plugs\MysqlDB\MysqlDBRelationTable->cols defined at src\Ampersand\Plugs\MysqlDB\MysqlDBTable.php:30
+src\Ampersand\Plugs\MysqlDB\MysqlDBRelationTable.php:81 PhanAccessPropertyPrivate Cannot access private property \Ampersand\Plugs\MysqlDB\MysqlDBRelationTable->cols defined at src\Ampersand\Plugs\MysqlDB\MysqlDBTable.php:30
+src\Ampersand\Rule\ExecEngine.php:76 PhanTypeMismatchProperty Assigning int to property but \Ampersand\Rule\ExecEngine->id is string
+src\Ampersand\Rule\RuleEngine.php:11 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace CacheItemPoolInterface (\Psr\Cache\CacheItemPoolInterface)
+src\Ampersand\Session.php:11 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Resource (\Ampersand\Interfacing\Resource)
+src\Ampersand\Session.php:18 PhanUnreferencedUseNormal Possibly zero references to use statement for classlike/namespace Settings (\Ampersand\Misc\Settings)
+src\Ampersand\Session.php:113 PhanTypeMismatchArgument Argument 1 (atom) is \Ampersand\Core\Atom|\JsonSerializable|string but \Ampersand\Interfacing\ResourceFactory::makeResourceFromAtom() takes \Ampersand\Interfacing\Atom defined at src\Ampersand\Interfacing\ResourceFactory.php:85
+src\Ampersand\Session.php:311 PhanUndeclaredVariable Variable $this is undeclared
