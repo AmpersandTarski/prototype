@@ -15,6 +15,9 @@ $api->group('/app', function () {
     // Inside group closure, $this is bound to the instance of Slim\App
     /** @var \Slim\App $this */
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->patch('/roles', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -23,6 +26,9 @@ $api->group('/app', function () {
         return $response->withJson($ampersandApp->getSessionRoles(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/navbar', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -57,6 +63,9 @@ $api->group('/app', function () {
         return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/notifications', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];

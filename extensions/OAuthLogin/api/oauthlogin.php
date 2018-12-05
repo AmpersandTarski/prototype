@@ -16,6 +16,9 @@ $api->group('/oauthlogin', function () {
     // Inside group closure, $this is bound to the instance of Slim\App
     /** @var \Slim\App $this */
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/login', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -51,6 +54,9 @@ $api->group('/oauthlogin', function () {
         return $response->withJson(['identityProviders' => $idps, 'notifications' => $ampersandApp->userLog()->getAll()], 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/logout', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -60,6 +66,9 @@ $api->group('/oauthlogin', function () {
         return $response->withJson(['notifications' => $ampersandApp->userLog()->getAll()], 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/callback/{idp}', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];

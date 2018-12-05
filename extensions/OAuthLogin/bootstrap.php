@@ -1,5 +1,7 @@
 <?php
 
+use Ampersand\AmpersandApp;
+
 // Includes
 require('./src/OAuthLoginController.php');
 require('./api/oauthlogin.php');

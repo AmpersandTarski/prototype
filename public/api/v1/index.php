@@ -193,6 +193,9 @@ foreach ($ampersandApp->getSettings()->getExtensions() as $ext) {
 }
 
 // Add middleware to initialize the AmpersandApp
+/**
+ * @phan-closure-scope \Slim\Container
+ */
 $api->add(function (Request $req, Response $res, callable $next) {
     /** @var \Slim\App $this */
     /** @var \Ampersand\AmpersandApp $ampersandApp */

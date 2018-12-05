@@ -26,6 +26,9 @@ $api->group('/resource', function () {
     // Inside group closure, $this is bound to the instance of Slim\App
     /** @var \Slim\App $this */
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -45,6 +48,9 @@ $api->group('/resource', function () {
         return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/{resourceType}', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -67,6 +73,9 @@ $api->group('/resource', function () {
         return $response->withJson($resources, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->post('/{resourceType}', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -89,6 +98,9 @@ $api->group('/resource', function () {
         return $response->withJson($resource->get(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/{resourceType}/{resourceId}', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -107,6 +119,9 @@ $api->group('/resource', function () {
     });
 
     // GET for interfaces that start with other resource
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/{resourceType}/{resourceId}/{ifcPath:.*}', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -126,6 +141,9 @@ $api->group('/resource', function () {
     });
 
     // PUT, PATCH, POST for interfaces that start with other resource
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->map(['PUT', 'PATCH', 'POST'], '/{resourceType}/{resourceId}[/{ifcPath:.*}]', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -155,6 +173,9 @@ $api->group('/resource', function () {
         }
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->delete('/{resourceType}/{resourceId}[/{ifcPath:.*}]', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -177,6 +198,9 @@ $api->group('/session', function () {
     /** @var \Slim\App $this */
 
     // GET for interfaces with expr[SESSION*..]
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('[/{ifcPath:.*}]', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -196,6 +220,9 @@ $api->group('/session', function () {
     });
 
     // PUT, PATCH, POST for interfaces with expr[SESSION*..]
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->map(['PUT', 'PATCH', 'POST'], '[/{ifcPath:.*}]', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -225,6 +252,9 @@ $api->group('/session', function () {
         }
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->delete('[/{ifcPath:.*}]', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];

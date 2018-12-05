@@ -197,7 +197,7 @@ class OAuthLoginController
         $accounts = Ifc::getInterface('AccountForUserid')->getIfcObject()->all($userID);
         
         // Create new account
-        if (iterator_count($accounts) == 0) {
+        if (empty($accounts)) {
             $account = ResourceFactory::makeNewResource('Account');
             
             // Save email as accUserid
@@ -213,8 +213,8 @@ class OAuthLoginController
             } catch (Exception $e) {
                 // Domain orgs not supported => skip
             }
-        } elseif (iterator_count($accounts) == 1) {
-            $account = $accounts->getIterator()->current();
+        } elseif (count($accounts) == 1) {
+            $account = current($accounts);
         } else {
             throw new Exception("Multiple users registered with email $email", 401);
         }

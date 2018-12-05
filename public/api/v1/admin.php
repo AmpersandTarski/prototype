@@ -29,6 +29,9 @@ $api->group('/admin', function () {
     // Inside group closure, $this is bound to the instance of Slim\App
     /** @var \Slim\App $this */
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/sessions/delete/expired', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -44,6 +47,9 @@ $api->group('/admin', function () {
         $transaction->runExecEngine()->close();
     });
     
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->post('/resource/{resourceType}/rename', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -70,6 +76,9 @@ $api->group('/admin', function () {
         return $response->withJson($list, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/installer', function (Request $request, Response $response, $args = []) {
         /** @var \Slim\Container $this */
         /** @var \Ampersand\AmpersandApp $ampersandApp */
@@ -93,6 +102,9 @@ $api->group('/admin', function () {
         return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     })->setName('applicationInstaller');
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/installer/checksum/update', function (Request $request, Response $response, $args = []) {
         /** @var \Slim\Container $this */
         /** @var \Ampersand\AmpersandApp $ampersandApp */
@@ -111,6 +123,9 @@ $api->group('/admin', function () {
         return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/execengine/run', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -134,6 +149,9 @@ $api->group('/admin', function () {
         return $response->withJson($ampersandApp->userLog()->getAll(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/ruleengine/evaluate/all', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -159,6 +177,9 @@ $api->group('/admin', function () {
         return $response->withJson($ampersandApp->userLog()->getAll(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/export/all', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -177,6 +198,9 @@ $api->group('/admin', function () {
                         ->withHeader('Content-Type', 'application/json;charset=utf-8');
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->post('/import', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -246,6 +270,9 @@ $api->group('/admin/report', function () {
     // Inside group closure, $this is bound to the instance of Slim\App
     /** @var \Slim\App $this */
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/relations', function (Request $request, Response $response, $args = []) {
         // Get report
         $reporter = new Reporter(new JSONWriter($response->getBody()));
@@ -255,6 +282,9 @@ $api->group('/admin/report', function () {
         return $response->withHeader('Content-Type', 'application/json;charset=utf-8');
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/conjuncts/usage', function (Request $request, Response $response, $args = []) {
         // Get report
         $reporter = new Reporter(new JSONWriter($response->getBody()));
@@ -264,6 +294,9 @@ $api->group('/admin/report', function () {
         return $response->withHeader('Content-Type', 'application/json;charset=utf-8');
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/conjuncts/performance', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -278,6 +311,9 @@ $api->group('/admin/report', function () {
                         ->withHeader('Content-Type', 'text/csv; charset=utf-8');
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/interfaces', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -292,6 +328,9 @@ $api->group('/admin/report', function () {
                         ->withHeader('Content-Type', 'text/csv; charset=utf-8');
     });
 
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/interfaces/issues', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
@@ -305,13 +344,19 @@ $api->group('/admin/report', function () {
         return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
                         ->withHeader('Content-Type', 'text/csv; charset=utf-8');
     });
-})->add($middleWare1)->add(function (Request $req, Response $res, callable $next) {
-    /** @var \Ampersand\AmpersandApp $ampersandApp */
-    $ampersandApp = $this['ampersand_app'];
+})->add($middleWare1)->add(
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
+    function (Request $req, Response $res, callable $next) {
+        /** @var \Slim\Container $this */
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
 
-    if ($ampersandApp->getSettings()->get('global.productionEnv')) {
-        throw new Exception("Reports are not allowed in production environment", 403);
+        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
+            throw new Exception("Reports are not allowed in production environment", 403);
+        }
+
+        return $next($req, $res);
     }
-
-    return $next($req, $res);
-});
+);

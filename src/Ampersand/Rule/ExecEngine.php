@@ -73,7 +73,7 @@ class ExecEngine extends RuleEngine
     public function __construct(Role $role, AmpersandApp $app, LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->id = $role->id;
+        $this->id = $role->label;
         $this->maintainsRules = $role->maintains();
         $this->ampersandApp = $app;
     }

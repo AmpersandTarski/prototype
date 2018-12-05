@@ -308,7 +308,10 @@ class Session
      
     public static function deleteExpiredSessions()
     {
-        $experationTimeStamp = time() - $this->settings->get('session.expirationTime');
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp;
+
+        $experationTimeStamp = time() - $ampersandApp->getSettings()->get('session.expirationTime');
         
         $links = Relation::getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
         foreach ($links as $link) {

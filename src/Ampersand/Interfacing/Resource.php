@@ -135,7 +135,6 @@ class Resource extends Atom implements ArrayAccess
      * Get resource data according to provided interface
      * @param int $options
      * @param int|null $depth
-     * @param array $recursionArr
      * @return array|string
      */
     public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null)

@@ -16,7 +16,6 @@
 use Ampersand\Core\Relation;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
-use Ampersand\AngularApp;
 use Ampersand\Rule\ExecEngine;
 
 /** @var \Ampersand\AngularApp $angularApp */
@@ -30,6 +29,10 @@ global $angularApp;
    VIOLATION (TXT "InsPair;customerOf;Person;", SRC I, TXT";Company;", TGT I)
 */
 // Use:  VIOLATION (TXT "InsPair;<relation>;<srcConcept>;<srcAtom>;<tgtConcept>;<tgtAtom>")
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('InsPair', function ($relationName, $srcConceptName, $srcAtom, $tgtConceptName, $tgtAtom) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 5) {
@@ -75,6 +78,10 @@ ExecEngine::registerFunction('InsPair', function ($relationName, $srcConceptName
     VIOLATION (TXT "DelPair;customerOf;Person;", SRC I, TXT";Company;", TGT I)
 */
 // Use: VIOLATION (TXT "DelPair;<rel>;<srcConcept>;<srcAtom>;<tgtConcept>;<tgtAtom>")
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('DelPair', function ($relationName, $srcConceptName, $srcAtom, $tgtConceptName, $tgtAtom) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 5) {
@@ -139,6 +146,10 @@ ExecEngine::registerFunction('DelPair', function ($relationName, $srcConceptName
 
 */
 // Arglist: ($ConceptC[,$newAtom][,$relation,$srcConcept,$srcAtom,$tgtConcept,$tgtAtom]+)
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('NewStruct', function () {
     /** @var \Ampersand\Rule\ExecEngine $this */
 
@@ -200,6 +211,10 @@ ExecEngine::registerFunction('NewStruct', function () {
 });
 
 // Use: VIOLATION (TXT "InsAtom;<concept>")
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('InsAtom', function (string $conceptName) {
     /** @var \Ampersand\Rule\ExecEngine $this */
 
@@ -225,6 +240,10 @@ ExecEngine::registerFunction('InsAtom', function (string $conceptName) {
     VIOLATION (TXT "DelAtom;ConceptC;" SRC I) -- all links in other relations in which the atom occurs are deleted as well.
 */
 // Use: VIOLATION (TXT "DelAtom;<concept>;<atom>")
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('DelAtom', function ($concept, $atomId) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 2) {
@@ -254,6 +273,10 @@ ExecEngine::registerFunction('DelAtom', function ($concept, $atomId) {
      * @return void
 */
 // Use: VIOLATION (TXT "{EX} MrgAtoms;<conceptA>;", SRC I, TXT ";<conceptB>;", TGT I )
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('MrgAtoms', function ($conceptA, $srcAtomId, $conceptB, $tgtAtomId) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 4) {
@@ -281,6 +304,10 @@ ExecEngine::registerFunction('MrgAtoms', function ($conceptA, $srcAtomId, $conce
  VIOLATION (TXT "SetConcept;ConceptA;ConceptB;" SRC I)
  */
 // Use: VIOLATION (TXT "SetConcept;<ConceptA>;<ConceptB>;<atomId>")
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('SetConcept', function ($conceptA, $conceptB, $atomId) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 3) {
@@ -305,6 +332,10 @@ ExecEngine::registerFunction('SetConcept', function ($conceptA, $conceptB, $atom
  VIOLATION (TXT "ClearConcept;Concept;" SRC I)
  */
 // Use: VIOLATION (TXT "ClearConcept;<Concept>;<atom>")
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('ClearConcept', function ($concept, $atomId) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 2) {
@@ -330,6 +361,10 @@ ExecEngine::registerFunction('ClearConcept', function ($concept, $atomId) {
  *************************************************************/
  
 // InsPairCond is skipped when $bool string value equals: "0", "false", "off", "no", "" or "_NULL"
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('InsPairCond', function ($relationName, $srcConceptName, $srcAtom, $tgtConceptName, $tgtAtom, $bool) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 6) {
@@ -347,6 +382,10 @@ ExecEngine::registerFunction('InsPairCond', function ($relationName, $srcConcept
 });
 
 // SetConcept is skipped when $bool string value equals: "0", "false", "off", "no", "" or "_NULL"
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('SetConceptCond', function ($conceptA, $conceptB, $atom, $bool) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 4) {
@@ -363,6 +402,10 @@ ExecEngine::registerFunction('SetConceptCond', function ($conceptA, $conceptB, $
     ExecEngine::getFunction('InsPair')->call($this, $conceptA, $conceptB, $atom);
 });
 
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angularApp) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (strpos($navTo, '_NEW') !== false) {
@@ -377,7 +420,11 @@ ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angular
 
     $angularApp->setNavToResponse($navTo, 'COMMIT');
 });
-    
+
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($angularApp) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (strpos($navTo, '_NEW') !== false) {

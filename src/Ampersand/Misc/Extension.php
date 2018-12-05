@@ -26,8 +26,8 @@ class Extension
      * Undocumented function
      *
      * @param string $name
-     * @param string $bootstrapFile
-     * @param string $configFile
+     * @param string|null $bootstrapFile
+     * @param string|null $configFile
      */
     public function __construct(string $name, string $bootstrapFile = null, string $configFile = null)
     {

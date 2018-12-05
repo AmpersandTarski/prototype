@@ -10,8 +10,9 @@ use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Cascade\Cascade;
 
 register_shutdown_function(function () {
+    /** @var array|null $error */
     $error = error_get_last();
-    if ($error['type'] & (E_ERROR | E_PARSE)) {
+    if (isset($error) && ($error['type'] & (E_ERROR | E_PARSE))) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp;
         $debugMode = $ampersandApp->getSettings()->get('global.debugMode');
@@ -33,10 +34,10 @@ set_time_limit(30); // execution time limit is set to a default of 30 seconds. U
 /**************************************************************************************************
  * PHP SESSION (Start a new, or resume the existing, PHP session)
  *************************************************************************************************/
-ini_set("session.use_strict_mode", true); // prevents a session ID that is never generated
-ini_set("session.cookie_httponly", true); // ensures the cookie won't be accessible by scripting languages, such as JavaScript
+ini_set("session.use_strict_mode", '1'); // prevents a session ID that is never generated
+ini_set("session.cookie_httponly", '1'); // ensures the cookie won't be accessible by scripting languages, such as JavaScript
 if ($_SERVER['HTTPS'] ?? false) {
-    ini_set("session.cookie_secure", true); // specifies whether cookies should only be sent over secure connections
+    ini_set("session.cookie_secure", '1'); // specifies whether cookies should only be sent over secure connections
 }
 session_start();
 
@@ -49,7 +50,7 @@ require_once(__DIR__ . '/../lib/autoload.php');
  * LOGGING
  *************************************************************************************************/
 error_reporting(E_ALL & ~E_NOTICE);
-ini_set("display_errors", false);
+ini_set("display_errors", '0');
 
 Cascade::fileConfig(dirname(__FILE__, 2) . '/config/logging.yaml'); // loads logging configuration
 

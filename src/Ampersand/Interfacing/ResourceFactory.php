@@ -11,6 +11,7 @@ use Ampersand\Core\Concept;
 use Ampersand\Interfacing\InterfaceObjectFactory;
 use Ampersand\Interfacing\Resource;
 use Exception;
+use Ampersand\Core\Atom;
 
 /**
  *

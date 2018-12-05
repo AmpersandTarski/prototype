@@ -33,7 +33,12 @@ use Ampersand\Core\Relation;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Core\Link;
 
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
 ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPlus) {
+    /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 4) {
         throw new Exception("Wrong number of arguments supplied for function TransitiveClosure(): ".func_num_args()." arguments", 500);
     }
@@ -64,23 +69,25 @@ ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPl
     $atoms = [];
     foreach ($relationR->getAllLinks() as $link) {
         /** @var \Ampersand\Core\Link $link */
-        $closure[$link->src()][$link->tgt()] = true;
-        $atoms[] = $link->src();
-        $atoms[] = $link->tgt();
+        $src = $link->src();
+        $tgt = $link->tgt();
+        $closure[$src->id][$tgt->id] = true;
+        $atoms[$src->id] = $src;
+        $atoms[$tgt->id] = $tgt;
         
         // Store a copy in rCopy relation
-        (new Link($relationRCopy, $link->src(), $link->tgt()))->add();
+        (new Link($relationRCopy, $src, $tgt))->add();
     }
     $atoms = array_unique($atoms);
     
     // Compute transitive closure following Warshall's algorithm
-    foreach ($atoms as $k) {
-        foreach ($atoms as $i) {
+    foreach ($atoms as $k => $kAtom) {
+        foreach ($atoms as $i => $iAtom) {
             if ($closure[$i][$k]) {
-                foreach ($atoms as $j) {
+                foreach ($atoms as $j => $jAtom) {
                     if ($closure[$i][$j] || $closure[$k][$j]) {
                         // Write to rPlus
-                        (new Link($relationRPlus, $i, $j))->add();
+                        (new Link($relationRPlus, $iAtom, $jAtom))->add();
                     }
                 }
             }
