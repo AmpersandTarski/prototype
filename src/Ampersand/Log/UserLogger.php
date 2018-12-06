@@ -12,6 +12,7 @@ use Ampersand\Rule\Violation;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 use Psr\Log\LoggerInterface;
+use Ampersand\Interfacing\InterfaceObjectInterface;
 
 /**
  *
@@ -139,21 +140,36 @@ class UserLogger extends AbstractLogger
      */
     public function signal(Violation $violation)
     {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove reference to global
+
         $ruleHash = hash('md5', $violation->rule->id);
         
         if (!isset($this->signals[$ruleHash])) {
             $this->signals[$ruleHash]['message'] = $violation->rule->getViolationMessage();
         }
         
-        $ifcs = [];
-        foreach ($violation->getInterfaces('src') as $ifc) {
-            $ifcs[] = ['id' => $ifc->id, 'label' => $ifc->label, 'link' => "#/{$ifc->id}/{$violation->src->id}"];
+        // Add links for src atom
+        $ifcs = array_map(function (InterfaceObjectInterface $ifc) use ($violation) {
+            return ['id' => $ifc->getIfcId(),
+                    'label' => $ifc->getIfcLabel(),
+                    'link' => "#/{$ifc->getIfcId()}/{$violation->src->id}"
+                    ];
+        }, $ampersandApp->getInterfacesToReadConcept($violation->src->concept));
+
+        // Add links for tgt atom (if not the same as src atom)
+        if ($violation->src->concept !== $violation->tgt->concept || $violation->src->id !== $violation->tgt->id) {
+            array_merge($ifcs, array_map(
+                function (InterfaceObjectInterface $ifc) use ($violation) {
+                    return [ 'id' => $ifc->getIfcId()
+                           , 'label' => $ifc->getIfcLabel()
+                           , 'link' => "#/{$ifc->getIfcId()}/{$violation->tgt->id}"
+                           ];
+                },
+                $ampersandApp->getInterfacesToReadConcept($violation->tgt->concept)
+            ));
         }
-        if ($violation->src->concept != $violation->tgt->concept || $violation->src->id != $violation->tgt->id) {
-            foreach ($violation->getInterfaces('tgt') as $ifc) {
-                $ifcs[] = ['id' => $ifc->id, 'label' => $ifc->label, 'link' => "#/{$ifc->id}/{$violation->tgt->id}"];
-            }
-        }
+
         $message = $violation->getViolationMessage();
         
         $this->signals[$ruleHash]['violations'][] = ['message' => $message

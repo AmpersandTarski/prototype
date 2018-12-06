@@ -155,7 +155,8 @@ class Ifc
     public static function getInterfaceByLabel(string $ifcLabel): Ifc
     {
         foreach (self::getAllInterfaces() as $interface) {
-            if ($interface->getLabel === $ifcLabel) {
+            /** @var \Ampersand\Interfacing\Ifc $interface */
+            if ($interface->getLabel() === $ifcLabel) {
                 return $interface;
             }
         }
@@ -191,8 +192,8 @@ class Ifc
 
     public static function getInterfacesForConcept(Concept $cpt): array
     {
-        return array_values(array_filter(self::getAllInterfaces(), function (Ifc $ifc) {
-            return $this->getSrcConcept()->hasSpecialization($cpt, true);
+        return array_values(array_filter(self::getAllInterfaces(), function (Ifc $ifc) use ($cpt) {
+            return $ifc->getSrcConcept()->hasSpecialization($cpt, true);
         }));
     }
     

@@ -469,8 +469,8 @@ class Concept
      */
     public function createNewAtomId(): string
     {
-        static $prevTimeSeconds = null;
-        static $prevTimeMicros  = null;
+        static $prevTimeSeconds = 0;
+        static $prevTimeMicros  = 0;
 
         // TODO: remove this hack with _AI (autoincrement feature)
         if (strpos($this->name, '_AI') !== false && $this->isInteger()) {
@@ -485,6 +485,8 @@ class Concept
                 $atomId = $result[0] + 1;
             }
         } else {
+            /** @var string $timeMicros */
+            /** @var string $timeSeconds */
             list($timeMicros, $timeSeconds) = explode(' ', microTime());
             $timeMicros = substr($timeMicros, 2, 6); // we drop the leading "0." and trailing "00"  from the microseconds
             

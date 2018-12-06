@@ -12,6 +12,7 @@ use Ampersand\Core\Atom;
 use Ampersand\Core\Relation;
 use Ampersand\Core\Link;
 use Psr\Log\LoggerInterface;
+use stdClass;
 
 class Importer
 {
@@ -24,23 +25,14 @@ class Importer
     protected $logger;
 
     /**
-     * Reader
-     *
-     * @var \Ampersand\IO\AbstractReader
-     */
-    protected $reader;
-
-    /**
      * Constructor
      *
-     * @param \Ampersand\IO\AbstractReader $reader
      * @param \Psr\Log\LoggerInterface $logger
      * @param array $options
      */
-    public function __construct(AbstractReader $reader, LoggerInterface $logger, array $options = [])
+    public function __construct(LoggerInterface $logger, array $options = [])
     {
         $this->logger = $logger;
-        $this->reader = $reader;
     }
     
     /**
@@ -48,11 +40,9 @@ class Importer
      *
      * @return void
      */
-    public function importPopulation()
+    public function importPopulation(stdClass $content)
     {
         $this->logger->info("Start import of population");
-
-        $content = $this->reader->getContent();
 
         // Before importing, check if all provided concepts and relations are defined
         $this->logger->debug("Checking if all concepts for which population is provided are defined");

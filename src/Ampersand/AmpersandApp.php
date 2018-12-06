@@ -84,13 +84,13 @@ class AmpersandApp
 
     /**
      * List of custom plugs for concepts
-     * @var ['conceptLabel' => \Ampersand\Plugs\ConceptPlugInterface[]]
+     * @var array[string]\Ampersand\Plugs\ConceptPlugInterface[]
      */
     protected $customConceptPlugs = [];
 
     /**
      * List of custom plugs for relations
-     * @var ['relationSignature' => \Ampersand\Plugs\RelationPlugInterface[]]
+     * @var array[string]\Ampersand\Plugs\RelationPlugInterface[]
      */
     protected $customRelationPlugs = [];
 
@@ -473,8 +473,8 @@ class AmpersandApp
             $transaction = $this->newTransaction();
 
             $reader = (new JSONReader())->loadFile($this->model->getFilePath('populations'));
-            $importer = new Importer($reader, Logger::getLogger('IO'));
-            $importer->importPopulation();
+            $importer = new Importer(Logger::getLogger('IO'));
+            $importer->importPopulation($reader->getContent());
 
             // Close transaction
             $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
@@ -602,7 +602,7 @@ class AmpersandApp
     {
         return array_filter($this->accessibleInterfaces, function (Ifc $ifc) use ($cpt) {
             $ifcObj = $ifc->getIfcObject();
-            return $ifcObj->srcConcept->hasSpecialization($cpt, true)
+            return $ifc->getSrcConcept()->hasSpecialization($cpt, true)
                     && $ifcObj->crudR()
                     && (!$ifcObj->crudC() or ($ifcObj->crudU() or $ifcObj->crudD())); // exclude CRud pattern
         });

@@ -226,8 +226,8 @@ $api->group('/admin', function () {
             case 'json':
                 $reader = new JSONReader();
                 $reader->loadFile($_FILES['file']['tmp_name']);
-                $importer = new Importer($reader, Logger::getLogger('IO'));
-                $importer->importPopulation();
+                $importer = new Importer(Logger::getLogger('IO'));
+                $importer->importPopulation($reader->getContent());
                 break;
             case 'xls':
             case 'xlsx':

@@ -75,7 +75,7 @@ class AngularApp
     /**
      * @param string $menu specifies to which part of the menu (navbar) this item belongs to
      * @param string $itemUrl location of html template to use as menu item
-     * @param callable function which returns true/false determining to add the menu item or not
+     * @param callable $function function which returns true/false determining to add the menu item or not
      */
     public function addMenuItem(string $menu, string $itemUrl, callable $function)
     {

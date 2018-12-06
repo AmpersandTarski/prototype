@@ -54,6 +54,10 @@ class Settings
         $reader = new JSONReader();
         $settings = $reader->loadFile($filePath)->getContent();
 
+        if (!is_array($settings)) {
+            throw new Exception("Settings var not provided as an array", 500);
+        }
+
         foreach ($settings as $setting => $value) {
             $this->set($setting, $value, $overwriteAllowed);
         }

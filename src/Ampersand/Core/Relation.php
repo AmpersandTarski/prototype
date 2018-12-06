@@ -286,8 +286,8 @@ class Relation
     }
     
     /**
-     * @param \Ampersand\Core\Atom $atom atom for which to delete all links
-     * @param string $srcOrTgt specifies to delete all link with $atom as src, tgt or both (null/not provided)
+     * @param \Ampersand\Core\Atom|null $atom atom for which to delete all links
+     * @param string|null $srcOrTgt specifies to delete all link with $atom as src, tgt or both (null/not provided)
      * @return void
      */
     public function deleteAllLinks(Atom $atom = null, $srcOrTgt = null)
