@@ -7,9 +7,11 @@
 
 namespace Ampersand;
 
-use Psr\Log\LoggerInterface;
 use Exception;
-use Ampersand\IO\JSONReader;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Serializer\Encoder\JsonDecode;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
 
 /**
  *
@@ -56,12 +58,11 @@ class Model
     public function __construct(string $folder, LoggerInterface $logger)
     {
         $this->logger = $logger;
+        $fileSystem = new Filesystem;
 
         if (($this->folder = realpath($folder)) === false) {
             throw new Exception("Specified folder for Ampersand model does not exist: '{$folder}'", 500);
         }
-
-        $this->checksumFile = "{$this->folder}/checksums.txt";
         
         // Ampersand model files
         $this->modelFiles = [
@@ -75,6 +76,12 @@ class Model
             'settings' => $this->folder . '/settings.json',
             'views' => $this->folder . '/views.json',
         ];
+
+        if (!$fileSystem->exists($this->modelFiles)) {
+            throw new Exception("Not all Ampersand model files are provided. Check model folder '{$this->folder}'", 500);
+        }
+
+        $this->checksumFile = "{$this->folder}/checksums.txt";
         
         // Write checksum file if not yet exists
         if (!file_exists($this->checksumFile)) {
@@ -149,14 +156,13 @@ class Model
         return $this->modelFiles[$filename];
     }
 
-    protected function loadFile(string $filename): JSONReader
+    protected function loadFile(string $filename)
     {
-        $reader = new JSONReader();
-        $reader->loadFile($this->getFilePath($filename));
-        return $reader;
+        $decoder = new JsonDecode(false);
+        return $decoder->decode(file_get_contents($this->getFilePath($filename)), JsonEncoder::FORMAT);
     }
 
-    protected function getFile(string $filename): JSONReader
+    protected function getFileContent(string $filename)
     {
         static $loadedFiles = [];
 
@@ -169,7 +175,7 @@ class Model
 
     protected function getSetting(string $setting)
     {
-        $settings = $this->getFile('settings')->getContent();
+        $settings = $this->getFileContent('settings');
         
         if (!property_exists($settings, $setting)) {
             throw new Exception("Undefined setting '{$setting}'", 500);

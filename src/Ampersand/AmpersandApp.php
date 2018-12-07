@@ -24,8 +24,9 @@ use Ampersand\Interfacing\View;
 use Ampersand\Rule\Rule;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
-use Ampersand\IO\JSONReader;
 use Ampersand\Interfacing\Ifc;
+use Symfony\Component\Serializer\Encoder\JsonDecode;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
 
 class AmpersandApp
 {
@@ -472,9 +473,10 @@ class AmpersandApp
 
             $transaction = $this->newTransaction();
 
-            $reader = (new JSONReader())->loadFile($this->model->getFilePath('populations'));
+            $decoder = new JsonDecode(false);
+            $population = $decoder->decode(file_get_contents($this->model->getFilePath('populations')), JsonEncoder::FORMAT);
             $importer = new Importer(Logger::getLogger('IO'));
-            $importer->importPopulation($reader->getContent());
+            $importer->importPopulation($population);
 
             // Close transaction
             $transaction->runExecEngine()->close(false, $ignoreInvariantRules);

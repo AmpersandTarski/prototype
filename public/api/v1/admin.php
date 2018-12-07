@@ -5,16 +5,16 @@ use Ampersand\Rule\Conjunct;
 use Ampersand\Rule\Rule;
 use Ampersand\Rule\RuleEngine;
 use Ampersand\IO\Exporter;
-use Ampersand\IO\JSONWriter;
-use Ampersand\IO\CSVWriter;
 use Ampersand\IO\Importer;
-use Ampersand\IO\JSONReader;
 use Ampersand\IO\ExcelImporter;
 use Ampersand\Misc\Reporter;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Ampersand\Session;
 use Ampersand\Interfacing\ResourceFactory;
+use Symfony\Component\Serializer\Encoder\JsonDecode;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Encoder\CsvEncoder;
 
 /**
  * @var \Slim\App $api
@@ -188,8 +188,8 @@ $api->group('/admin', function () {
         }
         
         // Export population to response body
-        $exporter = new Exporter(new JSONWriter($response->getBody()), Logger::getLogger('IO'));
-        $exporter->exportAllPopulation();
+        $exporter = new Exporter(new JsonEncoder(), $response->getBody(), Logger::getLogger('IO'));
+        $exporter->exportAllPopulation('json');
 
         // Return response
         $filename = $ampersandApp->getName() . "_population_" . date('Y-m-d\TH-i-s') . ".json";
@@ -224,10 +224,10 @@ $api->group('/admin', function () {
         $extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
         switch ($extension) {
             case 'json':
-                $reader = new JSONReader();
-                $reader->loadFile($_FILES['file']['tmp_name']);
+                $decoder = new JsonDecode(false);
+                $population = $decoder->decode(file_get_contents($_FILES['file']['tmp_name']), JsonEncoder::FORMAT);
                 $importer = new Importer(Logger::getLogger('IO'));
-                $importer->importPopulation($reader->getContent());
+                $importer->importPopulation($population);
                 break;
             case 'xls':
             case 'xlsx':
@@ -274,8 +274,8 @@ $api->group('/admin/report', function () {
      */
     $this->get('/relations', function (Request $request, Response $response, $args = []) {
         // Get report
-        $reporter = new Reporter(new JSONWriter($response->getBody()));
-        $reporter->reportRelationDefinitions();
+        $reporter = new Reporter(new JsonEncoder(), $response->getBody());
+        $reporter->reportRelationDefinitions('json');
 
         // Return reponse
         return $response->withHeader('Content-Type', 'application/json;charset=utf-8');
@@ -286,8 +286,8 @@ $api->group('/admin/report', function () {
      */
     $this->get('/conjuncts/usage', function (Request $request, Response $response, $args = []) {
         // Get report
-        $reporter = new Reporter(new JSONWriter($response->getBody()));
-        $reporter->reportConjunctUsage();
+        $reporter = new Reporter(new JsonEncoder(), $response->getBody());
+        $reporter->reportConjunctUsage('json');
 
         // Return reponse
         return $response->withHeader('Content-Type', 'application/json;charset=utf-8');
@@ -301,8 +301,8 @@ $api->group('/admin/report', function () {
         $ampersandApp = $this['ampersand_app'];
 
         // Get report
-        $reporter = new Reporter(new CSVWriter($response->getBody()));
-        $reporter->reportConjunctPerformance(Conjunct::getAllConjuncts());
+        $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
+        $reporter->reportConjunctPerformance('csv', Conjunct::getAllConjuncts());
         
         // Set response headers
         $filename = $ampersandApp->getName() . "_conjunct-performance_" . date('Y-m-d\TH-i-s') . ".csv";
@@ -318,8 +318,8 @@ $api->group('/admin/report', function () {
         $ampersandApp = $this['ampersand_app'];
 
         // Get report
-        $reporter = new Reporter(new CSVWriter($response->getBody()));
-        $reporter->reportInterfaceDefinitions();
+        $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
+        $reporter->reportInterfaceDefinitions('csv');
 
         // Set response headers
         $filename = $ampersandApp->getName() . "_interface-definitions_" . date('Y-m-d\TH-i-s') . ".csv";
@@ -335,8 +335,8 @@ $api->group('/admin/report', function () {
         $ampersandApp = $this['ampersand_app'];
 
         // Get report
-        $reporter = new Reporter(new CSVWriter($response->getBody()));
-        $reporter->reportInterfaceIssues();
+        $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
+        $reporter->reportInterfaceIssues('csv');
 
         // Set response headers
         $filename = $ampersandApp->getName() . "_interface-issues_" . date('Y-m-d\TH-i-s') . ".csv";

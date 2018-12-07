@@ -8,24 +8,50 @@
 namespace Ampersand\Misc;
 
 use Ampersand\Interfacing\InterfaceObjectInterface;
-use Ampersand\IO\AbstractWriter;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\Ifc;
+use Psr\Http\Message\StreamInterface;
+use Symfony\Component\Serializer\Encoder\EncoderInterface;
 
 class Reporter
 {
+    /**
+     * Encoder
+     *
+     * @var \Symfony\Component\Serializer\Encoder\EncoderInterface
+     */
+    protected $encoder;
 
     /**
-     * Writer
+     * Stream to output the report(s) to
      *
-     * @var \Ampersand\IO\AbstractWriter
+     * @var \Psr\Http\Message\StreamInterface
      */
-    protected $writer;
+    protected $stream;
 
-    public function __construct(AbstractWriter $writer)
+    /**
+     * Constructor
+     *
+     * @param \Symfony\Component\Serializer\Encoder\EncoderInterface $encoder
+     * @param \Psr\Http\Message\StreamInterface $stream
+     */
+    public function __construct(EncoderInterface $encoder, StreamInterface $stream)
     {
-        $this->writer = $writer;
+        $this->encoder = $encoder;
+        $this->stream = $stream;
+    }
+
+    /**
+     * Encode and write data to stream
+     *
+     * @param string $format encoding format (must be supported by $this->encoder)
+     * @param mixed $data data to output
+     * @return void
+     */
+    protected function write(string $format, $data)
+    {
+        $this->stream->write($this->encoder->encode($data, $format));
     }
 
     /**
@@ -33,9 +59,10 @@ class Reporter
      * Specifies multiplicity constraints, related conjuncts and other
      * aspects of all relations
      *
+     * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportRelationDefinitions(): Reporter
+    public function reportRelationDefinitions(string $format): Reporter
     {
         $content = array_map(function (Relation $relation) {
             $relArr = [];
@@ -73,7 +100,7 @@ class Reporter
             return $relArr;
         }, Relation::getAllRelations());
 
-        $this->writer->write($content);
+        $this->write($format, $content);
         
         return $this;
     }
@@ -83,9 +110,10 @@ class Reporter
      * Specifies aspects for all interfaces (incl. subinterfaces), like path, label,
      * crud-rights, etc
      *
+     * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportInterfaceDefinitions(): Reporter
+    public function reportInterfaceDefinitions(string $format): Reporter
     {
         $content = [];
         foreach (Ifc::getAllInterfaces() as $key => $ifc) {
@@ -97,7 +125,7 @@ class Reporter
             return $ifcObj->getTechDetails();
         }, $content);
 
-        $this->writer->write($content);
+        $this->write($format, $content);
 
         return $this;
     }
@@ -106,9 +134,10 @@ class Reporter
      * Write interface issue report
      * Currently focussed on CRUD rights
      *
+     * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportInterfaceIssues(): Reporter
+    public function reportInterfaceIssues(string $format): Reporter
     {
         $content = [];
         foreach (Ifc::getAllInterfaces() as $interface) {
@@ -123,7 +152,7 @@ class Reporter
             $content[] = ['No issues found'];
         }
 
-        $this->writer->write($content);
+        $this->write($format, $content);
         
         return $this;
     }
@@ -133,9 +162,10 @@ class Reporter
      * Specifies which conjuncts are used by which rules, grouped by invariants,
      * signals, and unused conjuncts
      *
+     * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportConjunctUsage(): Reporter
+    public function reportConjunctUsage(string $format): Reporter
     {
         $content = [];
         foreach (Conjunct::getAllConjuncts() as $conj) {
@@ -150,7 +180,7 @@ class Reporter
             }
         }
 
-        $this->writer->write($content);
+        $this->write($format, $content);
 
         return $this;
     }
@@ -158,10 +188,11 @@ class Reporter
     /**
      * Write conjunct performance report
      *
+     * @param string $format
      * @param \Ampersand\Rule\Conjunct[] $conjuncts
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportConjunctPerformance(array $conjuncts): Reporter
+    public function reportConjunctPerformance(string $format, array $conjuncts): Reporter
     {
         $content = [];
         
@@ -186,7 +217,7 @@ class Reporter
             return $b['duration'] <=> $a['duration']; // uses php7 spaceship operator
         });
 
-        $this->writer->write($content);
+        $this->write($format, $content);
 
         return $this;
     }

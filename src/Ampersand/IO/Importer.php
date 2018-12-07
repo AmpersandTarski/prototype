@@ -40,26 +40,26 @@ class Importer
      *
      * @return void
      */
-    public function importPopulation(stdClass $content)
+    public function importPopulation(stdClass $population)
     {
         $this->logger->info("Start import of population");
 
         // Before importing, check if all provided concepts and relations are defined
         $this->logger->debug("Checking if all concepts for which population is provided are defined");
-        foreach ($content->atoms as $pop) {
+        foreach ($population->atoms as $pop) {
             if (!empty($pop->atoms)) {
                 Concept::getConcept($pop->concept);
             }
         }
         $this->logger->debug("Checking if all relations for which population is provided are defined");
-        foreach ($content->links as $pop) {
+        foreach ($population->links as $pop) {
             if (!empty($pop->links)) {
                 Relation::getRelation($pop->relation);
             }
         }
 
-        $this->importAtoms($content->atoms);
-        $this->importLinks($content->links);
+        $this->importAtoms($population->atoms);
+        $this->importLinks($population->links);
 
         $this->logger->info("End import of population");
     }

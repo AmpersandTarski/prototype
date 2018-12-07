@@ -7,10 +7,12 @@
 
 namespace Ampersand\Misc;
 
-use Ampersand\IO\JSONReader;
 use Exception;
-use Symfony\Component\Yaml\Yaml;
 use Ampersand\Misc\Extension;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Serializer\Encoder\YamlEncoder;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Encoder\JsonDecode;
 
 /**
  *
@@ -51,8 +53,13 @@ class Settings
      */
     public function loadSettingsJsonFile(string $filePath, bool $overwriteAllowed = true): Settings
     {
-        $reader = new JSONReader();
-        $settings = $reader->loadFile($filePath)->getContent();
+        $fileSystem = new Filesystem;
+        if (!$fileSystem->exists($filePath)) {
+            throw new Exception("Cannot load settings file. Specified path does not exist: '{$filePath}'", 500);
+        }
+
+        $decoder = new JsonDecode(false);
+        $settings = $decoder->decode(file_get_contents($filePath), JsonEncoder::FORMAT);
 
         if (!is_array($settings)) {
             throw new Exception("Settings var not provided as an array", 500);
@@ -74,7 +81,14 @@ class Settings
      */
     public function loadSettingsYamlFile(string $filePath, bool $overwriteAllowed = true): Settings
     {
-        $file = Yaml::parseFile($filePath);
+        $fileSystem = new Filesystem;
+        if (!$fileSystem->exists($filePath)) {
+            throw new Exception("Cannot load settings file. Specified path does not exist: '{$filePath}'", 500);
+        }
+
+        $encoder = new YamlEncoder();
+        $file = $encoder->decode(file_get_contents($filePath), YamlEncoder::FORMAT);
+
         foreach ((array)$file['settings'] as $setting => $value) {
             $this->set($setting, $value, $overwriteAllowed);
         }
