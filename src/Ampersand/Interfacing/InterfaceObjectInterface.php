@@ -75,7 +75,7 @@ interface InterfaceObjectInterface
      *
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
-    public function getSubinterfaces(): array;
+    public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS): array;
     public function hasSubinterface(string $ifcId): bool;
     public function getSubinterface(string $ifcId): InterfaceObjectInterface;
     public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface;
@@ -83,13 +83,13 @@ interface InterfaceObjectInterface
     /**********************************************************************************************
      * CRUD METHODS
      *********************************************************************************************/
-    public function create(Atom $src, $tgtId = null): Resource;
-    public function read(Atom $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
+    public function create(Resource $src, $tgtId = null): Resource;
+    public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
     public function set(Atom $src, $value = null): bool;
     public function add(Atom $src, $value): bool;
     public function remove(Atom $src, $value): bool;
     public function removeAll(Atom $src): bool;
-    public function delete(Atom $tgtAtom): bool;
+    public function delete(Resource $tgtAtom): bool;
 
     /**********************************************************************************************
      * HELPER METHODS

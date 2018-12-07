@@ -159,9 +159,9 @@ class InterfaceExprObject implements InterfaceObjectInterface
      *
      * @param array $ifcDef Interface object definition as provided by Ampersand generator
      * @param \Ampersand\Plugs\IfcPlugInterface $plug
-     * @param string|null $pathEntry
+     * @param \Ampersand\Interfacing\InterfaceObjectInterface|null $parent
      */
-    public function __construct(array $ifcDef, IfcPlugInterface $plug, string $pathEntry = null)
+    public function __construct(array $ifcDef, IfcPlugInterface $plug, InterfaceObjectInterface $parent = null)
     {
         if ($ifcDef['type'] != 'ObjExpression') {
             throw new Exception("Provided interface definition is not of type ObjExpression", 500);
@@ -174,7 +174,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
         $this->label = $ifcDef['label'];
         $this->view = is_null($ifcDef['viewId']) ? null : View::getView($ifcDef['viewId']);
         
-        $this->path = is_null($pathEntry) ? $this->label : "{$pathEntry}/{$this->label}"; // Use label, because path is only used for human readable purposes (e.g. Exception messages)
+        $this->path = is_null($parent) ? $this->label : "{$parent->getPath()}/{$this->label}"; // Use label, because path is only used for human readable purposes (e.g. Exception messages)
         
         // Information about the (editable) relation if applicable
         $this->relation = is_null($ifcDef['relation']) ? null : Relation::getRelation($ifcDef['relation']);
@@ -209,8 +209,8 @@ class InterfaceExprObject implements InterfaceObjectInterface
             
             // Inline subinterface definitions
             foreach ((array)$ifcDef['subinterfaces']['ifcObjects'] as $subIfcDef) {
-                $ifc = InterfaceObjectFactory::newObject($subIfcDef, $this->plug, $this->path);
-                $this->subInterfaces[$ifc->id] = $ifc;
+                $subifc = InterfaceObjectFactory::newObject($subIfcDef, $this->plug, $this);
+                $this->subInterfaces[$subifc->getIfcId()] = $subifc;
             }
         }
         
@@ -448,7 +448,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
     public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface
     {
         foreach ($this->getSubinterfaces() as $ifc) {
-            if ($ifc->label == $ifcLabel) {
+            if ($ifc->getIfcLabel() == $ifcLabel) {
                 return $ifc;
             }
         }
@@ -474,7 +474,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * @param int $options
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
-    protected function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS)
+    public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS): array
     {
         if ($this->isRef() && ($options & Options::INCLUDE_REF_IFCS) // if ifc is reference to other root ifc, option to include refs must be set (= default)
             && (!$this->isLinkTo || ($options & Options::INCLUDE_LINKTO_IFCS))) { // this ref ifc must not be a LINKTO ór option is set to explicitly include linkto ifcs
@@ -530,18 +530,19 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * @param \Ampersand\Interfacing\Resource $src
      * @return \Ampersand\Interfacing\Resource[]
      */
-    public function all(Atom $src): array
+    public function all(Resource $src): array
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for " . $this->getPath(), 405);
         }
         
-        return array_map(function ($atom) {
+        // Convert tgt Atoms into Resources
+        return array_map(function ($atom) use ($src) {
             return $this->makeResource($atom->id, $src);
         }, $this->getTgtAtoms($src));
     }
 
-    public function one(Resource $src, string $tgtId = null): Resource
+    public function one(Resource $src, string $tgtId): Resource
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for " . $this->getPath(), 405);
@@ -580,7 +581,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
             }
         }
     }
-
+    
     public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         if (!$this->crudR()) {

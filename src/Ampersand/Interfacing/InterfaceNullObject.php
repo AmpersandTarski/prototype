@@ -10,6 +10,8 @@ namespace Ampersand\Interfacing;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\Ifc;
+use Exception;
+use function Ampersand\Misc\isSequential;
 
 /**
  *
@@ -40,7 +42,7 @@ class InterfaceNullObject implements InterfaceObjectInterface
         $ifc = Ifc::getInterface($ifcId);
 
         if (!$ampersandApp->isAccessibleIfc($ifc) && !$skipAccessCheck) {
-            throw new Exception("Unauthorized to access interface {$ifc}", 403);
+            throw new Exception("Unauthorized to access interface {$ifc->getLabel()}", 403);
         }
 
         return $ifc->getIfcObject();

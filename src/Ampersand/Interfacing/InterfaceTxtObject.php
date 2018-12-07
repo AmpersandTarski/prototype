@@ -52,9 +52,9 @@ class InterfaceTxtObject implements InterfaceObjectInterface
      * Constructor
      *
      * @param array $ifcDef Interface object definition as provided by Ampersand generator
-     * @param string|null $pathEntry
+     * @param \Ampersand\Interfacing\InterfaceObjectInterface|null $parent
      */
-    public function __construct(array $ifcDef, string $pathEntry = null)
+    public function __construct(array $ifcDef, InterfaceObjectInterface $parent = null)
     {
         if ($ifcDef['type'] != 'ObjText') {
             throw new Exception("Provided interface definition is not of type ObjText", 500);
@@ -66,7 +66,7 @@ class InterfaceTxtObject implements InterfaceObjectInterface
         $this->txt = $ifcDef['txt'];
 
         // Use label for path, because this is only used for human readable purposes (e.g. Exception messages)
-        $this->path = is_null($pathEntry) ? $this->label : "{$pathEntry}/{$this->label}";
+        $this->path = is_null($parent) ? $this->label : "{$parent->getPath()}/{$this->label}";
     }
     
     /**
@@ -182,7 +182,7 @@ class InterfaceTxtObject implements InterfaceObjectInterface
      * Sub interface objects METHODS
      *********************************************************************************************/
 
-    public function getSubinterfaces(): array
+    public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS): array
     {
         return [];
     }
@@ -213,12 +213,12 @@ class InterfaceTxtObject implements InterfaceObjectInterface
     /**********************************************************************************************
      * CRUD METHODS
      *********************************************************************************************/
-    public function create(Atom $src, $tgtId = null): Resource
+    public function create(Resource $src, $tgtId = null): Resource
     {
         throw new Exception("Create operation not implemented for TXT interface object", 501);
     }
     
-    public function read(Atom $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         return $this->txt;
     }
@@ -243,7 +243,7 @@ class InterfaceTxtObject implements InterfaceObjectInterface
         throw new Exception("Remove operation not implemented for TXT interface object", 501);
     }
 
-    public function delete(Atom $tgtAtom): bool
+    public function delete(Resource $tgtAtom): bool
     {
         throw new Exception("Detele operation not implemented for TXT interface object", 501);
     }

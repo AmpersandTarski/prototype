@@ -21,14 +21,14 @@ use Ampersand\Plugs\IfcPlugInterface;
  */
 class InterfaceObjectFactory
 {
-    public static function newObject(array $objectDef, IfcPlugInterface $defaultPlug): InterfaceObjectInterface
+    public static function newObject(array $objectDef, IfcPlugInterface $defaultPlug, InterfaceObjectInterface $parent = null): InterfaceObjectInterface
     {
         switch ($objectDef['type']) {
             case 'ObjExpression':
-                return new InterfaceExprObject($objectDef, $defaultPlug, null);
+                return new InterfaceExprObject($objectDef, $defaultPlug, $parent);
                 break;
             case 'ObjText':
-                return new InterfaceTxtObject($objectDef, null);
+                return new InterfaceTxtObject($objectDef, $parent);
                 break;
             default:
                 throw new Exception("Unsupported/unknown InterfaceObject type specified: '{$objectDef['type']}' is not supported", 500);
@@ -36,13 +36,13 @@ class InterfaceObjectFactory
         }
     }
 
-    public static function newExprObject(array $objectDef, IfcPlugInterface $defaultPlug): InterfaceExprObject
+    public static function newExprObject(array $objectDef, IfcPlugInterface $defaultPlug, InterfaceObjectInterface $parent = null): InterfaceExprObject
     {
         if ($objectDef['type'] !== 'ObjExpression') {
             throw new Exception("Interface expression object definition required, but '{$objectDef['type']}' provided.", 500);
         }
 
-        return new InterfaceExprObject($objectDef, $defaultPlug, null);
+        return self::newObject($objectDef, $defaultPlug, $parent);
     }
     
     public static function getNullObject(): InterfaceObjectInterface

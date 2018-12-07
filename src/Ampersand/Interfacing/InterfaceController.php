@@ -166,7 +166,7 @@ class InterfaceController
         // Close transaction
         $transaction->close();
         if ($transaction->isCommitted()) {
-            Logger::getUserLogger()->notice($resource->getLabel() . " created");
+            $this->ampersandApp->userLog()->notice($resource->getLabel() . " created");
         } else {
             // TODO: remove possible uploaded file
         }
