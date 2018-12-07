@@ -27,6 +27,7 @@ use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Ampersand\Plugs\MysqlDB\MysqlDB;
 
 class AmpersandApp
 {
@@ -73,7 +74,7 @@ class AmpersandApp
 
     /**
      * Default storage plug
-     * @var \Ampersand\Plugs\StorageInterface
+     * @var \Ampersand\Plugs\MysqlDB\MysqlDB
      */
     protected $defaultStorage = null;
 
@@ -256,7 +257,15 @@ class AmpersandApp
         $this->registerStorage($plug);
     }
 
-    public function setDefaultStorage(StorageInterface $storage)
+    /**
+     * Set default storage.
+     * For know we only support a MysqlDB as default storage.
+     * Ampersand generator outputs a SQL (construct) query for each concept, relation, interface-, view- and conjunct expression
+     *
+     * @param \Ampersand\Plugs\MysqlDB\MysqlDB $storage
+     * @return void
+     */
+    public function setDefaultStorage(MysqlDB $storage)
     {
         $this->defaultStorage = $storage;
         $this->registerStorage($storage);

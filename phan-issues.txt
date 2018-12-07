@@ -1,11 +1,5 @@
 bootstrap\files\execEngineWarshall.php:48 PhanUndeclaredStaticProperty Static property 'runCount' on \Ampersand\Rule\ExecEngine is undeclared
 bootstrap\files\execEngineWarshall.php:55 PhanUndeclaredStaticProperty Static property 'runCount' on \Ampersand\Rule\ExecEngine is undeclared
-src\Ampersand\AmpersandApp.php:189 PhanTypeMismatchArgument Argument 4 (database) is \Ampersand\Plugs\StorageInterface but \Ampersand\Rule\Conjunct::setAllConjuncts() takes \Ampersand\Plugs\MysqlDB\MysqlDB defined at src\Ampersand\Rule\Conjunct.php:337
-src\Ampersand\AmpersandApp.php:190 PhanTypeMismatchArgument Argument 2 (defaultPlug) is \Ampersand\Plugs\StorageInterface but \Ampersand\Interfacing\View::setAllViews() takes \Ampersand\Plugs\ViewPlugInterface defined at src\Ampersand\Interfacing\View.php:155
-src\Ampersand\AmpersandApp.php:193 PhanTypeMismatchArgument Argument 2 (defaultPlug) is \Ampersand\Plugs\StorageInterface but \Ampersand\Interfacing\Ifc::setAllInterfaces() takes \Ampersand\Plugs\IfcPlugInterface defined at src\Ampersand\Interfacing\Ifc.php:207
-src\Ampersand\AmpersandApp.php:194 PhanTypeMismatchArgument Argument 2 (defaultPlug) is \Ampersand\Plugs\StorageInterface but \Ampersand\Rule\Rule::setAllRules() takes \Ampersand\Plugs\ViewPlugInterface defined at src\Ampersand\Rule\Rule.php:325
-src\Ampersand\AmpersandApp.php:204 PhanTypeMismatchArgument Argument 1 (plug) is \Ampersand\Plugs\StorageInterface but \Ampersand\Core\Concept::addPlug() takes \Ampersand\Plugs\ConceptPlugInterface defined at src\Ampersand\Core\Concept.php:446
-src\Ampersand\AmpersandApp.php:215 PhanTypeMismatchArgument Argument 1 (plug) is \Ampersand\Plugs\StorageInterface but \Ampersand\Core\Relation::addPlug() takes \Ampersand\Plugs\RelationPlugInterface defined at src\Ampersand\Core\Relation.php:221
 src\Ampersand\IO\ExcelImporter.php:82 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceObjectInterface->tgtConcept
 src\Ampersand\IO\ExcelImporter.php:92 PhanDeprecatedFunction Call to deprecated function \PHPExcel_Cell::getCalculatedValue() defined at lib\phpoffice\phpexcel\Classes\PHPExcel\Cell.php:270
 src\Ampersand\IO\ExcelImporter.php:112 PhanDeprecatedFunction Call to deprecated function \PHPExcel_Cell::getCalculatedValue() defined at lib\phpoffice\phpexcel\Classes\PHPExcel\Cell.php:270
