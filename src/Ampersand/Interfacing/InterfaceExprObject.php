@@ -258,7 +258,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * Returns if interface expression is editable (i.e. expression = relation)
      * @return bool
      */
-    public function isEditable(): bool
+    protected function isEditable(): bool
     {
         return !is_null($this->relation);
     }
@@ -321,7 +321,7 @@ class InterfaceExprObject implements InterfaceObjectInterface
      * Returns if interface object is a leaf node
      * @return bool
      */
-    public function isLeaf(int $options = Options::DEFAULT_OPTIONS): bool
+    protected function isLeaf(int $options = Options::DEFAULT_OPTIONS): bool
     {
         return empty($this->getSubinterfaces($options));
     }
@@ -340,11 +340,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
     public function isUni(): bool
     {
         return $this->isUni;
-    }
-    
-    public function isTot(): bool
-    {
-        return $this->isTot;
     }
     
     public function getPath(): string

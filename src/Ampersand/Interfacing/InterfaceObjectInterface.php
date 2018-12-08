@@ -25,11 +25,8 @@ interface InterfaceObjectInterface
 
     public function getEditableConcepts();
 
-    public function isLeaf(int $options): bool;
     public function isIdent(): bool;
     public function isUni(): bool;
-    public function isTot(): bool;
-    public function isEditable(): bool;
 
     public function getPath(): string;
 

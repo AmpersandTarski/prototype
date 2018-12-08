@@ -89,30 +89,12 @@ class InterfaceTxtObject implements InterfaceObjectInterface
     }
     
     /**
-     * Returns if interface expression is editable (i.e. expression = relation)
-     * @return bool
-     */
-    public function isEditable(): bool
-    {
-        return false;
-    }
-    
-    /**
      * Array with all editable concepts for this interface and all sub interfaces
      * @var \Ampersand\Core\Concept[]
      */
     public function getEditableConcepts()
     {
         return [];
-    }
-    
-    /**
-     * Returns if interface object is a leaf node
-     * @return bool
-     */
-    public function isLeaf(int $options = Options::DEFAULT_OPTIONS): bool
-    {
-        return true;
     }
     
     /**
@@ -127,11 +109,6 @@ class InterfaceTxtObject implements InterfaceObjectInterface
     }
     
     public function isUni(): bool
-    {
-        return true;
-    }
-    
-    public function isTot(): bool
     {
         return true;
     }
