@@ -13,13 +13,14 @@ use Ampersand\Interfacing\Ifc;
 use Exception;
 use function Ampersand\Misc\isSequential;
 use Ampersand\Core\Atom;
+use Ampersand\Interfacing\AbstractIfcObject;
 
 /**
  *
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class InterfaceNullObject implements InterfaceObjectInterface
+class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectInterface
 {
     public function __toString(): string
     {
@@ -224,20 +225,6 @@ class InterfaceNullObject implements InterfaceObjectInterface
     /**********************************************************************************************
      * HELPER METHODS
      *********************************************************************************************/
-    
-    /**
-     * Return list of all sub interface objects recursively (incl. the current object itself)
-     *
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
-     */
-    public function getIfcObjFlattened(): array
-    {
-        $arr = [$this];
-        foreach ($this->getSubinterfaces(Options::DEFAULT_OPTIONS & ~Options::INCLUDE_REF_IFCS) as $subObj) {
-            $arr = array_merge($arr, $subObj->getIfcObjFlattened());
-        }
-        return $arr;
-    }
 
     /**
      * Return properties of interface object

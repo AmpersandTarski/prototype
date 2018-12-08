@@ -12,13 +12,14 @@ use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Atom;
+use Ampersand\Interfacing\AbstractIfcObject;
 
 /**
  *
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class InterfaceTxtObject implements InterfaceObjectInterface
+class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInterface
 {
     /**
      * Interface id (i.e. safe name) to use in framework
@@ -228,16 +229,6 @@ class InterfaceTxtObject implements InterfaceObjectInterface
     /**********************************************************************************************
      * HELPER METHODS
      *********************************************************************************************/
-
-    /**
-     * Return list of all sub interface objects recursively (incl. the current object itself)
-     *
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
-     */
-    public function getIfcObjFlattened(): array
-    {
-        return [$this];
-    }
 
     public function getTechDetails(): array
     {

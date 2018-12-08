@@ -18,13 +18,14 @@ use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
+use Ampersand\Interfacing\AbstractIfcObject;
 
 /**
  *
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class InterfaceExprObject implements InterfaceObjectInterface
+class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectInterface
 {
     /**
      * Dependency injection of an IfcPlug implementation
@@ -449,20 +450,6 @@ class InterfaceExprObject implements InterfaceObjectInterface
         }
         
         throw new Exception("Subinterface '{$ifcLabel}' does not exist in interface '{$this->path}'", 500);
-    }
-    
-    /**
-     * Return list of all sub interface objects recursively (incl. the current object itself)
-     *
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
-     */
-    public function getIfcObjFlattened(): array
-    {
-        $arr = [$this];
-        foreach ($this->getSubinterfaces(Options::DEFAULT_OPTIONS & ~Options::INCLUDE_REF_IFCS) as $subObj) {
-            $arr = array_merge($arr, $subObj->getIfcObjFlattened());
-        }
-        return $arr;
     }
     
     /**
