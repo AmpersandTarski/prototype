@@ -5,8 +5,8 @@ namespace Ampersand\IO;
 use Exception;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Concept;
-use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Core\Relation;
+use PHPExcel_Cell;
 use PHPExcel_Shared_Date;
 use PHPExcel_IOFactory;
 use PHPExcel_Worksheet;
@@ -55,7 +55,7 @@ class ExcelImporter
                 $this->parseWorksheet($worksheet); // Older two-header-row format
                 continue;
             }
-            $this->parseWorksheetWithIfc($worksheet, $ifc->getIfcObject());
+            $this->parseWorksheetWithIfc($worksheet, $ifc);
         }
         
         $this->logger->info("Excel import completed");
@@ -65,38 +65,50 @@ class ExcelImporter
      * Parse worksheet according to an Ampersand interface definition.
      *
      * @param \PHPExcel_Worksheet $worksheet
-     * @param \Ampersand\Interfacing\InterfaceObjectInterface $ifc
+     * @param \Ampersand\Interfacing\Ifc $ifc
      * @return void
      *
      * Use interface name as worksheet name. Format for content is as follows:
      *          | Column A        | Column B        | Column C        | etc
-     * Row 1    | <srcConcept>    | <ifc label x>   | <ifc label y>   | etc
-     * Row 2    | <srcAtom a1>    | <tgtAtom b1>    | <tgtAtom c1>    | etc
-     * Row 3    | <srcAtom a2>    | <tgtAtom b2>    | <tgtAtom c2>    | etc
+     * Row 1    | <Concept>       | <ifc label x>   | <ifc label y>   | etc
+     * Row 2    | <Atom a1>       | <tgtAtom b1>    | <tgtAtom c1>    | etc
+     * Row 3    | <Atom a2>       | <tgtAtom b2>    | <tgtAtom c2>    | etc
      * etc
      */
-    protected function parseWorksheetWithIfc(PHPExcel_Worksheet $worksheet, InterfaceObjectInterface $ifc)
+    protected function parseWorksheetWithIfc(PHPExcel_Worksheet $worksheet, Ifc $ifc)
     {
+        // Source concept of interface MUST be SESSION
+        if (!$ifc->getSrcConcept()->isSession()) {
+            throw new Exception("Source concept of interface '{$ifc->getLabel()}' must be SESSION in order to be used as import interface", 400);
+        }
+
         // Determine $leftConcept from cell A1
         $leftConcept = Concept::getConceptByLabel((string)$worksheet->getCell('A1'));
-        if ($leftConcept != $ifc->tgtConcept) {
-            throw new Exception("Target concept of interface '{$ifc->getPath()}' does not match concept specified in cell {$worksheet->getTitle()}!A1", 500);
+        if ($leftConcept !== $ifc->getTgtConcept()) {
+            throw new Exception("Target concept of interface '{$ifc->getLabel()}' does not match concept specified in cell {$worksheet->getTitle()}!A1", 400);
         }
+
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
+
+        $ifcObj = $ifc->getIfcObject();
+        $sessionResource = $ampersandApp->getSession()->getSessionResource();
         
         // Parse other columns of first row
-        $header = [];
+        $dataColumns = [];
         foreach ($worksheet->getColumnIterator('B') as $column) {
             /** @var \PHPExcel_Worksheet_Column $column */
 
             $columnLetter = $column->getColumnIndex();
-            $cellvalue = (string)$worksheet->getCell($columnLetter . '1')->getCalculatedValue();
+            $cellvalue = (string)$worksheet->getCell($columnLetter . '1')->getCalculatedValue(); // @phan-suppress-current-line PhanDeprecatedFunction
             
-            if ($cellvalue != '') {
-                $subIfc = $ifc->getSubinterfaceByLabel($cellvalue);
-                if (!$subIfc->crudU()) {
-                    throw new Exception("Use of {$subIfc->getIfcLabel()} in cell '{$worksheet->getTitle()}!{$columnLetter}1' is not allowed. No update rights specified in interface", 400);
+            if ($cellvalue !== '') {
+                try {
+                    $subIfcObj = $ifcObj->getSubinterfaceByLabel($cellvalue);
+                    $dataColumns[$columnLetter] = $subIfcObj;
+                } catch (Exception $e) {
+                    throw new Exception("Cannot process column {$columnLetter} '{$cellvalue}' in sheet {$worksheet->getTitle()}, because subinterface in undefined", 400, $e);
                 }
-                $header[$columnLetter] = $subIfc;
             } else {
                 $this->logger->notice("Skipping column {$columnLetter} in sheet {$worksheet->getTitle()}, because header is not provided");
             }
@@ -109,57 +121,51 @@ class ExcelImporter
             $rowNr = $row->getRowIndex();
             $cell = $worksheet->getCell('A'.$rowNr);
 
-            $firstCol = (string)$cell->getCalculatedValue();
-            
-            // If cell Ax is empty, skip complete row
-            if ($firstCol === '') {
-                $this->logger->notice("Skipping row {$rowNr} in sheet {$worksheet->getTitle()}, because column A is empty");
-                continue;
-            } // If cell Ax contains '_NEW', this means to automatically create a new atom
-            elseif ($firstCol === '_NEW') {
-                if (!$ifc->crudC()) {
-                    throw new Exception("Trying to create new atom in cell '{$cell->getWorksheet()->getTitle()}!{$cell->getCoordinate()}'. This is not allowed.", 400);
-                }
-                $leftAtom = $leftConcept->createNewAtom()->add();
-            } // Else instantiate atom with given atom identifier
-            else {
-                $leftAtom = new Atom($firstCol, $leftConcept);
-                if (!$leftAtom->exists()) {
-                    if (!$ifc->crudC()) {
-                        throw new Exception("Trying to create new {$leftConcept} in cell '{$cell->getWorksheet()->getTitle()}!{$cell->getCoordinate()}'. This is not allowed.", 400);
-                    } else {
-                        $leftAtom->add();
+            try {
+                $firstCol = (string)$cell->getCalculatedValue(); // @phan-suppress-current-line PhanDeprecatedFunction
+
+                // If cell Ax is empty, skip complete row
+                if ($firstCol === '') {
+                    $this->logger->notice("Skipping row {$rowNr} in sheet {$worksheet->getTitle()}, because column A is empty");
+                    continue;
+                } // If cell Ax contains '_NEW', this means to automatically create a new atom
+                elseif ($firstCol === '_NEW') {
+                    $leftResource = $sessionResource->post($ifcObj->getIfcId());
+                } // Else instantiate atom with given atom identifier
+                else {
+                    $leftAtom = new Atom($firstCol, $leftConcept);
+                    if ($leftAtom->exists()) {
+                        $leftResource = $sessionResource->one($ifcObj->getIfcId(), $firstCol);
+                    } else { // Try a POST
+                        $leftResource = $ifcObj->create($sessionResource, $firstCol);
                     }
-                } else {
-                    // $leftAtom already exists..do nothing
                 }
+            } catch (Exception $e) {
+                throw new Exception("Error in cell '{$cell->getWorksheet()->getTitle()}!{$cell->getCoordinate()}': {$e->getMessage()}", $e->getCode(), $e);
             }
             
             // Process other columns of this row
-            foreach ($header as $columnLetter => $subifc) {
+            foreach ($dataColumns as $columnLetter => $subIfcObj) {
+                /** @var \Ampersand\Interfacing\InterfaceObjectInterface $subIfcObj */
                 $cell = $worksheet->getCell($columnLetter . $rowNr);
-                $cellvalue = (string)$cell->getCalculatedValue();
                 
-                if ($cellvalue === '') {
-                    continue; // skip if not value provided
-                }
-                 
-                // Overwrite $cellvalue in case of datetime
-                // The @ is a php indicator for a unix timestamp (http://php.net/manual/en/datetime.formats.compound.php), later used for typeConversion
-                if (PHPExcel_Shared_Date::isDateTime($cell) && !empty($cellvalue)) {
-                    $cellvalue = '@'.(string)PHPExcel_Shared_Date::ExcelToPHP($cellvalue);
-                }
-                
-                $rightAtom = new Atom($cellvalue, $subifc->tgtConcept);
-                if (!$rightAtom->exists()) {
-                    if ($subifc->tgtConcept->isObject() && !$subifc->crudC()) {
-                        throw new Exception("Trying to create new {$subifc->tgtConcept} in cell '{$cell->getWorksheet()->getTitle()}!{$cell->getCoordinate()}'. This is not allowed.", 400);
-                    } else {
-                        $rightAtom->add();
+                try {
+                    $cellvalue = (string)$cell->getCalculatedValue(); // @phan-suppress-current-line PhanDeprecatedFunction
+                    
+                    if ($cellvalue === '') {
+                        continue; // skip if not value provided
                     }
+                    
+                    // Overwrite $cellvalue in case of datetime
+                    // The @ is a php indicator for a unix timestamp (http://php.net/manual/en/datetime.formats.compound.php), later used for typeConversion
+                    if (PHPExcel_Shared_Date::isDateTime($cell) && !empty($cellvalue)) {
+                        $cellvalue = '@'.(string)PHPExcel_Shared_Date::ExcelToPHP($cellvalue);
+                    }
+
+                    $subIfcObj->add($leftResource, $cellvalue);
+                } catch (Exception $e) {
+                    throw new Exception("Error in cell '{$cell->getWorksheet()->getTitle()}!{$cell->getCoordinate()}': {$e->getMessage()}", $e->getCode(), $e);
                 }
-                
-                $leftAtom->link($rightAtom, $subifc->relation(), $subifc->relationIsFlipped)->add();
             }
         }
     }
@@ -189,7 +195,7 @@ class ExcelImporter
         foreach ($worksheet->getRowIterator() as $row) {
             /** @var \PHPExcel_Worksheet_Row $row */
             $rowNr = $row->getRowIndex();
-            $cellvalue = $worksheet->getCell('A'. $rowNr)->getCalculatedValue();
+            $cellvalue = $worksheet->getCell('A'. $rowNr)->getCalculatedValue(); // @phan-suppress-current-line PhanDeprecatedFunction
 
             // Import block is indicated by '[]' brackets in cell Ax
             if (substr(trim($cellvalue), 0, 1) === '[') {
@@ -228,19 +234,22 @@ class ExcelImporter
             if ($i === 1) {
                 foreach ($row->getCellIterator() as $cell) {
                     /** @var \PHPExcel_Cell $cell */
-                    $line1[$cell->getColumn()] = trim((string) $cell->getCalculatedValue()); // no leading/trailing spaces allowed
+                    // No leading/trailing spaces allowed
+                    $line1[$cell->getColumn()] = trim((string) $cell->getCalculatedValue()); // @phan-suppress-current-line PhanDeprecatedFunction
                 }
             } // Header line 2 specifies concept names
             elseif ($i === 2) {
+                $leftConcept = Concept::getConceptByLabel($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue()); // @phan-suppress-current-line PhanDeprecatedFunction
+
                 foreach ($row->getCellIterator() as $cell) {
                     /** @var \PHPExcel_Cell $cell */
                     
                     $col = $cell->getColumn();
+                    // @phan-suppress-next-line PhanDeprecatedFunction
                     $line2[$col] = trim((string) $cell->getCalculatedValue()); // no leading/trailing spaces allowed
                 
                     // Import header can be determined now using line 1 and line 2
                     if ($col === 'A') {
-                        $leftConcept = Concept::getConceptByLabel($line2[$col]);
                         $header[$col] = ['concept' => $leftConcept, 'relation' => null, 'flipped' => null];
                     } else {
                         if ($line1[$col] === '' || $line2[$col] === '') {
@@ -265,7 +274,22 @@ class ExcelImporter
                 }
             } // Data lines
             else {
-                $this->processDataRow($row, $header);
+                $col = 'A';
+                $cellA = $this->getCalculatedValueAsAtomId($worksheet->getCell($col . $row->getRowIndex()));
+
+                // If cell Ax is empty, skip complete row
+                if ($cellA === '') {
+                    $this->logger->notice("Skipping row {$row->getRowIndex()}, because column A is empty");
+                    continue; // proceed to next row
+                } // If cell Ax contains '_NEW', this means to automatically create a new atom
+                elseif ($cellA === '_NEW') {
+                    $leftAtom = $header[$col]['concept']->createNewAtom()->add();
+                } // Else instantiate atom with given atom identifier
+                else {
+                    $leftAtom = (new Atom($cellA, $header[$col]['concept']))->add();
+                }
+
+                $this->processDataRow($leftAtom, $row, $header);
             }
         }
     }
@@ -273,13 +297,14 @@ class ExcelImporter
     /**
      * Undocumented function
      *
-     * @param PHPExcel_Worksheet_Row $row
+     * @param \Ampersand\Core\Atom $leftAtom
+     * @param \PHPExcel_Worksheet_Row $row
      * @param array $headerInfo
      * @return void
      */
-    private function processDataRow(PHPExcel_Worksheet_Row $row, array $headerInfo)
+    protected function processDataRow(Atom $leftAtom, PHPExcel_Worksheet_Row $row, array $headerInfo)
     {
-        foreach ($row->getCellIterator() as $cell) {
+        foreach ($row->getCellIterator('B') as $cell) { // @phan-suppress-current-line PhanTypeNoAccessiblePropertiesForeach
             /** @var \PHPExcel_Cell $cell */
 
             $col = $cell->getColumn();
@@ -289,41 +314,32 @@ class ExcelImporter
                 continue; // continue to next cell
             }
 
-            $cellvalue = (string) $cell->getCalculatedValue(); // !Do NOT trim this cellvalue, because atoms may have leading/trailing whitespace
+            $cellvalue = $this->getCalculatedValueAsAtomId($cell);
 
-            // Overwrite $cellvalue in case of datetime
-            // the @ is a php indicator for a unix timestamp (http://php.net/manual/en/datetime.formats.compound.php), later used for typeConversion
-            if (PHPExcel_Shared_Date::isDateTime($cell) && !empty($cellvalue)) {
-                $cellvalue = '@'.(string)PHPExcel_Shared_Date::ExcelToPHP($cellvalue);
-            }
-
-            // Determine $leftAtom using column A
-            if ($col === 'A') {
-                // If cell Ax is empty, skip complete row
-                if ($cellvalue === '') {
-                    $this->logger->notice("Skipping row {$row->getRowIndex()}, because column A is empty");
-                    return; // stop processing complete row
-                } // If cell Ax contains '_NEW', this means to automatically create a new atom
-                elseif ($cellvalue === '_NEW') {
-                    $leftAtom = $headerInfo[$col]['concept']->createNewAtom()->add();
-                } // Else instantiate atom with given atom identifier
-                else {
-                    $leftAtom = (new Atom($cellvalue, $headerInfo[$col]['concept']))->add();
-                }
-            
-            // Process other columns
+            // If cell is empty, skip column
+            if ($cellvalue === '') {
+                continue; // continue to next cell
+            } elseif ($cellvalue === '_NEW') {
+                $rightAtom = $leftAtom;
             } else {
-                // If cell is empty, skip column
-                if ($cellvalue === '') {
-                    continue; // continue to next cell
-                } elseif ($cellvalue === '_NEW') {
-                    $rightAtom = $leftAtom;
-                } else {
-                    $rightAtom = (new Atom($cellvalue, $headerInfo[$col]['concept']))->add();
-                }
-
-                $leftAtom->link($rightAtom, $headerInfo[$col]['relation'], $headerInfo[$col]['flipped'])->add();
+                $rightAtom = (new Atom($cellvalue, $headerInfo[$col]['concept']))->add();
             }
+
+            $leftAtom->link($rightAtom, $headerInfo[$col]['relation'], $headerInfo[$col]['flipped'])->add();
         }
+    }
+
+    protected function getCalculatedValueAsAtomId(PHPExcel_Cell $cell): string
+    {
+        // @phan-suppress-next-line PhanDeprecatedFunction
+        $cellvalue = (string) $cell->getCalculatedValue(); // !Do NOT trim this cellvalue, because atoms may have leading/trailing whitespace
+
+        // Overwrite $cellvalue in case of datetime
+        // the @ is a php indicator for a unix timestamp (http://php.net/manual/en/datetime.formats.compound.php), later used for typeConversion
+        if (PHPExcel_Shared_Date::isDateTime($cell) && !empty($cellvalue)) {
+            $cellvalue = '@'.(string)PHPExcel_Shared_Date::ExcelToPHP($cellvalue);
+        }
+
+        return $cellvalue;
     }
 }
