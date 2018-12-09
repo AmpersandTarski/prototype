@@ -93,6 +93,11 @@ class Resource extends Atom implements ArrayAccess
         return $this->ifc->buildResourcePath($this, $this->parent);
     }
 
+    public function one(string $ifcId, string $tgtId): Resource
+    {
+        return $this->ifc->getSubinterface($ifcId, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS)->one($this, $tgtId);
+    }
+
 /**************************************************************************************************
  * ArrayAccess methods
  *************************************************************************************************/
@@ -116,14 +121,16 @@ class Resource extends Atom implements ArrayAccess
 
     public function offsetSet($offset, $value)
     {
-        $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
-        $ifcObj->set($this, $value);
+        throw new Exception("Resource::offsetSet not yet implemented", 501);
+        // $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
+        // $ifcObj->set($this, $value);
     }
 
     public function offsetUnset($offset)
     {
-        $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
-        $ifcObj->set($this, null);
+        throw new Exception("Resource::offsetSet not yet implemented", 501);
+        // $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
+        // $ifcObj->set($this, null);
     }
 
 /**************************************************************************************************
@@ -262,12 +269,12 @@ class Resource extends Atom implements ArrayAccess
         return $this;
     }
 
-    public function post($subIfcId, $resourceToPost): Resource
+    public function post($subIfcId, stdClass $resourceToPost = null): Resource
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp;
         
-        $newResource = $this->ifc->getSubinterface($subIfcId)->create($this, $resourceToPost);
+        $newResource = $this->ifc->getSubinterface($subIfcId)->create($this);
 
         // Special case for file upload
         if ($newResource->concept->isFileObject()) {

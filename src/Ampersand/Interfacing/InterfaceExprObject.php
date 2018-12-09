@@ -538,9 +538,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         if (!empty($tgts)) {
             // Resource found
             return $this->makeResource(current($tgts)->id, $src);
-        } elseif ($this->tgtConcept->isObject() && $this->crudC()) {
-            // Create the target if allowed
-            return $this->makeResource($tgtId, $src);
         } else {
             // When not found
             throw new Exception("Resource '{$tgtId}' not found", 404);
