@@ -70,12 +70,13 @@ interface InterfaceObjectInterface
     /**
      * Return list of sub interface objects
      *
+     * @param int $options
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS): array;
-    public function hasSubinterface(string $ifcId): bool;
-    public function getSubinterface(string $ifcId): InterfaceObjectInterface;
-    public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface;
+    public function hasSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): bool;
+    public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface;
+    public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface;
 
     /**********************************************************************************************
      * CRUD METHODS

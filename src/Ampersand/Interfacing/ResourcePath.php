@@ -119,7 +119,7 @@ class ResourcePath
         $resource = $src;
         while (count($pathList)) {
             // Peel off first part of path (= ifc identifier)
-            $subifc = $resource->getIfc()->getSubinterface(array_shift($pathList));
+            $subifc = $resource->getIfc()->getSubinterface(array_shift($pathList), Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
 
             // If the subifc isIdent, step into next resource.
             if ($subifc->isIdent()) {

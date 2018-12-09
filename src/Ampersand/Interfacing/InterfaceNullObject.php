@@ -133,12 +133,12 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         }, $ampersandApp->getAccessibleInterfaces());
     }
 
-    public function hasSubinterface(string $ifcId): bool
+    public function hasSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): bool
     {
         return Ifc::interfaceExists($ifcId);
     }
 
-    public function getSubinterface(string $ifcId): InterfaceObjectInterface
+    public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
@@ -152,7 +152,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         return $ifc->getIfcObject();
     }
 
-    public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface
+    public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var

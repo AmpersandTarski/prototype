@@ -165,25 +165,27 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
         return [];
     }
 
-    public function hasSubinterface(string $ifcId): bool
+    public function hasSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): bool
     {
         return false;
     }
     
     /**
      * @param string $ifcId
+     * @param int $options
      * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    public function getSubinterface(string $ifcId): InterfaceObjectInterface
+    public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         throw new Exception("N.a. for InterfaceTxtObject", 500);
     }
     
     /**
      * @param string $ifcLabel
+     * @param int $options
      * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface
+    public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         throw new Exception("N.a. for InterfaceTxtObject", 500);
     }

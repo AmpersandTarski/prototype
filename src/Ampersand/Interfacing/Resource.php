@@ -99,12 +99,12 @@ class Resource extends Atom implements ArrayAccess
 
     public function offsetExists($offset)
     {
-        return $this->ifc->hasSubinterface($offset); // TODO: add option (Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS)
+        return $this->ifc->hasSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
     }
 
     public function offsetGet($offset)
     {
-        $ifcObj = $this->ifc->getSubinterface($offset); // TODO: add option (Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS)
+        $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
         $tgts = $ifcObj->all($this);
 
         if ($ifcObj->isUni()) {
@@ -116,13 +116,13 @@ class Resource extends Atom implements ArrayAccess
 
     public function offsetSet($offset, $value)
     {
-        $ifcObj = $this->ifc->getSubinterface($offset); // TODO: add option (Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS)
+        $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
         $ifcObj->set($this, $value);
     }
 
     public function offsetUnset($offset)
     {
-        $ifcObj = $this->ifc->getSubinterface($offset); // TODO: add option (Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS)
+        $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
         $ifcObj->set($this, null);
     }
 
@@ -158,7 +158,7 @@ class Resource extends Atom implements ArrayAccess
                 continue; // skip special internal attributes
             }
             try {
-                $subifc = $this->ifc->getSubinterface($ifcId);
+                $subifc = $this->ifc->getSubinterface($ifcId, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
             } catch (Exception $e) {
                 Logger::getLogger('INTERFACING')->warning("Unknown attribute '{$ifcId}' in PUT data");
                 continue;

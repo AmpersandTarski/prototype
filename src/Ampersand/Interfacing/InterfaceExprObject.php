@@ -417,20 +417,22 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      * Returns if subinterface is defined
      *
      * @param string $ifcId
+     * @param int $options
      * @return bool
      */
-    public function hasSubinterface(string $ifcId): bool
+    public function hasSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): bool
     {
-        return array_key_exists($ifcId, $this->getSubinterfaces());
+        return array_key_exists($ifcId, $this->getSubinterfaces($options));
     }
     
     /**
      * @param string $ifcId
+     * @param int $options
      * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    public function getSubinterface(string $ifcId): InterfaceObjectInterface
+    public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
-        if (!array_key_exists($ifcId, $subifcs = $this->getSubinterfaces())) {
+        if (!array_key_exists($ifcId, $subifcs = $this->getSubinterfaces($options))) {
             throw new Exception("Subinterface '{$ifcId}' does not exist in interface '{$this->path}'", 500);
         }
     
@@ -439,11 +441,12 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * @param string $ifcLabel
+     * @param int $options
      * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    public function getSubinterfaceByLabel(string $ifcLabel): InterfaceObjectInterface
+    public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
-        foreach ($this->getSubinterfaces() as $ifc) {
+        foreach ($this->getSubinterfaces($options) as $ifc) {
             if ($ifc->getIfcLabel() == $ifcLabel) {
                 return $ifc;
             }
