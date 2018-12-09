@@ -1,9 +1,10 @@
 # Changelog
 
 ## Unreleased changes
+* **Major refactoring of backend implementation of prototype framework**
 * [Issue 792](https://github.com/AmpersandTarski/Ampersand/issues/792) Support for TXT in interface definitions
 * [Issue 819](https://github.com/AmpersandTarski/Ampersand/issues/819) Refactor initialization phase of Ampersand application. Config -> Init -> Session -> Run
-* [Issue 802](https://github.com/AmpersandTarski/Ampersand/issues/802)
+* [Issue 802](https://github.com/AmpersandTarski/Ampersand/issues/802) Little Things In Prototoypes/Frontend
 * [Issue 829](https://github.com/AmpersandTarski/Ampersand/issues/829) Fix issue with database initialization
 * Don't automatically create database table. Installer is required.
 * Remove dependency injection container for AmpersandApp (for now)
