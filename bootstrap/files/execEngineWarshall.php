@@ -38,21 +38,23 @@ use Ampersand\Core\Link;
  * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
  */
 ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPlus) {
+    static $calculatedRelations = [];
+    static $runCount = 0;
+
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 4) {
         throw new Exception("Wrong number of arguments supplied for function TransitiveClosure(): ".func_num_args()." arguments", 500);
     }
     
-    // Check and return if this function for a particular rule is already executed in an exec-engine run
-    $warshallRunCount = $GLOBALS['ext']['ExecEngine']['functions']['warshall']['runCount'];
-    $execEngineRunCount = ExecEngine::$runCount;
-    if ($GLOBALS['ext']['ExecEngine']['functions']['warshall']['warshallRuleChecked'][$r]) {
-        if ($warshallRunCount == $execEngineRunCount) {
+    // Quit if a relation $r is already calculated in a specific exec-engine run
+    if (in_array($r, $calculatedRelations)) {
+        if ($runCount === $this->getRunCount()) {
             return;
         }
+    } else {
+        $calculatedRelations[] = $r;
     }
-    $GLOBALS['ext']['ExecEngine']['functions']['warshall']['warshallRuleChecked'][$r] = true;
-    $GLOBALS['ext']['ExecEngine']['functions']['warshall']['runCount'] = ExecEngine::$runCount;
+    $runCount = $this->getRunCount();
 
     // Get concept and relation objects
     $concept = Concept::getConceptByLabel($C);

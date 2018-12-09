@@ -1,5 +1,3 @@
-bootstrap\files\execEngineWarshall.php:48 PhanUndeclaredStaticProperty Static property 'runCount' on \Ampersand\Rule\ExecEngine is undeclared
-bootstrap\files\execEngineWarshall.php:55 PhanUndeclaredStaticProperty Static property 'runCount' on \Ampersand\Rule\ExecEngine is undeclared
 src\Ampersand\IO\ExcelImporter.php:82 PhanUndeclaredProperty Reference to undeclared property \Ampersand\Interfacing\InterfaceObjectInterface->tgtConcept
 src\Ampersand\IO\ExcelImporter.php:92 PhanDeprecatedFunction Call to deprecated function \PHPExcel_Cell::getCalculatedValue() defined at lib\phpoffice\phpexcel\Classes\PHPExcel\Cell.php:270
 src\Ampersand\IO\ExcelImporter.php:112 PhanDeprecatedFunction Call to deprecated function \PHPExcel_Cell::getCalculatedValue() defined at lib\phpoffice\phpexcel\Classes\PHPExcel\Cell.php:270

@@ -55,6 +55,13 @@ class ExecEngine extends RuleEngine
      * @var \Ampersand\AmpersandApp
      */
     protected $ampersandApp;
+
+    /**
+     * Number of runs this exec engine is called (i.e. the checkFixRules() method)
+     *
+     * @var int
+     */
+    protected $runCount = 0;
     
     /**
      * Specifies latest atom created by a Newstruct/InsAtom function call.
@@ -122,6 +129,11 @@ class ExecEngine extends RuleEngine
     {
         return self::$newAtom = $atom;
     }
+
+    public function getRunCount(): int
+    {
+        return $this->runCount;
+    }
     
     /**
      * Perform single run for this exec engine
@@ -131,6 +143,8 @@ class ExecEngine extends RuleEngine
      */
     public function checkFixRules(array $affectedRules): array
     {
+        $this->runCount++;
+        
         // Filter rules that are maintained by this exec engine
         $rulesToCheck = array_filter($this->maintainsRules, function (Rule $rule) use ($affectedRules) {
             return in_array($rule, $affectedRules);

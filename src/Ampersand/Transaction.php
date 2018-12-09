@@ -158,13 +158,14 @@ class Transaction
         $maxRunCount = $this->app->getSettings()->get('execengine.maxRunCount');
         $autoRerun = $this->app->getSettings()->get('execengine.autoRerun');
         $doRun = true;
-        $runCounter = 1;
+        $runCounter = 0;
 
         // Rules to check
         $rulesToCheck = $checkAllRules ? Rule::getAllRules() : $this->getAffectedRules();
 
         // Do run exec engines while there is work to do
         do {
+            $runCounter++;
             $logger->info("{+ Run #{{$runCounter}} (auto rerun: " . var_export($autoRerun, true) . ")");
             
             // Exec all exec engines
@@ -186,7 +187,6 @@ class Transaction
                 $doRun = false;
             }
             $logger->info("+} Exec engine run finished");
-            $runCounter++;
             $rulesToCheck = $this->getAffectedRules(); // next run only affected rules need to be checked
         } while ($doRun && $autoRerun);
 
