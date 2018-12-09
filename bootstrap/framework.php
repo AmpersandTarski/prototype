@@ -86,7 +86,6 @@ $ampersandApp->setConjunctCache(new MysqlConjunctCache($mysqlDB));
 /**************************************************************************************************
  * OTHER BOOTSTRAPPING FILES (e.g. ExecEngine functions)
  *************************************************************************************************/
-chdir(__DIR__);
-foreach (glob('files/*.php') as $filepath) {
-    require_once(__DIR__ . DIRECTORY_SEPARATOR . $filepath);
+foreach (glob(__DIR__ . '/files/*.php') as $filepath) {
+    require_once($filepath);
 }
