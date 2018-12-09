@@ -69,7 +69,7 @@ class ExecEngine extends RuleEngine
      *
      * @var \Ampersand\Core\Atom|null
      */
-    protected static $newAtom = null;
+    protected $newAtom = null;
 
     /**
      * Constructor
@@ -106,17 +106,16 @@ class ExecEngine extends RuleEngine
 
     /**
      * Get created atom by other ExecEngine function
-     * Only is available within the same violation
-     * self::$newAtom is set to null at the start of each fixViolation run
+     * Only is available within the same violation: $newAtom is set to null at the start of each fixViolation run
      *
      * @return \Ampersand\Core\Atom
      */
     public function getCreatedAtom(): Atom
     {
-        if (is_null(self::$newAtom)) {
+        if (is_null($this->newAtom)) {
             throw new Exception("No newly created atom (_NEW) available. To fix: first execute function InsAtom.", 500);
         }
-        return self::$newAtom;
+        return $this->newAtom;
     }
 
     /**
@@ -127,7 +126,7 @@ class ExecEngine extends RuleEngine
      */
     public function setCreatedAtom(Atom $atom): Atom
     {
-        return self::$newAtom = $atom;
+        return $this->newAtom = $atom;
     }
 
     public function getRunCount(): int
@@ -144,7 +143,7 @@ class ExecEngine extends RuleEngine
     public function checkFixRules(array $affectedRules): array
     {
         $this->runCount++;
-        
+
         // Filter rules that are maintained by this exec engine
         $rulesToCheck = array_filter($this->maintainsRules, function (Rule $rule) use ($affectedRules) {
             return in_array($rule, $affectedRules);
@@ -185,7 +184,7 @@ class ExecEngine extends RuleEngine
     {
         // Reset reference to newly created atom (e.g. by NewStruct/InsAtom function)
         // See function getCreatedAtom() above
-        self::$newAtom = null;
+        $this->newAtom = null;
 
         // Determine actions/functions to be taken
         $actions = explode('{EX}', $violation->getExecEngineViolationMessage());
