@@ -82,6 +82,11 @@ class Ifc
         $this->ifcObject = InterfaceObjectFactory::newExprObject($objectDef, $defaultPlug);
     }
 
+    public function __toString(): string
+    {
+        return $this->id;
+    }
+
     /**
      * Returns identifier of this interface
      *

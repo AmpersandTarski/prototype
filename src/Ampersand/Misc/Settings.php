@@ -61,10 +61,6 @@ class Settings
         $decoder = new JsonDecode(false);
         $settings = $decoder->decode(file_get_contents($filePath), JsonEncoder::FORMAT);
 
-        if (!is_array($settings)) {
-            throw new Exception("Settings var not provided as an array", 500);
-        }
-
         foreach ($settings as $setting => $value) {
             $this->set($setting, $value, $overwriteAllowed);
         }
