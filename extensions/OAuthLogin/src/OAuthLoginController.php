@@ -3,8 +3,8 @@
 namespace Ampersand\Extension\OAuthLogin;
 
 use Exception;
-use Ampersand\Interfacing\ResourceFactory;
-use Ampersand\Interfacing\Ifc;
+use Ampersand\Core\Atom;
+use Ampersand\Interfacing\ResourceList;
 
 class OAuthLoginController
 {
@@ -191,20 +191,20 @@ class OAuthLoginController
             throw new Exception("No emailaddress provided to login", 500);
         }
         
-        $userID = ResourceFactory::makeResource($email, 'UserID');
-        $accounts = Ifc::getInterface('AccountForUserid')->getIfcObject()->all($userID);
+        $userID = Atom::makeAtom($email, 'UserID');
+        $accounts = ResourceList::makeFromInterface($userID, 'AccountForUserid')->getResources();
         
         // Create new account
         if (empty($accounts)) {
-            $account = ResourceFactory::makeNewResource('Account');
+            $account = Atom::makeNewAtom('Account');
             
             // Save email as accUserid
             $account->link($userID, 'accUserid[Account*UserID]')->add();
             
             try {
                 // If possible, add account to organization(s) based on domain name
-                $domain = ResourceFactory::makeResource(explode('@', $email)[1], 'Domain');
-                $orgs = Ifc::getInterface('DomainOrgs')->getIfcObject()->all($domain);
+                $domain = Atom::makeAtom(explode('@', $email)[1], 'Domain');
+                $orgs = ResourceList::makeFromInterface($domain, 'DomainOrgs')->getResources();
                 foreach ($orgs as $org) {
                     $account->link($org, 'accOrg[Account*Organization]')->add();
                 }

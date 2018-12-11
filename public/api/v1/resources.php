@@ -5,7 +5,8 @@ use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceController;
 use Slim\Http\Request;
 use Slim\Http\Response;
-use Ampersand\Interfacing\ResourceFactory;
+use Ampersand\Interfacing\ResourceList;
+use Ampersand\Core\Atom;
 
 /**
  * @var \Slim\Slim $api
@@ -53,23 +54,11 @@ $api->group('/resource', function () {
     $this->get('/{resourceType}', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
-
-        $concept = Concept::getConcept($args['resourceType']);
         
-        // Checks
-        if (!$concept->isObject()) {
-            throw new Exception("Resource type not found", 404);
-        }
-        if ($concept->isSession()) {
-            throw new Exception("Resource type not found", 404); // Prevent users to list other sessions
-        }
-        if (!$ampersandApp->isEditableConcept($concept)) {
-            throw new Exception("You do not have access for this call", 403);
-        }
+        // TODO: refactor when resources (e.g. for update field in UI) can be requested with interface definition
+        $resources = ResourceList::makeWithoutInterface($args['resourceType']);
         
-        $resources = ResourceFactory::getAllResources($args['resourceType']);
-        
-        return $response->withJson($resources, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson($resources->get(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
     /**
@@ -79,21 +68,12 @@ $api->group('/resource', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        $resource = ResourceFactory::makeNewResource($args['resourceType']);
-
-        $allowed = false;
-        foreach ($ampersandApp->getAccessibleInterfaces() as $ifc) {
-            $ifcObj = $ifc->getIfcObject();
-            if ($ifcObj->crudC() && $ifcObj->tgtConcept == $resource->concept) {
-                $allowed = true;
-                break;
-            }
-        }
-        if (!$allowed) {
-            throw new Exception("You do not have access for this call", 403);
-        }
+        $resource = ResourceList::makeWithoutInterface($args['resourceType'])->post();
         
         // Don't save/commit new resource (yet)
+        // Transaction is not closed
+
+        // Response
         return $response->withJson($resource->get(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
@@ -104,15 +84,7 @@ $api->group('/resource', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        $resource = ResourceFactory::makeResource($args['resourceId'], $args['resourceType']);
-        
-        // Checks
-        if (!$ampersandApp->isEditableConcept($resource->concept)) {
-            throw new Exception("You do not have access for this call", 403);
-        }
-        if (!$resource->exists()) {
-            throw new Exception("Resource '{$resource}' not found", 404);
-        }
+        $resource = ResourceList::makeWithoutInterface($args['resourceType'])->one($args['resourceId']);
 
         return $response->withJson($resource->get(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
@@ -133,10 +105,10 @@ $api->group('/resource', function () {
         
         // Prepare
         $controller = new InterfaceController($ampersandApp, $angularApp);
-        $resource = ResourceFactory::makeResource($args['resourceId'], $args['resourceType']);
+        $src = Atom::makeAtom($args['resourceId'], $args['resourceType']);
 
         // Output
-        return $response->withJson($controller->get($resource, $args['ifcPath'], $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson($controller->get($src, $args['ifcPath'], $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
     // PUT, PATCH, POST for interfaces that start with other resource
@@ -157,16 +129,16 @@ $api->group('/resource', function () {
         
         // Prepare
         $controller = new InterfaceController($ampersandApp, $angularApp);
-        $resource = ResourceFactory::makeResource($args['resourceId'], $args['resourceType']);
+        $src = Atom::makeAtom($args['resourceId'], $args['resourceType']);
 
         // Output
         switch ($request->getMethod()) {
             case 'PUT':
-                return $response->withJson($controller->put($resource, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                return $response->withJson($controller->put($src, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             case 'PATCH':
-                return $response->withJson($controller->patch($resource, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                return $response->withJson($controller->patch($src, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             case 'POST':
-                return $response->withJson($controller->post($resource, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                return $response->withJson($controller->post($src, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             default:
                 throw new Exception("Unsupported HTTP method", 500);
         }
@@ -181,11 +153,11 @@ $api->group('/resource', function () {
         /** @var \Ampersand\AngularApp $angularApp */
         $angularApp = $this['angular_app'];
 
-        $resource = ResourceFactory::makeResource($args['resourceId'], $args['resourceType']);
-
+        // Prepare
         $controller = new InterfaceController($ampersandApp, $angularApp);
+        $src = Atom::makeAtom($args['resourceId'], $args['resourceType']);
 
-        return $response->withJson($controller->delete($resource, $args['ifcPath']), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson($controller->delete($src, $args['ifcPath']), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 })->add($middleWare1);
 
@@ -212,10 +184,10 @@ $api->group('/session', function () {
 
         // Prepare
         $controller = new InterfaceController($ampersandApp, $angularApp);
-        $resource = $ampersandApp->getSession()->getSessionResource();
+        $session = $ampersandApp->getSession()->getSessionAtom();
 
         // Output
-        return $response->withJson($controller->get($resource, $args['ifcPath'], $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson($controller->get($session, $args['ifcPath'], $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
     // PUT, PATCH, POST for interfaces with expr[SESSION*..]
@@ -236,16 +208,16 @@ $api->group('/session', function () {
         
         // Prepare
         $controller = new InterfaceController($ampersandApp, $angularApp);
-        $resource = $ampersandApp->getSession()->getSessionResource();
+        $session = $ampersandApp->getSession()->getSessionAtom();
 
         // Output
         switch ($request->getMethod()) {
             case 'PUT':
-                return $response->withJson($controller->put($resource, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                return $response->withJson($controller->put($session, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             case 'PATCH':
-                return $response->withJson($controller->patch($resource, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                return $response->withJson($controller->patch($session, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             case 'POST':
-                return $response->withJson($controller->post($resource, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                return $response->withJson($controller->post($session, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             default:
                 throw new Exception("Unsupported HTTP method", 500);
         }
@@ -260,10 +232,10 @@ $api->group('/session', function () {
         /** @var \Ampersand\AngularApp $angularApp */
         $angularApp = $this['angular_app'];
 
-        $resource = $ampersandApp->getSession()->getSessionResource();
+        $session = $ampersandApp->getSession()->getSessionAtom();
 
         $controller = new InterfaceController($ampersandApp, $angularApp);
 
-        return $response->withJson($controller->delete($resource, $args['ifcPath']), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson($controller->delete($session, $args['ifcPath']), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 })->add($middleWare1);

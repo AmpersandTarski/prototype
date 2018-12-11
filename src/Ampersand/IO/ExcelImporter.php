@@ -13,6 +13,7 @@ use PHPExcel_Worksheet;
 use PHPExcel_Worksheet_Row;
 use Psr\Log\LoggerInterface;
 use Ampersand\Interfacing\Ifc;
+use Ampersand\Interfacing\ResourceList;
 
 class ExcelImporter
 {
@@ -91,8 +92,8 @@ class ExcelImporter
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
 
-        $ifcObj = $ifc->getIfcObject();
-        $sessionResource = $ampersandApp->getSession()->getSessionResource();
+        // The list to add/update items from
+        $resourceList = ResourceList::makeFromInterface($ampersandApp->getSession()->getSessionAtom(), $ifc->getId());
         
         // Parse other columns of first row
         $dataColumns = [];
@@ -104,7 +105,7 @@ class ExcelImporter
             
             if ($cellvalue !== '') {
                 try {
-                    $subIfcObj = $ifcObj->getSubinterfaceByLabel($cellvalue);
+                    $subIfcObj = $ifc->getIfcObject()->getSubinterfaceByLabel($cellvalue);
                     $dataColumns[$columnLetter] = $subIfcObj;
                 } catch (Exception $e) {
                     throw new Exception("Cannot process column {$columnLetter} '{$cellvalue}' in sheet {$worksheet->getTitle()}, because subinterface in undefined", 400, $e);
@@ -130,14 +131,14 @@ class ExcelImporter
                     continue;
                 } // If cell Ax contains '_NEW', this means to automatically create a new atom
                 elseif ($firstCol === '_NEW') {
-                    $leftResource = $sessionResource->post($ifcObj->getIfcId());
+                    $leftResource = $resourceList->post();
                 } // Else instantiate atom with given atom identifier
                 else {
                     $leftAtom = new Atom($firstCol, $leftConcept);
                     if ($leftAtom->exists()) {
-                        $leftResource = $sessionResource->one($ifcObj->getIfcId(), $firstCol);
+                        $leftResource = $resourceList->one($firstCol);
                     } else { // Try a POST
-                        $leftResource = $ifcObj->create($sessionResource, $firstCol);
+                        $leftResource = $resourceList->add($leftAtom);
                     }
                 }
             } catch (Exception $e) {

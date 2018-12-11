@@ -510,61 +510,29 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     }
 
     /**
-     * Undocumented function
+     * Returns path for given tgt atom
      *
-     * @param \Ampersand\Interfacing\Resource $src
-     * @return \Ampersand\Interfacing\Resource[]
+     * @param \Ampersand\Core\Atom $tgt
+     * @param string $pathToSrc
+     * @return string
      */
-    public function all(Resource $src): array
+    public function buildResourcePath(Atom $tgt, string $pathToSrc): string
     {
-        if (!$this->crudR()) {
-            throw new Exception("Read not allowed for " . $this->getPath(), 405);
-        }
-        
-        // Convert tgt Atoms into Resources
-        return array_map(function ($atom) use ($src) {
-            return $this->makeResource($atom->id, $src);
-        }, $this->getTgtAtoms($src));
-    }
-
-    public function one(Resource $src, string $tgtId): Resource
-    {
-        if (!$this->crudR()) {
-            throw new Exception("Read not allowed for " . $this->getPath(), 405);
-        }
-        
-        $tgts = $this->getTgtAtoms($src, $tgtId);
-
-        if (!empty($tgts)) {
-            // Resource found
-            return $this->makeResource(current($tgts)->id, $src);
+        /* Skip resource id for ident interface expressions (I[Concept])
+        * I expressions are commonly used for adding structure to an interface using (sub) boxes
+        * This results in verbose paths
+        * e.g.: pathToApi/resource/Person/John/PersonIfc/John/PersonDetails/John/Name
+        * By skipping ident expressions the paths are more concise without loosing information
+        * e.g.: pathToApi/resource/Person/John/PersonIfc/PersonDetails/Name
+        */
+        if ($this->isIdent()) {
+            return $pathToSrc . '/' . $this->getIfcId();
         } else {
-            // When not found
-            throw new Exception("Resource '{$tgtId}' not found", 404);
-        }
-    }
-
-    public function buildResourcePath(Resource $tgt, Resource $parent = null): string
-    {
-        if (is_null($parent)) {
-            throw new Exception("Parent must be provided to build resource path in interface expression object", 500);
-        } else {
-            /* Skip resource id for ident interface expressions (I[Concept])
-            * I expressions are commonly used for adding structure to an interface using (sub) boxes
-            * This results in verbose paths
-            * e.g.: pathToApi/resource/Person/John/PersonIfc/John/PersonDetails/John/Name
-            * By skipping ident expressions the paths are more concise without loosing information
-            * e.g.: pathToApi/resource/Person/John/PersonIfc/PersonDetails/Name
-            */
-            if ($this->isIdent()) {
-                return $parent->getPath() . '/' . $this->getIfcId();
-            } else {
-                return $parent->getPath() . '/' . $this->getIfcId() . '/' . $tgt->id;
-            }
+            return $pathToSrc . '/' . $this->getIfcId() . '/' . $tgt->id;
         }
     }
     
-    public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(Atom $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for ". $this->getPath(), 405);
@@ -576,7 +544,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // Object nodes
         if ($this->tgtConcept->isObject()) {
             foreach ($this->getTgtAtoms($src) as $tgt) {
-                $result[] = $this->getResourceContent($this->makeResource($tgt->id, $src), $options, $depth, $recursionArr);
+                $result[] = $this->getResourceContent($tgt, $options, $depth, $recursionArr);
             }
             
             // Special case for leave PROP: return false when result is empty, otherwise true (i.e. I atom must be present)
@@ -590,9 +558,9 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             }
             
         // Non-object nodes (i.e. leaves, because subinterfaces are not allowed for non-objects)
-        // Notice that ->getResourceContent() is not called on $resource. The interface stops here.
+        // Notice that ->getResourceContent() is not called. The interface stops here.
         } else {
-            $result = $this->getTgtAtoms($src); // for json_encode $resource->jsonSerializable() is called
+            $result = $this->getTgtAtoms($src); // for json_encode $tgt->jsonSerializable() is called
         }
 
         // Return result
@@ -603,16 +571,16 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
     }
 
-    protected function getResourceContent(Resource $resource, $options, $depth, $recursionArr)
+    protected function getResourceContent(Atom $tgt, $options, $depth, $recursionArr)
     {
         // Prevent infinite loops for reference interfaces when no depth is provided
         // We only need to check LINKTO ref interfaces, because cycles may not exist in regular references (enforced by Ampersand generator)
         // If $depth is provided, no check is required, because recursion is finite
         if ($this->isLinkTo && is_null($depth)) {
-            if (in_array($resource->id, $recursionArr[$this->refInterfaceId] ?? [])) {
-                throw new Exception("Infinite loop detected for {$resource} in " . $this->getPath(), 500);
+            if (in_array($tgt->id, $recursionArr[$this->refInterfaceId] ?? [])) {
+                throw new Exception("Infinite loop detected for {$tgt} in " . $this->getPath(), 500);
             } else {
-                $recursionArr[$this->refInterfaceId][] = $resource->id;
+                $recursionArr[$this->refInterfaceId][] = $tgt->id;
             }
         }
 
@@ -621,20 +589,20 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
         // Basic UI data of a resource
         if ($options & Options::INCLUDE_UI_DATA) {
-            $viewData = $this->getViewData($resource);
+            $viewData = $this->getViewData($tgt);
 
             // Add Ampersand atom attributes
-            $content['_id_'] = $resource->id;
-            $content['_label_'] = empty($viewData) ? $resource->getLabel() : implode('', $viewData);
-            $content['_path_'] = $resource->getPath();
+            $content['_id_'] = $tgt->id;
+            $content['_label_'] = empty($viewData) ? $tgt->getLabel() : implode('', $viewData);
+            // $content['_path_'] = $this->buildResourcePath($tgt, );
             
             // Add view data if array is assoc (i.e. not sequential, because then it is a label)
             if (!isSequential($viewData)) {
                 $content['_view_'] = $viewData;
             }
-        // Not INCLUDE_UI_DATA and ifc isLeaf (i.e. there are no subinterfaces) -> directly return $resource->id
+        // Not INCLUDE_UI_DATA and ifc isLeaf (i.e. there are no subinterfaces) -> directly return $tgt->id
         } elseif ($this->isLeaf($options)) {
-            return $resource->id;
+            return $tgt->id;
         }
 
         // Determine if sorting values must be added
@@ -651,7 +619,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
                 if (!$ifcObj->crudR()) {
                     continue; // skip subinterface if not given read rights (otherwise exception will be thrown when getting content)
                 }
-                $content[$ifcObj->getIfcId()] = $ifcObj->read($resource, $options, $depth, $recursionArr);
+                $content[$ifcObj->getIfcId()] = $ifcObj->read($tgt, $options, $depth, $recursionArr);
 
                 // Add sort values
                 if ($ifcObj->isUni() && $addSortValues) {
@@ -670,7 +638,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         return $content;
     }
 
-    public function create(Resource $src, $tgtId = null): Resource
+    public function create(Atom $src, $tgtId = null): Atom
     {
         if (!$this->crudC()) {
             throw new Exception("Create not allowed for ". $this->getPath(), 405);
@@ -678,23 +646,23 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         
         // Make new resource
         if (isset($tgtId)) {
-            $resource = $this->makeResource($tgtId, $src);
-            if ($resource->exists()) {
+            $tgtAtom = new Atom($tgtId, $this->tgtConcept);
+            if ($tgtAtom->exists()) {
                 throw new Exception("Cannot create resource that already exists", 400);
             }
         } else {
-            $resource = $this->makeNewResource($src);
+            $tgtAtom = $this->tgtConcept->createNewAtom();
         }
 
-        // Add to plug (database) and return
-        $resource->add();
+        // Add to plug (e.g. database)
+        $tgtAtom->add();
         
         // If interface is editable, also add tuple(src, tgt) in interface relation
         if ($this->isEditable()) {
-            $this->add($src, $resource->id, true);
+            $this->add($src, $tgtAtom->id, true); // skip crud check because adding is implictly allowed for a create
         }
 
-        return $resource;
+        return $tgtAtom;
     }
 
     /**
@@ -838,8 +806,12 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      * @param string|null $selectTgt
      * @return \Ampersand\Core\Atom[]
      */
-    protected function getTgtAtoms(Atom $src, string $selectTgt = null): array
+    public function getTgtAtoms(Atom $src, string $selectTgt = null): array
     {
+        if (!$this->crudR()) {
+            throw new Exception("Read not allowed for " . $this->getPath(), 405);
+        }
+
         $tgts = [];
 
         // If interface isIdent (i.e. expr = I[Concept]), and no epsilon is required (i.e. srcConcept equals tgtConcept of parent ifc) we can return the src
@@ -875,29 +847,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
         
         return $tgts;
-    }
-
-    /**
-     * Resource factory. Instantiates a new target resource
-     *
-     * @param string $resourceId
-     * @param \Ampersand\Interfacing\Resource $parent
-     * @return \Ampersand\Interfacing\Resource
-     */
-    protected function makeResource(string $resourceId, Resource $parent): Resource
-    {
-        return new Resource($resourceId, $this->tgtConcept, $this, $parent);
-    }
-
-    /**
-     * Resource factory. Instantiates a new target resource with a new (random) id
-     *
-     * @return \Ampersand\Interfacing\Resource
-     */
-    protected function makeNewResource(Resource $parent): Resource
-    {
-        $resourceId = $this->tgtConcept->createNewAtomId();
-        return $this->makeResource($resourceId, $parent);
     }
 
     public function getTechDetails(): array

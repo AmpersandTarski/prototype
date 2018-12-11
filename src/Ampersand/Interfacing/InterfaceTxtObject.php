@@ -141,17 +141,15 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     /**********************************************************************************************
      * METHODS to walk through interface
      *********************************************************************************************/
-    public function one(Resource $src, string $tgtId): Resource
-    {
-        throw new Exception("Method one() is n.a. for InterfaceTxtObject and must not be called", 500);
-    }
-
-    public function all(Resource $src): array
-    {
-        throw new Exception("Method all() is n.a. for InterfaceTxtObject and must not be called", 500);
-    }
     
-    public function buildResourcePath(Resource $tgt, Resource $parent = null): string
+    /**
+     * Returns path for given tgt atom
+     *
+     * @param \Ampersand\Core\Atom $tgt
+     * @param string $pathToSrc
+     * @return string
+     */
+    public function buildResourcePath(Atom $tgt, string $pathToSrc): string
     {
         throw new Exception("Method buildResourcePath() is n.a. for InterfaceTxtObject and must not be called", 500);
     }
@@ -193,7 +191,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     /**********************************************************************************************
      * CRUD METHODS
      *********************************************************************************************/
-    public function create(Resource $src, $tgtId = null): Resource
+    public function create(Atom $src, $tgtId = null): Atom
     {
         throw new Exception("Create operation not implemented for TXT interface object", 501);
     }

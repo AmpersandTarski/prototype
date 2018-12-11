@@ -11,10 +11,11 @@ use Ampersand\Misc\Reporter;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Ampersand\Session;
-use Ampersand\Interfacing\ResourceFactory;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
+use Ampersand\Core\Concept;
+use Ampersand\Core\Atom;
 
 /**
  * @var \Slim\App $api
@@ -57,6 +58,10 @@ $api->group('/admin', function () {
             throw new Exception("Not allowed in production environment", 403);
         }
         $resourceType = $args['resourceType'];
+
+        if (!Concept::getConcept($resourceType)->isObject()) {
+            throw new Exception("Resource type not found", 404);
+        }
         
         $list = $request->reparseBody()->getParsedBody();
         if (!is_array($list)) {
@@ -66,8 +71,8 @@ $api->group('/admin', function () {
         $transaction = $ampersandApp->newTransaction();
 
         foreach ($list as $item) {
-            $resource = ResourceFactory::makeResource($item->oldId, $resourceType);
-            $resource->rename($item->newId);
+            $atom = Atom::makeAtom($item->oldId, $resourceType);
+            $atom->rename($item->newId);
         }
         
         $transaction->runExecEngine()->close();

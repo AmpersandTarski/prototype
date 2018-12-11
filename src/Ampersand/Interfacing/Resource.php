@@ -17,6 +17,7 @@ use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\ResourcePath;
 use function Ampersand\Misc\getSafeFileName;
+use Ampersand\Interfacing\ResourceList;
 
 /**
  *
@@ -35,21 +36,20 @@ class Resource extends Atom implements ArrayAccess
     protected $ifc;
 
     /**
-     * Parent resource
+     * Parent resource list
      *
-     * @var \Ampersand\Interfacing\Resource|null
+     * @var \Ampersand\Interfacing\ResourceList
      */
-    protected $parent = null;
+    protected $parentList;
     
     /**
      * Constructor
      *
      * @param string $resourceId Ampersand atom identifier
      * @param \Ampersand\Core\Concept $cpt
-     * @param \Ampersand\Interfacing\InterfaceObjectInterface $ifc
-     * @param \Ampersand\Interfacing\Resource|null $parent
+     * @param \Ampersand\Interfacing\ResourceList $parentList
      */
-    public function __construct(string $resourceId, Concept $cpt, InterfaceObjectInterface $ifc, Resource $parent = null)
+    public function __construct(string $resourceId, Concept $cpt, ResourceList $parentList)
     {
         if (!$cpt->isObject()) {
             throw new Exception("Cannot instantiate resource, because its type '{$cpt}' is a non-object concept", 400);
@@ -58,8 +58,8 @@ class Resource extends Atom implements ArrayAccess
         // Call Atom constructor
         parent::__construct($resourceId, $cpt);
 
-        $this->ifc = $ifc;
-        $this->parent = $parent;
+        $this->ifc = $parentList->getIfcObject(); // shortcut
+        $this->parentList = $parentList;
     }
 
     /**
@@ -90,12 +90,17 @@ class Resource extends Atom implements ArrayAccess
      */
     public function getPath(): string
     {
-        return $this->ifc->buildResourcePath($this, $this->parent);
+        return $this->ifc->buildResourcePath($this, $this->parentList->getPathEntry());
     }
 
     public function one(string $ifcId, string $tgtId): Resource
     {
-        return $this->ifc->getSubinterface($ifcId, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS)->one($this, $tgtId);
+        return $this->all($ifcId)->one($tgtId);
+    }
+
+    public function all(string $ifcId): ResourceList
+    {
+        return new ResourceList($this, $this->ifc->getSubinterface($ifcId, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS));
     }
 
 /**************************************************************************************************
@@ -109,10 +114,10 @@ class Resource extends Atom implements ArrayAccess
 
     public function offsetGet($offset)
     {
-        $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
-        $tgts = $ifcObj->all($this);
+        $list = $this->all($offset);
+        $tgts = $list->getResources();
 
-        if ($ifcObj->isUni()) {
+        if ($list->isUni()) {
             return empty($tgts) ? null : current($tgts);
         } else {
             return $tgts;
@@ -249,7 +254,7 @@ class Resource extends Atom implements ArrayAccess
                         if (!is_null($ifc)) {
                             throw new Exception("Cannot patch remove. Path for patch #{$key} MUST end with a resource ór contain a patch value", 400);
                         }
-                        $resource->ifc->remove($resource->parent, $resource);
+                        $this->parentList->remove($resource);
                     // Not part of official json path specification. Uses 'value' attribute that must be removed from list
                     } elseif (property_exists($patch, 'value')) {
                         if (is_null($ifc)) {
@@ -271,40 +276,7 @@ class Resource extends Atom implements ArrayAccess
 
     public function post($subIfcId, stdClass $resourceToPost = null): Resource
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp;
-        
-        $newResource = $this->ifc->getSubinterface($subIfcId)->create($this);
-
-        // Special case for file upload
-        if ($newResource->concept->isFileObject()) {
-            if (is_uploaded_file($_FILES['file']['tmp_name'])) {
-                $tmp_name = $_FILES['file']['tmp_name'];
-                $originalFileName = $_FILES['file']['name'];
-
-                $appAbsolutePath = $ampersandApp->getSettings()->get('global.absolutePath');
-                $uploadFolder = $ampersandApp->getSettings()->get('global.uploadPath');
-                $dest = getSafeFileName($appAbsolutePath . DIRECTORY_SEPARATOR . $uploadFolder . DIRECTORY_SEPARATOR . $originalFileName);
-                $relativePath = $uploadFolder . '/' . pathinfo($dest, PATHINFO_BASENAME); // use forward slash as this is used on the web
-                
-                $result = move_uploaded_file($tmp_name, $dest);
-                
-                if (!$result) {
-                    throw new Exception("Error in file upload", 500);
-                }
-                
-                // Populate filePath and originalFileName relations in database
-                $newResource->link($relativePath, 'filePath[FileObject*FilePath]')->add();
-                $newResource->link($originalFileName, 'originalFileName[FileObject*FileName]')->add();
-            } else {
-                throw new Exception("No file uploaded", 400);
-            }
-            return $newResource;
-        // Regular case
-        } else {
-            // Put resource attributes
-            return $newResource->put($resourceToPost);
-        }
+        return $this->all($subIfcId)->post($resourceToPost);
     }
     
     /**

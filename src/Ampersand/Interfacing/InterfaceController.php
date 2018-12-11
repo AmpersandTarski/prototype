@@ -10,7 +10,7 @@ namespace Ampersand\Interfacing;
 use Exception;
 use Ampersand\AmpersandApp;
 use Ampersand\AngularApp;
-use Ampersand\Interfacing\Resource;
+use Ampersand\Core\Atom;
 
 class InterfaceController
 {
@@ -41,9 +41,9 @@ class InterfaceController
         $this->angularApp = $angularApp;
     }
 
-    public function get(Resource $resource, $ifcPath, int $options, $depth)
+    public function get(Atom $src, $ifcPath, int $options, $depth)
     {
-        $resourcePath = new ResourcePath($resource, $ifcPath);
+        $resourcePath = new ResourcePath($src, $ifcPath);
         
         if ($resourcePath->hasTrailingIfc()) {
             throw new Exception("Provided path '{$resourcePath}' MUST end with a resource identifier", 400);
@@ -52,12 +52,12 @@ class InterfaceController
         return $resourcePath->getTgt()->get($options, $depth);
     }
 
-    public function put(Resource $resource, $ifcPath, $body, $options, $depth): array
+    public function put(Atom $src, $ifcPath, $body, $options, $depth): array
     {
         $transaction = $this->ampersandApp->newTransaction();
         
         // Perform put
-        $resourcePath = new ResourcePath($resource, $ifcPath);
+        $resourcePath = new ResourcePath($src, $ifcPath);
         if ($resourcePath->hasTrailingIfc()) {
             throw new Exception("Provided path '{$resourcePath}' MUST end with a resource identifier", 400);
         }
@@ -95,19 +95,19 @@ class InterfaceController
      * Patch resource with provided patches
      * Use JSONPatch specification for $patches (see: http://jsonpatch.com/)
      *
-     * @param \Ampersand\Interfacing\Resource $resource
+     * @param \Ampersand\Core\Atom $src
      * @param string|array $ifcPath
      * @param array $patches
      * @param int $options
      * @param int|null $depth
      * @return array
      */
-    public function patch(Resource $resource, $ifcPath, array $patches, int $options, int $depth = null): array
+    public function patch(Atom $src, $ifcPath, array $patches, int $options, int $depth = null): array
     {
         $transaction = $this->ampersandApp->newTransaction();
         
         // Perform patch(es)
-        $resourcePath = new ResourcePath($resource, $ifcPath);
+        $resourcePath = new ResourcePath($src, $ifcPath);
         if ($resourcePath->hasTrailingIfc()) {
             throw new Exception("Provided path '{$resourcePath}' MUST end with a resource identifier", 400);
         }
@@ -142,12 +142,12 @@ class InterfaceController
                ];
     }
 
-    public function post(Resource $resource, $ifcPath, $body, $options, $depth): array
+    public function post(Atom $src, $ifcPath, $body, $options, $depth): array
     {
         $transaction = $this->ampersandApp->newTransaction();
 
         // Perform POST
-        $resourcePath = new ResourcePath($resource, $ifcPath);
+        $resourcePath = new ResourcePath($src, $ifcPath);
         if (!$resourcePath->hasTrailingIfc()) {
             throw new Exception("Provided path '{$resourcePath}' MUST NOT end with a resource identifier", 400);
         }
@@ -184,18 +184,18 @@ class InterfaceController
     }
 
     /**
-     * Delete a resource given an entry resource and a path
+     * Delete a resource given an entry src and a path
      *
-     * @param \Ampersand\Interfacing\Resource $resource
+     * @param \Ampersand\Core\Atom $src
      * @param string|array $ifcPath
      * @return array
      */
-    public function delete(Resource $resource, $ifcPath): array
+    public function delete(Atom $src, $ifcPath): array
     {
         $transaction = $this->ampersandApp->newTransaction();
         
         // Perform delete
-        $resourcePath = new ResourcePath($resource, $ifcPath);
+        $resourcePath = new ResourcePath($src, $ifcPath);
         if ($resourcePath->hasTrailingIfc()) {
             throw new Exception("Provided path '{$resourcePath}' MUST end with a resource identifier", 400);
         }

@@ -11,6 +11,7 @@ use Ampersand\Core\Atom;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
+use Ampersand\Core\Concept;
 
 /**
  *
@@ -24,7 +25,7 @@ interface InterfaceObjectInterface
     public function getIfcLabel(): string;
 
     public function getEditableConcepts();
-
+    public function getTargetConcept(): Concept;
     public function isIdent(): bool;
     public function isUni(): bool;
 
@@ -38,31 +39,23 @@ interface InterfaceObjectInterface
     /**********************************************************************************************
      * METHODS to walk through interface
      *********************************************************************************************/
-    /**
-     * Returns specific target atom as Resource object
-     *
-     * @param \Ampersand\Interfacing\Resource $src
-     * @param string $tgtId
-     * @return \Ampersand\Interfacing\Resource
-     */
-    public function one(Resource $src, string $tgtId): Resource;
 
     /**
      * Returns list of target atoms
      *
-     * @param \Ampersand\Interfacing\Resource $src
-     * @return \Ampersand\Interfacing\Resource[]
+     * @param \Ampersand\Core\Atom $src
+     * @return \Ampersand\Core\Atom[]
      */
-    public function all(Resource $src): array;
+    public function getTgtAtoms(Atom $src, string $selectTgt = null): array;
 
     /**
-     * Returns path for given tgt resource
+     * Returns path for given tgt atom
      *
-     * @param \Ampersand\Interfacing\Resource $tgt
-     * @param \Ampersand\Interfacing\Resource|null $parent
+     * @param \Ampersand\Core\Atom $tgt
+     * @param string $pathToSrc
      * @return string
      */
-    public function buildResourcePath(Resource $tgt, Resource $parent = null): string;
+    public function buildResourcePath(Atom $tgt, string $pathToSrc): string;
 
     /**********************************************************************************************
      * Sub interface objects METHODS
@@ -81,7 +74,7 @@ interface InterfaceObjectInterface
     /**********************************************************************************************
      * CRUD METHODS
      *********************************************************************************************/
-    public function create(Resource $src, $tgtId = null): Resource;
+    public function create(Atom $src, $tgtId = null): Atom;
     public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
     public function set(Atom $src, $value = null): bool;
     public function add(Atom $src, $value): bool;

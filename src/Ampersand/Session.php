@@ -14,9 +14,8 @@ use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\Ifc;
-use Ampersand\Interfacing\ResourceFactory;
-use Ampersand\Interfacing\ResourcePath;
 use Ampersand\Interfacing\Options;
+use Ampersand\Interfacing\ResourceList;
 
 /**
  * Class of session objects
@@ -56,13 +55,6 @@ class Session
      * @var \Ampersand\Core\Atom $sessionAtom
      */
     protected $sessionAtom;
-    
-    /**
-     * Reference to corresponding session object which can be used with interfaces
-     *
-     * @var \Ampersand\Interfacing\Resource $sessionResource
-     */
-    protected $sessionResource;
     
     /**
      * Constructor of Session class
@@ -108,7 +100,6 @@ class Session
     protected function initSessionAtom()
     {
         $this->sessionAtom = Concept::makeSessionAtom($this->id);
-        $this->sessionResource = ResourceFactory::makeResourceFromAtom($this->sessionAtom);
         
         // Create a new Ampersand session atom if not yet in SESSION table (i.e. new php session)
         if (!$this->sessionAtom->exists()) {
@@ -142,13 +133,13 @@ class Session
     }
 
     /**
-     * Get session object which can be used with interfaces
+     * Get ampersand atom representation of this session object
      *
-     * @return \Ampersand\Interfacing\Resource
+     * @return \Ampersand\Core\Atom
      */
-    public function getSessionResource()
+    public function getSessionAtom(): Atom
     {
-        return $this->sessionResource;
+        return $this->sessionAtom;
     }
 
     /**
@@ -286,9 +277,8 @@ class Session
     {
         if (Ifc::interfaceExists('SessionVars')) {
             try {
-                $this->logger->debug("Getting interface 'SessionVars' for {$this->sessionResource}");
-                $path = new ResourcePath($this->sessionResource, 'SessionVars');
-                return $path->getTgt()->get(Options::INCLUDE_NOTHING);
+                $this->logger->debug("Getting interface 'SessionVars' for {$this->sessionAtom}");
+                return ResourceList::makeFromInterface($this->sessionAtom, 'SessionVars')->get(Options::INCLUDE_NOTHING);
             } catch (Exception $e) {
                 $this->logger->error("Error while getting SessionVars interface: " . $e->getMessage());
                 return false;

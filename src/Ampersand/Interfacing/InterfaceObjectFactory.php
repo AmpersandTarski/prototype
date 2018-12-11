@@ -45,10 +45,8 @@ class InterfaceObjectFactory
         return self::newObject($objectDef, $defaultPlug, $parent);
     }
     
-    public static function getNullObject(): InterfaceObjectInterface
+    public static function getNullObject(string $resourceType): InterfaceObjectInterface
     {
-        static $ifcObj = null;
-
-        return $ifcObj ?? $ifcObj = new InterfaceNullObject();
+        return new InterfaceNullObject($resourceType);
     }
 }
