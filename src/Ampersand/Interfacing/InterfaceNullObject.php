@@ -207,7 +207,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         return $tgtAtom->add();
     }
 
-    public function read(Resource $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(Atom $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var

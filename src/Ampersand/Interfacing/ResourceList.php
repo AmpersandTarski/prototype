@@ -13,6 +13,8 @@ use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Concept;
 use Exception;
+use stdClass;
+use function Ampersand\Misc\getSafeFileName;
 
 /**
  *
@@ -162,12 +164,12 @@ class ResourceList
 
     public static function makeFromInterface(Atom $srcAtom, string $ifcId): ResourceList
     {
-        return new ResourceList($srcAtom, Ifc::getInterface($ifcId)->getIfcObject());
+        return new ResourceList($srcAtom, Ifc::getInterface($ifcId)->getIfcObject(), '');
     }
 
     public static function makeWithoutInterface(string $resourceType): ResourceList
     {
         $one = new Atom('ONE', Concept::getConcept('ONE'));
-        return new ResourceList($one, InterfaceObjectFactory::getNullObject($resourceType));
+        return new ResourceList($one, InterfaceObjectFactory::getNullObject($resourceType), '');
     }
 }

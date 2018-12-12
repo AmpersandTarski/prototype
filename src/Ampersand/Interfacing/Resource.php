@@ -16,7 +16,6 @@ use Ampersand\Log\Logger;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\ResourcePath;
-use function Ampersand\Misc\getSafeFileName;
 use Ampersand\Interfacing\ResourceList;
 
 /**
@@ -100,7 +99,7 @@ class Resource extends Atom implements ArrayAccess
 
     public function all(string $ifcId): ResourceList
     {
-        return new ResourceList($this, $this->ifc->getSubinterface($ifcId, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS));
+        return new ResourceList($this, $this->ifc->getSubinterface($ifcId, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS), $this->getPath());
     }
 
 /**************************************************************************************************
