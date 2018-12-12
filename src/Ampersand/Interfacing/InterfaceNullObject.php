@@ -106,7 +106,12 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
      */
     public function getTgtAtoms(Atom $src, string $selectTgt = null): array
     {
-        return $this->tgtConcept->getAllAtomObjects();
+        if (isset($selectTgt)) {
+            $tgt = Atom::makeAtom($selectTgt, $this->tgtConcept->getId());
+            return $tgt->exists() ? [$tgt] : []; // If tgt not exists, return empty array
+        } else {
+            return $this->tgtConcept->getAllAtomObjects();
+        }
     }
 
     /**
