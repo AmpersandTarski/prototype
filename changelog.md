@@ -2,6 +2,7 @@
 
 ## Unreleased changes
 * **Major refactoring of backend implementation of prototype framework**
+* Minimum requirement of php version >= 7.1 (was >= 7.0)
 * [Issue 792](https://github.com/AmpersandTarski/Ampersand/issues/792) Support for TXT in interface definitions
 * [Issue 819](https://github.com/AmpersandTarski/Ampersand/issues/819) Refactor initialization phase of Ampersand application. Config -> Init -> Session -> Run
 * [Issue 802](https://github.com/AmpersandTarski/Ampersand/issues/802) Little Things In Prototoypes/Frontend
