@@ -537,7 +537,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
     }
     
-    public function read(Atom $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(Atom $src, string $pathToSrc, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for ". $this->getPath(), 405);
@@ -549,7 +549,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // Object nodes
         if ($this->tgtConcept->isObject()) {
             foreach ($this->getTgtAtoms($src) as $tgt) {
-                $result[] = $this->getResourceContent($tgt, $options, $depth, $recursionArr);
+                $result[] = $this->getResourceContent($tgt, $pathToSrc, $options, $depth, $recursionArr);
             }
             
             // Special case for leave PROP: return false when result is empty, otherwise true (i.e. I atom must be present)
@@ -576,7 +576,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
     }
 
-    protected function getResourceContent(Atom $tgt, $options, $depth, $recursionArr)
+    protected function getResourceContent(Atom $tgt, string $pathToSrc, $options, $depth, $recursionArr)
     {
         // Prevent infinite loops for reference interfaces when no depth is provided
         // We only need to check LINKTO ref interfaces, because cycles may not exist in regular references (enforced by Ampersand generator)
@@ -589,6 +589,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             }
         }
 
+        $tgtPath = $this->buildResourcePath($tgt, $pathToSrc);
+        
         // Init content array
         $content = [];
 
@@ -599,7 +601,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             // Add Ampersand atom attributes
             $content['_id_'] = $tgt->id;
             $content['_label_'] = empty($viewData) ? $tgt->getLabel() : implode('', $viewData);
-            // $content['_path_'] = $this->buildResourcePath($tgt, );
+            $content['_path_'] = $tgtPath;
             
             // Add view data if array is assoc (i.e. not sequential, because then it is a label)
             if (!isSequential($viewData)) {
@@ -624,7 +626,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
                 if (!$ifcObj->crudR()) {
                     continue; // skip subinterface if not given read rights (otherwise exception will be thrown when getting content)
                 }
-                $content[$ifcObj->getIfcId()] = $ifcObj->read($tgt, $options, $depth, $recursionArr);
+                $content[$ifcObj->getIfcId()] = $ifcObj->read($tgt, $tgtPath, $options, $depth, $recursionArr);
 
                 // Add sort values
                 if ($ifcObj->isUni() && $addSortValues) {

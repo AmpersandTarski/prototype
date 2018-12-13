@@ -51,9 +51,9 @@ class ResourceList
         $this->pathEntry = $pathEntry;
     }
 
-    public function getPathEntry(): string
+    public function getResourcePath(Resource $tgt): string
     {
-        return $this->pathEntry;
+        return $this->ifcObject->buildResourcePath($tgt, $this->pathEntry);
     }
 
     public function getIfcObject(): InterfaceObjectInterface
@@ -140,7 +140,7 @@ class ResourceList
 
     public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null)
     {
-        return $this->ifcObject->read($this->srcAtom, $options, $depth);
+        return $this->ifcObject->read($this->srcAtom, $this->pathEntry, $options, $depth);
     }
 
     public function post(stdClass $resourceToPost = null): Resource

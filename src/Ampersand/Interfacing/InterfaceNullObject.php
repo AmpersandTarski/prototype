@@ -225,7 +225,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         return $tgtAtom->add();
     }
 
-    public function read(Atom $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(Atom $src, string $pathToSrc, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         if (!$this->crudR()) {
             throw new Exception("You do not have access for this call", 403);
@@ -243,7 +243,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
                 // Add Ampersand atom attributes
                 $resource['_id_'] = $src->id;
                 $resource['_label_'] = empty($viewData) ? $src->getLabel() : implode('', $viewData);
-                $resource['_path_'] = $this->buildResourcePath($src, '');
+                $resource['_path_'] = $this->buildResourcePath($src, $pathToSrc);
             
                 // Add view data if array is assoc (i.e. not sequential, because then it is a label)
                 if (!isSequential($viewData)) {

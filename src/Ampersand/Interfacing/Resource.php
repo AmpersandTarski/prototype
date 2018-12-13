@@ -72,6 +72,11 @@ class Resource extends Atom implements ArrayAccess
         return (string) parent::jsonSerialize();
     }
 
+    public function getPath(): string
+    {
+        return $this->parentList->getResourcePath($this);
+    }
+
     /**
      * Return interface for this resource
      *
@@ -80,16 +85,6 @@ class Resource extends Atom implements ArrayAccess
     public function getIfc(): InterfaceObjectInterface
     {
         return $this->ifc;
-    }
-    
-    /**
-     * Return path to this resource
-     *
-     * @return string
-     */
-    public function getPath(): string
-    {
-        return $this->ifc->buildResourcePath($this, $this->parentList->getPathEntry());
     }
 
     /**********************************************************************************************
@@ -103,7 +98,11 @@ class Resource extends Atom implements ArrayAccess
 
     public function all(string $ifcId): ResourceList
     {
-        return new ResourceList($this, $this->ifc->getSubinterface($ifcId, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS), $this->getPath());
+        return new ResourceList(
+            $this,
+            $this->ifc->getSubinterface($ifcId, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS),
+            $this->getPath()
+        );
     }
 
     public function walkPathToResource(array $pathList): Resource
@@ -171,7 +170,7 @@ class Resource extends Atom implements ArrayAccess
      */
     public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null)
     {
-        return $this->ifc->read($this, $options, $depth);
+        return $this->ifc->read($this, $this->getPath(), $options, $depth);
     }
     
     /**
