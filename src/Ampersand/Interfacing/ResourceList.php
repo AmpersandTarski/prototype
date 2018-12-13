@@ -46,12 +46,6 @@ class ResourceList
 
     public function __construct(Atom $srcAtom, InterfaceObjectInterface $ifcObj, string $pathEntry)
     {
-        // Checks
-        if (!$ifcObj->getTargetConcept()->isObject()) {
-            // throw new Exception("Cannot instantiate resource list for non-object concept '{$ifcObj->getTargetConcept()}'", 500);
-            throw new Exception("Resource type not found", 404); // HTTP friendly response
-        }
-        
         $this->srcAtom = $srcAtom;
         $this->ifcObject = $ifcObj;
         $this->pathEntry = $pathEntry;
@@ -71,6 +65,10 @@ class ResourceList
     {
         return $this->ifcObject->isUni();
     }
+
+    /**********************************************************************************************
+     * Methods to navigate through list
+     *********************************************************************************************/
 
     public function one(string $tgtId): Resource
     {
@@ -97,6 +95,48 @@ class ResourceList
             return $this->makeResource($atom);
         }, $this->ifcObject->getTgtAtoms($this->srcAtom));
     }
+
+    public function walkPathToResource(array $pathList): Resource
+    {
+        if (empty($pathList)) {
+            if ($this->tgtIdInPath()) {
+                throw new Exception("Provided path MUST end with a resource identifier", 400);
+            } else {
+                return $this->one($this->srcAtom->id)->walkPathToResource($pathList);
+            }
+        } else {
+            return $this->one(array_shift($pathList))->walkPathToResource($pathList);
+        }
+    }
+
+    public function walkPathToList(array $pathList): ResourceList
+    {
+        if (empty($pathList)) {
+            return $this;
+        } else {
+            if ($this->tgtIdInPath()) {
+                return $this->one(array_shift($pathList))->walkPathToList($pathList);
+            } else {
+                return $this->one($this->srcAtom->id)->walkPathToList($pathList);
+            }
+        }
+    }
+
+    protected function tgtIdInPath(): bool
+    {
+        /* Skip resource id for ident interface expressions (I[Concept])
+        * I expressions are commonly used for adding structure to an interface using (sub) boxes
+        * This results in verbose paths
+        * e.g.: pathToApi/resource/Person/John/PersonIfc/John/PersonDetails/John/Name
+        * By skipping ident expressions the paths are more concise without loosing information
+        * e.g.: pathToApi/resource/Person/John/PersonIfc/PersonDetails/Name
+        */
+        return !$this->ifcObject->isIdent();
+    }
+
+    /**********************************************************************************************
+     * REST methods to call on resource list
+     *********************************************************************************************/
 
     public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null)
     {
@@ -141,16 +181,28 @@ class ResourceList
         }
     }
 
-    public function add(Atom $atom): Resource
+    /**********************************************************************************************
+     * Internal methods
+     *********************************************************************************************/
+
+    public function set(string $value = null)
     {
-        // TODO: add check if provided $atom is of same type (or in same classification tree) as target concept of this resourcelist
-        $this->ifcObject->add($this->srcAtom, $atom->id);
-        return $this->makeResource($atom);
+        $tgt = $this->ifcObject->set($this->srcAtom, $value);
+        if (is_null($tgt)) {
+            return null;
+        } else {
+            return $this->makeResource($tgt);
+        }
     }
 
-    public function remove(Resource $resource)
+    public function add(string $value): Resource
     {
-        $this->ifcObject->remove($this->srcAtom, $resource->id);
+        return $this->makeResource($this->ifcObject->add($this->srcAtom, $value));
+    }
+
+    public function remove(string $value): void
+    {
+        $this->ifcObject->remove($this->srcAtom, $value);
     }
 
     protected function makeResource(Atom $atom): Resource
@@ -169,6 +221,12 @@ class ResourceList
 
     public static function makeWithoutInterface(string $resourceType): ResourceList
     {
+        // Checks
+        if (!Concept::getConcept($resourceType)->isObject()) {
+            // throw new Exception("Cannot instantiate resource list for non-object concept '{$resourceType}'", 500);
+            throw new Exception("Resource type not found", 404); // HTTP friendly response
+        }
+
         $one = new Atom('ONE', Concept::getConcept('ONE'));
         return new ResourceList($one, InterfaceObjectFactory::getNullObject($resourceType), '');
     }

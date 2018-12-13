@@ -13,6 +13,7 @@ use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Atom;
 use Ampersand\Interfacing\AbstractIfcObject;
+use Ampersand\Core\Concept;
 
 /**
  *
@@ -97,6 +98,11 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     {
         return [];
     }
+
+    public function getTargetConcept(): Concept
+    {
+        throw new Exception("Method getTargetConcept() is n.a. for InterfaceTxtObject and must not be called", 500);
+    }
     
     /**
      * Returns if the interface expression isIdent
@@ -142,6 +148,11 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
      * METHODS to walk through interface
      *********************************************************************************************/
     
+    public function getTgtAtoms(Atom $src, string $selectTgt = null): array
+    {
+        throw new Exception("Method getTgtAtoms() is n.a. for InterfaceTxtObject and must not be called", 500);
+    }
+
     /**
      * Returns path for given tgt atom
      *
@@ -201,27 +212,27 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
         return $this->txt;
     }
 
-    public function set(Atom $src, $value = null): bool
+    public function set(Atom $src, $value = null): ?Atom
     {
         throw new Exception("Set operation not implemented for TXT interface object", 501);
     }
 
-    public function add(Atom $src, $value): bool
+    public function add(Atom $src, $value): Atom
     {
         throw new Exception("Add operation not implemented for TXT interface object", 501);
     }
 
-    public function remove(Atom $src, $value): bool
+    public function remove(Atom $src, $value): void
     {
         throw new Exception("Remove operation not implemented for TXT interface object", 501);
     }
 
-    public function removeAll(Atom $src): bool
+    public function removeAll(Atom $src): void
     {
         throw new Exception("Remove operation not implemented for TXT interface object", 501);
     }
 
-    public function delete(Resource $tgtAtom): bool
+    public function delete(Resource $tgtAtom): void
     {
         throw new Exception("Detele operation not implemented for TXT interface object", 501);
     }

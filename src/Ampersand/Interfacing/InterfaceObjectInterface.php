@@ -76,11 +76,11 @@ interface InterfaceObjectInterface
      *********************************************************************************************/
     public function create(Atom $src, $tgtId = null): Atom;
     public function read(Atom $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
-    public function set(Atom $src, $value = null): bool;
-    public function add(Atom $src, $value): bool;
-    public function remove(Atom $src, $value): bool;
-    public function removeAll(Atom $src): bool;
-    public function delete(Resource $tgtAtom): bool;
+    public function set(Atom $src, $value = null): ?Atom;
+    public function add(Atom $src, $value): Atom;
+    public function remove(Atom $src, $value): void;
+    public function removeAll(Atom $src): void;
+    public function delete(Resource $tgtAtom): void;
 
     /**********************************************************************************************
      * HELPER METHODS

@@ -2,11 +2,11 @@
 
 use Ampersand\Core\Concept;
 use Ampersand\Interfacing\Options;
-use Ampersand\Interfacing\InterfaceController;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Ampersand\Interfacing\ResourceList;
-use Ampersand\Core\Atom;
+use Ampersand\Interfacing\Ifc;
+use Ampersand\Interfacing\ResourcePath;
 
 /**
  * @var \Slim\Slim $api
@@ -100,15 +100,26 @@ $api->group('/resource', function () {
         $angularApp = $this['angular_app'];
 
         // Input
+        $pathList = ResourcePath::makePathList($args['ifcPath']);
         $options = Options::getFromRequestParams($request->getQueryParams());
         $depth = $request->getQueryParam('depth');
-        
+       
+        // Checks
+        if (empty($pathList)) {
+            throw new Exception("You do not have access for this call", 403);
+        } elseif ($ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
+            throw new Exception("You do not have access for this call", 403);
+        }
+
         // Prepare
-        $controller = new InterfaceController($ampersandApp, $angularApp);
-        $src = Atom::makeAtom($args['resourceId'], $args['resourceType']);
+        $resource = ResourceList::makeWithoutInterface($args['resourceType'])->one($args['resourceId']);
 
         // Output
-        return $response->withJson($controller->get($src, $args['ifcPath'], $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson(
+            $resource->walkPathToResource($pathList)->get($options, $depth),
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
     });
 
     // PUT, PATCH, POST for interfaces that start with other resource
@@ -122,26 +133,74 @@ $api->group('/resource', function () {
         $angularApp = $this['angular_app'];
 
         // Input
+        $pathList = ResourcePath::makePathList($args['ifcPath']);
         $options = Options::getFromRequestParams($request->getQueryParams());
         $depth = $request->getQueryParam('depth');
         $body = $request->reparseBody()->getParsedBody();
-        $ifcPath = $args['ifcPath'];
         
-        // Prepare
-        $controller = new InterfaceController($ampersandApp, $angularApp);
-        $src = Atom::makeAtom($args['resourceId'], $args['resourceType']);
+        // Checks TODO: remove access check when implemented in InterfaceNullObject
+        if (empty($pathList)) {
+            throw new Exception("You do not have access for this call", 403);
+        } elseif ($ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
+            throw new Exception("You do not have access for this call", 403);
+        }
 
-        // Output
+        // Prepare
+        $transaction = $ampersandApp->newTransaction();
+        $entry = ResourceList::makeWithoutInterface($args['resourceType'])->one($args['resourceId']);
+
+        // Perform action
         switch ($request->getMethod()) {
             case 'PUT':
-                return $response->withJson($controller->put($src, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                $resource = $entry->walkPathToResource($pathList)->put($body);
+                $successMessage = "{$resource->getLabel()} updated";
+                break;
             case 'PATCH':
-                return $response->withJson($controller->patch($src, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                $resource = $entry->walkPathToResource($pathList)->patch($body);
+                $successMessage = "{$resource->getLabel()} updated";
+                break;
             case 'POST':
-                return $response->withJson($controller->post($src, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                $resource = $entry->walkPathToList($pathList)->post($body);
+                $successMessage = "{$resource->getLabel()} created";
+                break;
             default:
                 throw new Exception("Unsupported HTTP method", 500);
         }
+
+        // Run ExecEngine
+        $transaction->runExecEngine();
+
+        // Get content to return
+        try {
+            $content = $resource->get($options, $depth);
+        } catch (Exception $e) {
+            if ($e->getCode() === 405) { // 405 is Method not allowed (e.g. when read is not allowed)
+                $content = $body;
+            } else {
+                throw $e;
+            }
+        }
+        
+        // Close transaction
+        $transaction->close();
+        if ($transaction->isCommitted()) {
+            $ampersandApp->userLog()->notice($successMessage);
+        }
+        $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
+
+        // Output
+        return $response->withJson(
+            [ 'content'               => $content
+            , 'patches'               => $request->getMethod() === 'PATCH' ? $body : []
+            , 'notifications'         => $ampersandApp->userLog()->getAll()
+            , 'invariantRulesHold'    => $transaction->invariantRulesHold()
+            , 'isCommitted'           => $transaction->isCommitted()
+            , 'sessionRefreshAdvice'  => $angularApp->getSessionRefreshAdvice()
+            , 'navTo'                 => $angularApp->getNavToResponse($transaction->isCommitted() ? 'COMMIT' : 'ROLLBACK')
+            ],
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
     });
 
     /**
@@ -153,11 +212,42 @@ $api->group('/resource', function () {
         /** @var \Ampersand\AngularApp $angularApp */
         $angularApp = $this['angular_app'];
 
-        // Prepare
-        $controller = new InterfaceController($ampersandApp, $angularApp);
-        $src = Atom::makeAtom($args['resourceId'], $args['resourceType']);
+        // Input
+        $pathList = ResourcePath::makePathList($args['ifcPath']);
 
-        return $response->withJson($controller->delete($src, $args['ifcPath']), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        // Checks TODO: remove access check when implemented in InterfaceNullObject
+        if (empty($pathList)) {
+            throw new Exception("You do not have access for this call", 403);
+        } elseif ($ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
+            throw new Exception("You do not have access for this call", 403);
+        }
+
+        // Prepare
+        $transaction = $ampersandApp->newTransaction();
+        $entry = ResourceList::makeWithoutInterface($args['resourceType'])->one($args['resourceId']);
+        
+        // Perform delete
+        $entry->walkPathToResource($pathList)->delete();
+        
+        // Close transaction
+        $transaction->runExecEngine()->close();
+        if ($transaction->isCommitted()) {
+            $ampersandApp->userLog()->notice("Resource deleted");
+        }
+        
+        $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
+        
+        // Return result
+        return $response->withJson(
+            [ 'notifications'         => $ampersandApp->userLog()->getAll()
+            , 'invariantRulesHold'    => $transaction->invariantRulesHold()
+            , 'isCommitted'           => $transaction->isCommitted()
+            , 'sessionRefreshAdvice'  => $angularApp->getSessionRefreshAdvice()
+            , 'navTo'                 => $angularApp->getNavToResponse($transaction->isCommitted() ? 'COMMIT' : 'ROLLBACK')
+            ],
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
     });
 })->add($middleWare1);
 
@@ -179,15 +269,26 @@ $api->group('/session', function () {
         $angularApp = $this['angular_app'];
 
         // Input
+        $pathList = ResourcePath::makePathList($args['ifcPath']);
         $options = Options::getFromRequestParams($request->getQueryParams());
         $depth = $request->getQueryParam('depth');
 
+        // Checks
+        if (empty($pathList)) {
+            throw new Exception("You do not have access for this call", 403);
+        } elseif ($ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
+            throw new Exception("You do not have access for this call", 403);
+        }
+
         // Prepare
-        $controller = new InterfaceController($ampersandApp, $angularApp);
-        $session = $ampersandApp->getSession()->getSessionAtom();
+        $entry = ResourceList::makeFromInterface($ampersandApp->getSession()->getSessionAtom(), array_shift($pathList));
 
         // Output
-        return $response->withJson($controller->get($session, $args['ifcPath'], $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson(
+            $entry->walkPathToResource($pathList)->get($options, $depth),
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
     });
 
     // PUT, PATCH, POST for interfaces with expr[SESSION*..]
@@ -201,26 +302,75 @@ $api->group('/session', function () {
         $angularApp = $this['angular_app'];
 
         // Input
+        $pathList = ResourcePath::makePathList($args['ifcPath']);
         $options = Options::getFromRequestParams($request->getQueryParams());
         $depth = $request->getQueryParam('depth');
         $body = $request->reparseBody()->getParsedBody();
-        $ifcPath = $args['ifcPath'];
         
-        // Prepare
-        $controller = new InterfaceController($ampersandApp, $angularApp);
-        $session = $ampersandApp->getSession()->getSessionAtom();
+        // Checks TODO: remove access check when implemented in InterfaceNullObject
+        if (empty($pathList)) {
+            throw new Exception("You do not have access for this call", 403);
+        } elseif ($ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
+            throw new Exception("You do not have access for this call", 403);
+        }
 
-        // Output
+        // Prepare
+        $transaction = $ampersandApp->newTransaction();
+        // $entry = ResourceList::makeWithoutInterface($args['resourceType'])->one($args['resourceId']);
+        $entry = ResourceList::makeFromInterface($ampersandApp->getSession()->getSessionAtom(), array_shift($pathList));
+
+        // Perform action
         switch ($request->getMethod()) {
             case 'PUT':
-                return $response->withJson($controller->put($session, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                $resource = $entry->walkPathToResource($pathList)->put($body);
+                $successMessage = "{$resource->getLabel()} updated";
+                break;
             case 'PATCH':
-                return $response->withJson($controller->patch($session, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                $resource = $entry->walkPathToResource($pathList)->patch($body);
+                $successMessage = "{$resource->getLabel()} updated";
+                break;
             case 'POST':
-                return $response->withJson($controller->post($session, $ifcPath, $body, $options, $depth), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                $resource = $entry->walkPathToList($pathList)->post($body);
+                $successMessage = "{$resource->getLabel()} created";
+                break;
             default:
                 throw new Exception("Unsupported HTTP method", 500);
         }
+
+        // Run ExecEngine
+        $transaction->runExecEngine();
+
+        // Get content to return
+        try {
+            $content = $resource->get($options, $depth);
+        } catch (Exception $e) {
+            if ($e->getCode() === 405) { // 405 is Method not allowed (e.g. when read is not allowed)
+                $content = $body;
+            } else {
+                throw $e;
+            }
+        }
+        
+        // Close transaction
+        $transaction->close();
+        if ($transaction->isCommitted()) {
+            $ampersandApp->userLog()->notice($successMessage);
+        }
+        $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
+
+        // Output
+        return $response->withJson(
+            [ 'content'               => $content
+            , 'patches'               => $request->getMethod() === 'PATCH' ? $body : []
+            , 'notifications'         => $ampersandApp->userLog()->getAll()
+            , 'invariantRulesHold'    => $transaction->invariantRulesHold()
+            , 'isCommitted'           => $transaction->isCommitted()
+            , 'sessionRefreshAdvice'  => $angularApp->getSessionRefreshAdvice()
+            , 'navTo'                 => $angularApp->getNavToResponse($transaction->isCommitted() ? 'COMMIT' : 'ROLLBACK')
+            ],
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
     });
 
     /**
@@ -232,10 +382,42 @@ $api->group('/session', function () {
         /** @var \Ampersand\AngularApp $angularApp */
         $angularApp = $this['angular_app'];
 
-        $session = $ampersandApp->getSession()->getSessionAtom();
+        // Input
+        $pathList = ResourcePath::makePathList($args['ifcPath']);
 
-        $controller = new InterfaceController($ampersandApp, $angularApp);
+        // Checks TODO: remove access check when implemented in InterfaceNullObject
+        if (empty($pathList)) {
+            throw new Exception("You do not have access for this call", 403);
+        } elseif ($ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
+            throw new Exception("You do not have access for this call", 403);
+        }
 
-        return $response->withJson($controller->delete($session, $args['ifcPath']), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        // Prepare
+        $transaction = $ampersandApp->newTransaction();
+        // $entry = ResourceList::makeWithoutInterface($args['resourceType'])->one($args['resourceId']);
+        $entry = ResourceList::makeFromInterface($ampersandApp->getSession()->getSessionAtom(), array_shift($pathList));
+        
+        // Perform delete
+        $entry->walkPathToResource($pathList)->delete();
+        
+        // Close transaction
+        $transaction->runExecEngine()->close();
+        if ($transaction->isCommitted()) {
+            $ampersandApp->userLog()->notice("Resource deleted");
+        }
+        
+        $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
+        
+        // Return result
+        return $response->withJson(
+            [ 'notifications'         => $ampersandApp->userLog()->getAll()
+            , 'invariantRulesHold'    => $transaction->invariantRulesHold()
+            , 'isCommitted'           => $transaction->isCommitted()
+            , 'sessionRefreshAdvice'  => $angularApp->getSessionRefreshAdvice()
+            , 'navTo'                 => $angularApp->getNavToResponse($transaction->isCommitted() ? 'COMMIT' : 'ROLLBACK')
+            ],
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
     });
 })->add($middleWare1);

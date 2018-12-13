@@ -59,6 +59,11 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         return [];
     }
 
+    public function getTargetConcept(): Concept
+    {
+        return $this->tgtConcept;
+    }
+
     public function isIdent(): bool
     {
         return false;
@@ -76,11 +81,31 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     public function crudC(): bool
     {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
+
+        // Check if allowed (i.e. there is at least an interface accesible for the user to create a new tgt)
+        foreach ($ampersandApp->getAccessibleInterfaces() as $ifc) {
+            $ifcObj = $ifc->getIfcObject();
+            if ($ifcObj->crudC() && $ifcObj->tgtConcept === $this->tgtConcept) {
+                return true;
+            }
+        }
         return false;
     }
 
     public function crudR(): bool
     {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
+
+        // Checks
+        if ($this->tgtConcept->isSession()) {
+            return false; // Prevent users to list (other) sessions
+        }
+        if ($ampersandApp->isEditableConcept($this->tgtConcept)) {
+            return true;
+        }
         return false;
     }
 
@@ -182,19 +207,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
      *********************************************************************************************/
     public function create(Atom $src, $tgtId = null): Atom
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp; // TODO: remove dependency on global var
-
-        // Check if allowed (i.e. there is at least an interface accesible for the user to create a new tgt)
-        $allowed = false;
-        foreach ($ampersandApp->getAccessibleInterfaces() as $ifc) {
-            $ifcObj = $ifc->getIfcObject();
-            if ($ifcObj->crudC() && $ifcObj->tgtConcept === $this->tgtConcept) {
-                $allowed = true;
-                break;
-            }
-        }
-        if (!$allowed) {
+        if (!$this->crudC()) {
             throw new Exception("You do not have access for this call", 403);
         }
 
@@ -214,21 +227,14 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     public function read(Atom $src, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp; // TODO: remove dependency on global var
-
-        // Checks
-        if ($this->tgtConcept->isSession()) {
-            throw new Exception("Resource type not found", 404); // Prevent users to list (other) sessions
-        }
-        if (!$ampersandApp->isEditableConcept($this->tgtConcept)) {
+        if (!$this->crudR()) {
             throw new Exception("You do not have access for this call", 403);
         }
 
         // Init result array
         $result = [];
 
-        foreach ($this->getTgtAtoms() as $atom) {
+        foreach ($this->getTgtAtoms($src) as $atom) {
             // Basic UI data of a resource
             if ($options & Options::INCLUDE_UI_DATA) {
                 $resource = [];
@@ -253,27 +259,27 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         return $result;
     }
 
-    public function set(Atom $src, $value = null): bool
+    public function set(Atom $src, $value = null): ?Atom
     {
         throw new Exception("No interface specified", 405);
     }
 
-    public function add(Atom $src, $value): bool
+    public function add(Atom $src, $value): Atom
     {
         throw new Exception("No interface specified", 405);
     }
 
-    public function remove(Atom $src, $value): bool
+    public function remove(Atom $src, $value): void
     {
         throw new Exception("No interface specified", 405);
     }
 
-    public function removeAll(Atom $src): bool
+    public function removeAll(Atom $src): void
     {
         throw new Exception("No interface specified", 405);
     }
 
-    public function delete(Resource $tgtAtom): bool
+    public function delete(Resource $tgtAtom): void
     {
         throw new Exception("No interface specified", 405);
     }

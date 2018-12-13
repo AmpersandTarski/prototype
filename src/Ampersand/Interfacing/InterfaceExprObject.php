@@ -285,6 +285,11 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         return $arr;
     }
 
+    public function getTargetConcept(): Concept
+    {
+        return $this->tgtConcept;
+    }
+
     /**
      * Returns if interface expression relation is a property
      * @return bool
@@ -670,9 +675,9 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      *
      * @param \Ampersand\Core\Atom $src
      * @param mixed|null $value
-     * @return bool
+     * @return ?\Ampersand\Core\Atom
      */
-    public function set(Atom $src, $value = null): bool
+    public function set(Atom $src, $value = null): ?Atom
     {
         if (!$this->isUni()) {
             throw new Exception("Cannot use set() for non-univalent interface " . $this->getPath() . ". Use add or remove instead", 400);
@@ -685,23 +690,23 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // Handle Ampersand properties [PROP]
         if ($this->isProp()) {
             if ($value === true) {
-                $this->add($src, $src->id);
+                return $this->add($src, $src->id);
             } elseif ($value === false) {
                 $this->remove($src, $src->id);
+                return null;
             } else {
                 throw new Exception("Boolean expected, non-boolean provided.", 400);
             }
         } elseif ($this->isIdent()) { // Ident object => no need to set
-            return true;
+            return $src;
         } else {
             if (is_null($value)) {
                 $this->removeAll($src);
+                return null;
             } else {
-                $this->add($src, $value);
+                return $this->add($src, $value);
             }
         }
-        
-        return true;
     }
 
     /**
@@ -709,9 +714,9 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      * @param \Ampersand\Core\Atom $src
      * @param mixed $value
      * @param bool $skipCrudUCheck
-     * @return bool
+     * @return \Ampersand\Core\Atom
      */
-    public function add(Atom $src, $value, bool $skipCrudUCheck = false): bool
+    public function add(Atom $src, $value, bool $skipCrudUCheck = false): Atom
     {
         if (!isset($value)) {
             throw new Exception("Cannot add item. Value not provided", 400);
@@ -735,16 +740,17 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $tgt->add();
         $src->link($tgt, $this->relation(), $this->relationIsFlipped)->add();
         
-        return true;
+        return $tgt;
     }
 
     /**
      * Remove value from resource list
      *
+     * @param \Ampersand\Core\Atom $src
      * @param mixed $value
-     * @return bool
+     * @return void
      */
-    public function remove(Atom $src, $value): bool
+    public function remove(Atom $src, $value): void
     {
         if (!isset($value)) {
             throw new Exception("Cannot remove item. Value not provided", 400);
@@ -763,16 +769,16 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $tgt = new Atom($value, $this->tgtConcept);
         $src->link($tgt, $this->relation(), $this->relationIsFlipped)->delete();
         
-        return true;
+        return;
     }
 
     /**
      * Undocumented function
      *
      * @param \Ampersand\Core\Atom $src
-     * @return bool
+     * @return void
      */
-    public function removeAll(Atom $src): bool
+    public function removeAll(Atom $src): void
     {
         if (!$this->isEditable()) {
             throw new Exception("Interface is not editable " . $this->getPath(), 405);
@@ -783,10 +789,10 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         
         $this->relation->deleteAllLinks($src, ($this->relationIsFlipped ? 'tgt' : 'src'));
 
-        return true;
+        return;
     }
 
-    public function delete(Resource $tgtAtom): bool
+    public function delete(Resource $tgtAtom): void
     {
         if (!$this->crudD()) {
             throw new Exception("Delete not allowed for ". $this->getPath(), 405);
@@ -795,7 +801,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // Perform delete
         $tgtAtom->concept->deleteAtom($tgtAtom);
 
-        return true;
+        return;
     }
 
     /**

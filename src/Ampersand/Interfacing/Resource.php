@@ -50,9 +50,9 @@ class Resource extends Atom implements ArrayAccess
      */
     public function __construct(string $resourceId, Concept $cpt, ResourceList $parentList)
     {
-        if (!$cpt->isObject()) {
-            throw new Exception("Cannot instantiate resource, because its type '{$cpt}' is a non-object concept", 400);
-        }
+        // if (!$cpt->isObject()) {
+        //     throw new Exception("Cannot instantiate resource, because its type '{$cpt}' is a non-object concept", 400);
+        // }
         
         // Call Atom constructor
         parent::__construct($resourceId, $cpt);
@@ -92,6 +92,10 @@ class Resource extends Atom implements ArrayAccess
         return $this->ifc->buildResourcePath($this, $this->parentList->getPathEntry());
     }
 
+    /**********************************************************************************************
+     * Methods to navigate through list
+     *********************************************************************************************/
+
     public function one(string $ifcId, string $tgtId): Resource
     {
         return $this->all($ifcId)->one($tgtId);
@@ -100,6 +104,24 @@ class Resource extends Atom implements ArrayAccess
     public function all(string $ifcId): ResourceList
     {
         return new ResourceList($this, $this->ifc->getSubinterface($ifcId, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS), $this->getPath());
+    }
+
+    public function walkPathToResource(array $pathList): Resource
+    {
+        if (empty($pathList)) {
+            return $this;
+        } else {
+            return $this->all(array_shift($pathList))->walkPathToResource($pathList);
+        }
+    }
+
+    public function walkPathToList(array $pathList): ResourceList
+    {
+        if (empty($pathList)) {
+            throw new Exception("Provided path MUST NOT end with a resource identifier", 400);
+        } else {
+            return $this->all(array_shift($pathList))->walkPathToList($pathList);
+        }
     }
 
 /**************************************************************************************************
@@ -223,47 +245,42 @@ class Resource extends Atom implements ArrayAccess
                 throw new Exception("No 'path' specfied for patch #{$key}", 400);
             }
 
-            $resourcePath = new ResourcePath($this, $patch->path);
-            $resource = $resourcePath->getTgt();
-            $ifc = $resourcePath->getTrailingIfc();
+            $pathList = ResourcePath::makePathList($patch->path);
             
-            // Process patch
-            switch ($patch->op) {
-                case "replace":
-                    if (!property_exists($patch, 'value')) {
-                        throw new Exception("Cannot patch replace. No 'value' specfied for patch #{$key}", 400);
-                    }
-                    if (is_null($ifc)) {
-                        throw new Exception("Cannot patch replace. Path for patch #{$key} MUST end with a resource property", 400);
-                    }
-                    $ifc->set($resource, $patch->value);
-                    break;
-                case "add":
-                    if (!property_exists($patch, 'value')) {
-                        throw new Exception("Cannot patch add. No 'value' specfied for patch #{$key}", 400);
-                    }
-                    if (is_null($ifc)) {
-                        throw new Exception("Cannot patch add. Path for patch #{$key} MUST end with a resource property", 400);
-                    }
-                    $ifc->add($resource, $patch->value);
-                    break;
-                case "remove":
-                    // Regular json patch remove operation, uses last part of 'path' attribuut as resource to remove from list
-                    if (!property_exists($patch, 'value')) {
-                        if (!is_null($ifc)) {
-                            throw new Exception("Cannot patch remove. Path for patch #{$key} MUST end with a resource ór contain a patch value", 400);
+            try {
+                // Process patch
+                switch ($patch->op) {
+                    case "replace":
+                        if (!property_exists($patch, 'value')) {
+                            throw new Exception("No 'value' specfied", 400);
                         }
-                        $this->parentList->remove($resource);
-                    // Not part of official json path specification. Uses 'value' attribute that must be removed from list
-                    } elseif (property_exists($patch, 'value')) {
-                        if (is_null($ifc)) {
-                            throw new Exception("Cannot patch remove. Path for patch #{$key} MUST end with a resource property ór NOT contain a patch value", 400);
+                        $rl = $this->walkPathToList($pathList)->set($patch->value);
+                        break;
+                    case "add":
+                        if (!property_exists($patch, 'value')) {
+                            throw new Exception("No 'value' specfied", 400);
                         }
-                        $ifc->remove($resource, $patch->value);
-                    }
-                    break;
-                default:
-                    throw new Exception("Unknown patch operation '{$patch->op}'. Supported are: 'replace', 'add' and 'remove'", 501);
+                        $rl = $this->walkPathToList($pathList)->add($patch->value);
+                        break;
+                    case "remove":
+                        // Regular json patch remove operation, uses last part of 'path' attribuut as resource to remove from list
+                        if (!property_exists($patch, 'value')) {
+                            $this->walkPathToResource($pathList)->remove();
+                        // Not part of official json path specification. Uses 'value' attribute that must be removed from list
+                        } elseif (property_exists($patch, 'value')) {
+                            $this->walkPathToList($pathList)->remove($patch->value);
+                        }
+                        break;
+                    default:
+                        throw new Exception("Unknown patch operation '{$patch->op}'. Supported are: 'replace', 'add' and 'remove'", 400);
+                }
+            } catch (Exception $e) {
+                if ($e->getCode() >= 400 && $e->getCode() < 500) {
+                    // Add patch # to all bad request (4xx) errors
+                    throw new Exception("Error in patch #{$key}: {$e->getMessage()}", $e->getCode(), $e);
+                } else {
+                    throw $e;
+                }
             }
         }
         
@@ -288,5 +305,10 @@ class Resource extends Atom implements ArrayAccess
         $this->ifc->delete($this);
         
         return $this;
+    }
+
+    public function remove(): void
+    {
+        $this->parentList->remove($this);
     }
 }
