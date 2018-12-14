@@ -107,7 +107,7 @@ $api->group('/resource', function () {
         // Checks
         if (empty($pathList)) {
             throw new Exception("You do not have access for this call", 403);
-        } elseif ($ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
+        } elseif (!$ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
             throw new Exception("You do not have access for this call", 403);
         }
 
@@ -141,7 +141,7 @@ $api->group('/resource', function () {
         // Checks TODO: remove access check when implemented in InterfaceNullObject
         if (empty($pathList)) {
             throw new Exception("You do not have access for this call", 403);
-        } elseif ($ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
+        } elseif (!$ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
             throw new Exception("You do not have access for this call", 403);
         }
 
@@ -218,7 +218,7 @@ $api->group('/resource', function () {
         // Checks TODO: remove access check when implemented in InterfaceNullObject
         if (empty($pathList)) {
             throw new Exception("You do not have access for this call", 403);
-        } elseif ($ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
+        } elseif (!$ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
             throw new Exception("You do not have access for this call", 403);
         }
 
@@ -276,7 +276,7 @@ $api->group('/session', function () {
         // Checks
         if (empty($pathList)) {
             throw new Exception("You do not have access for this call", 403);
-        } elseif ($ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
+        } elseif (!$ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
             throw new Exception("You do not have access for this call", 403);
         }
 
@@ -310,7 +310,7 @@ $api->group('/session', function () {
         // Checks TODO: remove access check when implemented in InterfaceNullObject
         if (empty($pathList)) {
             throw new Exception("You do not have access for this call", 403);
-        } elseif ($ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
+        } elseif (!$ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
             throw new Exception("You do not have access for this call", 403);
         }
 
@@ -388,7 +388,7 @@ $api->group('/session', function () {
         // Checks TODO: remove access check when implemented in InterfaceNullObject
         if (empty($pathList)) {
             throw new Exception("You do not have access for this call", 403);
-        } elseif ($ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
+        } elseif (!$ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
             throw new Exception("You do not have access for this call", 403);
         }
 
