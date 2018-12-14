@@ -75,7 +75,7 @@ interface InterfaceObjectInterface
      * CRUD METHODS
      *********************************************************************************************/
     public function create(Atom $src, $tgtId = null): Atom;
-    public function read(Atom $src, string $pathToSrc, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
+    public function read(Atom $src, string $pathToSrc, string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
     public function set(Atom $src, $value = null): ?Atom;
     public function add(Atom $src, $value): Atom;
     public function remove(Atom $src, $value): void;

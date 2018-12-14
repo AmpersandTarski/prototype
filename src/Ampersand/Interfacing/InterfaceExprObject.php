@@ -537,7 +537,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
     }
     
-    public function read(Atom $src, string $pathToSrc, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(Atom $src, string $pathToSrc, string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for ". $this->getPath(), 405);
@@ -548,7 +548,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
         // Object nodes
         if ($this->tgtConcept->isObject()) {
-            foreach ($this->getTgtAtoms($src) as $tgt) {
+            foreach ($this->getTgtAtoms($src, $tgtId) as $tgt) {
                 $result[] = $this->getResourceContent($tgt, $pathToSrc, $options, $depth, $recursionArr);
             }
             
@@ -565,7 +565,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // Non-object nodes (i.e. leaves, because subinterfaces are not allowed for non-objects)
         // Notice that ->getResourceContent() is not called. The interface stops here.
         } else {
-            $result = $this->getTgtAtoms($src); // for json_encode $tgt->jsonSerializable() is called
+            $result = $this->getTgtAtoms($src, $tgtId); // for json_encode $tgt->jsonSerializable() is called
         }
 
         // Return result
@@ -626,7 +626,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
                 if (!$ifcObj->crudR()) {
                     continue; // skip subinterface if not given read rights (otherwise exception will be thrown when getting content)
                 }
-                $content[$ifcObj->getIfcId()] = $ifcObj->read($tgt, $tgtPath, $options, $depth, $recursionArr);
+                $content[$ifcObj->getIfcId()] = $ifcObj->read($tgt, $tgtPath, null, $options, $depth, $recursionArr);
 
                 // Add sort values
                 if ($ifcObj->isUni() && $addSortValues) {

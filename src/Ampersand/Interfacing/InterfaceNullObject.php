@@ -225,7 +225,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         return $tgtAtom->add();
     }
 
-    public function read(Atom $src, string $pathToSrc, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(Atom $src, string $pathToSrc, string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         if (!$this->crudR()) {
             throw new Exception("You do not have access for this call", 403);
@@ -234,7 +234,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         // Init result array
         $result = [];
 
-        foreach ($this->getTgtAtoms($src) as $tgt) {
+        foreach ($this->getTgtAtoms($src, $tgtId) as $tgt) {
             // Basic UI data of a resource
             if ($options & Options::INCLUDE_UI_DATA) {
                 $resource = [];

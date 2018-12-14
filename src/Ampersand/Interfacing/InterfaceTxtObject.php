@@ -207,7 +207,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
         throw new Exception("Create operation not implemented for TXT interface object", 501);
     }
     
-    public function read(Atom $src, string $pathToSrc, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(Atom $src, string $pathToSrc, string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         return $this->txt;
     }

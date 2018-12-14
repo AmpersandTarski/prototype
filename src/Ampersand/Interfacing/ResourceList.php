@@ -140,7 +140,12 @@ class ResourceList
 
     public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null)
     {
-        return $this->ifcObject->read($this->srcAtom, $this->pathEntry, $options, $depth);
+        return $this->ifcObject->read($this->srcAtom, $this->pathEntry, null, $options, $depth);
+    }
+
+    public function getOne(string $tgtId, int $options = Options::DEFAULT_OPTIONS, int $depth = null)
+    {
+        return $this->ifcObject->read($this->srcAtom, $this->pathEntry, $tgtId, $options, $depth);
     }
 
     public function post(stdClass $resourceToPost = null): Resource
