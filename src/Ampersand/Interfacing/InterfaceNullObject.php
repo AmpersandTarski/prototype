@@ -234,16 +234,16 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         // Init result array
         $result = [];
 
-        foreach ($this->getTgtAtoms($src) as $atom) {
+        foreach ($this->getTgtAtoms($src) as $tgt) {
             // Basic UI data of a resource
             if ($options & Options::INCLUDE_UI_DATA) {
                 $resource = [];
-                $viewData = $src->concept->getViewData($src); // default concept view
+                $viewData = $tgt->concept->getViewData($tgt); // default concept view
 
                 // Add Ampersand atom attributes
-                $resource['_id_'] = $src->id;
-                $resource['_label_'] = empty($viewData) ? $src->getLabel() : implode('', $viewData);
-                $resource['_path_'] = $this->buildResourcePath($src, $pathToSrc);
+                $resource['_id_'] = $tgt->id;
+                $resource['_label_'] = empty($viewData) ? $tgt->getLabel() : implode('', $viewData);
+                $resource['_path_'] = $this->buildResourcePath($tgt, $pathToSrc);
             
                 // Add view data if array is assoc (i.e. not sequential, because then it is a label)
                 if (!isSequential($viewData)) {
@@ -252,7 +252,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
                 $result[] = $resource;
             } else {
-                $result[] = $src->id;
+                $result[] = $tgt->id;
             }
         }
 
