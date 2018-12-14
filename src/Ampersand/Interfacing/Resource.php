@@ -100,6 +100,21 @@ class Resource extends Atom implements ArrayAccess
         );
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param array $pathList
+     * @return \Ampersand\Interfacing\Resource|\Ampersand\Interfacing\ResourceList
+     */
+    public function walkPath(array $pathList)
+    {
+        if (empty($pathList)) {
+            return $this;
+        } else {
+            return $this->all(array_shift($pathList))->walkPath($pathList);
+        }
+    }
+
     public function walkPathToResource(array $pathList): Resource
     {
         if (empty($pathList)) {

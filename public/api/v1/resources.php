@@ -116,7 +116,7 @@ $api->group('/resource', function () {
 
         // Output
         return $response->withJson(
-            $resource->walkPathToResource($pathList)->get($options, $depth),
+            $resource->walkPath($pathList)->get($options, $depth),
             200,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
         );
@@ -285,7 +285,7 @@ $api->group('/session', function () {
 
         // Output
         return $response->withJson(
-            $entry->walkPathToResource($pathList)->get($options, $depth),
+            $entry->walkPath($pathList)->get($options, $depth),
             200,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
         );

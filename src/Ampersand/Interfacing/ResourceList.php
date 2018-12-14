@@ -96,30 +96,43 @@ class ResourceList
         }, $this->ifcObject->getTgtAtoms($this->srcAtom));
     }
 
-    public function walkPathToResource(array $pathList): Resource
+    /**
+     * Undocumented function
+     *
+     * @param array $pathList
+     * @return \Ampersand\Interfacing\Resource|\Ampersand\Interfacing\ResourceList
+     */
+    public function walkPath(array $pathList)
     {
         if (empty($pathList)) {
-            if ($this->tgtIdInPath()) {
-                throw new Exception("Provided path MUST end with a resource identifier", 400);
-            } else {
-                return $this->one($this->srcAtom->id)->walkPathToResource($pathList);
-            }
-        } else {
-            return $this->one(array_shift($pathList))->walkPathToResource($pathList);
+            return $this;
         }
+
+        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->id;
+        
+        return $this->one($tgtId)->walkPath($pathList);
+    }
+
+    public function walkPathToResource(array $pathList): Resource
+    {
+        if (empty($pathList) && $this->tgtIdInPath()) {
+            throw new Exception("Provided path MUST end with a resource identifier", 400);
+        }
+
+        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->id;
+
+        return $this->one($tgtId)->walkPathToResource($pathList);
     }
 
     public function walkPathToList(array $pathList): ResourceList
     {
         if (empty($pathList)) {
             return $this;
-        } else {
-            if ($this->tgtIdInPath()) {
-                return $this->one(array_shift($pathList))->walkPathToList($pathList);
-            } else {
-                return $this->one($this->srcAtom->id)->walkPathToList($pathList);
-            }
         }
+        
+        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->id;
+
+        return $this->one($tgtId)->walkPathToList($pathList);
     }
 
     protected function tgtIdInPath(): bool
