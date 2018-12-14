@@ -637,9 +637,11 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
         // Interface(s) to navigate to for this resource
         if ($options & Options::INCLUDE_NAV_IFCS) {
-            $content['_ifcs_'] = array_map(function (Ifc $o) {
-                return ['id' => $o->getId(), 'label' => $o->getLabel()];
-            }, $this->getNavInterfacesForTgt());
+            $content['_ifcs_'] = array_values(
+                array_map(function (Ifc $o) {
+                    return ['id' => $o->getId(), 'label' => $o->getLabel()];
+                }, $this->getNavInterfacesForTgt())
+            );
         }
 
         return $content;
