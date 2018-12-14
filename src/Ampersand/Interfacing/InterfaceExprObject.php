@@ -569,7 +569,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
 
         // Return result
-        if ($this->isUni) { // single object
+        if ($this->isUni || isset($tgtId)) { // single object
             return empty($result) ? null : current($result);
         } else { // array
             return $result;

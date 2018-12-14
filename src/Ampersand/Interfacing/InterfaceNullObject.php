@@ -256,7 +256,12 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
             }
         }
 
-        return $result;
+        // Return result
+        if (isset($tgtId)) { // single object
+            return empty($result) ? null : current($result);
+        } else { // array
+            return $result;
+        }
     }
 
     public function set(Atom $src, $value = null): ?Atom
