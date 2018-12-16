@@ -240,7 +240,13 @@ class ResourceList
 
     public static function makeFromInterface(Atom $srcAtom, string $ifcId): ResourceList
     {
-        return new ResourceList($srcAtom, Ifc::getInterface($ifcId)->getIfcObject(), '');
+        if ($srcAtom->concept->isSession()) {
+            $pathEntry = "session"; // Don't put session id here, this is implicit
+        } else {
+            $pathEntry = "resource/{$srcAtom->concept->name}/{$srcAtom->id}";
+        }
+
+        return new ResourceList($srcAtom, Ifc::getInterface($ifcId)->getIfcObject(), $pathEntry);
     }
 
     public static function makeWithoutInterface(string $resourceType): ResourceList
