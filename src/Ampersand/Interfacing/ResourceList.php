@@ -203,7 +203,13 @@ class ResourceList
      * Internal methods
      *********************************************************************************************/
 
-    public function set(string $value = null)
+    /**
+     * Undocumented function
+     *
+     * @param string|bool|null $value
+     * @return \Ampersand\Interfacing\Resource|null
+     */
+    public function set($value = null): ?Resource
     {
         $tgt = $this->ifcObject->set($this->srcAtom, $value);
         if (is_null($tgt)) {
