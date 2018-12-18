@@ -143,7 +143,15 @@ class OAuthLoginController
                 switch ($idp) {
                     case 'linkedin':
                         // Linkedin provides primary emailaddress only. This is always a verified address.
-                        $email = $this->getData()->emailAddress;
+                        // https://docs.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin?context=linkedin/consumer/context
+                        $data = $this->getData()->elements[0];
+                        if (!isset($data->{'handle~'})) {
+                            throw new Exception("Error in getting verified emailadres from LinkedIn");
+                        }
+                        if (!isset($data->{'handle~'}->emailAddress)) {
+                            throw new Exception("Error in getting verified emailadres from LinkedIn: emailAddres not provided");
+                        }
+                        $email = $data->{'handle~'}->emailAddress;
                         break;
                     case 'google':
                         $email = $this->getData()->email;
