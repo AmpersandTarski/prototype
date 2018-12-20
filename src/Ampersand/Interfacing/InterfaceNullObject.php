@@ -66,7 +66,10 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     public function isIdent(): bool
     {
-        return false;
+        // List of SESSIONs is considered Ident because there is only 1 atom in the list
+        // see method InterfaceNullObject::getTgtAtoms(). This makes sure that the session id
+        // is NOT communicated in the resource path
+        return false || $this->getTargetConcept()->isSession();
     }
 
     public function isUni(): bool
@@ -133,6 +136,11 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     {
         if (!$this->crudR()) {
             throw new Exception("You do not have access for this call", 403);
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
+
+        if ($this->tgtConcept->isSession()) {
+            $selectTgt = $ampersandApp->getSession()->getSessionAtom()->id;
         }
 
         if (isset($selectTgt)) {
@@ -153,7 +161,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     public function buildResourcePath(Atom $tgt, string $pathToSrc): string
     {
         if ($tgt->concept->isSession()) {
-            return "session"; // Don't put session id here, this is implicit
+            return "resource/SESSION"; // Don't put session id here, this is implicit
         } else {
             return "resource/{$tgt->concept->name}/{$tgt->id}";
         }
