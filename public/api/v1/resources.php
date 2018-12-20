@@ -77,30 +77,18 @@ $api->group('/resource', function () {
         return $response->withJson($resource->get(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
-    /**
-     * @phan-closure-scope \Slim\Container
-     */
-    $this->get('/{resourceType}/{resourceId}', function (Request $request, Response $response, $args = []) {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['ampersand_app'];
-
-        $resource = ResourceList::makeWithoutInterface($args['resourceType'])->one($args['resourceId']);
-
-        return $response->withJson($resource->get(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    });
-
     // GET for interfaces that start with other resource
     /**
      * @phan-closure-scope \Slim\Container
      */
-    $this->get('/{resourceType}/{resourceId}/{ifcPath:.*}', function (Request $request, Response $response, $args = []) {
+    $this->get('/{resourceType}/{resourceId}[/{resourcePath:.*}]', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
         /** @var \Ampersand\AngularApp $angularApp */
         $angularApp = $this['angular_app'];
 
         // Input
-        $pathList = ResourcePath::makePathList($args['ifcPath']);
+        $pathList = ResourcePath::makePathList($args['resourcePath']);
         $options = Options::getFromRequestParams($request->getQueryParams());
         $depth = $request->getQueryParam('depth');
        
