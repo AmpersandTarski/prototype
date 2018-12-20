@@ -101,7 +101,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
         // Checks
         if ($this->tgtConcept->isSession()) {
-            return false; // Prevent users to list (other) sessions
+            return false; // Prevent users to list (other) sessions in any case
         }
         if ($ampersandApp->isEditableConcept($this->tgtConcept)) {
             return true;
@@ -131,8 +131,12 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
      */
     public function getTgtAtoms(Atom $src, string $selectTgt = null): array
     {
-        if (!$this->crudR()) {
+        // Skip access when selectTgt is provided, because we don't know the interface that is requested (yet)
+        // This is checked later when reading or walking the path further.
+        if (is_null($selectTgt) && !$this->crudR()) {
             throw new Exception("You do not have access for this call", 403);
+        }
+
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
 
@@ -143,7 +147,11 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
         if (isset($selectTgt)) {
             $tgt = Atom::makeAtom($selectTgt, $this->tgtConcept->getId());
-            return $tgt->exists() ? [$tgt] : []; // If tgt not exists, return empty array
+            // For the InterfaceNullObject, let's assume the atom exists, otherwise
+            // an exception 'Resource not found' is returned by ResourceList class, 
+            // which exposes information while we haven't checked access using an interface yet.
+            // Existance is checked later when reading or walking the path further
+            return [$tgt];
         } else {
             return $this->tgtConcept->getAllAtomObjects();
         }
