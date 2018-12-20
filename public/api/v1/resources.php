@@ -91,13 +91,6 @@ $api->group('/resource', function () {
         $pathList = ResourcePath::makePathList($args['resourcePath']);
         $options = Options::getFromRequestParams($request->getQueryParams());
         $depth = $request->getQueryParam('depth');
-       
-        // Checks
-        if (empty($pathList)) {
-            throw new Exception("You do not have access for this call", 403);
-        } elseif (!$ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
-            throw new Exception("You do not have access for this call", 403);
-        }
 
         // Prepare
         $resource = ResourceList::makeWithoutInterface($args['resourceType'])->one($args['resourceId']);
@@ -125,13 +118,6 @@ $api->group('/resource', function () {
         $options = Options::getFromRequestParams($request->getQueryParams());
         $depth = $request->getQueryParam('depth');
         $body = $request->reparseBody()->getParsedBody();
-        
-        // Checks TODO: remove access check when implemented in InterfaceNullObject
-        if (empty($pathList)) {
-            throw new Exception("You do not have access for this call", 403);
-        } elseif (!$ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
-            throw new Exception("You do not have access for this call", 403);
-        }
 
         // Prepare
         $transaction = $ampersandApp->newTransaction();
@@ -202,13 +188,6 @@ $api->group('/resource', function () {
 
         // Input
         $pathList = ResourcePath::makePathList($args['ifcPath']);
-
-        // Checks TODO: remove access check when implemented in InterfaceNullObject
-        if (empty($pathList)) {
-            throw new Exception("You do not have access for this call", 403);
-        } elseif (!$ampersandApp->isAccessibleIfc(Ifc::getInterface(current($pathList)))) {
-            throw new Exception("You do not have access for this call", 403);
-        }
 
         // Prepare
         $transaction = $ampersandApp->newTransaction();

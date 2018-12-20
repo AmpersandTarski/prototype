@@ -169,19 +169,34 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
      * Sub interface objects METHODS
      *********************************************************************************************/
 
+    /**
+     * Undocumented function
+     *
+     * @param int $options
+     * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
+     */
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS): array
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
 
+        $tgtConcept = $this->getTargetConcept();
+
+        $ifcs = array_filter(
+            $ampersandApp->getAccessibleInterfaces(),
+            function (Ifc $ifc) use ($tgtConcept) {
+                return $this->tgtConcept->hasGeneralization($ifc->getSrcConcept(), true);
+            }
+        );
+
         return array_map(function (Ifc $ifc) {
             return $ifc->getIfcObject();
-        }, $ampersandApp->getAccessibleInterfaces());
+        }, $ifcs);
     }
 
     public function hasSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): bool
     {
-        return Ifc::interfaceExists($ifcId);
+        return in_array($ifcId, $this->getSubinterfaces());
     }
 
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
@@ -189,13 +204,15 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
         
-        $ifc = Ifc::getInterface($ifcId);
-
-        if (!$ampersandApp->isAccessibleIfc($ifc)) {
-            throw new Exception("Unauthorized to access interface {$ifc->getLabel()}", 403);
+        foreach ($this->getSubinterfaces($options) as $ifcobj) {
+            /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
+            if ($ifcobj->getIfcId() === $ifcId) {
+                return $ifcobj;
+            }
         }
 
-        return $ifc->getIfcObject();
+        // Not found
+        throw new Exception("Unauthorized to access or interface does not exist '{$ifcId}'", 403);
     }
 
     public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
@@ -203,13 +220,15 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
         
-        $ifc = Ifc::getInterfaceByLabel($ifcLabel);
-
-        if (!$ampersandApp->isAccessibleIfc($ifc)) {
-            throw new Exception("Unauthorized to access interface {$ifc->getLabel()}", 403);
+        foreach ($this->getSubinterfaces($options) as $ifcobj) {
+            /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
+            if ($ifcobj->getIfcLabel() === $ifcLabel) {
+                return $ifcobj;
+            }
         }
 
-        return $ifc->getIfcObject();
+        // Not found
+        throw new Exception("Unauthorized to access or interface does not exist '{$ifcLabel}'", 403);
     }
 
     /**********************************************************************************************
