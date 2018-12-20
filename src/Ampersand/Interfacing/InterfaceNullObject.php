@@ -33,10 +33,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     public function __construct(string $tgtConcept)
     {
         $this->tgtConcept = Concept::getConcept($tgtConcept);
-
-        if (!$this->tgtConcept->isObject()) {
-            throw new Exception("InterfaceNullObject is not applicable for non-object concept {$tgtConcept}.", 500);
-        }
     }
 
     public function __toString(): string
@@ -84,13 +80,23 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
 
-        // Check if allowed (i.e. there is at least an interface accesible for the user to create a new tgt)
+        // Prevent users to create (other) sessions in any case
+        if ($this->tgtConcept->isSession()) {
+            return false;
+        }
+        // Prevent create for non-object (i.e. scalar) values
+        if (!$this->tgtConcept->isObject()) {
+            return false;
+        }
+
+        // Allow when there is at least an interface accesible for the user to create a new tgt
         foreach ($ampersandApp->getAccessibleInterfaces() as $ifc) {
             $ifcObj = $ifc->getIfcObject();
             if ($ifcObj->crudC() && $ifcObj->tgtConcept === $this->tgtConcept) {
                 return true;
             }
         }
+        
         return false;
     }
 
@@ -102,6 +108,9 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         // Checks
         if ($this->tgtConcept->isSession()) {
             return false; // Prevent users to list (other) sessions in any case
+        }
+        if (!$this->tgtConcept->isObject()) {
+            return false; // Prevent listing of non-object (i.e. scalar) values
         }
         if ($ampersandApp->isEditableConcept($this->tgtConcept)) {
             return true;
@@ -148,7 +157,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         if (isset($selectTgt)) {
             $tgt = Atom::makeAtom($selectTgt, $this->tgtConcept->getId());
             // For the InterfaceNullObject, let's assume the atom exists, otherwise
-            // an exception 'Resource not found' is returned by ResourceList class, 
+            // an exception 'Resource not found' is returned by ResourceList class,
             // which exposes information while we haven't checked access using an interface yet.
             // Existance is checked later when reading or walking the path further
             return [$tgt];

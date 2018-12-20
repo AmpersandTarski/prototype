@@ -251,12 +251,6 @@ class ResourceList
 
     public static function makeWithoutInterface(string $resourceType): ResourceList
     {
-        // Checks
-        if (!Concept::getConcept($resourceType)->isObject()) {
-            // throw new Exception("Cannot instantiate resource list for non-object concept '{$resourceType}'", 500);
-            throw new Exception("Resource type not found", 404); // HTTP friendly response
-        }
-
         $one = new Atom('ONE', Concept::getConcept('ONE'));
         return new ResourceList($one, InterfaceObjectFactory::getNullObject($resourceType), '');
     }

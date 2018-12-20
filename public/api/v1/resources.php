@@ -5,7 +5,6 @@ use Ampersand\Interfacing\Options;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Ampersand\Interfacing\ResourceList;
-use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\ResourcePath;
 
 /**
