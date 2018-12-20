@@ -21,6 +21,8 @@ loggers:
     handlers: [error_log, debug_log]
   FRONTEND:
     handlers: [error_log, debug_log]
+  PERFORMANCE:
+    handlers: [performance_log]
 formatters:
 handlers:
   debug_log:
@@ -33,7 +35,7 @@ handlers:
     level: DEBUG
     maxFiles: 0
     filename: ./log/error.log
-    processors: [web_processor, request_id_processor]
+    processors: [request_id_processor, web_processor]
   error_log:
     class: Monolog\Handler\FingersCrossedHandler
     handler: error_log_file
@@ -47,6 +49,12 @@ handlers:
     level: DEBUG
     maxFiles: 0
     filename: ./log/execengine.log
+  performance_log:
+    class: Ampersand\Log\RotatingFileHandler
+    level: DEBUG
+    maxFiles: 0
+    filename: ./log/performance.log
+    processors: [request_id_processor, web_processor]
 processors:
   web_processor:
     class: Monolog\Processor\WebProcessor

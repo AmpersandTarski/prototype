@@ -8,6 +8,8 @@ use Slim\Container;
 use function Ampersand\Misc\stackTrace;
 use Ampersand\Exception\NotInstalledException;
 
+$scriptStartTime = microtime(true);
+
 require_once(dirname(__FILE__, 4) . '/bootstrap/framework.php');
 
 /** @var \Ampersand\AmpersandApp $ampersandApp */
@@ -231,3 +233,8 @@ $api->add(function (Request $req, Response $res, callable $next) {
 
     return $next($req, $res);
 })->run();
+
+$executionTime = round(microtime(true) - $scriptStartTime, 2);
+$peakMemory = round(memory_get_peak_usage() / 1024 / 1024, 2); // Mb
+Logger::getLogger('PERFORMANCE')->info("Peak memory used: {$peakMemory} Mb");
+Logger::getLogger('PERFORMANCE')->info("Execution time  : {$executionTime} Sec");
