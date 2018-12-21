@@ -12,7 +12,7 @@ use Ampersand\Rule\Violation;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 use Psr\Log\LoggerInterface;
-use Ampersand\Interfacing\InterfaceObjectInterface;
+use Ampersand\Interfacing\Ifc;
 
 /**
  *
@@ -150,20 +150,24 @@ class UserLogger extends AbstractLogger
         }
         
         // Add links for src atom
-        $ifcs = array_map(function (InterfaceObjectInterface $ifc) use ($violation) {
-            return ['id' => $ifc->getIfcId(),
-                    'label' => $ifc->getIfcLabel(),
-                    'link' => "#/{$ifc->getIfcId()}/{$violation->src->id}"
+        $ifcs = array_map(function (Ifc $ifc) use ($violation) {
+            /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
+            $ifcobj = $ifc->getIfcObject();
+            return ['id' => $ifcobj->getIfcId(),
+                    'label' => $ifcobj->getIfcLabel(),
+                    'link' => "#/{$ifcobj->getIfcId()}/{$violation->src->id}"
                     ];
         }, $ampersandApp->getInterfacesToReadConcept($violation->src->concept));
 
         // Add links for tgt atom (if not the same as src atom)
         if ($violation->src->concept !== $violation->tgt->concept || $violation->src->id !== $violation->tgt->id) {
             array_merge($ifcs, array_map(
-                function (InterfaceObjectInterface $ifc) use ($violation) {
-                    return [ 'id' => $ifc->getIfcId()
-                           , 'label' => $ifc->getIfcLabel()
-                           , 'link' => "#/{$ifc->getIfcId()}/{$violation->tgt->id}"
+                function (Ifc $ifc) use ($violation) {
+                    /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
+                    $ifcobj = $ifc->getIfcObject();
+                    return [ 'id' => $ifcobj->getIfcId()
+                           , 'label' => $ifcobj->getIfcLabel()
+                           , 'link' => "#/{$ifcobj->getIfcId()}/{$violation->tgt->id}"
                            ];
                 },
                 $ampersandApp->getInterfacesToReadConcept($violation->tgt->concept)
