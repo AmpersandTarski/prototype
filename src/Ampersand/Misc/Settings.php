@@ -90,8 +90,8 @@ class Settings
         }
 
         foreach ((array)$file['extensions'] as $extName => $data) {
-            $bootstrapFile = $data['bootstrap'] ?? null;
-            $configFile = $data['config'] ?? null;
+            $bootstrapFile = isset($data['bootstrap']) ? $this->get('global.absolutePath') . "/" . $data['bootstrap'] : null;
+            $configFile = isset($data['config']) ? $this->get('global.absolutePath') . "/" . $data['config'] : null;
             $this->extensions[] = new Extension($extName, $bootstrapFile, $configFile);
 
             if (!is_null($configFile)) {
