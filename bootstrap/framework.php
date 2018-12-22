@@ -28,9 +28,6 @@ register_shutdown_function(function () {
     }
 });
 
-date_default_timezone_set('Europe/Amsterdam'); // see http://php.net/manual/en/timezones.php for a list of supported timezones
-set_time_limit(30); // execution time limit is set to a default of 30 seconds. Use 0 to have no time limit. (not advised)
-
 /**************************************************************************************************
  * PHP SESSION (Start a new, or resume the existing, PHP session)
  *************************************************************************************************/
@@ -64,6 +61,9 @@ $settings = new Settings(); // includes default framework settings
 $settings->set('global.absolutePath', dirname(__FILE__, 2));
 $settings->loadSettingsJsonFile($model->getFilePath('settings')); // load model settings from Ampersand generator
 $settings->loadSettingsYamlFile(dirname(__FILE__, 2) . '/config/project.yaml'); // load project specific settings
+
+set_time_limit($settings->get('global.scriptTimeout'));
+date_default_timezone_set($settings->get('global.defaultTimezone'));
 
 $ampersandApp = new AmpersandApp($model, $settings, $logger);
 $angularApp = new AngularApp($ampersandApp, Logger::getLogger('FRONTEND'));
