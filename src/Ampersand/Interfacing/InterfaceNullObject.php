@@ -55,11 +55,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         return [];
     }
 
-    public function getTargetConcept(): Concept
-    {
-        return $this->tgtConcept;
-    }
-
     public function isIdent(): bool
     {
         return false;
@@ -197,7 +192,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
 
-        $tgtConcept = $this->getTargetConcept();
+        $tgtConcept = $this->tgtConcept;
 
         $ifcs = array_filter(
             $ampersandApp->getAccessibleInterfaces(),

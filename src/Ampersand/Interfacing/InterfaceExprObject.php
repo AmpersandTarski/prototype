@@ -285,11 +285,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         return $arr;
     }
 
-    public function getTargetConcept(): Concept
-    {
-        return $this->tgtConcept;
-    }
-
     /**
      * Returns if interface expression relation is a property
      * @return bool

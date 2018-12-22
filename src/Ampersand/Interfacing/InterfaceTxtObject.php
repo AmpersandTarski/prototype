@@ -13,7 +13,6 @@ use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Atom;
 use Ampersand\Interfacing\AbstractIfcObject;
-use Ampersand\Core\Concept;
 
 /**
  *
@@ -97,11 +96,6 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     public function getEditableConcepts()
     {
         return [];
-    }
-
-    public function getTargetConcept(): Concept
-    {
-        throw new Exception("Method getTargetConcept() is n.a. for InterfaceTxtObject and must not be called", 500);
     }
     
     /**

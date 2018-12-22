@@ -11,7 +11,6 @@ use Ampersand\Core\Atom;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
-use Ampersand\Core\Concept;
 
 /**
  *
@@ -25,7 +24,6 @@ interface InterfaceObjectInterface
     public function getIfcLabel(): string;
 
     public function getEditableConcepts();
-    public function getTargetConcept(): Concept;
     public function isIdent(): bool;
     public function isUni(): bool;
 
