@@ -30,6 +30,23 @@ class Concept
      * @var \Ampersand\Core\Concept[]
      */
     private static $allConcepts;
+
+    protected static $representTypes =
+        [ 'ALPHANUMERIC'        => ['datatype' => 'string']
+        , 'BIGALPHANUMERIC'     => ['datatype' => 'string']
+        , 'HUGEALPHANUMERIC'    => ['datatype' => 'string']
+        , 'PASSWORD'            => ['datatype' => 'string']
+        , 'BINARY'              => ['datatype' => 'binary']
+        , 'BIGBINARY'           => ['datatype' => 'binary']
+        , 'HUGEBINARY'          => ['datatype' => 'binary']
+        , 'DATE'                => ['datatype' => 'date']
+        , 'DATETIME'            => ['datatype' => 'datetime']
+        , 'BOOLEAN'             => ['datatype' => 'boolean']
+        , 'INTEGER'             => ['datatype' => 'integer']
+        , 'FLOAT'               => ['datatype' => 'float']
+        , 'OBJECT'              => ['datatype' => 'object']
+        , 'TYPEOFONE'           => ['datatype' => 'string']
+        ];
     
     /**
      *
@@ -176,6 +193,10 @@ class Concept
         $this->name = $conceptDef['id'];
         $this->label = $conceptDef['label'];
         $this->type = $conceptDef['type'];
+
+        if (!array_key_exists($this->type, self::$representTypes)) {
+            throw new Exception("Unsupported represent type: '{$this->type}'. Supported are: " . implode(',', array_keys(self::$representTypes)), 500);
+        }
         
         foreach ((array)$conceptDef['affectedConjuncts'] as $conjId) {
             $conj = Conjunct::getConjunct($conjId);
@@ -232,6 +253,11 @@ class Concept
     public function getId(): string
     {
         return $this->name;
+    }
+
+    public function getDatatype(): string
+    {
+        return self::$representTypes[$this->type]['datatype'];
     }
     
     /**
