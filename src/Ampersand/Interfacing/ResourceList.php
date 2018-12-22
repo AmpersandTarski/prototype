@@ -245,8 +245,9 @@ class ResourceList
 
     public static function makeFromInterface(Atom $srcAtom, string $ifcId): ResourceList
     {
+        // Same as in InterfaceNullObject::buildResourcePath()
         if ($srcAtom->concept->isSession()) {
-            $pathEntry = "session"; // Don't put session id here, this is implicit
+            $pathEntry = "resource/SESSION/1"; // Don't put session id here, this is implicit
         } else {
             $pathEntry = "resource/{$srcAtom->concept->name}/{$srcAtom->id}";
         }
