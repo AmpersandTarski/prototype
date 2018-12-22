@@ -200,32 +200,44 @@ class Resource extends Atom implements ArrayAccess
                 continue; // skip special internal attributes
             }
             try {
-                $subifc = $this->ifc->getSubinterface($ifcId, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
+                $list = $this->all($ifcId);
             } catch (Exception $e) {
                 Logger::getLogger('INTERFACING')->warning("Unknown attribute '{$ifcId}' in PUT data");
                 continue;
             }
 
-            if ($subifc->isUni()) { // expect value to be object or literal
-                if (isset($value->_id_)) { // object with _id_ attribute
-                    $subifc->set($this, $value->_id_);
-                } else { // null object, string (object id) or literal
-                    $subifc->set($this, $value);
+            if ($list->isUni()) {
+                if (is_null($value) || is_scalar($value)) { // null or scalar (i.e. int, float, string, bool)
+                    $list->set($value);
+                } elseif (is_object($value)) {
+                    if (isset($value->_id_)) { // object with _id_ attribute
+                        $list->set($value->_id_);
+                    } else { // object to post
+                        $list->post($value);
+                    }
+                } else {
+                    throw new Exception("Wrong datatype provided: expecting null, scalar or object for '{$list->getIfcObject()->getPath()}'", 400);
                 }
             } else { // expect value to be array
                 if (!is_array($value)) {
-                    throw new Exception("Array expected but not provided while updating " . $subifc->getPath(), 400);
+                    throw new Exception("Wrong datatype provided: expecting array for {$list->getIfcObject()->getPath()}", 400);
                 }
                 
                 // First empty existing list
-                $subifc->removeAll($this);
+                $list->removeAll();
                 
                 // Add provided values
                 foreach ($value as $item) {
-                    if (isset($item->_id_)) { // object with _id_ attribute
-                        $subifc->add($this, $item->_id_);
-                    } else { // null object, string (object id) or literal
-                        $subifc->add($this, $item);
+                    if (is_scalar($item)) { // scalar (i.e. int, float, string, bool)
+                        $list->add($item);
+                    } elseif (is_object($item)) {
+                        if (isset($item->_id_)) { // object with _id_ attribute
+                            $list->add($item->_id_);
+                        } else { // object to post
+                            $list->post($item);
+                        }
+                    } else {
+                        throw new Exception("Wrong datatype provided: expecting scalar or object for '{$list->getIfcObject()->getPath()}'", 400);
                     }
                 }
             }

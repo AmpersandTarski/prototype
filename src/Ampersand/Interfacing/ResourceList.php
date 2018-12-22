@@ -229,6 +229,11 @@ class ResourceList
         $this->ifcObject->remove($this->srcAtom, $value);
     }
 
+    public function removeAll(): void
+    {
+        $this->ifcObject->removeAll($this->srcAtom);
+    }
+
     protected function makeResource(Atom $atom): Resource
     {
         return new Resource($atom->id, $atom->concept, $this);
