@@ -28,10 +28,8 @@ settings:
 
   ### Session
   session.expirationTime: 3600 # expiration time in seconds
-
-  ### Login
-  login.enabled: false # enable/disable login functionality (requires SIAM module)
-  login.loginPage: null # other example: '/ext/Login'
+  session.loginEnabled: false # enable/disable login functionality (requires SIAM module)
+  session.loginPage: null # other example: '/ext/Login'
 
   ### Transaction settings
   transactions.ignoreInvariantViolations: false # for debugging can be set to true (transactions will be committed regardless off invariant violations)

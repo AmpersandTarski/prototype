@@ -52,10 +52,10 @@ $apiContainer['errorHandler'] = function ($c) {
                 case 401: // Unauthorized
                 case 403: // Forbidden
                     $logger->warning($exception->getMessage());
-                    if ($ampersandApp->getSettings()->get('login.enabled') && !$ampersandApp->getSession()->sessionUserLoggedIn()) {
+                    if ($ampersandApp->getSettings()->get('session.loginEnabled') && !$ampersandApp->getSession()->sessionUserLoggedIn()) {
                         $code = 401;
                         $message = "Please login to access this page";
-                        $data['loginPage'] = $ampersandApp->getSettings()->get('login.loginPage');
+                        $data['loginPage'] = $ampersandApp->getSettings()->get('session.loginPage');
                     } else {
                         $code = 403;
                         $message = "You do not have access to this page";

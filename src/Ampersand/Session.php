@@ -107,7 +107,7 @@ class Session
 
             // If login functionality is not enabled, add all defined roles as allowed roles
             // TODO: can be removed when meat-grinder populates this meta-relation by itself
-            if (!$this->settings->get('login.enabled')) {
+            if (!$this->settings->get('session.loginEnabled')) {
                 foreach (Role::getAllRoles() as $role) {
                     $roleAtom = Concept::makeRoleAtom($role->label);
                     $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*Role]')->add();
@@ -214,7 +214,7 @@ class Session
     {
         $this->logger->debug("Getting sessionAccount");
 
-        if (!$this->settings->get('login.enabled')) {
+        if (!$this->settings->get('session.loginEnabled')) {
             $this->logger->debug("No session account, because login functionality is not enabled");
             return false;
         } else {
@@ -260,7 +260,7 @@ class Session
      */
     public function sessionUserLoggedIn()
     {
-        if (!$this->settings->get('login.enabled')) {
+        if (!$this->settings->get('session.loginEnabled')) {
             return false;
         } elseif ($this->getSessionAccount() !== false) {
             return true;
