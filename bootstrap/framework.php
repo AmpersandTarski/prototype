@@ -71,12 +71,11 @@ $angularApp = new AngularApp($ampersandApp, Logger::getLogger('FRONTEND'));
 /**************************************************************************************************
  * DATABASE and PLUGS
  *************************************************************************************************/
-$mysqlSettings = $settings->get('mysqlSettings');
 $mysqlDB = new MysqlDB(
-    $mysqlSettings->dbHost,
-    $mysqlSettings->dbUser,
-    $mysqlSettings->dbPass,
-    $mysqlSettings->dbName,
+    $settings->get('mysql_dbHost'),
+    $settings->get('mysql_dbUser'),
+    $settings->get('mysql_dbPass'),
+    $settings->get('mysql_dbName'),
     Logger::getLogger('DATABASE'),
     $settings->get('global.debugMode')
 );
