@@ -1,6 +1,7 @@
 angular.module('AmpersandApp')
 .service('NavigationBarService', function(Restangular, $localStorage, $sessionStorage, $timeout, NotificationService){
     let navbar = {
+        home: null, // home/start page, can be set in project.yaml (default: '#/prototype/welcome')
         top: [],
         new: [],
         refresh: [],
@@ -41,6 +42,7 @@ angular.module('AmpersandApp')
                 data = data.plain();
 
                 // Content of navbar
+                navbar.home = data.home;
                 navbar.top = data.top;
                 navbar.new = data.new;
                 navbar.refresh = data.refresh;

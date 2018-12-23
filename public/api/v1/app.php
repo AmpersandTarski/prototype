@@ -39,7 +39,8 @@ $api->group('/app', function () {
         
         $session = $ampersandApp->getSession();
         $settings = $ampersandApp->getSettings();
-        $content =  ['top' => $angularApp->getMenuItems('top')
+        $content =  ['home' => $ampersandApp->getSettings()->get('frontend.homePage')
+                    ,'top' => $angularApp->getMenuItems('top')
                     ,'new' => $angularApp->getMenuItems('new')
                     ,'refresh' => $angularApp->getMenuItems('refresh')
                     ,'ext' => $angularApp->getMenuItems('ext')

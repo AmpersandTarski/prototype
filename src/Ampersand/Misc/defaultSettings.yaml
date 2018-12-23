@@ -47,6 +47,9 @@ settings:
   notifications.defaultShowErrors: true
   notifications.defaultShowInvariants: true
 
+  ### Frontend settings
+  frontend.homePage: "#/prototype/welcome"
+
   ### ExecEngine settings
   execengine.execEngineRoleNames: [ExecEngine]
   execengine.autoRerun: true

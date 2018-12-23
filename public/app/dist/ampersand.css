@@ -238,6 +238,40 @@ input .ng-invalid .ng-dirty {
 .interface .glyphicon-blue {
     color: #428bca;
 }
+#notificationCenter {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+#successes {
+    position: absolute;
+    width: 100%;
+    z-index: 999;
+}
+
+#notificationCenter .alert {
+    margin-bottom: 2px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#notificationCenter .panel {
+    margin-bottom: 2px;
+}
+
+#notificationCenter .panel-heading {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#notificationCenter .panel .list-group-item {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#notificationCenter p {
+    margin: 0px;
+}
 .navbar {
     min-height: initial;
     margin-bottom: 0px;
@@ -406,38 +440,4 @@ input .ng-invalid .ng-dirty {
     -webkit-border-radius: 6px 0 6px 6px;
     -moz-border-radius: 6px 0 6px 6px;
     border-radius: 6px 0 6px 6px;
-}
-#notificationCenter {
-    position: relative;
-    margin-bottom: 10px;
-}
-
-#successes {
-    position: absolute;
-    width: 100%;
-    z-index: 999;
-}
-
-#notificationCenter .alert {
-    margin-bottom: 2px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-}
-
-#notificationCenter .panel {
-    margin-bottom: 2px;
-}
-
-#notificationCenter .panel-heading {
-    padding-top: 5px;
-    padding-bottom: 5px;
-}
-
-#notificationCenter .panel .list-group-item {
-    padding-top: 5px;
-    padding-bottom: 5px;
-}
-
-#notificationCenter p {
-    margin: 0px;
 }
