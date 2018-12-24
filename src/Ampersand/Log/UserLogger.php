@@ -187,7 +187,7 @@ class UserLogger extends AbstractLogger
         $message = $violation->getViolationMessage();
         
         $this->signals[$ruleHash]['violations'][] = ['message' => $message
-                                                    ,'ifcs' => $ifcs
+                                                    ,'ifcs' => array_values($ifcs)
                                                     ];
         
         $this->logger->debug("SIGNAL '{$message}' RULE: '{$violation->rule}'");
