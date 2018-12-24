@@ -82,6 +82,16 @@ class UserLogger extends AbstractLogger
                 $errorHash = hash('md5', $message);
                 $this->errors[$errorHash]['message'] = $message;
                 $this->errors[$errorHash]['count']++;
+                if (!empty($context)) {
+                    $rows = array_map(function ($item) {
+                        if (is_array($item)) {
+                            return array_map('strval', $item);
+                        } else {
+                            return strval($item);
+                        }
+                    }, $context);
+                    $this->errors[$errorHash]['details'] = "<pre>" . print_r($rows, true) . "</pre>";
+                }
                 break;
             default:
                 throw new Exception("Unsupported log level: {$level}", 500);

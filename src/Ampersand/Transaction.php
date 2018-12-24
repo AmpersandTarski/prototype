@@ -182,8 +182,8 @@ class Transaction
 
             // Prevent infinite loop in exec engine reruns
             if ($runCounter >= $maxRunCount && $doRun) {
-                $logger->error("Maximum reruns exceeded (hint! rules fixed in last run:" . implode(', ', $rulesFixed) . ")");
-                $this->app->userLog()->error("Maximum reruns exceeded for ExecEngine");
+                $logger->error("Maximum reruns exceeded. Rules fixed in last run:" . implode(', ', $rulesFixed) . ")");
+                $this->app->userLog()->error("Maximum reruns exceeded for ExecEngine", ['Rules fixed in last run' => $rulesFixed]);
                 $doRun = false;
             }
             $logger->info("+} Exec engine run finished");
