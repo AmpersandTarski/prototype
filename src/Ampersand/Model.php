@@ -109,7 +109,7 @@ class Model
         */
 
         // Now: use the hash value from generated output (created by Haskell codebase)
-        file_put_contents($this->checksumFile, $this->getSetting('compiler_modelHash'));
+        file_put_contents($this->checksumFile, $this->getSetting('compiler.modelHash'));
     }
 
     /**
@@ -121,7 +121,7 @@ class Model
     {
         $this->logger->debug("Verifying checksum for Ampersand model files");
 
-        return (file_get_contents($this->checksumFile) === $this->getSetting('compiler_modelHash'));
+        return (file_get_contents($this->checksumFile) === $this->getSetting('compiler.modelHash'));
 
         /* Earlier implementation.
         $valid = true; // assume all checksums match

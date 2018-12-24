@@ -147,7 +147,7 @@ class AmpersandApp
         $this->settings = $settings;
 
         // Set app name
-        $this->name = $this->settings->get('global_contextName');
+        $this->name = $this->settings->get('global.contextName');
     }
 
     public function getName()
