@@ -107,6 +107,11 @@ class Ifc
         return empty($this->ifcRoleNames);
     }
 
+    public function isAPI(): bool
+    {
+        return $this->isAPI;
+    }
+
     public function getIfcObject(): InterfaceObjectInterface
     {
         return $this->ifcObject;

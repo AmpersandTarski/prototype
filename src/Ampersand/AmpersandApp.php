@@ -616,7 +616,7 @@ class AmpersandApp
             return $ifc->getSrcConcept()->hasSpecialization($cpt, true)
                     && $ifcObj->crudR()
                     && (!$ifcObj->crudC() or ($ifcObj->crudU() or $ifcObj->crudD()) // exclude CRud pattern
-                    && !$ifc->isAPI()); // don't include API interfaces 
+                    && !$ifc->isAPI()); // don't include API interfaces
         });
     }
 
