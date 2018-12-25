@@ -7,25 +7,21 @@
 
 namespace Ampersand\Plugs\MysqlDB;
 
-use mysqli;
 use DateTime;
 use Exception;
 use DateTimeZone;
-use Ampersand\Misc\Config;
 use Ampersand\Model;
-use Ampersand\Session;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Link;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\ViewSegment;
-use Ampersand\Interfacing\InterfaceObject;
+use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Plugs\RelationPlugInterface;
 use Ampersand\Plugs\ViewPlugInterface;
 use Ampersand\Transaction;
-use Ampersand\Rule\Conjunct;
 use Psr\Log\LoggerInterface;
 use Ampersand\Exception\NotInstalledException;
 
@@ -46,6 +42,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     /**
      * A connection to the mysql database
      *
+     * @var \mysqli
      */
     protected $dbLink;
     
@@ -85,6 +82,14 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     protected $dbTransactionActive = false;
 
     /**
+     * Specifies is this object is in debug mode
+     * Affects the database exception-/error messages that are returned by this object
+     *
+     * @var bool
+     */
+    protected $debugMode = false;
+
+    /**
      * Contains the last executed query
      *
      * @var $string
@@ -112,7 +117,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      * @param string $dbName
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(string $dbHost, string $dbUser, string $dbPass, string $dbName, LoggerInterface $logger)
+    public function __construct(string $dbHost, string $dbUser, string $dbPass, string $dbName, LoggerInterface $logger, bool $debugMode = false)
     {
         $this->logger = $logger;
 
@@ -120,6 +125,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $this->dbUser = $dbUser;
         $this->dbPass = $dbPass;
         $this->dbName = $dbName;
+
+        $this->debugMode = $debugMode;
         
         try {
             // Enable mysqli errors to be thrown as Exceptions
@@ -129,7 +136,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             $this->dbLink = mysqli_init();
             
             // Flag MYSQLI_CLIENT_FOUND_ROWS -> https://www.codepuppet.com/2014/02/16/mysql-affected-rows-vs-rows-matched/
-            $this->dbLink->real_connect($this->dbHost, $this->dbUser, $this->dbPass, null, null, null, MYSQLI_CLIENT_FOUND_ROWS);
+            $this->dbLink->real_connect($this->dbHost, $this->dbUser, $this->dbPass, '', 0, '', MYSQLI_CLIENT_FOUND_ROWS);
             $this->dbLink->set_charset("utf8");
             
             // Set sql_mode to ANSI
@@ -150,7 +157,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         try {
             $this->dbLink->select_db($this->dbName);
         } catch (Exception $e) {
-            if (!Config::get('productionEnv')) {
+            if ($this->debugMode) {
                 switch ($e->getCode()) {
                     case 1049: // Error: 1049 SQLSTATE: 42000 (ER_BAD_DB_ERROR) --> Database ($this->dbName) does not (yet) exist
                         throw new NotInstalledException("Database {$this->dbName} does not exist");
@@ -262,7 +269,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         }
         
         $arr = [];
-        while ($row = mysqli_fetch_array($result)) {
+        while ($row = mysqli_fetch_assoc($result)) {
             $arr[] = $row;
         }
         return $arr;
@@ -312,7 +319,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             }
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
-            if (!Config::get('productionEnv')) {
+            if ($this->debugMode) {
                 // Convert mysqli_sql_exceptions into 500 errors
                 switch ($e->getCode()) {
                     case 1146: // Error: 1146 SQLSTATE: 42S02 (ER_NO_SUCH_TABLE)
@@ -769,11 +776,11 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     /**
      * Execute query for given interface expression and source atom
      *
-     * @param \Ampersand\Interfacing\InterfaceObject $ifc
+     * @param \Ampersand\Interfacing\InterfaceExprObject $ifc
      * @param \Ampersand\Core\Atom $srcAtom
      * @return mixed
      */
-    public function executeIfcExpression(InterfaceObject $ifc, Atom $srcAtom)
+    public function executeIfcExpression(InterfaceExprObject $ifc, Atom $srcAtom)
     {
         $srcAtomId = $this->getDBRepresentation($srcAtom);
         $query = $ifc->getQuery();
@@ -817,10 +824,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     protected function checkForAffectedRows()
     {
         if ($this->dbLink->affected_rows == 0) {
-            if (Config::get('productionEnv')) {
-                $this->logger->warning("No recors affected with query '{$this->lastQuery}'");
-            } else {
+            if ($this->debugMode) {
                 throw new Exception("Oops.. something went wrong. No records affected in database", 500);
+            } else { // silent + warning in log
+                $this->logger->warning("No recors affected with query '{$this->lastQuery}'");
             }
         }
     }

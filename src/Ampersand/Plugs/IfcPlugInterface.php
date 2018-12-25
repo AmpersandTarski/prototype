@@ -8,10 +8,10 @@
 namespace Ampersand\Plugs;
 
 use Ampersand\Core\Atom;
-use Ampersand\Interfacing\InterfaceObject;
+use Ampersand\Interfacing\InterfaceExprObject;
 
 /**
- * Interface for a InterfaceObject plug implementations
+ * Interface for a plug for an InterfaceExprObject
  *
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
@@ -20,9 +20,9 @@ interface IfcPlugInterface extends PlugInterface
 {
     
     /**
-     * @param \Ampersand\Interfacing\InterfaceObject $ifc
+     * @param \Ampersand\Interfacing\InterfaceExprObject $ifc
      * @param \Ampersand\Core\Atom $srcAtom
      * @return mixed
      */
-    public function executeIfcExpression(InterfaceObject $ifc, Atom $srcAtom);
+    public function executeIfcExpression(InterfaceExprObject $ifc, Atom $srcAtom);
 }

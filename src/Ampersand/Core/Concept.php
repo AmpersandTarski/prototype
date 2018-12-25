@@ -10,15 +10,12 @@ namespace Ampersand\Core;
 use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTable;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
-use Ampersand\Interfacing\Resource;
-use Ampersand\Interfacing\InterfaceObject;
 use Ampersand\Interfacing\View;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Atom;
-use Ampersand\Misc\Config;
-use Ampersand\Transaction;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
+use Ampersand\AmpersandApp;
 
 /**
  *
@@ -33,12 +30,36 @@ class Concept
      * @var \Ampersand\Core\Concept[]
      */
     private static $allConcepts;
+
+    protected static $representTypes =
+        [ 'ALPHANUMERIC'        => ['datatype' => 'string']
+        , 'BIGALPHANUMERIC'     => ['datatype' => 'string']
+        , 'HUGEALPHANUMERIC'    => ['datatype' => 'string']
+        , 'PASSWORD'            => ['datatype' => 'string']
+        , 'BINARY'              => ['datatype' => 'binary']
+        , 'BIGBINARY'           => ['datatype' => 'binary']
+        , 'HUGEBINARY'          => ['datatype' => 'binary']
+        , 'DATE'                => ['datatype' => 'date']
+        , 'DATETIME'            => ['datatype' => 'datetime']
+        , 'BOOLEAN'             => ['datatype' => 'boolean']
+        , 'INTEGER'             => ['datatype' => 'integer']
+        , 'FLOAT'               => ['datatype' => 'float']
+        , 'OBJECT'              => ['datatype' => 'object']
+        , 'TYPEOFONE'           => ['datatype' => 'string']
+        ];
     
     /**
      *
      * @var \Psr\Log\LoggerInterface
      */
     private $logger;
+
+    /**
+     * Reference to Ampersand app for which this concept is defined
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $app;
     
     /**
      * Dependency injection of ConceptPlug implementation
@@ -160,16 +181,22 @@ class Concept
      *
      * @param array $conceptDef
      * @param \Psr\Log\LoggerInterface $logger
+     * @param \Ampersand\AmpersandApp $app
      */
-    private function __construct(array $conceptDef, LoggerInterface $logger)
+    private function __construct(array $conceptDef, LoggerInterface $logger, AmpersandApp $app)
     {
         $this->logger = $logger;
+        $this->app = $app;
         
         $this->def = $conceptDef;
         
         $this->name = $conceptDef['id'];
         $this->label = $conceptDef['label'];
         $this->type = $conceptDef['type'];
+
+        if (!array_key_exists($this->type, self::$representTypes)) {
+            throw new Exception("Unsupported represent type: '{$this->type}'. Supported are: " . implode(',', array_keys(self::$representTypes)), 500);
+        }
         
         foreach ((array)$conceptDef['affectedConjuncts'] as $conjId) {
             $conj = Conjunct::getConjunct($conjId);
@@ -227,6 +254,11 @@ class Concept
     {
         return $this->name;
     }
+
+    public function getDatatype(): string
+    {
+        return self::$representTypes[$this->type]['datatype'];
+    }
     
     /**
      * Specifies if concept representation is integer
@@ -235,7 +267,7 @@ class Concept
      */
     public function isInteger(): bool
     {
-        return $this->type == "INTEGER";
+        return $this->type === "INTEGER";
     }
     
     /**
@@ -245,7 +277,7 @@ class Concept
      */
     public function isObject(): bool
     {
-        return $this->type == "OBJECT";
+        return $this->type === "OBJECT";
     }
     
     /**
@@ -256,7 +288,7 @@ class Concept
     public function isFileObject(): bool
     {
         foreach ($this->getGeneralizationsIncl() as $concept) {
-            if ($concept->label == 'FileObject') {
+            if ($concept->label === 'FileObject') {
                 return true;
             }
         }
@@ -271,7 +303,7 @@ class Concept
     public function isSession(): bool
     {
         foreach ($this->getGeneralizationsIncl() as $concept) {
-            if ($concept->label == 'SESSION') {
+            if ($concept->label === 'SESSION') {
                 return true;
             }
         }
@@ -398,16 +430,6 @@ class Concept
     }
     
     /**
-     * Returns default view for this concept (or null if no default view defined)
-     *
-     * @return \Ampersand\Interfacing\View|NULL
-     */
-    public function getDefaultView()
-    {
-        return $this->defaultView;
-    }
-    
-    /**
      * Returns array with signal conjuncts that are affected by creating or deleting an atom of this concept
      *
      * @return \Ampersand\Rule\Conjunct[]
@@ -426,17 +448,6 @@ class Concept
     public function getConceptTableInfo()
     {
         return $this->mysqlConceptTable;
-    }
-    
-    /**
-     *
-     * @return \Ampersand\Interfacing\InterfaceObject[]
-     */
-    public function getInterfaces(): array
-    {
-        return array_map(function ($ifcId) {
-            $ifc = InterfaceObject::getInterface($ifcId);
-        }, $this->interfaceIds);
     }
 
     /**
@@ -484,8 +495,8 @@ class Concept
      */
     public function createNewAtomId(): string
     {
-        static $prevTimeSeconds = null;
-        static $prevTimeMicros  = null;
+        static $prevTimeSeconds = 0;
+        static $prevTimeMicros  = 0;
 
         // TODO: remove this hack with _AI (autoincrement feature)
         if (strpos($this->name, '_AI') !== false && $this->isInteger()) {
@@ -500,6 +511,8 @@ class Concept
                 $atomId = $result[0] + 1;
             }
         } else {
+            /** @var string $timeMicros */
+            /** @var string $timeSeconds */
             list($timeMicros, $timeSeconds) = explode(' ', microTime());
             $timeMicros = substr($timeMicros, 2, 6); // we drop the leading "0." and trailing "00"  from the microseconds
             
@@ -572,6 +585,20 @@ class Concept
     {
         return $this->primaryPlug->getAllAtoms($this);
     }
+
+    /**
+     * Returns view data for given atom
+     * @param \Ampersand\Core\Atom $atom
+     * @return array
+     */
+    public function getViewData(Atom $atom): array
+    {
+        if (is_null($this->defaultView)) {
+            return [];
+        } else {
+            return $this->defaultView->getViewData($atom);
+        }
+    }
     
     /**
      * Creating and adding a new atom to the plug
@@ -588,7 +615,7 @@ class Concept
                 $this->logger->debug("Atom {$atom} already exists in concept");
             } else {
                 $this->logger->debug("Add atom {$atom} to plug");
-                Transaction::getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
+                $this->app->getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
                 
                 foreach ($this->getPlugs() as $plug) {
                     $plug->addAtom($atom); // Add to plug
@@ -636,7 +663,7 @@ class Concept
         // Check if atom exists
         if ($atom->exists()) {
             $this->logger->debug("Remove atom {$atom} from {$this} in plug");
-            Transaction::getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
+            $this->app->getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
             
             foreach ($this->getPlugs() as $plug) {
                 $plug->removeAtom($atom); // Remove from concept in plug
@@ -663,7 +690,7 @@ class Concept
     {
         if ($atom->exists()) {
             $this->logger->debug("Delete atom {$atom} from plug");
-            Transaction::getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
+            $this->app->getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
             
             foreach ($this->getPlugs() as $plug) {
                 $plug->deleteAtom($atom); // Delete from plug
@@ -820,14 +847,14 @@ class Concept
      * @param \Psr\Log\LoggerInterface $logger
      * @return void
      */
-    public static function setAllConcepts(string $fileName, LoggerInterface $logger)
+    public static function setAllConcepts(string $fileName, LoggerInterface $logger, AmpersandApp $app)
     {
         self::$allConcepts = [];
         
         $allConceptDefs = (array)json_decode(file_get_contents($fileName), true);
     
         foreach ($allConceptDefs as $conceptDef) {
-            self::$allConcepts[$conceptDef['id']] = new Concept($conceptDef, $logger);
+            self::$allConcepts[$conceptDef['id']] = new Concept($conceptDef, $logger, $app);
         }
     }
 }

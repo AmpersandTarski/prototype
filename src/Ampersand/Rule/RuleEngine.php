@@ -7,9 +7,7 @@
 
 namespace Ampersand\Rule;
 
-use Ampersand\Misc\Config;
 use Ampersand\Rule\Violation;
-use Psr\Cache\CacheItemPoolInterface;
 
 /**
  *

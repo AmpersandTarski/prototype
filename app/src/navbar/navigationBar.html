@@ -1,7 +1,7 @@
 <nav class="navbar navbar-default" role="navigation" ng-controller="NavigationBarController" cg-busy="{promise:loadingNavBar}">
     <div id="navbar-wrapper" class="container">
         <ul class="nav navbar-nav" id="navbar-interfaces" my-navbar-resize>
-            <li><a href="#/"><span class="glyphicon glyphicon-home"></span></a></li>
+            <li ng-show="navbar.home"><a ng-href="{{navbar.home}}"><span class="glyphicon glyphicon-home"></span></a></li>
             <li id="navbar-interfaces-dropdown" class="dropdown">
                 <a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
                 <ul id="navbar-interfaces-dropdown-menu" class="dropdown-menu" role="menu"></ul>

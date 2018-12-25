@@ -119,28 +119,4 @@ class Violation
         }
         return $this->message = implode($strArr); // glue as one string
     }
-
-    /**
-     * Get list of interfaces to solve the violation
-     *
-     * @param string $srcOrTgt specifies to get interfaces for source concept (src), target concept (tgt) or both (null)
-     * @return \Ampersand\Interfacing\InterfaceObject[]
-     */
-    public function getInterfaces($srcOrTgt = null): array
-    {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp; // TODO: remove dependency to global $ampersandApp
-        
-        switch ($srcOrTgt) {
-            case 'src':
-                return $ampersandApp->getInterfacesToReadConcepts([$this->src->concept]);
-                break;
-            case 'tgt':
-                return $ampersandApp->getInterfacesToReadConcepts([$this->tgt->concept]);
-                break;
-            default:
-                return $ampersandApp->getInterfacesToReadConcepts([$this->src->concept, $this->tgt->concept]);
-                break;
-        }
-    }
 }

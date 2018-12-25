@@ -71,10 +71,6 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * @param string $key
      *   The key for which to return the corresponding Cache Item.
      *
-     * @throws \Psr\Cache\InvalidArgumentException
-     *   If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
-     *   MUST be thrown.
-     *
      * @return \Psr\Cache\CacheItemInterface
      *   The corresponding Cache Item.
      */
@@ -96,10 +92,6 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      *
      * @param string[] $keys
      *   An indexed array of keys of items to retrieve.
-     *
-     * @throws \Psr\Cache\InvalidArgumentException
-     *   If any of the keys in $keys are not a legal value a \Psr\Cache\InvalidArgumentException
-     *   MUST be thrown.
      *
      * @return array|\Traversable
      *   A traversable collection of Cache Items keyed by the cache keys of
@@ -136,10 +128,6 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * @param string $key
      *   The key for which to check existence.
      *
-     * @throws \Psr\Cache\InvalidArgumentException
-     *   If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
-     *   MUST be thrown.
-     *
      * @return bool
      *   True if item exists in the cache, false otherwise.
      */
@@ -168,10 +156,6 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * @param string $key
      *   The key to delete.
      *
-     * @throws \Psr\Cache\InvalidArgumentException
-     *   If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
-     *   MUST be thrown.
-     *
      * @return bool
      *   True if the item was successfully removed. False if there was an error.
      */
@@ -185,10 +169,6 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      *
      * @param string[] $keys
      *   An array of keys that should be removed from the pool.
-
-     * @throws \Psr\Cache\InvalidArgumentException
-     *   If any of the keys in $keys are not a legal value a \Psr\Cache\InvalidArgumentException
-     *   MUST be thrown.
      *
      * @return bool
      *   True if the items were successfully removed. False if there was an error.

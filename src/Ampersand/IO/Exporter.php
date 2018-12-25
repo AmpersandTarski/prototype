@@ -7,11 +7,11 @@
 
 namespace Ampersand\IO;
 
-use Exception;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
-use Ampersand\IO\AbstractWriter;
+use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Serializer\Encoder\EncoderInterface;
 
 class Exporter
 {
@@ -26,24 +26,33 @@ class Exporter
     /**
      * Undocumented variable
      *
-     * @var \Ampersand\IO\AbstractWriter
+     * @var \Symfony\Component\Serializer\Encoder\EncoderInterface
      */
-    protected $writer;
+    protected $encoder;
+
+    /**
+     * Stream to export to
+     *
+     * @var \Psr\Http\Message\StreamInterface
+     */
+    protected $stream;
     
     /**
      * Constructor
      *
-     * @param \Ampersand\IO\AbstractWriter $writer
+     * @param \Symfony\Component\Serializer\Encoder\EncoderInterface $encoder
+     * @param \Psr\Http\Message\StreamInterface $stream
      * @param \Psr\Log\LoggerInterface $logger
      * @param array $options
      */
-    public function __construct(AbstractWriter $writer, LoggerInterface $logger, array $options = [])
+    public function __construct(EncoderInterface $encoder, StreamInterface $stream, LoggerInterface $logger, array $options = [])
     {
         $this->logger = $logger;
-        $this->writer = $writer;
+        $this->encoder = $encoder;
+        $this->stream = $stream;
     }
 
-    public function exportAllPopulation()
+    public function exportAllPopulation(string $format)
     {
         $conceptPop = [];
         foreach (Concept::getAllConcepts() as $concept) {
@@ -63,7 +72,7 @@ class Exporter
             ];
         }
 
-        $this->writer->write(['atoms' => $conceptPop, 'links' => $relationPop]);
+        $this->stream->write($this->encoder->encode(['atoms' => $conceptPop, 'links' => $relationPop], $format));
 
         return $this;
     }

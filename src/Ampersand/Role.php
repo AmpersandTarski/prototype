@@ -8,8 +8,8 @@
 namespace Ampersand;
 
 use Exception;
-use Ampersand\Interfacing\InterfaceObject;
 use Ampersand\Rule\Rule;
+use Ampersand\Interfacing\Ifc;
 
 /**
  *
@@ -50,7 +50,7 @@ class Role
     
     /**
      * List of all interfaces that are accessible by this role
-     * @var \Ampersand\Interfacing\InterfaceObject[]
+     * @var \Ampersand\Interfacing\Ifc[]
      */
     protected $interfaces = [];
     
@@ -71,7 +71,7 @@ class Role
         }
         
         foreach ($roleDef['interfaces'] as $ifcId) {
-            $this->interfaces[] = InterfaceObject::getInterface($ifcId);
+            $this->interfaces[] = Ifc::getInterface($ifcId);
         }
     }
     
@@ -98,7 +98,7 @@ class Role
     /**
      * Get list of interfaces that are accessible for this role
      *
-     * @return \Ampersand\Interfacing\InterfaceObject[]
+     * @return \Ampersand\Interfacing\Ifc[]
      */
     public function interfaces(): array
     {

@@ -27,7 +27,7 @@ class MysqlDBTable
      *
      * @var array
      */
-    private $cols = [];
+    protected $cols = [];
     
     /**
      *
@@ -42,7 +42,7 @@ class MysqlDBTable
      */
     public function __construct(string $name)
     {
-        if ($name == '') {
+        if ($name === '') {
             throw new Exception("Database table name is an empty string", 500);
         }
         $this->name = $name;

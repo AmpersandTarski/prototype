@@ -7,9 +7,11 @@
 
 namespace Ampersand;
 
-use Psr\Log\LoggerInterface;
 use Exception;
-use Ampersand\IO\JSONReader;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Serializer\Encoder\JsonDecode;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
 
 /**
  *
@@ -55,10 +57,12 @@ class Model
      */
     public function __construct(string $folder, LoggerInterface $logger)
     {
-        $this->folder = realpath($folder);
         $this->logger = $logger;
+        $fileSystem = new Filesystem;
 
-        $this->checksumFile = "{$this->folder}/checksums.txt";
+        if (($this->folder = realpath($folder)) === false) {
+            throw new Exception("Specified folder for Ampersand model does not exist: '{$folder}'", 500);
+        }
         
         // Ampersand model files
         $this->modelFiles = [
@@ -70,8 +74,14 @@ class Model
             'roles' => $this->folder . '/roles.json',
             'rules' => $this->folder . '/rules.json',
             'settings' => $this->folder . '/settings.json',
-            'views' => $this->folder . '/views.json'
+            'views' => $this->folder . '/views.json',
         ];
+
+        if (!$fileSystem->exists($this->modelFiles)) {
+            throw new Exception("Not all Ampersand model files are provided. Check model folder '{$this->folder}'", 500);
+        }
+
+        $this->checksumFile = "{$this->folder}/checksums.txt";
         
         // Write checksum file if not yet exists
         if (!file_exists($this->checksumFile)) {
@@ -99,7 +109,7 @@ class Model
         */
 
         // Now: use the hash value from generated output (created by Haskell codebase)
-        file_put_contents($this->checksumFile, $this->getSetting('modelHash'));
+        file_put_contents($this->checksumFile, $this->getSetting('compiler.modelHash'));
     }
 
     /**
@@ -111,7 +121,7 @@ class Model
     {
         $this->logger->debug("Verifying checksum for Ampersand model files");
 
-        return (file_get_contents($this->checksumFile) === $this->getSetting('modelHash'));
+        return (file_get_contents($this->checksumFile) === $this->getSetting('compiler.modelHash'));
 
         /* Earlier implementation.
         $valid = true; // assume all checksums match
@@ -137,18 +147,22 @@ class Model
         return $this->folder;
     }
 
-    protected function loadFile(string $filename): JSONReader
+    public function getFilePath(string $filename): string
     {
         if (!array_key_exists($filename, $this->modelFiles)) {
             throw new Exception("File '{$filename}' is not part of the specified Ampersand model files", 500);
         }
 
-        $reader = new JSONReader();
-        $reader->loadFile($this->modelFiles[$filename]);
-        return $reader;
+        return $this->modelFiles[$filename];
     }
 
-    public function getFile(string $filename): JSONReader
+    protected function loadFile(string $filename)
+    {
+        $decoder = new JsonDecode(false);
+        return $decoder->decode(file_get_contents($this->getFilePath($filename)), JsonEncoder::FORMAT);
+    }
+
+    protected function getFileContent(string $filename)
     {
         static $loadedFiles = [];
 
@@ -159,9 +173,9 @@ class Model
         return $loadedFiles[$filename];
     }
 
-    public function getSetting(string $setting)
+    protected function getSetting(string $setting)
     {
-        $settings = $this->getFile('settings')->getContent();
+        $settings = $this->getFileContent('settings');
         
         if (!property_exists($settings, $setting)) {
             throw new Exception("Undefined setting '{$setting}'", 500);

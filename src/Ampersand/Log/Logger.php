@@ -7,9 +7,10 @@
 
 namespace Ampersand\Log;
 
+use Exception;
+use Cascade\Cascade;
+use Monolog\Registry;
 use Psr\Log\LoggerInterface;
-use Closure;
-use Psr\Log\NullLogger;
 
 /**
  *
@@ -18,18 +19,6 @@ use Psr\Log\NullLogger;
  */
 class Logger
 {
-    /**
-     * Contains all instantiated loggers
-     * @var \Ampersand\Log\Logger[]
-     */
-    private static $loggers = [];
-
-    /**
-     * Factory function to create new loggers
-     * @var \Closure
-     */
-    protected static $factoryFunction = null;
-
     /******************
      * STATIC METHODS
      ******************/
@@ -42,47 +31,10 @@ class Logger
      */
     public static function getLogger(string $channel): LoggerInterface
     {
-        if (isset(self::$loggers[$channel])) {
-            return self::$loggers[$channel];
+        if (Registry::hasLogger($channel)) {
+            return Cascade::getLogger($channel);
         } else {
-            if (is_null(self::$factoryFunction)) {
-                return new NullLogger();
-            }
-
-            return self::$loggers[$channel] = call_user_func(self::$factoryFunction, $channel);
+            throw new Exception("Log channel '{$channel}' not configured", 500);
         }
-    }
-    
-    /**
-     * Get logger instance to communicate to user interface
-     *
-     * @return \Psr\Log\LoggerInterface
-     */
-    public static function getUserLogger(): LoggerInterface
-    {
-        return Logger::getLogger('USERLOG');
-    }
-
-    /**
-     * Set logger for a certain channel
-     *
-     * @param string $channel
-     * @param \Psr\Log\LoggerInterface $logger
-     * @return void
-     */
-    public static function setLogger(string $channel, LoggerInterface $logger)
-    {
-        self::$loggers[$channel] = $logger;
-    }
-    
-    /**
-     * Register a closure that is called upon initialization of a logger
-     *
-     * @param \Closure $closure
-     * @return void
-     */
-    public static function setFactoryFunction(Closure $closure)
-    {
-        self::$factoryFunction = $closure;
     }
 }

@@ -3,10 +3,15 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
 .config(function($routeProvider, $locationProvider) {
     $routeProvider
         // default start page
-        .when('/', { 
+        .when('/', {
+            resolveRedirectTo : ['NavigationBarService', function (NavigationBarService) {
+                return NavigationBarService.navbar.home;
+            }]
+        })
+        .when('/prototype/welcome', { 
             controller : '',
-            templateUrl : 'app/src/shared/home.html',
-            interfaceLabel : 'Home'
+            templateUrl : 'app/src/shared/welcome.html',
+            interfaceLabel : 'Welcome'
             })
         // installer page
         .when('/admin/installer', {

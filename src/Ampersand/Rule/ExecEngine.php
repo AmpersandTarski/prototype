@@ -8,51 +8,60 @@
 namespace Ampersand\Rule;
 
 use Exception;
-use Ampersand\Misc\Config;
 use Ampersand\Role;
 use Ampersand\Log\Logger;
 use Ampersand\Rule\Violation;
 use Ampersand\Core\Atom;
-use Ampersand\Transaction;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerTrait;
+use Closure;
+use Ampersand\AmpersandApp;
 
 class ExecEngine extends RuleEngine
 {
-    
-    /**
-     * Specifies if ExecEngine should run or not. Can be used to halt the ExecEngine at some point
-     * Public variable, because it can also be set to false by an ExecEngine function using 'ExecEngine::$doRun = false;'
-     *
-     * @var bool
-     */
-    public static $doRun = true;
+    use LoggerTrait;
 
     /**
-     * Specifies if ExecEngine should automatically run a second time (to check for new violations)
+     * List of closures (functions) that can used by the ExecEngine
      *
-     * @var bool
+     * @var \Closure[]
      */
-    public static $autoRerun;
+    protected static $closures = [];
 
     /**
-     * Maximum number of ExecEngine runs
+     * Logger
+     *
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * Identifier (role id) of this exec engine
+     *
+     * @var string
+     */
+    protected $id;
+
+    /**
+     * Rules this ExecEngine maintains
+     *
+     * @var \Ampersand\Rule\Rule[]
+     */
+    protected $maintainsRules;
+
+    /**
+     * Reference to Ampersand app for which this ExecEngine is instantiated
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $ampersandApp;
+
+    /**
+     * Number of runs this exec engine is called (i.e. the checkFixRules() method)
      *
      * @var int
      */
-    public static $maxRunCount;
-    
-    /**
-     * Number of executed ExecEngine runs
-     *
-     * @var int
-     */
-    public static $runCount = 0;
-
-    /**
-     * List of callables (functions) that can used by the ExecEngine
-     *
-     * @var array
-     */
-    protected static $callables = [];
+    protected $runCount = 0;
     
     /**
      * Specifies latest atom created by a Newstruct/InsAtom function call.
@@ -60,31 +69,53 @@ class ExecEngine extends RuleEngine
      *
      * @var \Ampersand\Core\Atom|null
      */
-    protected static $newAtom = null;
-    
+    protected $newAtom = null;
+
     /**
-     * Get logger for ExecEngine
+     * Constructor
      *
-     * @return \Psr\Log\LoggerInterface
+     * @param \Ampersand\Role $role
+     * @param \Psr\Log\LoggerInterface $logger
      */
-    public static function getLogger()
+    public function __construct(Role $role, AmpersandApp $app, LoggerInterface $logger)
     {
-        return Logger::getLogger('EXECENGINE');
+        $this->logger = $logger;
+        $this->id = $role->label;
+        $this->maintainsRules = $role->maintains();
+        $this->ampersandApp = $app;
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * Logs with an arbitrary level.
+     *
+     * @param mixed  $level
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    public function log($level, $message, array $context = [])
+    {
+        $this->logger->log($level, $message, $context);
     }
 
     /**
      * Get created atom by other ExecEngine function
-     * Only is available within the same violation
-     * self::$newAtom is set to null at the start of each fixViolation run
+     * Only is available within the same violation: $newAtom is set to null at the start of each fixViolation run
      *
      * @return \Ampersand\Core\Atom
      */
-    public static function getCreatedAtom(): Atom
+    public function getCreatedAtom(): Atom
     {
-        if (is_null(self::$newAtom)) {
+        if (is_null($this->newAtom)) {
             throw new Exception("No newly created atom (_NEW) available. To fix: first execute function InsAtom.", 500);
         }
-        return self::$newAtom;
+        return $this->newAtom;
     }
 
     /**
@@ -93,86 +124,31 @@ class ExecEngine extends RuleEngine
      * @param \Ampersand\Core\Atom $atom
      * @return \Ampersand\Core\Atom
      */
-    public static function setCreatedAtom(Atom $atom): Atom
+    public function setCreatedAtom(Atom $atom): Atom
     {
-        return self::$newAtom = $atom;
+        return $this->newAtom = $atom;
+    }
+
+    public function getRunCount(): int
+    {
+        return $this->runCount;
     }
     
     /**
-     * Run all ExecEngine roles
-     * Default/standard role used in Ampersand scripts is 'ExecEngine', but other roles can be configured
+     * Perform single run for this exec engine
      *
-     * If transaction is provided, only the affected rules are checked
-     *
-     * @param \Ampersand\Transaction|null $transaction
-     * @return void
+     * @param \Ampersand\Rule\Rule[] $affectedRules
+     * @return \Ampersand\Rule\Rule[] $rulesFixed
      */
-    public static function run(Transaction $transaction = null)
+    public function checkFixRules(array $affectedRules): array
     {
-        $logger = self::getLogger();
+        $this->runCount++;
 
-        self::$maxRunCount = Config::get('maxRunCount', 'execEngine');
-        self::$autoRerun = Config::get('autoRerun', 'execEngine');
+        // Filter rules that are maintained by this exec engine
+        $rulesToCheck = array_filter($this->maintainsRules, function (Rule $rule) use ($affectedRules) {
+            return in_array($rule, $affectedRules);
+        });
 
-        $logger->info("ExecEngine started");
-        
-        $roles = [];
-        foreach ((array) Config::get('execEngineRoleNames', 'execEngine') as $roleName) {
-            try {
-                $roles[] = Role::getRoleByName($roleName);
-            } catch (Exception $e) {
-                $logger->info("ExecEngine role '{$roleName}' configured, but role is not used/defined in &-script.");
-            }
-        }
-
-        self::$maxRunCount = Config::get('maxRunCount', 'execEngine');
-        self::$autoRerun = Config::get('autoRerun', 'execEngine');
-        self::$runCount = 0;
-        self::$doRun = true;
-        do {
-            self::$runCount++;
-            $rulesFixed = [];
-            foreach ($roles as $role) {
-                $logger->info("{+ Run #" . self::$runCount . " using role '{$role}' (auto rerun: " . var_export(self::$autoRerun, true) . ")");
-                
-                if (is_null($transaction)) {
-                    $rulesToCheck = $role->maintains();
-                } else {
-                    $affectedRules = $transaction->getAffectedRules();
-                    $rulesToCheck = array_filter($role->maintains(), function (Rule $rule) use ($affectedRules) {
-                        return in_array($rule, $affectedRules);
-                    });
-                }
-
-                $rulesFixed = array_merge($rulesFixed, self::checkFixRules($rulesToCheck));
-                $logger->info("+} Run finished");
-            }
-
-            // If no rules fixed (i.e. no violations) in this loop: stop ExecEngine
-            if (empty($rulesFixed)) {
-                self::$doRun = false;
-            }
-            // Prevent infinite loop in ExecEngine reruns
-            if (self::$runCount >= self::$maxRunCount) {
-                $logger->error("Maximum reruns exceeded (hint! rules fixed in last run:" . implode(', ', $rulesFixed) . ")");
-                Logger::getUserLogger()->error("Maximum reruns exceeded for ExecEngine");
-                self::$doRun = false;
-            }
-        } while (self::$doRun && self::$autoRerun); // self::$doRun can also be set to false by some ExecEngine function
-
-        $logger->info("ExecEngine finished");
-    }
-
-    /**
-     * Check and fix given set of rules
-     *
-     * @param \Ampersand\Rule\Rule[] $rulesToCheck
-     * @return string[]
-     */
-    protected static function checkFixRules(array $rulesToCheck): array
-    {
-        $logger = self::getLogger();
-        
         $rulesFixed = [];
         foreach ($rulesToCheck as $rule) {
             /** @var \Ampersand\Rule\Rule $rule */
@@ -184,15 +160,15 @@ class ExecEngine extends RuleEngine
             
             // Fix violations
             $total = count($violations);
-            $logger->info("{++ ExecEngine fixing {$total} violations for rule '{$rule}'");
+            $this->info("{++ ExecEngine fixing {$total} violations for rule '{$rule}'");
             foreach ($violations as $key => $violation) {
                 $num = $key + 1;
-                $logger->info("{+++ Fixing violation {$num}/{$total}: ({$violation->src},{$violation->tgt})");
-                self::fixViolation($violation);
-                $logger->info("+++}");
+                $this->info("{+++ Fixing violation {$num}/{$total}: ({$violation->src},{$violation->tgt})");
+                $this->fixViolation($violation);
+                $this->info("+++}");
             }
-            $rulesFixed[] = $rule->id;
-            $logger->info("++} ExecEngine fixed {$total} violations for rule '{$rule}'");
+            $rulesFixed[] = $rule;
+            $this->info("++} ExecEngine fixed {$total} violations for rule '{$rule}'");
         }
 
         return $rulesFixed;
@@ -204,13 +180,11 @@ class ExecEngine extends RuleEngine
      * @param \Ampersand\Rule\Violation $violation
      * @return void
      */
-    protected static function fixViolation(Violation $violation)
+    protected function fixViolation(Violation $violation)
     {
-        $logger = self::getLogger();
-        
         // Reset reference to newly created atom (e.g. by NewStruct/InsAtom function)
         // See function getCreatedAtom() above
-        self::$newAtom = null;
+        $this->newAtom = null;
 
         // Determine actions/functions to be taken
         $actions = explode('{EX}', $violation->getExecEngineViolationMessage());
@@ -222,7 +196,7 @@ class ExecEngine extends RuleEngine
             }
             
             // Determine delimiter
-            if (substr($action, 0, 2) == '_;') {
+            if (substr($action, 0, 2) === '_;') {
                 $delimiter = '_;';
                 $action = substr($action, 2);
             } else {
@@ -239,7 +213,7 @@ class ExecEngine extends RuleEngine
                 // Limited security issue, because '{php}' can only be specified in &-script. '{php}' in user input is filtered out when getting violation message
                 // Only 1 php statement can be executed, due to semicolon issue: PHP statements must be properly terminated using a semicolon, but the semicolon is already used to seperate the parameters
                 // e.g. {php}date(DATE_ISO8601) returns the current datetime in ISO 8601 date format
-                if (substr($param, 0, 5) == '{php}') {
+                if (substr($param, 0, 5) === '{php}') {
                     $code = 'return('.substr($param, 5).');';
                     $param = eval($code);
                 }
@@ -247,28 +221,31 @@ class ExecEngine extends RuleEngine
             }, $params);
             
             $functionName = trim(array_shift($params)); // first parameter is function name
-            $callable = self::getFunction($functionName);
+            $closure = self::getFunction($functionName);
             try {
-                $logger->info("{$functionName}(" . implode(',', $params) . ")");
-                call_user_func_array($callable, $params);
-            
+                $this->info("{$functionName}(" . implode(',', $params) . ")");
+                $closure->call($this, ...$params);
             // Catch exceptions from ExecEngine functions and log to user
             } catch (Exception $e) {
-                Logger::getUserLogger()->error("{$functionName}: {$e->getMessage()}");
+                $this->ampersandApp->userLog()->error("{$functionName}: {$e->getMessage()}");
             }
         }
     }
+
+    /**********************************************************************************************
+     * STATIC METHODS
+     *********************************************************************************************/
 
     /**
      * Get registered ExecEngine function
      *
      * @param string $functionName
-     * @return callable
+     * @return \Closure
      */
-    public static function getFunction(string $functionName): callable
+    public static function getFunction(string $functionName): Closure
     {
-        if (array_key_exists($functionName, self::$callables)) {
-            return self::$callables[$functionName];
+        if (array_key_exists($functionName, self::$closures)) {
+            return self::$closures[$functionName];
         } else {
             throw new Exception("Function '{$functionName}' does not exist. Register ExecEngine function.", 500);
         }
@@ -278,18 +255,18 @@ class ExecEngine extends RuleEngine
      * Register functions that can be used by the ExecEngine to fix violations
      *
      * @param string $name
-     * @param callable $callable
+     * @param \Closure $closure
      * @return void
      */
-    public static function registerFunction(string $name, callable $callable)
+    public static function registerFunction(string $name, Closure $closure)
     {
         if (empty($name)) {
             throw new Exception("ExecEngine function must be given a name. Empty string/0/null provided", 500);
         }
-        if (array_key_exists($name, self::$callables)) {
+        if (array_key_exists($name, self::$closures)) {
             throw new Exception("ExecEngine function '{$name}' already exists", 500);
         }
-        self::$callables[$name] = $callable;
-        self::getLogger()->debug("ExecEngine function '{$name}' registered");
+        self::$closures[$name] = $closure;
+        Logger::getLogger('EXECENGINE')->debug("ExecEngine function '{$name}' registered");
     }
 }

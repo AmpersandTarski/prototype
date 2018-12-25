@@ -1,0 +1,67 @@
+loggers:
+  EXECENGINE:
+    handlers: [exec_engine_log, error_log, debug_log]
+  IO:
+    handlers: [error_log, debug_log]
+  API:
+    handlers: [error_log, debug_log]
+  APPLICATION:
+    handlers: [error_log, debug_log]
+  DATABASE:
+    handlers: [error_log, debug_log]
+  CORE:
+    handlers: [error_log, debug_log]
+  RULEENGINE:
+    handlers: [error_log, debug_log]
+  TRANSACTION:
+    handlers: [exec_engine_log, error_log, debug_log]
+  INTERFACING:
+    handlers: [error_log, debug_log]
+  HOOKS:
+    handlers: [error_log, debug_log]
+  FRONTEND:
+    handlers: [error_log, debug_log]
+  PERFORMANCE:
+    handlers: [performance_log]
+formatters:
+handlers:
+  debug_log:
+    class: Ampersand\Log\RotatingFileHandler
+    level: DEBUG
+    maxFiles: 0
+    filename: ./log/debug.log
+  error_log_file:
+    class: Ampersand\Log\RotatingFileHandler
+    level: DEBUG
+    maxFiles: 0
+    filename: ./log/error.log
+    processors: [request_id_processor, web_processor]
+  error_log:
+    class: Monolog\Handler\FingersCrossedHandler
+    handler: error_log_file
+    activationStrategy: ERROR
+    bufferSize: 0
+    bubble: true
+    stopBuffering: true
+    passthruLevel: WARNING
+  exec_engine_log:
+    class: Ampersand\Log\RotatingFileHandler
+    level: DEBUG
+    maxFiles: 0
+    filename: ./log/execengine.log
+  performance_log:
+    class: Ampersand\Log\RotatingFileHandler
+    level: DEBUG
+    maxFiles: 0
+    filename: ./log/performance.log
+    processors: [request_id_processor, web_processor]
+processors:
+  web_processor:
+    class: Monolog\Processor\WebProcessor
+    serverData: null
+    extraFields:
+      ip: REMOTE_ADDR
+      method: REQUEST_METHOD
+      url: REQUEST_URI
+  request_id_processor:
+    class: Ampersand\Log\RequestIDProcessor
