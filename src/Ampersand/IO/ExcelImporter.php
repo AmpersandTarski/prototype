@@ -52,7 +52,7 @@ class ExcelImporter
                 // First check if there is an interface with the same id as the worksheet
                 $ifc = Ifc::getInterfaceByLabel($worksheet->getTitle());
             } catch (Exception $e) {
-                $this->logger->warning("No interface found with name as title of worksheet '{$worksheet->getTitle()}'. Parsing file without interface");
+                $this->logger->notice("No interface found with name as title of worksheet '{$worksheet->getTitle()}'. Parsing file without interface");
                 $this->parseWorksheet($worksheet); // Older two-header-row format
                 continue;
             }
