@@ -180,7 +180,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
      */
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
-        throw new Exception("N.a. for InterfaceTxtObject", 500);
+        throw new Exception("Method getSubinterface() is n.a. for InterfaceTxtObject and must not be called", 500);
     }
     
     /**
@@ -190,7 +190,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
      */
     public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
-        throw new Exception("N.a. for InterfaceTxtObject", 500);
+        throw new Exception("Method getSubinterfaceByLabel() is n.a. for InterfaceTxtObject and must not be called", 500);
     }
 
     /**********************************************************************************************
