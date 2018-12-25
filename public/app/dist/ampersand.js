@@ -108,6 +108,30 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
     // wrapperClass: 'my-class my-class2'
 });
 
+angular.module('uiSwitch', [])
+
+.directive('switch', function(){
+  return {
+    restrict: 'AE'
+  , replace: true
+  , transclude: true
+  , template: function(element, attrs) {
+      var html = '';
+      html += '<a href=""';
+      html +=   (attrs.ngModel && !attrs.ngClick) ? ' ng-click="' + attrs.ngModel + '=!' + attrs.ngModel + '"' : '';
+      html += '>';
+      html += '<span';
+      html +=   ' class="switch' + (attrs.class ? ' ' + attrs.class : '') + '"';
+      html +=   ' ng-class="{ checked:' + attrs.ngModel + ' }"';
+      html +=   '>';
+      html +=   '<small></small>';
+      html += '</span>';
+      html += '<span ng-transclude></span>';
+      html += '</a>';
+      return html;
+    }
+  }
+});
 // Controller for extension app in navigation bar
 angular.module('AmpersandApp')
 .controller('ExecEngineController', ["$scope", "Restangular", "NotificationService", function ($scope, Restangular, NotificationService) {
@@ -152,30 +176,6 @@ angular.module('AmpersandApp')
     };
 }]);
 
-angular.module('uiSwitch', [])
-
-.directive('switch', function(){
-  return {
-    restrict: 'AE'
-  , replace: true
-  , transclude: true
-  , template: function(element, attrs) {
-      var html = '';
-      html += '<a href=""';
-      html +=   (attrs.ngModel && !attrs.ngClick) ? ' ng-click="' + attrs.ngModel + '=!' + attrs.ngModel + '"' : '';
-      html += '>';
-      html += '<span';
-      html +=   ' class="switch' + (attrs.class ? ' ' + attrs.class : '') + '"';
-      html +=   ' ng-class="{ checked:' + attrs.ngModel + ' }"';
-      html +=   '>';
-      html +=   '<small></small>';
-      html += '</span>';
-      html += '<span ng-transclude></span>';
-      html += '</a>';
-      return html;
-    }
-  }
-});
 var app = angular.module('AmpersandApp');
 app.requires[app.requires.length] = 'angularFileUpload'; // add angularFileUpload to dependency list
 app.config(["$routeProvider", function($routeProvider) {
