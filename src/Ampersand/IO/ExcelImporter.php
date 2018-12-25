@@ -138,7 +138,7 @@ class ExcelImporter
                     if ($leftAtom->exists()) {
                         $leftResource = $resourceList->one($firstCol);
                     } else { // Try a POST
-                        $leftResource = $resourceList->add($leftAtom->id);
+                        $leftResource = $resourceList->create($leftAtom->id);
                     }
                 }
             } catch (Exception $e) {

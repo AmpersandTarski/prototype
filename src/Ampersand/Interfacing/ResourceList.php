@@ -224,6 +224,11 @@ class ResourceList
         return $this->makeResource($this->ifcObject->add($this->srcAtom, $value));
     }
 
+    public function create(string $tgtId): Resource
+    {
+        return $this->makeResource($this->ifcObject->create($this->srcAtom, $tgtId));
+    }
+
     public function remove(string $value): void
     {
         $this->ifcObject->remove($this->srcAtom, $value);
