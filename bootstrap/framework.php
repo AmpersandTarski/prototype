@@ -12,17 +12,15 @@ use Cascade\Cascade;
 register_shutdown_function(function () {
     /** @var array|null $error */
     $error = error_get_last();
-    if (isset($error) && ($error['type'] & (E_ERROR | E_PARSE))) {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp;
-        $debugMode = $ampersandApp->getSettings()->get('global.debugMode');
+    if (isset($error) && ($error['type'] & (E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR))) {
+        global $debugMode; // $debugMode is set below after loading setting files
 
         $protocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0';
         http_response_code(500);
         header("{$protocol} 500 Internal server error");
         print json_encode(['error' => 500
                           ,'msg' => "An error occurred"
-                          ,'html' => $debugMode ? $error['message'] : null
+                          ,'html' => $debugMode ? $error['message'] : "See php.log for more information"
                           ]);
         exit;
     }
@@ -46,9 +44,13 @@ require_once(__DIR__ . '/../lib/autoload.php');
 /**************************************************************************************************
  * LOGGING
  *************************************************************************************************/
-error_reporting(E_ALL & ~E_NOTICE);
+// PHP log
+ini_set('error_reporting', E_ALL & ~E_NOTICE);
 ini_set("display_errors", '0');
+ini_set("log_errors", '1');
+ini_set("error_log", dirname(__FILE__, 2) . '/log/php.log');
 
+// Application log
 Cascade::fileConfig(dirname(__FILE__, 2) . '/config/logging.yaml'); // loads logging configuration
 
 /**************************************************************************************************
@@ -61,6 +63,7 @@ $settings = new Settings(); // includes default framework settings
 $settings->set('global.absolutePath', dirname(__FILE__, 2));
 $settings->loadSettingsJsonFile($model->getFilePath('settings')); // load model settings from Ampersand generator
 $settings->loadSettingsYamlFile(dirname(__FILE__, 2) . '/config/project.yaml'); // load project specific settings
+$debugMode = $settings->get('global.debugMode');
 
 set_time_limit($settings->get('global.scriptTimeout'));
 date_default_timezone_set($settings->get('global.defaultTimezone'));
