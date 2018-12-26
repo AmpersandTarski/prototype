@@ -285,7 +285,7 @@ class Atom implements JsonSerializable
         } else {
             // column name is prefixed with 'ifc_' to prevent duplicates with 'src' and 'tgt' cols, which are standard added to query data
             $exists = array_key_exists($colName, (array) $this->queryData);
-            return $this->queryData[$colName];
+            return $this->queryData[$colName] ?? null;
         }
     }
 
