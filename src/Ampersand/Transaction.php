@@ -168,7 +168,7 @@ class Transaction
             $runCounter++;
             $logger->info("{+ Run #{{$runCounter}} (auto rerun: " . var_export($autoRerun, true) . ")");
             
-            // Exec all exec engines
+            // Run all exec engines
             $rulesFixed = [];
             foreach ($this->execEngines as $ee) {
                 $logger->debug("Select exec engine '{{$ee->getId()}}'");
@@ -212,6 +212,10 @@ class Transaction
 
         return $this;
     }
+
+    /**********************************************************************************************
+     * CLOSING THE TRANSACTION (leading to a commit or rollback)
+     *********************************************************************************************/
 
     /**
      * Cancel (i.e. rollback) the transaction
@@ -344,6 +348,10 @@ class Transaction
             $this->storages[] = $storage;
         }
     }
+
+    /**********************************************************************************************
+     * KEEPING TRACK OF AFFECTED CONCEPTS, RELATIONS, CONJUNCTS and RULES
+     *********************************************************************************************/
     
     public function getAffectedConcepts()
     {
