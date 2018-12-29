@@ -72,6 +72,13 @@ class ExecEngine extends RuleEngine
     protected $newAtom = null;
 
     /**
+     * Specifies is this exec engine is terminated (i.e. it won't check-fix rules anymore)
+     *
+     * @var bool
+     */
+    protected $isTerminated = false;
+
+    /**
      * Constructor
      *
      * @param \Ampersand\Role $role
@@ -102,6 +109,11 @@ class ExecEngine extends RuleEngine
     public function log($level, $message, array $context = [])
     {
         $this->logger->log($level, $message, $context);
+    }
+
+    public function userLog(): LoggerInterface
+    {
+        return $this->ampersandApp->userLog();
     }
 
     /**
@@ -142,6 +154,12 @@ class ExecEngine extends RuleEngine
      */
     public function checkFixRules(array $affectedRules): array
     {
+        // Quit immediately when ExecEngine is terminated
+        if ($this->isTerminated) {
+            $this->debug("Skipping run for '{$this->id}', because it is terminated");
+            return [];
+        }
+
         $this->runCount++;
 
         // Filter rules that are maintained by this exec engine
@@ -166,6 +184,12 @@ class ExecEngine extends RuleEngine
                 $this->info("{+++ Fixing violation {$num}/{$total}: ({$violation->src},{$violation->tgt})");
                 $this->fixViolation($violation);
                 $this->info("+++}");
+                
+                // Abort loop when exec engine is terminated
+                if ($this->isTerminated) {
+                    $this->debug("Aborting run for '{$this->id}', because it is terminated");
+                    break 2;
+                }
             }
             $rulesFixed[] = $rule;
             $this->info("++} ExecEngine fixed {$total} violations for rule '{$rule}'");
@@ -230,6 +254,17 @@ class ExecEngine extends RuleEngine
                 $this->ampersandApp->userLog()->error("{$functionName}: {$e->getMessage()}");
             }
         }
+    }
+
+    /**
+     * Terminate this exec engine
+     * It won't check-fix rules anymore (within the transaction the exec engine is instantiated)
+     *
+     * @return void
+     */
+    public function terminate(): void
+    {
+        $this->isTerminated = true;
     }
 
     /**********************************************************************************************

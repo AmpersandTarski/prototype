@@ -162,8 +162,8 @@ ExecEngine::registerFunction('NewStruct', function () {
     // Check if name of new atom is explicitly specified
     if (func_num_args() % 5 == 2) {
         $atom = new Atom(func_get_arg(1), $c); // If so, we'll be using this to create the new atom
-    } // Check for valid number of arguments
-    elseif (func_num_args() % 5 != 1) {
+    // Check for valid number of arguments
+    } elseif (func_num_args() % 5 != 1) {
         throw new Exception("Wrong number of arguments supplied for function Newstruct(): ".func_num_args()." arguments", 500);
     }
     
@@ -438,4 +438,16 @@ ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($angul
     }
     
     $angularApp->setNavToResponse($navTo, 'ROLLBACK');
+});
+
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
+ExecEngine::registerFunction('TerminateThisExecEngine', function (string $userMessage = null) {
+    /** @var \Ampersand\Rule\ExecEngine $this */
+    $this->terminate();
+    if (!empty($userMessage)) {
+        $this->userLog()->info($userMessage);
+    }
 });
