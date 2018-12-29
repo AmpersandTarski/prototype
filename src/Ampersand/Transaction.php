@@ -96,6 +96,13 @@ class Transaction
      * @var \Ampersand\Rule\ExecEngine[]
      */
     protected $execEngines = [];
+
+    /**
+     * List of services (i.e. role names) for which a run is requested
+     *
+     * @var string[]
+     */
+    protected $requestedServiceIds = [];
     
     /**
      * Constructor
@@ -136,9 +143,9 @@ class Transaction
         foreach ((array) $execEngineRoleNames as $roleName) {
             try {
                 $role = Role::getRoleByName($roleName);
-                $this->execEngines[] = new ExecEngine($role, $this->app, Logger::getLogger('EXECENGINE'));
+                $this->execEngines[] = new ExecEngine($role, $this, $this->app, Logger::getLogger('EXECENGINE'));
             } catch (Exception $e) {
-                $this->logger->info("ExecEngine role '{$roleName}' configured, but role is not used/defined in &-script.");
+                $this->logger->warning("ExecEngine role '{$roleName}' configured, but role is not used/defined in &-script");
             }
         }
     }
@@ -168,12 +175,19 @@ class Transaction
             $runCounter++;
             $logger->info("{+ Run #{{$runCounter}} (auto rerun: " . var_export($autoRerun, true) . ")");
             
-            // Exec all exec engines
+            // Run all exec engines
             $rulesFixed = [];
             foreach ($this->execEngines as $ee) {
                 $logger->debug("Select exec engine '{{$ee->getId()}}'");
                 $rulesFixed = array_merge($rulesFixed, $ee->checkFixRules($rulesToCheck));
             }
+
+            // Run all requested services
+            foreach ($this->requestedServiceIds as $serviceId) {
+                $logger->debug("Select service '{{$serviceId}}'");
+                $rulesFixed = array_merge($rulesFixed, $this->runService($serviceId));
+            }
+            $this->requestedServiceIds = []; // Empty list of requested services
 
             // If no rules fixed (i.e. no violations) in this loop: stop exec engine
             if (empty($rulesFixed)) {
@@ -212,6 +226,44 @@ class Transaction
 
         return $this;
     }
+
+    /**********************************************************************************************
+     * SERVICES
+     *********************************************************************************************/
+
+    public function requestServiceRun(string $serviceId): void
+    {
+        if (!in_array($serviceId, $this->requestedServiceIds)) {
+            $this->requestedServiceIds[] = $serviceId;
+        }
+    }
+
+    /**
+     * Single run of a specific service
+     * A service is a collection of RULES that are evaluated and fixed the same way as with ExecEngine roles
+     *
+     * @param string $serviceId identifier of the service (i.e. name of ROLE)
+     * @return \Ampersand\Rule\Rule[] $rulesFixed by this service
+     */
+    protected function runService(string $serviceId): array
+    {
+        try {
+            $role = Role::getRoleByName($serviceId);
+        } catch (Exception $e) {
+            $this->logger->warning("Transaction::runService is called with role '{$serviceId}', but this role is not used/defined in &-script");
+        }
+
+        if (isset($role)) {
+            $service = new ExecEngine($role, $this, $this->app, Logger::getLogger('EXECENGINE'));
+            return $service->checkFixRules($role->maintains()); // check all rules of this service
+        } else {
+            return [];
+        }
+    }
+
+    /**********************************************************************************************
+     * CLOSING THE TRANSACTION (leading to a commit or rollback)
+     *********************************************************************************************/
 
     /**
      * Cancel (i.e. rollback) the transaction
@@ -344,6 +396,10 @@ class Transaction
             $this->storages[] = $storage;
         }
     }
+
+    /**********************************************************************************************
+     * KEEPING TRACK OF AFFECTED CONCEPTS, RELATIONS, CONJUNCTS and RULES
+     *********************************************************************************************/
     
     public function getAffectedConcepts()
     {

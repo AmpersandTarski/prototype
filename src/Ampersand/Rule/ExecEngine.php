@@ -16,6 +16,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 use Closure;
 use Ampersand\AmpersandApp;
+use Ampersand\Transaction;
 
 class ExecEngine extends RuleEngine
 {
@@ -50,6 +51,13 @@ class ExecEngine extends RuleEngine
     protected $maintainsRules;
 
     /**
+     * Reference to the Transaction for which this ExecEngine is instantiated
+     *
+     * @var \Ampersand\Transaction
+     */
+    protected $transaction;
+
+    /**
      * Reference to Ampersand app for which this ExecEngine is instantiated
      *
      * @var \Ampersand\AmpersandApp
@@ -82,13 +90,16 @@ class ExecEngine extends RuleEngine
      * Constructor
      *
      * @param \Ampersand\Role $role
+     * @param \Ampersand\Transaction $transaction
+     * @param \Ampersand\AmpersandApp $app
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Role $role, AmpersandApp $app, LoggerInterface $logger)
+    public function __construct(Role $role, Transaction $transaction, AmpersandApp $app, LoggerInterface $logger)
     {
         $this->logger = $logger;
         $this->id = $role->label;
         $this->maintainsRules = $role->maintains();
+        $this->transaction = $transaction;
         $this->ampersandApp = $app;
     }
 
@@ -265,6 +276,18 @@ class ExecEngine extends RuleEngine
     public function terminate(): void
     {
         $this->isTerminated = true;
+    }
+
+    /**
+     * Trigger a run for a specific service
+     * This method allows an ExecEngine function to trigger a service run
+     *
+     * @param string $serviceId
+     * @return void
+     */
+    public function triggerService(string $serviceId): void
+    {
+        $this->transaction->requestServiceRun($serviceId);
     }
 
     /**********************************************************************************************

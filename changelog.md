@@ -18,6 +18,7 @@
 * Interfaces defined with API keyword (as synonym for INTERFACE) are filtered out in navigation menu and don't have UI artefacts (view+controller) anymore
 * Improve logging of php errors
 * [Issue 395](https://github.com/AmpersandTarski/Ampersand/issues/395) Add ExecEngine termination command
+* [Issue 143](https://github.com/AmpersandTarski/Ampersand/issues/143) Introduction of service runs (special kind of exec engines that must be called explicitly)
 
 ## v1.0.1 (27 july 2018)
 Several bugfixes. See commit messages.
