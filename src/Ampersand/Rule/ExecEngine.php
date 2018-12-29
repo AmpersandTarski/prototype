@@ -16,6 +16,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 use Closure;
 use Ampersand\AmpersandApp;
+use Ampersand\Transaction;
 
 class ExecEngine extends RuleEngine
 {
