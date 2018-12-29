@@ -50,6 +50,13 @@ class ExecEngine extends RuleEngine
     protected $maintainsRules;
 
     /**
+     * Reference to the Transaction for which this ExecEngine is instantiated
+     *
+     * @var \Ampersand\Transaction
+     */
+    protected $transaction;
+
+    /**
      * Reference to Ampersand app for which this ExecEngine is instantiated
      *
      * @var \Ampersand\AmpersandApp
@@ -82,13 +89,16 @@ class ExecEngine extends RuleEngine
      * Constructor
      *
      * @param \Ampersand\Role $role
+     * @param \Ampersand\Transaction $transaction
+     * @param \Ampersand\AmpersandApp $app
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Role $role, AmpersandApp $app, LoggerInterface $logger)
+    public function __construct(Role $role, Transaction $transaction, AmpersandApp $app, LoggerInterface $logger)
     {
         $this->logger = $logger;
         $this->id = $role->label;
         $this->maintainsRules = $role->maintains();
+        $this->transaction = $transaction;
         $this->ampersandApp = $app;
     }
 

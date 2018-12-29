@@ -136,7 +136,7 @@ class Transaction
         foreach ((array) $execEngineRoleNames as $roleName) {
             try {
                 $role = Role::getRoleByName($roleName);
-                $this->execEngines[] = new ExecEngine($role, $this->app, Logger::getLogger('EXECENGINE'));
+                $this->execEngines[] = new ExecEngine($role, $this, $this->app, Logger::getLogger('EXECENGINE'));
             } catch (Exception $e) {
                 $this->logger->warning("ExecEngine role '{$roleName}' configured, but role is not used/defined in &-script");
             }
