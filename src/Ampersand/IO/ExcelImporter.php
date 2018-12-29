@@ -129,11 +129,11 @@ class ExcelImporter
                 if ($firstCol === '') {
                     $this->logger->notice("Skipping row {$rowNr} in sheet {$worksheet->getTitle()}, because column A is empty");
                     continue;
-                } // If cell Ax contains '_NEW', this means to automatically create a new atom
-                elseif ($firstCol === '_NEW') {
+                // If cell Ax contains '_NEW', this means to automatically create a new atom
+                } elseif ($firstCol === '_NEW') {
                     $leftResource = $resourceList->post();
-                } // Else instantiate atom with given atom identifier
-                else {
+                // Else instantiate atom with given atom identifier
+                } else {
                     $leftAtom = new Atom($firstCol, $leftConcept);
                     if ($leftAtom->exists()) {
                         $leftResource = $resourceList->one($firstCol);
@@ -238,8 +238,8 @@ class ExcelImporter
                     // No leading/trailing spaces allowed
                     $line1[$cell->getColumn()] = trim((string) $cell->getCalculatedValue()); // @phan-suppress-current-line PhanDeprecatedFunction
                 }
-            } // Header line 2 specifies concept names
-            elseif ($i === 2) {
+            // Header line 2 specifies concept names
+            } elseif ($i === 2) {
                 $leftConcept = Concept::getConceptByLabel($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue()); // @phan-suppress-current-line PhanDeprecatedFunction
 
                 foreach ($row->getCellIterator() as $cell) {
@@ -256,8 +256,8 @@ class ExcelImporter
                         if ($line1[$col] === '' || $line2[$col] === '') {
                             // Skipping column
                             $this->logger->notice("Skipping column {$col} in sheet {$worksheet->getTitle()}, because header is not complete");
-                        } // Relation is flipped when last character is a tilde (~)
-                        elseif (substr($line1[$col], -1) === '~') {
+                        // Relation is flipped when last character is a tilde (~)
+                        } elseif (substr($line1[$col], -1) === '~') {
                             $rightConcept = Concept::getConceptByLabel($line2[$col]);
                             
                             $header[$col] = ['concept' => $rightConcept
@@ -273,8 +273,8 @@ class ExcelImporter
                         }
                     }
                 }
-            } // Data lines
-            else {
+            // Data lines
+            } else {
                 $col = 'A';
                 $cellA = $this->getCalculatedValueAsAtomId($worksheet->getCell($col . $row->getRowIndex()));
 
@@ -282,11 +282,11 @@ class ExcelImporter
                 if ($cellA === '') {
                     $this->logger->notice("Skipping row {$row->getRowIndex()}, because column A is empty");
                     continue; // proceed to next row
-                } // If cell Ax contains '_NEW', this means to automatically create a new atom
-                elseif ($cellA === '_NEW') {
+                // If cell Ax contains '_NEW', this means to automatically create a new atom
+                } elseif ($cellA === '_NEW') {
                     $leftAtom = $header[$col]['concept']->createNewAtom()->add();
-                } // Else instantiate atom with given atom identifier
-                else {
+                // Else instantiate atom with given atom identifier
+                } else {
                     $leftAtom = (new Atom($cellA, $header[$col]['concept']))->add();
                 }
 
