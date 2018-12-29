@@ -451,3 +451,12 @@ ExecEngine::registerFunction('TerminateThisExecEngine', function (string $userMe
         $this->userLog()->info($userMessage);
     }
 });
+
+/**
+ * @phan-closure-scope \Ampersand\Rule\ExecEngine
+ * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
+ */
+ExecEngine::registerFunction('TriggerService', function (string $roleName) {
+    /** @var \Ampersand\Rule\ExecEngine $this */
+    $this->triggerService($roleName);
+});

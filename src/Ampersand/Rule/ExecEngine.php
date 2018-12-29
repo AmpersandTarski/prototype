@@ -278,6 +278,18 @@ class ExecEngine extends RuleEngine
         $this->isTerminated = true;
     }
 
+    /**
+     * Trigger a run for a specific service
+     * This method allows an ExecEngine function to trigger a service run
+     *
+     * @param string $serviceId
+     * @return void
+     */
+    public function triggerService(string $serviceId): void
+    {
+        $this->transaction->requestServiceRun($serviceId);
+    }
+
     /**********************************************************************************************
      * STATIC METHODS
      *********************************************************************************************/
