@@ -138,7 +138,7 @@ class Transaction
                 $role = Role::getRoleByName($roleName);
                 $this->execEngines[] = new ExecEngine($role, $this->app, Logger::getLogger('EXECENGINE'));
             } catch (Exception $e) {
-                $this->logger->info("ExecEngine role '{$roleName}' configured, but role is not used/defined in &-script.");
+                $this->logger->warning("ExecEngine role '{$roleName}' configured, but role is not used/defined in &-script");
             }
         }
     }
