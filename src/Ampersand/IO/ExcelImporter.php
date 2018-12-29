@@ -160,7 +160,7 @@ class ExcelImporter
                     // Overwrite $cellvalue in case of datetime
                     // The @ is a php indicator for a unix timestamp (http://php.net/manual/en/datetime.formats.compound.php), later used for typeConversion
                     if (PHPExcel_Shared_Date::isDateTime($cell) && !empty($cellvalue)) {
-                        $cellvalue = '@'.(string)PHPExcel_Shared_Date::ExcelToPHP($cellvalue);
+                        $cellvalue = '@'.(string)PHPExcel_Shared_Date::ExcelToPHP((int)$cellvalue);
                     }
 
                     $subIfcObj->add($leftResource, $cellvalue);
@@ -284,10 +284,10 @@ class ExcelImporter
                     continue; // proceed to next row
                 // If cell Ax contains '_NEW', this means to automatically create a new atom
                 } elseif ($cellA === '_NEW') {
-                    $leftAtom = $header[$col]['concept']->createNewAtom()->add();
+                    $leftAtom = $header[$col]['concept']->createNewAtom()->add(); // @phan-suppress-current-line PhanTypeInvalidDimOffset
                 // Else instantiate atom with given atom identifier
                 } else {
-                    $leftAtom = (new Atom($cellA, $header[$col]['concept']))->add();
+                    $leftAtom = (new Atom($cellA, $header[$col]['concept']))->add(); // @phan-suppress-current-line PhanTypeInvalidDimOffset
                 }
 
                 $this->processDataRow($leftAtom, $row, $header);
@@ -338,7 +338,7 @@ class ExcelImporter
         // Overwrite $cellvalue in case of datetime
         // the @ is a php indicator for a unix timestamp (http://php.net/manual/en/datetime.formats.compound.php), later used for typeConversion
         if (PHPExcel_Shared_Date::isDateTime($cell) && !empty($cellvalue)) {
-            $cellvalue = '@'.(string)PHPExcel_Shared_Date::ExcelToPHP($cellvalue);
+            $cellvalue = '@'.(string)PHPExcel_Shared_Date::ExcelToPHP((int)$cellvalue);
         }
 
         return $cellvalue;
