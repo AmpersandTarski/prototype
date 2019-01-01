@@ -1,0 +1,40 @@
+CONTEXT PrototypeFramework IN ENGLISH
+
+    --[NAVBAR ITEMS]-------------------------------------------------------------------------------
+    CONCEPT PF_NavMenuItem ""
+    REPRESENT PF_NavMenuItem TYPE OBJECT
+  
+    RELATION label[PF_NavMenuItem*PF_Label] [UNI,TOT] 
+    MEANING "The human readable text that represents the navbar item and is shown to the user"
+        CONCEPT PF_Label ""
+        REPRESENT PF_Label TYPE ALPHANUMERIC
+    
+    RELATION ifc[PF_NavMenuItem*PF_Interface] [UNI] 
+        MEANING "A navbar item can direct to an interface"
+        CONCEPT PF_Interface "Representation of an Ampersand interface"
+  
+    RELATION url[PF_NavMenuItem*PF_URL] [UNI]
+    MEANING "A navbar item can direct to an (external) url. This can also be used for extensions like the excelimporter"
+        CONCEPT PF_URL "a uniform resource locator as defined by RFC3986"
+        REPRESENT PF_URL TYPE BIGALPHANUMERIC
+  
+    RELATION seqNr[PF_NavMenuItem*PF_SeqNr] [UNI,TOT]
+    MEANING "A navbar item has a seq nr (default 0) which determines the position of the item"
+        CONCEPT PF_SeqNr ""
+        REPRESENT PF_SeqNr TYPE INTEGER
+    
+    RELATION subItemOf[PF_NavMenuItem*PF_NavMenuItem] [UNI,IRF,ASY]
+    MEANING "A navbar item can be a sub item of another item"
+
+    -- Not yet implemented (i.e. has no effect)
+    RELATION sessionMenuItem[SESSION*PF_NavMenuItem]
+    MEANING "The navbar items that are part of the top level navigation bar"
+    
+    --[NAVBAR MENUS]-------------------------------------------------------------------------------
+    CONCEPT PF_NavMenu ""
+    CLASSIFY PF_NavMenu ISA PF_NavMenuItem
+    REPRESENT PF_NavMenu TYPE OBJECT
+    POPULATION PF_NavMenu CONTAINS ["MainNavbar", "NewNavbar", "Extensions"]
+    POPULATION label[PF_NavMenuItem*PF_Label] CONTAINS [("MainNavbar", "Main menu"), ("NewNavbar","Create new"), ("Extensions","Extension menu")]
+    
+ENDCONTEXT
