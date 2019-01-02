@@ -476,6 +476,37 @@ class AmpersandApp
             $cpt->clearAtomCache(); // local cache in Ampersand code
         }
 
+        // Navigation menu items
+        try {
+            $transaction = $this->newTransaction();
+            $menuItemCpt = Concept::getConceptByLabel('PF_NavMenuItem');
+
+            // MainNavbar (i.e. all interfaces with SESSION as src concept)
+            $mainMenu = new Atom('MainNavbar', $menuItemCpt);
+            $mainMenu->add();
+            $mainMenu->link('Main menu', 'label[PF_NavMenuItem*PF_Label]')->add();
+            $i = 0;
+            foreach (Ifc::getAllInterfaces() as $ifc) {
+                /** @var \Ampersand\Interfacing\Ifc $ifc */
+                if ($ifc->getSrcConcept()->isSession()) {
+                    $i++;
+                    $menuItem = new Atom($ifc->getId(), $menuItemCpt);
+                    $menuItem->add();
+                    $menuItem->link($ifc->getLabel(), 'label[PF_NavMenuItem*PF_Label]')->add();
+                    $menuItem->link($ifc->getId(), 'ifc[PF_NavMenuItem*PF_Interface]')->add();
+                    $menuItem->link($i, 'seqNr[PF_NavMenuItem*PF_SeqNr]')->add();
+                    $menuItem->link($mainMenu, 'subItemOf[PF_NavMenuItem*PF_NavMenuItem]')->add();
+                }
+            }
+
+            $transaction->runExecEngine()->close(false, false);
+            if ($transaction->isRolledBack()) {
+                throw new Exception("Navigation menu items do not satisfy invariant rules. See log files", 500);
+            }
+        } catch (Exception $e) {
+            throw new Exception("Error in installing navigation menu items: {$e->getMessage()}", 500, $e);
+        }
+
         // Default population
         if ($installDefaultPop) {
             $this->logger->info("Install default population");
