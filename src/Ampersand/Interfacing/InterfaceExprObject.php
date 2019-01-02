@@ -307,12 +307,12 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      * Returns referenced interface object
      *
      * @throws Exception when $this is not a reference interface
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface
+     * @return \Ampersand\Interfacing\Ifc
      */
-    protected function getRefToIfc(): InterfaceObjectInterface
+    protected function getRefToIfc(): Ifc
     {
         if ($this->isRef()) {
-            return Ifc::getInterface($this->refInterfaceId)->getIfcObject();
+            return Ifc::getInterface($this->refInterfaceId);
         } else {
             throw new Exception("Interface is not a reference interface: " . $this->getPath(), 500);
         }
@@ -353,7 +353,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // If crudC not specified during object construction (e.g. in case of ref interface)
         if (is_null($this->crudC)) {
             if ($this->isRef()) {
-                $this->crudC = $this->getRefToIfc()->crudC();
+                $this->crudC = $this->getRefToIfc()->getIfcObject()->crudC();
             } else {
                 throw new Exception("Create rights not specified for interface " . $this->getPath(), 500);
             }
@@ -367,7 +367,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // If crudR not specified during object construction (e.g. in case of ref interface)
         if (is_null($this->crudR)) {
             if ($this->isRef()) {
-                $this->crudR = $this->getRefToIfc()->crudR();
+                $this->crudR = $this->getRefToIfc()->getIfcObject()->crudR();
             } else {
                 throw new Exception("Read rights not specified for interface " . $this->getPath(), 500);
             }
@@ -381,7 +381,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // If crudU not specified during object construction (e.g. in case of ref interface)
         if (is_null($this->crudU)) {
             if ($this->isRef()) {
-                $this->crudU = $this->getRefToIfc()->crudU();
+                $this->crudU = $this->getRefToIfc()->getIfcObject()->crudU();
             } else {
                 throw new Exception("Update rights not specified for interface " . $this->getPath(), 500);
             }
@@ -395,7 +395,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // If crudD not specified during object construction (e.g. in case of ref interface)
         if (is_null($this->crudD)) {
             if ($this->isRef()) {
-                $this->crudD = $this->getRefToIfc()->crudD();
+                $this->crudD = $this->getRefToIfc()->getIfcObject()->crudD();
             } else {
                 throw new Exception("Delete rights not specified for interface " . $this->getPath(), 500);
             }
@@ -471,7 +471,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
              * is interpreted as:
              * INTERFACE "A" : expr1;epxr2 BOX ["label" : expr3]
              */
-            return $this->getRefToIfc()->getSubinterfaces($options);
+            return $this->getRefToIfc()->getIfcObject()->getSubinterfaces($options);
         } else {
             return $this->subInterfaces;
         }
