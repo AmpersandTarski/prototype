@@ -18,8 +18,8 @@ CONTEXT PrototypeFramework IN ENGLISH
         CONCEPT PF_URL "a uniform resource locator as defined by RFC3986"
         REPRESENT PF_URL TYPE BIGALPHANUMERIC
   
-    RELATION seqNr[PF_NavMenuItem*PF_SeqNr] [UNI,TOT]
-    MEANING "A navbar item has a seq nr (default 0) which determines the position of the item"
+    RELATION seqNr[PF_NavMenuItem*PF_SeqNr] [UNI]
+    MEANING "A navbar item has a seq nr which determines the position of the item"
         CONCEPT PF_SeqNr ""
         REPRESENT PF_SeqNr TYPE INTEGER
     
@@ -36,5 +36,15 @@ CONTEXT PrototypeFramework IN ENGLISH
     REPRESENT PF_NavMenu TYPE OBJECT
     POPULATION PF_NavMenu CONTAINS ["MainNavbar", "NewNavbar", "Extensions"]
     POPULATION label[PF_NavMenuItem*PF_Label] CONTAINS [("MainNavbar", "Main menu"), ("NewNavbar","Create new"), ("Extensions","Extension menu")]
+
+    INTERFACE "Edit navigation menu" FOR Admin: "_SESSION";V[SESSION*PF_NavMenu] cRud BOX
+        [ "Menu"         : label
+        , "Items"        : subItemOf~ BOX <SCOLS>
+            [ "#"        : seqNr                    cRud
+            , "Label"    : label                    cRUd
+            , "Ifc"      : ifc                      cRUd
+            , "Url"      : url                      cRUd
+            ]
+        ]
     
 ENDCONTEXT
