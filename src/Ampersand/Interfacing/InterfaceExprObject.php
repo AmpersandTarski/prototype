@@ -621,11 +621,26 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
                 if (!$ifcObj->crudR()) {
                     continue; // skip subinterface if not given read rights (otherwise exception will be thrown when getting content)
                 }
-                $content[$ifcObj->getIfcId()] = $ifcObj->read($tgt, $tgtPath, null, $options, $depth, $recursionArr);
+                $content[$ifcObj->getIfcId()] = $value = $ifcObj->read($tgt, $tgtPath, null, $options, $depth, $recursionArr);
 
                 // Add sort values
                 if ($ifcObj->isUni() && $addSortValues) {
-                    $content['_sortValues_'][$ifcObj->getIfcId()] = $content[$ifcObj->getIfcId()]['_label_'] ?? $content[$ifcObj->getIfcId()] ?? null;
+                    switch (gettype($value)) {
+                        case 'object': // an object of Atom class
+                            /** @var \Ampersand\Core\Atom $value */
+                            $sortValue = $value->jsonSerialize();
+                            break;
+                        case 'array': // content of Resource
+                            $sortValue = $value['_label_'] ?? null;
+                            break;
+                        case 'NULL':
+                            $sortValue = null;
+                            break;
+                        default:
+                            throw new Exception("Unexpected error. Not implemented case for sortvalue", 501);
+                            break;
+                    }
+                    $content['_sortValues_'][$ifcObj->getIfcId()] = $sortValue;
                 }
             }
         }
