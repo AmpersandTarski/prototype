@@ -248,7 +248,7 @@ class ResourceList
      * STATIC METHODS
      *********************************************************************************************/
 
-    public static function makeFromInterface(Atom $srcAtom, string $ifcId): ResourceList
+    public static function makeFromInterface(Atom $srcAtom, string $ifcIdOrLabel): ResourceList
     {
         // Same as in InterfaceNullObject::buildResourcePath()
         if ($srcAtom->concept->isSession()) {
@@ -257,7 +257,7 @@ class ResourceList
             $pathEntry = "resource/{$srcAtom->concept->name}/{$srcAtom->id}";
         }
 
-        return new ResourceList($srcAtom, Ifc::getInterface($ifcId)->getIfcObject(), $pathEntry);
+        return new ResourceList($srcAtom, Ifc::getInterface($ifcIdOrLabel, true)->getIfcObject(), $pathEntry);
     }
 
     public static function makeWithoutInterface(string $resourceType): ResourceList
