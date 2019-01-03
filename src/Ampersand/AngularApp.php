@@ -155,8 +155,6 @@ class AngularApp
 
             // Top level items in menu bar
             case 'top':
-                return $this->getNavMenuItems('MainMenu');
-
                 $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (Ifc $ifc) {
                     $ifcObj = $ifc->getIfcObject();
                     if ($ifc->getSrcConcept()->isSession() && $ifcObj->crudR()) {
@@ -177,10 +175,9 @@ class AngularApp
         }
     }
 
-    public function getNavMenuItems(string $menuId): array
+    public function getNavMenuItems(): array
     {
-        $menuAtom = Atom::makeAtom($menuId, 'PF_NavMenu');
-        return ResourceList::makeFromInterface($menuAtom, 'PF_MenuItems')->get(Options::INCLUDE_NOTHING);
+        return ResourceList::makeFromInterface($this->ampersandApp->getSession()->getSessionAtom(), 'PF_MenuItems')->get(Options::INCLUDE_NOTHING);
     }
 
     public function getNavToResponse($case)

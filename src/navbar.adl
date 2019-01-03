@@ -82,8 +82,9 @@ CONTEXT PrototypeFramework IN ENGLISH
         ]
 
     --[SYSTEM INTERFACES to adapt the menus]-------------------------------------------------------
-    API "PF_MenuItems" FOR SYSTEM: I[PF_NavMenu];isPartOf~ BOX
-        [ "label"           : label
+    API "PF_MenuItems" FOR SYSTEM: "_SESSION";sessionMenuItem BOX
+        [ "id"              : I
+        , "label"           : label
         , "seqNr"           : seqNr
         , "ifc"             : ifc
         , "url"             : url

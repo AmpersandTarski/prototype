@@ -40,6 +40,7 @@ $api->group('/app', function () {
         $session = $ampersandApp->getSession();
         $settings = $ampersandApp->getSettings();
         $content =  ['home' => $ampersandApp->getSettings()->get('frontend.homePage')
+                    ,'navs' => $angularApp->getNavMenuItems()
                     ,'top' => $angularApp->getMenuItems('top')
                     ,'new' => $angularApp->getMenuItems('new')
                     ,'refresh' => $angularApp->getMenuItems('refresh')
