@@ -42,6 +42,10 @@ angular.module('AmpersandApp')
          * @returns {Promise}
          */
         patchResource : function(resource, forceSave){
+            // Use delegate resource if specified
+            if (typeof resource._delegatePatchesTo_ !== 'undefined') {
+                resource = resource._delegatePatchesTo_;
+            }
 
             // Save if autoSave is enabled
             if($localStorage.autoSave || forceSave) {
@@ -105,11 +109,11 @@ angular.module('AmpersandApp')
          * 
          * @param {Object} resource
          * @param {string} ifc
-         * @param {Object} callingObj will be used for loading indicator
+         * @param {Object} patchResource
          * @param {int} insertAtIndex
          * @returns {Promise}
          */
-        createResource : function(resource, ifc, callingObj, insertAtIndex){
+        createResource : function(resource, ifc, patchResource, insertAtIndex){
             promise = Restangular
             .one(resource._path_).all(ifc)
             .post({}, {})
@@ -119,6 +123,15 @@ angular.module('AmpersandApp')
 
                 // Update visual feedback (notifications and buttons)
                 ResourceService.processResponse(newResource, data);
+
+                // If not committed, add this create action to patch list
+                if (!data.isCommitted) {
+                    ResourceService.addPatch('create', resource, patchResource, ifc, newResource._id_);
+                    
+                    // Delegate additional patches upward, because this resource does not exist yet
+                    // See addPatch() and patchResource() functions
+                    newResource._delegatePatchesTo_ = patchResource;
+                }
                 
                 // Add new resource to ifc
                 if(Array.isArray(resource[ifc])){ // non-uni = list
@@ -134,7 +147,7 @@ angular.module('AmpersandApp')
             });
 
             // Add promise to loading list
-            return ResourceService.addPromiseToResourceLoadingList(callingObj, promise);
+            return ResourceService.addPromiseToResourceLoadingList(patchResource, promise);
         },
         
         /**
@@ -278,7 +291,16 @@ angular.module('AmpersandApp')
          * @returns {Object}
          */
         addPatch : function(operation, resource, patchResource, ifc, value){
-            if(typeof patchResource === 'undefined') patchResource = resource;
+            // When patchResource is not provided use the resource itself
+            if (typeof patchResource === 'undefined') {
+                patchResource = resource;
+            }
+
+            // Use delegate resource if specified
+            if (typeof patchResource._delegatePatchesTo_ !== 'undefined') {
+                patchResource = patchResource._delegatePatchesTo_;
+            }
+
             pathLength = patchResource._path_.length;
             
             path = resource._path_.substring(pathLength);

@@ -275,13 +275,13 @@ class Resource extends Atom implements ArrayAccess
                         if (!property_exists($patch, 'value')) {
                             throw new Exception("No 'value' specfied", 400);
                         }
-                        $rl = $this->walkPathToList($pathList)->set($patch->value);
+                        $this->walkPathToList($pathList)->set($patch->value);
                         break;
                     case "add":
                         if (!property_exists($patch, 'value')) {
                             throw new Exception("No 'value' specfied", 400);
                         }
-                        $rl = $this->walkPathToList($pathList)->add($patch->value);
+                        $this->walkPathToList($pathList)->add($patch->value);
                         break;
                     case "remove":
                         // Regular json patch remove operation, uses last part of 'path' attribuut as resource to remove from list
@@ -292,8 +292,14 @@ class Resource extends Atom implements ArrayAccess
                             $this->walkPathToList($pathList)->remove($patch->value);
                         }
                         break;
+                    case "create":
+                        if (!property_exists($patch, 'value')) {
+                            throw new Exception("No 'value' specfied", 400);
+                        }
+                        $this->walkPathToList($pathList)->create($patch->value);
+                        break;
                     default:
-                        throw new Exception("Unknown patch operation '{$patch->op}'. Supported are: 'replace', 'add' and 'remove'", 400);
+                        throw new Exception("Unknown patch operation '{$patch->op}'. Supported are: 'replace', 'add' and 'remove', 'create'", 400);
                 }
             } catch (Exception $e) {
                 if ($e->getCode() >= 400 && $e->getCode() < 500) {

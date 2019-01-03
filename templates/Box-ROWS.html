@@ -12,7 +12,7 @@ $endif$$if(crudR)$<div class="box box-rows" ng-controller="BoxController" ng-ini
             <div class="box-li-opt">
                 <button type="button" class="btn btn-xs btn-warning" ng-if="resource._showButtons_.save" ng-click="save(resource)">Save</button>
                 <button type="button" class="btn btn-xs btn-danger" ng-if="resource._showButtons_.cancel" ng-click="cancel(resource)">Cancel</button>$if(crudC)$$if(!exprIsUni)$
-                <button type="button" class="btn btn-xs" ng-click="createResource(parent, '$name$', parent, \$index)" uib-tooltip="Create new $target$" tooltip-trigger="mouseenter" tooltip-placement="left">
+                <button type="button" class="btn btn-xs" ng-click="createResource(parent, '$name$', patchResource, \$index)" uib-tooltip="Create new $target$" tooltip-trigger="mouseenter" tooltip-placement="left">
                     <span class="glyphicon glyphicon-plus"></span>
                 </button>$endif$$endif$$if(crudU)$
                 <button type="button" class="btn btn-xs" ng-hide="resource._showButtons_.cancel" ng-click="remove(parent, '$name$', resource, $if(isRoot)$parent$else$patchResource$endif$)" uib-tooltip="Remove" tooltip-trigger="mouseenter" tooltip-placement="left">
