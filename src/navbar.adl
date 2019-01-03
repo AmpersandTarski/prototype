@@ -35,6 +35,13 @@ CONTEXT PrototypeFramework IN ENGLISH
     CLASSIFY PF_NavMenu ISA PF_NavMenuItem
     REPRESENT PF_NavMenu TYPE OBJECT
 
+    RELATION isPartOf[PF_NavMenuItem*PF_NavMenu] [UNI,TOT]
+    MEANING "A navbar item is part of a certain navmenu"
+
+    ROLE ExecEngine MAINTAINS "Fix TOT for isPartOf[PF_NavMenuItem*PF_NavMenu]"
+    RULE "Fix TOT for isPartOf[PF_NavMenuItem*PF_NavMenu]": I[PF_NavMenuItem];subItemOf;isPartOf |- isPartOf
+    VIOLATION (TXT "{EX}InsPair;isPartOf;PF_NavMenuItem;", SRC I, TXT ";PF_NavMenu;", TGT I)
+
     --[ADMIN INTERFACES to adapt the menus]--------------------------------------------------------
     INTERFACE "Edit navigation menu" FOR Admin: "_SESSION";V[SESSION*PF_NavMenu] INTERFACE "Edit menu item"
     

@@ -483,6 +483,7 @@ class AmpersandApp
             // MainNavbar (i.e. all interfaces with SESSION as src concept)
             $mainMenu = Atom::makeAtom('MainNavbar', 'PF_NavMenu')->add();
             $mainMenu->link('Main menu', 'label[PF_NavMenuItem*PF_Label]')->add();
+            $mainMenu->link($mainMenu, 'isPartOf[PF_NavMenuItem*PF_NavMenu]')->add();
             $i = '0';
             foreach (Ifc::getAllInterfaces() as $ifc) {
                 /** @var \Ampersand\Interfacing\Ifc $ifc */
