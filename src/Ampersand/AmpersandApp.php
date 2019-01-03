@@ -491,7 +491,10 @@ class AmpersandApp
                     $i++;
                     $menuItem = Atom::makeAtom($ifc->getId(), 'PF_NavMenuItem')->add();
                     $menuItem->link($ifc->getLabel(), 'label[PF_NavMenuItem*PF_Label]')->add();
-                    $menuItem->link($ifc->getId(), 'ifc[PF_NavMenuItem*PF_Interface]')->add();
+                    $ifcAtom = $menuItem->link($ifc->getId(), 'ifc[PF_NavMenuItem*PF_Interface]')->add()->tgt();
+                        foreach ($ifc->getRoleNames() as $roleName) {
+                            $ifcAtom->link($roleName, 'ifcRoles[PF_Interface*PF_Role]')->add();
+                        }
                     $menuItem->link($i, 'seqNr[PF_NavMenuItem*PF_SeqNr]')->add();
                     $menuItem->link($mainMenu, 'subItemOf[PF_NavMenuItem*PF_NavMenuItem]')->add();
                 }

@@ -1,5 +1,28 @@
 CONTEXT PrototypeFramework IN ENGLISH
 
+    --[INTERFACES]
+    CONCEPT PF_Interface ""
+    REPRESENT PF_Interface TYPE OBJECT
+
+    RELATION ifcRoles[PF_Interface*PF_Role]
+    MEANING "This relation contains the roles for which an interface is available (empty means: available for all roles)."
+        CONCEPT PF_Role ""
+        REPRESENT PF_Role TYPE OBJECT
+    
+    RELATION isPublic[PF_Interface*PF_Interface] [PROP]
+    MEANING "This properties defines if an interface is accessible for everyone (i.e. public)"
+
+    RULE "Is public equality" : isPublic = I-(ifcRoles;ifcRoles~)
+    MEANING "An interface is considered public when it not occurs in ifcRoles"
+
+        ROLE ExecEngine MAINTAINS "Add interface isPublic property"
+        RULE "Add interface isPublic property": I-(ifcRoles;ifcRoles~) |- isPublic
+        VIOLATION (TXT "{EX}InsPair;isPublic;PF_Interface;", SRC I, TXT ";PF_Interface;", SRC I)
+
+        ROLE ExecEngine MAINTAINS "Remove interface isPublic property"
+        RULE "Remove interface isPublic property": I /\ ifcRoles;ifcRoles~ |- I-isPublic
+        VIOLATION (TXT "{EX}DelPair;isPublic;PF_Interface;", SRC I, TXT ";PF_Interface;", SRC I)
+
     --[NAVBAR ITEMS]-------------------------------------------------------------------------------
     CONCEPT PF_NavMenuItem ""
     REPRESENT PF_NavMenuItem TYPE OBJECT

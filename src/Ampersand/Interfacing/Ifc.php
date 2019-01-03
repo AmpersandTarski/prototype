@@ -127,6 +127,16 @@ class Ifc
         return $this->ifcObject->tgtConcept;
     }
 
+    /**
+     * List of rules names that have access to this interface
+     *
+     * @return string[]
+     */
+    public function getRoleNames(): array
+    {
+        return $this->ifcRoleNames;
+    }
+
     /**********************************************************************************************
      * STATIC METHODS
     **********************************************************************************************/
