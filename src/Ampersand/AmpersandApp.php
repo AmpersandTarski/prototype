@@ -479,19 +479,16 @@ class AmpersandApp
         // Navigation menu items
         try {
             $transaction = $this->newTransaction();
-            $menuItemCpt = Concept::getConceptByLabel('PF_NavMenuItem');
 
             // MainNavbar (i.e. all interfaces with SESSION as src concept)
-            $mainMenu = new Atom('MainNavbar', $menuItemCpt);
-            $mainMenu->add();
+            $mainMenu = Atom::makeAtom('MainNavbar', 'PF_NavMenu')->add();
             $mainMenu->link('Main menu', 'label[PF_NavMenuItem*PF_Label]')->add();
             $i = 0;
             foreach (Ifc::getAllInterfaces() as $ifc) {
                 /** @var \Ampersand\Interfacing\Ifc $ifc */
                 if ($ifc->getSrcConcept()->isSession()) {
                     $i++;
-                    $menuItem = new Atom($ifc->getId(), $menuItemCpt);
-                    $menuItem->add();
+                    $menuItem = Atom::makeAtom($ifc->getId(), 'PF_NavMenuItem')->add();
                     $menuItem->link($ifc->getLabel(), 'label[PF_NavMenuItem*PF_Label]')->add();
                     $menuItem->link($ifc->getId(), 'ifc[PF_NavMenuItem*PF_Interface]')->add();
                     $menuItem->link($i, 'seqNr[PF_NavMenuItem*PF_SeqNr]')->add();
