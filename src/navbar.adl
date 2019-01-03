@@ -96,12 +96,13 @@ CONTEXT PrototypeFramework IN ENGLISH
     INTERFACE "Edit menu item" FOR Admin: I[PF_NavMenuItem] cRud BOX
         [ "Label"        : label
         , "Items"        : subItemOf~ CRuD BOX <SCOLS>
-            [ "#"        : seqNr                    cRUd
+            [ "# "       : seqNr                    cRUd
             , "Label"    : label                    cRUd
             , "Ifc"      : ifc                      cRUd
-            , "Url"      : url                      cRUd
+            , "Roles"    : ifc;ifcRoles             cRud
             , "Edit"     : I LINKTO INTERFACE "Edit menu item"
             ]
+        , "Url"          : url                      cRUd
         ]
 
     --[SYSTEM INTERFACES to adapt the menus]-------------------------------------------------------
