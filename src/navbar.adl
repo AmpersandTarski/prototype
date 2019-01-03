@@ -35,13 +35,17 @@ CONTEXT PrototypeFramework IN ENGLISH
     CLASSIFY PF_NavMenu ISA PF_NavMenuItem
     REPRESENT PF_NavMenu TYPE OBJECT
 
-    INTERFACE "Edit navigation menu" FOR Admin: "_SESSION";V[SESSION*PF_NavMenu] cRud BOX
-        [ "Menu"         : label
-        , "Items"        : subItemOf~ BOX <SCOLS>
-            [ "#"        : seqNr                    cRud
+    --[ADMIN INTERFACES to adapt the menus]--------------------------------------------------------
+    INTERFACE "Edit navigation menu" FOR Admin: "_SESSION";V[SESSION*PF_NavMenu] INTERFACE "Edit menu item"
+    
+    INTERFACE "Edit menu item" FOR Admin: I[PF_NavMenuItem] cRud BOX
+        [ "Label"        : label
+        , "Items"        : subItemOf~ CRuD BOX <SCOLS>
+            [ "#"        : seqNr                    cRUd
             , "Label"    : label                    cRUd
             , "Ifc"      : ifc                      cRUd
             , "Url"      : url                      cRUd
+            , "Edit"     : I LINKTO INTERFACE "Edit menu item"
             ]
         ]
     
