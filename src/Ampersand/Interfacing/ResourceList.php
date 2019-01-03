@@ -219,7 +219,7 @@ class ResourceList
         }
     }
 
-    public function add(string $value): Resource
+    public function add($value): Resource
     {
         return $this->makeResource($this->ifcObject->add($this->srcAtom, $value));
     }
