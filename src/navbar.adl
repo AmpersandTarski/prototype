@@ -19,6 +19,11 @@ CONTEXT PrototypeFramework IN ENGLISH
         RULE "Add public interfaces to all roles": V[PF_Role*PF_Interface];isPublic |- ifcRoles~
         VIOLATION (TXT "{EX}InsPair;ifcRoles;PF_Interface;", TGT I, TXT ";PF_Role;", SRC I)
 
+    INTERFACE "Edit interface" FOR Admin : I[PF_Interface] BOX
+        [ "Interface"           : I
+        , "Is public"           : isPublic      cRUd
+        , "For roles"           : ifcRoles      cRUd
+        ]
 
     --[NAVBAR ITEMS]-------------------------------------------------------------------------------
     CONCEPT PF_NavMenuItem ""
