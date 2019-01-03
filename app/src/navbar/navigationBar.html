@@ -6,9 +6,15 @@
                 <a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
                 <ul id="navbar-interfaces-dropdown-menu" class="dropdown-menu" role="menu"></ul>
             </li>
-            <li id="{{interface.label}}" ng-repeat="interface in navbar.top"> <!-- the interface id is there so we can style specific menu items with css -->
-                <a href="#/{{interface.id}}">
-                    <span class="glyphicon glyphicon-list-alt"></span> {{interface.label}}</a>
+            <li id="{{item.id}}" ng-repeat="item in navbar.top | orderBy : 'seqNr'"><!-- the item id is there so we can style specific menu items with css -->
+                <a ng-if="item.ifc" ng-href="#/{{item.ifc}}"><!-- link to specific interface -->
+                    <span class="glyphicon glyphicon-list-alt"></span>
+                    <span> {{item.label}}</span>
+                </a>
+                <a ng-if="item.url" ng-href="{{item.url}}" target="_blank"><!-- link to (external) url -->
+                    <span class="glyphicon glyphicon-link"></span>
+                    <span> {{item.label}}</span>
+                </a>
             </li>
         </ul>
         <ul class="nav navbar-nav navbar-right" id="navbar-options">

@@ -42,8 +42,11 @@ angular.module('AmpersandApp')
                 data = data.plain();
 
                 // Content of navbar
+                menus = treeify(data.navs, 'id', 'parent', 'children');
                 navbar.home = data.home;
-                navbar.top = data.top;
+                navbar.top = menus.find(function(menu){
+                    return menu.id === 'MainMenu'
+                }).children;
                 navbar.new = data.new;
                 navbar.refresh = data.refresh;
                 navbar.role = data.role;
@@ -92,6 +95,43 @@ angular.module('AmpersandApp')
             }, 500);
         }
     };
+
+    /**
+     * Creates a tree from flat list of elements with parent specified.
+     * If no parent specified, the element is considered a root node
+     * The function returns a list of root nodes
+     * 'id', 'parent' and 'children' object labels can be set
+     * 
+     * @param {Array} list 
+     * @param {string} idAttr 
+     * @param {string} parentAttr 
+     * @param {string} childrenAttr 
+     * @returns {Array}
+     */
+    function treeify(list, idAttr, parentAttr, childrenAttr) {
+        if (!idAttr) idAttr = 'id';
+        if (!parentAttr) parentAttr = 'parent';
+        if (!childrenAttr) childrenAttr = 'children';
+        var treeList = [];
+        var lookup = {};
+        list.forEach(function(obj) {
+            lookup[obj[idAttr]] = obj;
+            obj[childrenAttr] = [];
+        });
+        list.forEach(function(obj) {
+            if (obj[parentAttr] != null) {
+                if (lookup[obj[parentAttr]] === undefined) { // error when parent element is not defined in list
+                    console.error('Parent element is undefined: ', obj[parentAttr]);
+                } else {
+                    lookup[obj[parentAttr]][childrenAttr].push(obj);
+                    obj[parentAttr] = lookup[obj[parentAttr]]; // replace parent id with reference to actual parent element
+                }
+            } else {
+                treeList.push(obj);
+            }
+        });
+        return treeList;
+    }
     
     return service;
 });
