@@ -297,22 +297,22 @@ class Atom implements JsonSerializable
      * Factory function for atom object
      *
      * @param string $id
-     * @param string $conceptId
+     * @param string $concept (i.e. name of concept as used in &-script)
      * @return \Ampersand\Core\Atom
      */
-    public static function makeAtom(string $id, string $conceptId): Atom
+    public static function makeAtom(string $id, string $concept): Atom
     {
-        return new Atom($id, Concept::getConcept($conceptId));
+        return new Atom($id, Concept::getConceptByLabel($concept));
     }
 
     /**
      * Factory function for new atom object
      *
-     * @param string $conceptId
+     * @param string $concept (i.e. name of concept as used in &-script)
      * @return \Ampersand\Core\Atom
      */
-    public static function makeNewAtom(string $conceptId): Atom
+    public static function makeNewAtom(string $concept): Atom
     {
-        return Concept::getConcept($conceptId)->createNewAtom();
+        return Concept::getConceptByLabel($concept)->createNewAtom();
     }
 }
