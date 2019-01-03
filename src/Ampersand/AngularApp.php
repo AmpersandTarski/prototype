@@ -11,6 +11,9 @@ use Exception;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
 use Ampersand\Interfacing\Ifc;
+use Ampersand\Interfacing\ResourceList;
+use Ampersand\Interfacing\Options;
+use Ampersand\Core\Atom;
 
 /**
  *
@@ -152,6 +155,8 @@ class AngularApp
 
             // Top level items in menu bar
             case 'top':
+                return $this->getNavMenuItems('MainMenu');
+
                 $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (Ifc $ifc) {
                     $ifcObj = $ifc->getIfcObject();
                     if ($ifc->getSrcConcept()->isSession() && $ifcObj->crudR()) {
@@ -167,10 +172,15 @@ class AngularApp
                            , 'link' => '/' . $ifc->getId()
                            ];
                 }, $interfaces);
-                
             default:
                 throw new Exception("Cannot get menu items. Unknown menu: '{$menu}'", 500);
         }
+    }
+
+    public function getNavMenuItems(string $menuId): array
+    {
+        $menuAtom = Atom::makeAtom($menuId, 'PF_NavMenu');
+        return ResourceList::makeFromInterface($menuAtom, 'PF_MenuItems')->get(Options::INCLUDE_NOTHING);
     }
 
     public function getNavToResponse($case)

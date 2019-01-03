@@ -55,5 +55,14 @@ CONTEXT PrototypeFramework IN ENGLISH
             , "Edit"     : I LINKTO INTERFACE "Edit menu item"
             ]
         ]
+
+    --[SYSTEM INTERFACES to adapt the menus]-------------------------------------------------------
+    API "PF_MenuItems" FOR SYSTEM: I[PF_NavMenu];isPartOf~ BOX
+        [ "label"           : label
+        , "seqNr"           : seqNr
+        , "ifc"             : ifc
+        , "url"             : url
+        , "parent"          : subItemOf
+        ]
     
 ENDCONTEXT
