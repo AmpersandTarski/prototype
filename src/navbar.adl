@@ -1,5 +1,8 @@
 CONTEXT PrototypeFramework IN ENGLISH
 
+    -- TEMPORARY. TODO: replace Role by PF_Role in other meta model scripts
+    CLASSIFY Role ISA PF_Role
+
     --[INTERFACES]
     CONCEPT PF_Interface ""
     REPRESENT PF_Interface TYPE OBJECT
@@ -51,9 +54,29 @@ CONTEXT PrototypeFramework IN ENGLISH
     RELATION subItemOf[PF_NavMenuItem*PF_NavMenuItem] [UNI,IRF,ASY]
     MEANING "A navbar item can be a sub item of another item"
 
-    -- Not yet implemented (i.e. has no effect)
+    --[SESSION MENU ITEMS (i.e. items that are active/visible for a specific session)]-------------
     RELATION sessionMenuItem[SESSION*PF_NavMenuItem]
-    MEANING "The navbar items that are part of the top level navigation bar"
+    MEANING "The navbar items that are active/visible for a session"
+
+        -- Activate/deactive menu items based on the sessionActiveRoles
+        ROLE ExecEngine MAINTAINS "Activate interface menu items"
+        RULE "Activate interface menu items": sessionActiveRoles[SESSION*Role];ifcRoles~;ifc~ |- sessionMenuItem
+        VIOLATION (TXT "{EX}InsPair;sessionMenuItem;SESSION;", SRC I, TXT ";PF_NavMenuItem;", TGT I)
+
+        ROLE ExecEngine MAINTAINS "Deactivate interface menu items"
+        RULE "Deactivate interface menu items": sessionMenuItem;ifc |- sessionActiveRoles[SESSION*Role];ifcRoles~
+        VIOLATION (TXT "{EX}DelPair;sessionMenuItem;SESSION;", SRC I, TXT ";PF_NavMenuItem;", TGT I)
+
+        -- Activate/deactive parent menu items if needed
+        ROLE ExecEngine MAINTAINS "Activate parent menu items"
+        RULE "Activate parent menu items": sessionMenuItem;subItemOf |- sessionMenuItem
+        VIOLATION (TXT "{EX}InsPair;sessionMenuItem;SESSION;", SRC I, TXT ";PF_NavMenuItem;", TGT I)
+
+        ROLE ExecEngine MAINTAINS "Deactivate empty menu items"
+        RULE "Deactivate empty menu items": sessionMenuItem;(I /\ subItemOf~;subItemOf) |- sessionMenuItem;subItemOf
+        MEANING "A session menu item (i.e. active item) that has subelements MUST at least have a sub item that is also active"
+        VIOLATION (TXT "{EX}DelPair;sessionMenuItem;SESSION;", SRC I, TXT ";PF_NavMenuItem;", TGT I)
+
     
     --[NAVBAR MENUS]-------------------------------------------------------------------------------
     CONCEPT PF_NavMenu ""
