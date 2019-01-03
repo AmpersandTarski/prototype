@@ -19,7 +19,7 @@ CONTEXT PrototypeFramework IN ENGLISH
         REPRESENT PF_URL TYPE BIGALPHANUMERIC
   
     RELATION seqNr[PF_NavMenuItem*PF_SeqNr] [UNI]
-    MEANING "A navbar item has a seq nr which determines the position of the item"
+    MEANING "A navbar item has a seq nr (default 0) which determines the position of the item"
         CONCEPT PF_SeqNr ""
         REPRESENT PF_SeqNr TYPE INTEGER
     
@@ -34,8 +34,6 @@ CONTEXT PrototypeFramework IN ENGLISH
     CONCEPT PF_NavMenu ""
     CLASSIFY PF_NavMenu ISA PF_NavMenuItem
     REPRESENT PF_NavMenu TYPE OBJECT
-    POPULATION PF_NavMenu CONTAINS ["MainNavbar", "NewNavbar", "Extensions"]
-    POPULATION label[PF_NavMenuItem*PF_Label] CONTAINS [("MainNavbar", "Main menu"), ("NewNavbar","Create new"), ("Extensions","Extension menu")]
 
     INTERFACE "Edit navigation menu" FOR Admin: "_SESSION";V[SESSION*PF_NavMenu] cRud BOX
         [ "Menu"         : label
