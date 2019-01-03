@@ -481,7 +481,7 @@ class AmpersandApp
             $transaction = $this->newTransaction();
 
             // MainNavbar (i.e. all interfaces with SESSION as src concept)
-            $mainMenu = Atom::makeAtom('MainNavbar', 'PF_NavMenu')->add();
+            $mainMenu = Atom::makeAtom('MainMenu', 'PF_NavMenu')->add();
             $mainMenu->link('Main menu', 'label[PF_NavMenuItem*PF_Label]')->add();
             $mainMenu->link($mainMenu, 'isPartOf[PF_NavMenuItem*PF_NavMenu]')->add();
             $i = '0';
