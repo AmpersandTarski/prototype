@@ -147,10 +147,14 @@ $api->group('/resource', function () {
         try {
             $content = $resource->get($options, $depth);
         } catch (Exception $e) {
-            if ($e->getCode() === 405) { // 405 is Method not allowed (e.g. when read is not allowed)
-                $content = $body;
-            } else {
-                throw $e;
+            switch ($e->getCode()) {
+                case 403: // Access denied (e.g. PATCH on root node there is no interface specified)
+                case 405: // Method not allowed (e.g. when read is not allowed)
+                    $content = $request->getMethod() === 'PATCH' ? null : $body;
+                    break;
+                default:
+                    throw $e;
+                    break;
             }
         }
         
