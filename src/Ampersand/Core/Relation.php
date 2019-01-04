@@ -286,36 +286,44 @@ class Relation
     }
     
     /**
-     * @param \Ampersand\Core\Atom|null $atom atom for which to delete all links
-     * @param string|null $srcOrTgt specifies to delete all link with $atom as src, tgt or both (null/not provided)
+     * @param \Ampersand\Core\Atom $atom atom for which to delete all links
+     * @param string $srcOrTgt specifies to delete all link with $atom as src, tgt or both (null/not provided)
      * @return void
      */
-    public function deleteAllLinks(Atom $atom = null, $srcOrTgt = null)
+    public function deleteAllLinks(Atom $atom, $srcOrTgt): void
     {
-        // Add relation to affected relations. Needed for conjunct evaluation and transaction management
-        $this->app->getCurrentTransaction()->addAffectedRelations($this);
-        
-        // Checks and logging
-        if (is_null($atom)) {
-            $this->logger->debug("Deleting all links in relation {$this}");
-        } else {
-            switch ($srcOrTgt) {
-                case 'src':
-                case 'tgt':
-                    $this->logger->debug("Deleting all links in relation {$this} with {$atom} set as {$srcOrTgt}");
-                    break;
-                case null:
-                    $this->logger->debug("Deleting all links in relation {$this} with {$atom} set as src or tgt");
-                    break;
-                default:
-                    throw new Exception("Unknown/unsupported param option '{$srcOrTgt}'. Supported options are 'src', 'tgt' or null", 500);
-                    break;
-            }
+        switch ($srcOrTgt) {
+            case 'src':
+            case 'tgt':
+                $this->logger->debug("Deleting all links in relation '{$this}' with {$srcOrTgt} '{$atom}'");
+                break;
+            default:
+                throw new Exception("Unknown/unsupported param option '{$srcOrTgt}'. Supported options are 'src' or 'tgt'", 500);
+                break;
         }
 
-        // Perform delete in all plugs
+        // Add relation to affected relations. Needed for conjunct evaluation and transaction management
+        $this->app->getCurrentTransaction()->addAffectedRelations($this);
+
         foreach ($this->getPlugs() as $plug) {
             $plug->deleteAllLinks($this, $atom, $srcOrTgt);
+        }
+    }
+
+    /**
+     * Empty relation (i.e. delete all links)
+     *
+     * @return void
+     */
+    public function empty(): void
+    {
+        $this->logger->debug("Deleting all links in relation {$this}");
+
+        // Add relation to affected relations. Needed for conjunct evaluation and transaction management
+        $this->app->getCurrentTransaction()->addAffectedRelations($this);
+
+        foreach ($this->getPlugs() as $plug) {
+            $plug->emptyRelation($this);
         }
     }
     

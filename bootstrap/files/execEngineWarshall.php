@@ -63,8 +63,8 @@ ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPl
     $relationRPlus = Relation::getRelation($rPlus, $concept, $concept);
 
     // Empty rCopy and rPlus
-    $relationRCopy->deleteAllLinks();
-    $relationRPlus->deleteAllLinks();
+    $relationRCopy->empty();
+    $relationRPlus->empty();
 
     // Get adjacency matrix
     $closure = [];
