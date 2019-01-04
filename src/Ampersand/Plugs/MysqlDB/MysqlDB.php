@@ -702,68 +702,64 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      *
      *
      * @param \Ampersand\Core\Relation $relation relation from which to delete all links
-     * @param \Ampersand\Core\Atom|null $atom atom for which to delete all links
-     * @param string|null $srcOrTgt specifies to delete all link with $atom as src, tgt or both (null/not provided)
+     * @param \Ampersand\Core\Atom $atom atom for which to delete all links
+     * @param string $srcOrTgt specifies to delete all link with $atom as src or tgt
      * @return void
      */
-    public function deleteAllLinks(Relation $relation, Atom $atom = null, string $srcOrTgt = null)
+    public function deleteAllLinks(Relation $relation, Atom $atom, string $srcOrTgt): void
     {
         $relationTable = $relation->getMysqlTable();
+        $atomId = $this->getDBRepresentation($atom);
         
-        // Delete links for given atom
-        if (isset($atom)) {
-            $atomId = $this->getDBRepresentation($atom);
-            
-            $cols = [];
-            switch ($srcOrTgt) {
-                case 'src':
-                    $cols[] = $relationTable->srcCol();
-                    break;
-                case 'tgt':
-                    $cols[] = $relationTable->tgtCol();
-                    break;
-                case null:
-                    $cols[] = $relationTable->srcCol();
-                    $cols[] = $relationTable->tgtCol();
-                    break;
-                default:
-                    throw new Exception("Unknown/unsupported param option '{$srcOrTgt}'. Supported options are 'src', 'tgt' or null", 500);
-                    break;
-            }
-            
-            foreach ($cols as $col) {
-                // If n-n table, remove row
-                if (is_null($relationTable->tableOf)) {
-                    $query = "DELETE FROM \"{$relationTable->name}\" WHERE \"{$col->name}\" = '{$atomId}'";
-                } // Elseif column may be set to null, update
-                elseif ($col->null) {
-                    $query = "UPDATE \"{$relationTable->name}\" SET \"{$col->name}\" = NULL WHERE \"{$col->name}\" = '{$atomId}'";
-                } // Else, we remove the entire row (cascades delete for TOT and SUR relations)
-                else {
-                    $query = "DELETE FROM \"{$relationTable->name}\" WHERE \"{$col->name}\" = '{$atomId}'";
-                }
-                
-                $this->execute($query);
-            }
-            
-        // Delete all links
+        switch ($srcOrTgt) {
+            case 'src':
+                $col = $relationTable->srcCol();
+                break;
+            case 'tgt':
+                $col = $relationTable->tgtCol();
+                break;
+            default:
+                throw new Exception("Unknown/unsupported param option '{$srcOrTgt}'. Supported options are 'src' or 'tgt'", 500);
+                break;
+        }
+        
+        // If n-n table, remove row
+        if (is_null($relationTable->tableOf)) {
+            $query = "DELETE FROM \"{$relationTable->name}\" WHERE \"{$col->name}\" = '{$atomId}'";
+        // If col cannot be set to null, remove the entire row (cascades delete for TOT and SUR relations)
+        // Don't include this case, because the user doesn't understand what is happing. A whole row is deleted if a single TOT constraint is violated
+        // } elseif (!$col->null) {
+        //     $query = "DELETE FROM \"{$relationTable->name}\" WHERE \"{$col->name}\" = '{$atomId}'";
+        // Else update
         } else {
-            switch ($relationTable->tableOf) {
-                case null: // If n-n table, remove all rows
-                    $query = "DELETE FROM \"{$relationTable->name}\"";
-                    break;
-                case 'src': // If in table of src concept, set tgt col to null
-                    $col = $relationTable->tgtCol();
-                    $query = "UPDATE \"{$relationTable->name}\" SET \"{$col->name}\" = NULL";
-                    break;
-                case 'tgt': // If in table of tgt concept, set src col to null
-                    $col = $relationTable->srcCol();
-                    $query = "UPDATE \"{$relationTable->name}\" SET \"{$col->name}\" = NULL";
-                    break;
-                default:
-                    throw new Exception("Unknown 'tableOf' option for relation '{$relation}'", 500);
-            }
-            $this->execute($query);
+            $query = "UPDATE \"{$relationTable->name}\" SET \"{$col->name}\" = NULL WHERE \"{$col->name}\" = '{$atomId}'";
+        }
+        
+        $this->execute($query);
+    }
+
+    /**
+     * Delete all links in a relation
+     *
+     * @param \Ampersand\Core\Relation $relation
+     * @return void
+     */
+    public function emptyRelation(Relation $relation): void
+    {
+        $relationTable = $relation->getMysqlTable();
+
+        switch ($relationTable->tableOf) {
+            case null: // If n-n table, remove all rows
+                $this->execute("DELETE FROM \"{$relationTable->name}\"");
+                break;
+            case 'src': // If in table of src concept, set tgt col to null
+                $this->execute("UPDATE \"{$relationTable->name}\" SET \"{$relationTable->tgtCol()->name}\" = NULL");
+                break;
+            case 'tgt': // If in table of tgt concept, set src col to null
+                $this->execute("UPDATE \"{$relationTable->name}\" SET \"{$relationTable->srcCol()->name}\" = NULL");
+                break;
+            default:
+                throw new Exception("Unknown 'tableOf' option for relation '{$relation}'", 500);
         }
     }
     
