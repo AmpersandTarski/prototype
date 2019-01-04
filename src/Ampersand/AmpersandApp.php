@@ -499,7 +499,7 @@ class AmpersandApp
                         $ifcAtom->link($ifcAtom, 'isPublic[PF_Interface*PF_Interface]')->add();
                     }
                     $menuItem->link($i, 'seqNr[PF_NavMenuItem*PF_SeqNr]')->add();
-                    $menuItem->link($mainMenu, 'subItemOf[PF_NavMenuItem*PF_NavMenuItem]')->add();
+                    $menuItem->link($mainMenu, 'isSubItemOf[PF_NavMenuItem*PF_NavMenuItem]')->add();
                 }
             }
 
