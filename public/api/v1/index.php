@@ -207,6 +207,9 @@ $api->add(function (Request $req, Response $res, callable $next) {
         $ampersandApp->init(); // initialize Ampersand application
         $ampersandApp->setSession(); // initialize session
     } catch (NotInstalledException $e) {
+        // Make sure to close any open transaction
+        $ampersandApp->getCurrentTransaction()->cancel();
+        
         if ($ampersandApp->getSettings()->get('global.debugMode')) {
             /** @var \Slim\Route $route */
             $route = $req->getAttribute('route');
