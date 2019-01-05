@@ -43,7 +43,7 @@ ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPl
 
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 4) {
-        throw new Exception("Wrong number of arguments supplied for function TransitiveClosure(): ".func_num_args()." arguments", 500);
+        throw new Exception("TransitiveClosure() expects 4 arguments, but you have provided ".func_num_args(), 500);
     }
     
     // Quit if a relation $r is already calculated in a specific exec-engine run
