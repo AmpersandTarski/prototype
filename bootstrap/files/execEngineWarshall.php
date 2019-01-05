@@ -11,12 +11,12 @@
    This leads to the following pattern:
 
    relation :: Concept*Concept
-   relationCopy :: Concept*Concept -- copied value of 'relation' allows for detecting modifcation events
-   relationStar :: Concept*Concept -- transitive closure of relation
+   relationCopy :: Concept*Concept -- copied value of 'relation' allows for detecting modification events
+   relationPlus :: Concept*Concept -- transitive closure, i.e.: the irreflexive transitive closure!
 
    ROLE ExecEngine MAINTAINS "relationCompTransitiveClosure"
    RULE "relationCompTransitiveClosure": relation = relationCopy
-   VIOLATION (TXT "{EX} TransitiveClosure;relation;Concept;relationCopy;relationStar")
+   VIOLATION (TXT "{EX} TransitiveClosure;relation;Concept;relationCopy;relationPlus")
 
    NOTES:
    1) The above example is made for ease of use. This is what you need to do:
