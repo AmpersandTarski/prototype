@@ -5,9 +5,11 @@ namespace Ampersand\Extension\OAuthLogin;
 use Exception;
 use Ampersand\Core\Atom;
 use Ampersand\Interfacing\ResourceList;
+use Ampersand\Misc\ExtensionThreat;
 
 class OAuthLoginController
 {
+    use ExtensionThreat;
 
     private $token_url;
     private $client_id;
@@ -27,9 +29,6 @@ class OAuthLoginController
 
     public function requestToken($code)
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp;
-
         // Setup token request
         $token_request = [
             'token_url' => $this->token_url,
@@ -46,7 +45,7 @@ class OAuthLoginController
         $curl = curl_init();
         curl_setopt_array($curl, [ CURLOPT_RETURNTRANSFER => 1
                                  , CURLOPT_URL => $token_request['token_url']
-                                 , CURLOPT_USERAGENT => $ampersandApp->getName()
+                                 , CURLOPT_USERAGENT => $this->ampersandApp->getName()
                                  , CURLOPT_POST => 1
                                  , CURLOPT_POSTFIELDS => http_build_query($token_request['arguments'])
                                  , CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded', 'Accept: application/json']
@@ -80,9 +79,6 @@ class OAuthLoginController
 
     public function requestData($api_url)
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp;
-
         if (!isset($this->tokenObj)) {
             throw new Exception("Error: No token set", 500);
         }
@@ -91,7 +87,7 @@ class OAuthLoginController
         $curl = curl_init();
         curl_setopt_array($curl, [ CURLOPT_RETURNTRANSFER => 1
                                  , CURLOPT_URL => $api_url
-                                 , CURLOPT_USERAGENT => $ampersandApp->getName()
+                                 , CURLOPT_USERAGENT => $this->ampersandApp->getName()
                                  , CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $this->tokenObj->access_token, 'x-li-format: json']
                                  , CURLOPT_CAINFO => __DIR__ . '/cacert.pem'
                                  ]);
@@ -192,9 +188,6 @@ class OAuthLoginController
      */
     private function login(string $email): bool
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp;
-
         if (empty($email)) {
             throw new Exception("No emailaddress provided to login", 500);
         }
@@ -225,11 +218,11 @@ class OAuthLoginController
         }
         
         // Login account
-        $transaction = $ampersandApp->getCurrentTransaction();
-        $ampersandApp->login($account); // Automatically closes transaction
+        $transaction = $this->ampersandApp->getCurrentTransaction();
+        $this->ampersandApp->login($account); // Automatically closes transaction
 
         if ($transaction->isCommitted()) {
-            $ampersandApp->userLog()->notice("Login successfull");
+            $this->ampersandApp->userLog()->notice("Login successfull");
             return true;
         } else {
             return false;
