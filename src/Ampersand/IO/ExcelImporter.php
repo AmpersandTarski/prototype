@@ -93,7 +93,7 @@ class ExcelImporter
         global $ampersandApp; // TODO: remove dependency on global var
 
         // The list to add/update items from
-        $resourceList = ResourceList::makeFromInterface($ampersandApp->getSession()->getSessionAtom(), $ifc->getId());
+        $resourceList = ResourceList::makeFromInterface($ampersandApp->getSession()->getId(), $ifc->getId());
         
         // Parse other columns of first row
         $dataColumns = [];

@@ -248,8 +248,18 @@ class ResourceList
      * STATIC METHODS
      *********************************************************************************************/
 
-    public static function makeFromInterface(Atom $srcAtom, string $ifcId): ResourceList
+    /**
+     * Instantiate resource list with given src atom and interface
+     *
+     * @param string $srcAtomId
+     * @param string $ifcId
+     * @return \Ampersand\Interfacing\ResourceList
+     */
+    public static function makeFromInterface(string $srcAtomId, string $ifcId): ResourceList
     {
+        $ifc = Ifc::getInterface($ifcId);
+        $srcAtom = new Atom($srcAtomId, $ifc->getSrcConcept());
+
         // Same as in InterfaceNullObject::buildResourcePath()
         if ($srcAtom->concept->isSession()) {
             $pathEntry = "resource/SESSION/1"; // Don't put session id here, this is implicit
@@ -257,12 +267,18 @@ class ResourceList
             $pathEntry = "resource/{$srcAtom->concept->name}/{$srcAtom->id}";
         }
 
-        return new ResourceList($srcAtom, Ifc::getInterface($ifcId)->getIfcObject(), $pathEntry);
+        return new ResourceList($srcAtom, $ifc->getIfcObject(), $pathEntry);
     }
 
-    public static function makeWithoutInterface(string $resourceType): ResourceList
+    /**
+     * Instantiate resource list for a given resource type (i.e. concept)
+     *
+     * @param string $conceptId
+     * @return \Ampersand\Interfacing\ResourceList
+     */
+    public static function makeWithoutInterface(string $conceptId): ResourceList
     {
         $one = new Atom('ONE', Concept::getConcept('ONE'));
-        return new ResourceList($one, InterfaceObjectFactory::getNullObject($resourceType), '');
+        return new ResourceList($one, InterfaceObjectFactory::getNullObject($conceptId), '');
     }
 }

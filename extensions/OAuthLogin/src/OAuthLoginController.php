@@ -199,19 +199,18 @@ class OAuthLoginController
             throw new Exception("No emailaddress provided to login", 500);
         }
         
-        $userID = Atom::makeAtom($email, 'UserID');
-        $accounts = ResourceList::makeFromInterface($userID, 'AccountForUserid')->getResources();
+        $accounts = ResourceList::makeFromInterface($email, 'AccountForUserid')->getResources();
         
         // Create new account
         if (empty($accounts)) {
             $account = Atom::makeNewAtom('Account');
             
             // Save email as accUserid
-            $account->link($userID, 'accUserid[Account*UserID]')->add();
+            $account->link($email, 'accUserid[Account*UserID]')->add();
             
             try {
                 // If possible, add account to organization(s) based on domain name
-                $domain = Atom::makeAtom(explode('@', $email)[1], 'Domain');
+                $domain = explode('@', $email)[1];
                 $orgs = ResourceList::makeFromInterface($domain, 'DomainOrgs')->getResources();
                 foreach ($orgs as $org) {
                     $account->link($org, 'accOrg[Account*Organization]')->add();
