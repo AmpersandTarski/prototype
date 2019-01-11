@@ -921,8 +921,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             // Only applies to crudU, because issue is with patchReplace, not with add/remove
             // Only applies to scalar, because objects don't use patchReplace, but Remove and Add
             // Only if interface expression (not! the relation) is univalent, because else a add/remove option is used in the UI
-            if ((!$this->relationIsFlipped && $this->relation()->getMysqlTable()->tableOf === 'tgt')
-                    || ($this->relationIsFlipped && $this->relation()->getMysqlTable()->tableOf === 'src')) {
+            if ((!$this->relationIsFlipped && $this->relation()->getMysqlTable()->inTableOf() === 'tgt')
+                    || ($this->relationIsFlipped && $this->relation()->getMysqlTable()->inTableOf() === 'src')) {
                 $diagnostics[] = [ 'interface' => $this->getPath()
                                  , 'message' => "Unsupported edit functionality due to combination of factors. See issue #318"
                                  ];

@@ -500,8 +500,9 @@ class Concept
 
         // TODO: remove this hack with _AI (autoincrement feature)
         if (strpos($this->name, '_AI') !== false && $this->isInteger()) {
+            /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $firstCol */
             $firstCol = current($this->mysqlConceptTable->getCols());
-            $query = "SELECT MAX(\"$firstCol->name\") as \"MAX\" FROM \"{$this->mysqlConceptTable->name}\"";
+            $query = "SELECT MAX(\"{$firstCol->getName()}\") as \"MAX\" FROM \"{$this->mysqlConceptTable->getName()}\"";
              
             $result = array_column((array)$this->primaryPlug->executeCustomSQLQuery($query), 'MAX');
     

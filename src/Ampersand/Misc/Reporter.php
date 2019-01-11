@@ -89,7 +89,7 @@ class Reporter
             foreach ($relation->getRelatedConjuncts() as $conjunct) {
                 $relArr['affectedConjuncts'][] = $conjunct->showInfo();
             }
-            $relArr['srcOrTgtTable'] = $relation->getMysqlTable()->tableOf;
+            $relArr['srcOrTgtTable'] = $relation->getMysqlTable()->inTableOf();
             
             return $relArr;
         }, Relation::getAllRelations());
