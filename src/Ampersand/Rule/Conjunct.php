@@ -83,21 +83,21 @@ class Conjunct
      *
      * @var string
      */
-    private $query;
+    protected $query;
     
     /**
      * List invariant rules that use this conjunct
      *
      * @var string[]
      */
-    public $invRuleNames;
+    protected $invRuleNames;
     
     /**
      * List signal rules that use this conjunct
      *
      * @var string[]
      */
-    public $sigRuleNames;
+    protected $sigRuleNames;
     
     /**
      * Specifies if conjunct is already evaluated
@@ -260,6 +260,14 @@ class Conjunct
     public function persistCacheItem()
     {
         $this->cachePool->save($this->cacheItem);
+    }
+
+    public function showInfo(): array
+    {
+        return [ 'id' => $this->id
+               , 'invRules' => $this->invRuleNames
+               , 'sigRules' => $this->sigRuleNames
+               ];
     }
     
     /**********************************************************************************************

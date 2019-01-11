@@ -87,13 +87,7 @@ class Reporter
             
             $relArr['affectedConjuncts'] = [];
             foreach ($relation->getRelatedConjuncts() as $conjunct) {
-                $relArr['affectedConjuncts'][$conjunct->getId()] = [];
-                foreach ($conjunct->invRuleNames as $ruleName) {
-                    $relArr['affectedConjuncts'][$conjunct->getId()]['invRules'][] = $ruleName;
-                }
-                foreach ($conjunct->sigRuleNames as $ruleName) {
-                    $relArr['affectedConjuncts'][$conjunct->getId()]['sigRules'][] = $ruleName;
-                }
+                $relArr['affectedConjuncts'][] = $conjunct->showInfo();
             }
             $relArr['srcOrTgtTable'] = $relation->getMysqlTable()->tableOf;
             
@@ -208,8 +202,7 @@ class Reporter
                        , 'start' => round($startTimeStamp, 6)
                        , 'end' => round($endTimeStamp, 6)
                        , 'duration' => round($endTimeStamp - $startTimeStamp, 6)
-                       , 'invariantRules' => implode(';', $conjunct->invRuleNames)
-                       , 'signalRules' => implode(';', $conjunct->sigRuleNames)
+                       , 'rules' => implode(';', $conjunct->getRuleNames())
                        ];
         }
         
