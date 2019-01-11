@@ -76,7 +76,7 @@ class Conjunct
      *
      * @var string
      */
-    public $id;
+    protected $id;
     
     /**
      * Query to evaluate conjunct (i.e. get violations)
@@ -137,6 +137,11 @@ class Conjunct
      * @return string identifier of conjunct
      */
     public function __toString(): string
+    {
+        return $this->id;
+    }
+
+    public function getId(): string
     {
         return $this->id;
     }

@@ -87,12 +87,12 @@ class Reporter
             
             $relArr['affectedConjuncts'] = [];
             foreach ($relation->getRelatedConjuncts() as $conjunct) {
-                $relArr['affectedConjuncts'][$conjunct->id] = [];
+                $relArr['affectedConjuncts'][$conjunct->getId()] = [];
                 foreach ($conjunct->invRuleNames as $ruleName) {
-                    $relArr['affectedConjuncts'][$conjunct->id]['invRules'][] = $ruleName;
+                    $relArr['affectedConjuncts'][$conjunct->getId()]['invRules'][] = $ruleName;
                 }
                 foreach ($conjunct->sigRuleNames as $ruleName) {
-                    $relArr['affectedConjuncts'][$conjunct->id]['sigRules'][] = $ruleName;
+                    $relArr['affectedConjuncts'][$conjunct->getId()]['sigRules'][] = $ruleName;
                 }
             }
             $relArr['srcOrTgtTable'] = $relation->getMysqlTable()->tableOf;
@@ -204,7 +204,7 @@ class Reporter
             $endTimeStamp = microtime(true);
             set_time_limit((int) ini_get('max_execution_time')); // reset time limit counter
             
-            $content = [ 'id' => $conjunct->id
+            $content = [ 'id' => $conjunct->getId()
                        , 'start' => round($startTimeStamp, 6)
                        , 'end' => round($endTimeStamp, 6)
                        , 'duration' => round($endTimeStamp - $startTimeStamp, 6)

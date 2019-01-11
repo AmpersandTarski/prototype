@@ -28,7 +28,7 @@ class Role
      * Role identifier
      * @var int
      */
-    public $id;
+    protected $id;
     
     /**
      * Name of the role

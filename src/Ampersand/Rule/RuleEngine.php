@@ -49,7 +49,7 @@ class RuleEngine
         foreach ($rules as $rule) {
             /** @var \Ampersand\Rule\Rule $rule */
             foreach ($rule->conjuncts as $conjunct) {
-                $conjunctRuleMap[$conjunct->id][] = $rule;
+                $conjunctRuleMap[$conjunct->getId()][] = $rule;
             }
             $conjuncts = array_merge($conjuncts, $rule->conjuncts);
         }

@@ -134,7 +134,7 @@ class UserLogger extends AbstractLogger
      */
     public function invariant(Violation $violation)
     {
-        $hash = hash('md5', $violation->rule->id);
+        $hash = hash('md5', $violation->rule->getId());
             
         $this->invariants[$hash]['ruleMessage'] = $violation->rule->getViolationMessage();
         $this->invariants[$hash]['tuples'][] = ['violationMessage' => ($violationMessage = $violation->getViolationMessage())];
@@ -153,7 +153,7 @@ class UserLogger extends AbstractLogger
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove reference to global
 
-        $ruleHash = hash('md5', $violation->rule->id);
+        $ruleHash = hash('md5', $violation->rule->getId());
         
         if (!isset($this->signals[$ruleHash])) {
             $this->signals[$ruleHash]['message'] = $violation->rule->getViolationMessage();

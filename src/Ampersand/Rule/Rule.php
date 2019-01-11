@@ -54,7 +54,7 @@ class Rule
      *
      * @var string
      */
-    public $id;
+    protected $id;
     
     /**
      * The file and line number of the Ampersand script where this rule is defined
@@ -169,6 +169,11 @@ class Rule
      * @return string
      */
     public function __toString(): string
+    {
+        return $this->id;
+    }
+
+    public function getId(): string
     {
         return $this->id;
     }
