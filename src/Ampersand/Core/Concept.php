@@ -109,7 +109,7 @@ class Concept
      *
      * @var \Ampersand\Rule\Conjunct[]
      */
-    public $relatedConjuncts = [];
+    protected $relatedConjuncts = [];
     
     /**
      * List of concepts (name) that are specializations of this concept
@@ -151,7 +151,7 @@ class Concept
      *
      * @var string[]
      */
-    public $interfaceIds = [];
+    protected $interfaceIds = [];
     
     /**
      * Default view object for atoms of this concept

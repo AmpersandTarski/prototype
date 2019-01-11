@@ -55,79 +55,79 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      *
      * @var boolean
      */
-    private $crudC;
+    protected $crudC;
     
     /**
      *
      * @var boolean
      */
-    private $crudR;
+    protected $crudR;
     
     /**
      *
      * @var boolean
      */
-    private $crudU;
+    protected $crudU;
     
     /**
      *
      * @var boolean
      */
-    private $crudD;
+    protected $crudD;
     
     /**
      *
      * @var \Ampersand\Core\Relation|null
      */
-    private $relation;
+    protected $relation;
     
     /**
      *
      * @var boolean|null
      */
-    public $relationIsFlipped;
+    protected $relationIsFlipped;
     
     /**
      *
      * @var boolean
      */
-    private $isUni;
+    protected $isUni;
     
     /**
      *
      * @var boolean
      */
-    private $isTot;
+    protected $isTot;
     
     /**
      *
      * @var boolean
      */
-    private $isIdent;
+    protected $isIdent;
     
     /**
      *
      * @var string
      */
-    private $query;
+    protected $query;
     
     /**
      *
      * @var \Ampersand\Core\Concept
      */
-    public $srcConcept;
+    protected $srcConcept;
     
     /**
      *
      * @var \Ampersand\Core\Concept
      */
-    public $tgtConcept;
+    protected $tgtConcept;
     
     /**
      *
      * @var \Ampersand\Interfacing\View|null
      */
-    private $view;
+    protected $view;
 
     /**
      * Specifies the class of the BOX (in case of BOX interface)
@@ -141,19 +141,19 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      *
      * @var string
      */
-    private $refInterfaceId;
+    protected $refInterfaceId;
     
     /**
      *
      * @var boolean
      */
-    private $isLinkTo = false;
+    protected $isLinkTo = false;
     
     /**
      *
      * @var \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
-    private $subInterfaces = [];
+    protected $subInterfaces = [];
 
     /**
      * Constructor
@@ -239,6 +239,16 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function getIfcLabel(): string
     {
         return $this->label;
+    }
+
+    public function getSrcConcept(): Concept
+    {
+        return $this->srcConcept;
+    }
+
+    public function getTgtConcept(): Concept
+    {
+        return $this->tgtConcept;
     }
     
     /**

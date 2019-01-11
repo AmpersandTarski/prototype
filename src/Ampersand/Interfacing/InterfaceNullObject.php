@@ -86,8 +86,9 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
         // Allow when there is at least an interface accesible for the user to create a new tgt
         foreach ($ampersandApp->getAccessibleInterfaces() as $ifc) {
+            /** @var \Ampersand\Interfacing\Ifc $ifc */
             $ifcObj = $ifc->getIfcObject();
-            if ($ifcObj->crudC() && $ifcObj->tgtConcept === $this->tgtConcept) {
+            if ($ifcObj->crudC() && $ifc->getTgtConcept() === $this->tgtConcept) {
                 return true;
             }
         }

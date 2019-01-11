@@ -115,7 +115,7 @@ class Relation
      *
      * @var \Ampersand\Rule\Conjunct[]
      */
-    public $relatedConjuncts = [];
+    protected $relatedConjuncts = [];
     
     /**
      *

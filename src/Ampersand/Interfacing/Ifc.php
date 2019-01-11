@@ -119,12 +119,12 @@ class Ifc
 
     public function getSrcConcept(): Concept
     {
-        return $this->ifcObject->srcConcept;
+        return $this->ifcObject->getSrcConcept();
     }
 
     public function getTgtConcept(): Concept
     {
-        return $this->ifcObject->tgtConcept;
+        return $this->ifcObject->getTgtConcept();
     }
 
     /**********************************************************************************************

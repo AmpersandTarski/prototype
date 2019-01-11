@@ -22,7 +22,7 @@ trait ExtensionThreat
      *
      * @var \Ampersand\AmpersandApp
      */
-    public $ampersandApp;
+    protected $ampersandApp;
 
     /**
      * Setter method for $ampersandApp

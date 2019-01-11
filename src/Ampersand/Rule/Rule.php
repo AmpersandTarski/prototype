@@ -103,7 +103,7 @@ class Rule
      *
      * @var \Ampersand\Rule\Conjunct[]
      */
-    public $conjuncts;
+    protected $conjuncts = [];
     
     /**
      * List with segments to build violation messages
@@ -181,6 +181,16 @@ class Rule
     public function getPlug(): ViewPlugInterface
     {
         return $this->plug;
+    }
+
+    /**
+     * List of conjuncts of which this rule is made of
+     *
+     * @return \Ampersand\Rule\Conjunct[]
+     */
+    public function getConjuncts(): array
+    {
+        return $this->conjuncts;
     }
 
     /**
