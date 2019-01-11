@@ -12,6 +12,7 @@ use Ampersand\Core\Relation;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
+use Ampersand\Core\Atom;
 
 class Exporter
 {
@@ -58,8 +59,8 @@ class Exporter
         foreach (Concept::getAllConcepts() as $concept) {
             $conceptPop[] = [
                 'concept' => $concept->name,
-                'atoms' => array_map(function ($atom) {
-                    return $atom->id;
+                'atoms' => array_map(function (Atom $atom) {
+                    return $atom->getId();
                 }, $concept->getAllAtomObjects())
             ];
         }

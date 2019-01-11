@@ -108,7 +108,7 @@ class ResourceList
             return $this;
         }
 
-        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->id;
+        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->getId();
         
         return $this->one($tgtId)->walkPath($pathList);
     }
@@ -119,7 +119,7 @@ class ResourceList
             throw new Exception("Provided path MUST end with a resource identifier", 400);
         }
 
-        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->id;
+        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->getId();
 
         return $this->one($tgtId)->walkPathToResource($pathList);
     }
@@ -130,7 +130,7 @@ class ResourceList
             return $this;
         }
         
-        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->id;
+        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->getId();
 
         return $this->one($tgtId)->walkPathToList($pathList);
     }
@@ -241,7 +241,7 @@ class ResourceList
 
     protected function makeResource(Atom $atom): Resource
     {
-        return new Resource($atom->id, $atom->concept, $this);
+        return new Resource($atom->getId(), $atom->concept, $this);
     }
 
     /**********************************************************************************************
@@ -264,7 +264,7 @@ class ResourceList
         if ($srcAtom->concept->isSession()) {
             $pathEntry = "resource/SESSION/1"; // Don't put session id here, this is implicit
         } else {
-            $pathEntry = "resource/{$srcAtom->concept->name}/{$srcAtom->id}";
+            $pathEntry = "resource/{$srcAtom->concept->name}/{$srcAtom->getId()}";
         }
 
         return new ResourceList($srcAtom, $ifc->getIfcObject(), $pathEntry);

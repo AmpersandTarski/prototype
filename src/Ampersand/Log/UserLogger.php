@@ -165,19 +165,19 @@ class UserLogger extends AbstractLogger
             $ifcobj = $ifc->getIfcObject();
             return ['id' => $ifcobj->getIfcId(),
                     'label' => $ifcobj->getIfcLabel(),
-                    'link' => "#/{$ifcobj->getIfcId()}/{$violation->src->id}"
+                    'link' => "#/{$ifcobj->getIfcId()}/{$violation->src->getId()}"
                     ];
         }, $ampersandApp->getInterfacesToReadConcept($violation->src->concept));
 
         // Add links for tgt atom (if not the same as src atom)
-        if ($violation->src->concept !== $violation->tgt->concept || $violation->src->id !== $violation->tgt->id) {
+        if ($violation->src->concept !== $violation->tgt->concept || $violation->src->getId() !== $violation->tgt->getId()) {
             array_merge($ifcs, array_map(
                 function (Ifc $ifc) use ($violation) {
                     /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
                     $ifcobj = $ifc->getIfcObject();
                     return [ 'id' => $ifcobj->getIfcId()
                            , 'label' => $ifcobj->getIfcLabel()
-                           , 'link' => "#/{$ifcobj->getIfcId()}/{$violation->tgt->id}"
+                           , 'link' => "#/{$ifcobj->getIfcId()}/{$violation->tgt->getId()}"
                            ];
                 },
                 $ampersandApp->getInterfacesToReadConcept($violation->tgt->concept)

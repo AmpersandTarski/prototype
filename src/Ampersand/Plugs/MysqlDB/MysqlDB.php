@@ -213,9 +213,9 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      * @throws Exception when technical type is not (yet) supported
      * @return mixed
      */
-    protected function getDBRepresentation($atom)
+    protected function getDBRepresentation(Atom $atom)
     {
-        if (is_null($atom->id)) {
+        if (is_null($atom->getId())) {
             throw new Exception("Atom identifier MUST NOT be NULL", 500);
         }
         
@@ -225,23 +225,23 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             case "HUGEALPHANUMERIC":
             case "PASSWORD":
             case "TYPEOFONE":
-                return (string) $this->escape($atom->id);
+                return (string) $this->escape($atom->getId());
             case "BOOLEAN":
-                return (int) $atom->id; // booleans are stored as tinyint(1) in the database. false = 0, true = 1
+                return (int) $atom->getId(); // booleans are stored as tinyint(1) in the database. false = 0, true = 1
             case "DATE":
-                $datetime = new DateTime($atom->id);
+                $datetime = new DateTime($atom->getId());
                 return $datetime->format('Y-m-d'); // format to store in database
             case "DATETIME":
                 // DateTime atom(s) may contain a timezone, otherwise UTC is asumed.
-                $datetime = new DateTime($atom->id);
+                $datetime = new DateTime($atom->getId());
                 $datetime->setTimezone(new DateTimeZone('UTC')); // convert to UTC to store in database
                 return $datetime->format('Y-m-d H:i:s'); // format to store in database (UTC)
             case "FLOAT":
-                return (float) $atom->id;
+                return (float) $atom->getId();
             case "INTEGER":
-                return (int) $atom->id;
+                return (int) $atom->getId();
             case "OBJECT":
-                return $this->escape($atom->id);
+                return $this->escape($atom->getId());
             default:
                 throw new Exception("Unknown/unsupported representation type '{$atom->concept->type}' for concept '[{$atom->concept}]'", 501);
         }

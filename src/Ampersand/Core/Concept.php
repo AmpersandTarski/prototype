@@ -560,15 +560,15 @@ class Concept
             if (!$this->inSameClassificationTree($atom->concept)) {
                 throw new Exception("Concept of atom '{$atom}' not in same classifcation tree with {$this}", 500);
             } else {
-                $atom = new Atom($atom->id, $this);
+                $atom = new Atom($atom->getId(), $this);
             }
         }
 
         // Check if atom exists in concept population
-        if (in_array($atom->id, $this->atomCache, true)) { // strict mode to prevent 'Nesting level too deep' error
+        if (in_array($atom->getId(), $this->atomCache, true)) { // strict mode to prevent 'Nesting level too deep' error
             return true;
         } elseif ($this->primaryPlug->atomExists($atom)) {
-            $this->atomCache[] = $atom->id; // Add to cache
+            $this->atomCache[] = $atom->getId(); // Add to cache
             return true;
         } else {
             return false;
@@ -620,7 +620,7 @@ class Concept
                 foreach ($this->getPlugs() as $plug) {
                     $plug->addAtom($atom); // Add to plug
                 }
-                $this->atomCache[] = $atom->id; // Add to cache
+                $this->atomCache[] = $atom->getId(); // Add to cache
             }
             return $atom;
         // Adding atom[A] to another concept [B] ($this)
@@ -668,7 +668,7 @@ class Concept
             foreach ($this->getPlugs() as $plug) {
                 $plug->removeAtom($atom); // Remove from concept in plug
             }
-            if (($key = array_search($atom->id, $this->atomCache)) !== false) {
+            if (($key = array_search($atom->getId(), $this->atomCache)) !== false) {
                 unset($this->atomCache[$key]); // Delete from cache
             }
             
@@ -695,7 +695,7 @@ class Concept
             foreach ($this->getPlugs() as $plug) {
                 $plug->deleteAtom($atom); // Delete from plug
             }
-            if (($key = array_search($atom->id, $this->atomCache)) !== false) {
+            if (($key = array_search($atom->getId(), $this->atomCache)) !== false) {
                 unset($this->atomCache[$key]); // Delete from cache
             }
             
@@ -729,7 +729,7 @@ class Concept
         }
 
         // Skip when left and right atoms are the same
-        if ($leftAtom->id === $rightAtom->id) {
+        if ($leftAtom->getId() === $rightAtom->getId()) {
             $this->logger->warning("Merge not needed, because leftAtom and rightAtom are already the same '{$leftAtom}'");
             return;
         }

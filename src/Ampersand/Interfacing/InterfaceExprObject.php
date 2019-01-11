@@ -528,7 +528,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         if ($this->isIdent()) {
             return $pathToSrc . '/' . $this->getIfcId();
         } else {
-            return $pathToSrc . '/' . $this->getIfcId() . '/' . $tgt->id;
+            return $pathToSrc . '/' . $this->getIfcId() . '/' . $tgt->getId();
         }
     }
     
@@ -577,10 +577,10 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // We only need to check LINKTO ref interfaces, because cycles may not exist in regular references (enforced by Ampersand generator)
         // If $depth is provided, no check is required, because recursion is finite
         if ($this->isLinkTo && is_null($depth)) {
-            if (in_array($tgt->id, $recursionArr[$this->refInterfaceId] ?? [])) {
+            if (in_array($tgt->getId(), $recursionArr[$this->refInterfaceId] ?? [])) {
                 throw new Exception("Infinite loop detected for {$tgt} in " . $this->getPath(), 500);
             } else {
-                $recursionArr[$this->refInterfaceId][] = $tgt->id;
+                $recursionArr[$this->refInterfaceId][] = $tgt->getId();
             }
         }
 
@@ -594,7 +594,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             $viewData = $this->getViewData($tgt);
 
             // Add Ampersand atom attributes
-            $content['_id_'] = $tgt->id;
+            $content['_id_'] = $tgt->getId();
             $content['_label_'] = empty($viewData) ? $tgt->getLabel() : implode('', $viewData);
             $content['_path_'] = $tgtPath;
             
@@ -602,9 +602,9 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             if (!isSequential($viewData)) {
                 $content['_view_'] = $viewData;
             }
-        // Not INCLUDE_UI_DATA and ifc isLeaf (i.e. there are no subinterfaces) -> directly return $tgt->id
+        // Not INCLUDE_UI_DATA and ifc isLeaf (i.e. there are no subinterfaces) -> directly return $tgt identifier
         } elseif ($this->isLeaf($options)) {
-            return $tgt->id;
+            return $tgt->getId();
         }
 
         // Determine if sorting values must be added
@@ -678,7 +678,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         
         // If interface is editable, also add tuple(src, tgt) in interface relation
         if ($this->isEditable()) {
-            $this->add($src, $tgtAtom->id, true); // skip crud check because adding is implictly allowed for a create
+            $this->add($src, $tgtAtom->getId(), true); // skip crud check because adding is implictly allowed for a create
         }
 
         return $tgtAtom;
@@ -704,9 +704,9 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // Handle Ampersand properties [PROP]
         if ($this->isProp()) {
             if ($value === true) {
-                return $this->add($src, $src->id);
+                return $this->add($src, $src->getId());
             } elseif ($value === false) {
-                $this->remove($src, $src->id);
+                $this->remove($src, $src->getId());
                 return null;
             } else {
                 throw new Exception("Boolean expected, non-boolean provided.", 400);
@@ -862,7 +862,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // If specific target is specified, pick that one out
         if (!is_null($selectTgt)) {
             return array_filter($tgts, function (Atom $item) use ($selectTgt) {
-                return $item->id === $selectTgt;
+                return $item->getId() === $selectTgt;
             });
         }
         

@@ -298,8 +298,9 @@ class AmpersandApp
 
         // Add interfaces and rules for all active session roles
         foreach ($this->getActiveRoles() as $roleAtom) {
+            /** @var \Ampersand\Core\Atom $roleAtom */
             try {
-                $role = Role::getRoleByName($roleAtom->id);
+                $role = Role::getRoleByName($roleAtom->getId());
                 $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $role->interfaces());
                 $this->rulesToMaintain = array_merge($this->rulesToMaintain, $role->maintains());
             } catch (Exception $e) {
@@ -557,9 +558,9 @@ class AmpersandApp
         $activeRoleIds = array_column($this->getActiveRoles(), 'id');
         
         return array_map(function (Atom $roleAtom) use ($activeRoleIds) {
-            return (object) ['id' => $roleAtom->id
+            return (object) ['id' => $roleAtom->getId()
                             ,'label' => $roleAtom->getLabel()
-                            ,'active' => in_array($roleAtom->id, $activeRoleIds)
+                            ,'active' => in_array($roleAtom->getId(), $activeRoleIds)
                             ];
         }, $this->getAllowedRoles());
     }
@@ -579,7 +580,7 @@ class AmpersandApp
 
         // Check for allowed roles
         return array_reduce($this->getAllowedRoles(), function (bool $carry, Atom $role) use ($roles) {
-            return in_array($role->id, $roles) || $carry;
+            return in_array($role->getId(), $roles) || $carry;
         }, false);
     }
 
@@ -598,7 +599,7 @@ class AmpersandApp
 
         // Check for active roles
         return array_reduce($this->getActiveRoles(), function (bool $carry, Atom $role) use ($roles) {
-            return in_array($role->id, $roles) || $carry;
+            return in_array($role->getId(), $roles) || $carry;
         }, false);
     }
 
