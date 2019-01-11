@@ -134,12 +134,13 @@ class UserLogger extends AbstractLogger
      */
     public function invariant(Violation $violation)
     {
-        $hash = hash('md5', $violation->rule->getId());
+        $rule = $violation->getRule();
+        $hash = hash('md5', $rule->getId());
             
-        $this->invariants[$hash]['ruleMessage'] = $violation->rule->getViolationMessage();
+        $this->invariants[$hash]['ruleMessage'] = $rule->getViolationMessage();
         $this->invariants[$hash]['tuples'][] = ['violationMessage' => ($violationMessage = $violation->getViolationMessage())];
         
-        $this->logger->info("INVARIANT '{$violationMessage}' RULE: '{$violation->rule}'");
+        $this->logger->info("INVARIANT '{$violationMessage}' RULE: '{$rule}'");
     }
     
     /**
@@ -153,10 +154,11 @@ class UserLogger extends AbstractLogger
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove reference to global
 
-        $ruleHash = hash('md5', $violation->rule->getId());
+        $rule = $violation->getRule();
+        $ruleHash = hash('md5', $rule->getId());
         
         if (!isset($this->signals[$ruleHash])) {
-            $this->signals[$ruleHash]['message'] = $violation->rule->getViolationMessage();
+            $this->signals[$ruleHash]['message'] = $rule->getViolationMessage();
         }
         
         // Add links for src atom
@@ -165,22 +167,22 @@ class UserLogger extends AbstractLogger
             $ifcobj = $ifc->getIfcObject();
             return ['id' => $ifcobj->getIfcId(),
                     'label' => $ifcobj->getIfcLabel(),
-                    'link' => "#/{$ifcobj->getIfcId()}/{$violation->src->getId()}"
+                    'link' => "#/{$ifcobj->getIfcId()}/{$violation->getSrc()->getId()}"
                     ];
-        }, $ampersandApp->getInterfacesToReadConcept($violation->src->concept));
+        }, $ampersandApp->getInterfacesToReadConcept($violation->getSrc()->concept));
 
         // Add links for tgt atom (if not the same as src atom)
-        if ($violation->src->concept !== $violation->tgt->concept || $violation->src->getId() !== $violation->tgt->getId()) {
+        if ($violation->getSrc()->concept !== $violation->getTgt()->concept || $violation->getSrc()->getId() !== $violation->getTgt()->getId()) {
             array_merge($ifcs, array_map(
                 function (Ifc $ifc) use ($violation) {
                     /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
                     $ifcobj = $ifc->getIfcObject();
                     return [ 'id' => $ifcobj->getIfcId()
                            , 'label' => $ifcobj->getIfcLabel()
-                           , 'link' => "#/{$ifcobj->getIfcId()}/{$violation->tgt->getId()}"
+                           , 'link' => "#/{$ifcobj->getIfcId()}/{$violation->getTgt()->getId()}"
                            ];
                 },
-                $ampersandApp->getInterfacesToReadConcept($violation->tgt->concept)
+                $ampersandApp->getInterfacesToReadConcept($violation->getTgt()->concept)
             ));
         }
 
@@ -190,6 +192,6 @@ class UserLogger extends AbstractLogger
                                                     ,'ifcs' => array_values($ifcs)
                                                     ];
         
-        $this->logger->debug("SIGNAL '{$message}' RULE: '{$violation->rule}'");
+        $this->logger->debug("SIGNAL '{$message}' RULE: '{$rule}'");
     }
 }

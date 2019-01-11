@@ -47,7 +47,7 @@ class Rule
      *
      * @var \Ampersand\Plugs\ViewPlugInterface
      */
-    public $plug;
+    protected $plug;
 
     /**
      * Rule identifier
@@ -176,6 +176,11 @@ class Rule
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getPlug(): ViewPlugInterface
+    {
+        return $this->plug;
     }
 
     /**

@@ -95,7 +95,7 @@ class ViolationSegment extends ViewSegment
                     // when segment expression isIdent (i.e. SRC I or TGT I), we don't have to evaluate the expression.
                     return [$atom->getId()];
                 } else {
-                    return $this->rule->plug->executeViewExpression($this, $atom);
+                    return $this->rule->getPlug()->executeViewExpression($this, $atom);
                 }
                 break;
             default:
