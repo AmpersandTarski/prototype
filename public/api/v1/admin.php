@@ -32,7 +32,7 @@ $api->group('/admin', function () {
     /**
      * @phan-closure-scope \Slim\Container
      */
-    $this->get('/test/login', function (Request $request, Response $response, $args = []) {
+    $this->get('/test/login/{accountId}', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
