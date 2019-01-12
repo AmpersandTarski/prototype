@@ -127,6 +127,18 @@ class Ifc
         return $this->ifcObject->getTgtConcept();
     }
 
+    /**
+     * Set/overwrite the roles for which this interface is accessible
+     * Empty list means public (i.e. accessible for everyone)
+     *
+     * @param string[] $ifcRoleNames
+     * @return void
+     */
+    public function setRoleNames(array $ifcRoleNames): void
+    {
+        $this->ifcRoleNames = $ifcRoleNames;
+    }
+
     /**********************************************************************************************
      * STATIC METHODS
     **********************************************************************************************/
