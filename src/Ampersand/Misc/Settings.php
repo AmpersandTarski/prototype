@@ -91,12 +91,24 @@ class Settings
 
         foreach ((array)$file['extensions'] as $extName => $data) {
             $bootstrapFile = isset($data['bootstrap']) ? $this->get('global.absolutePath') . "/" . $data['bootstrap'] : null;
-            $configFile = isset($data['config']) ? $this->get('global.absolutePath') . "/" . $data['config'] : null;
-            $this->extensions[] = new Extension($extName, $bootstrapFile, $configFile);
-
-            if (!is_null($configFile)) {
-                $this->loadSettingsYamlFile($configFile, false); // extensions settings are not allowed to overwrite existing settings
+            
+            if (isset($data['config'])) {
+                // Reference to another config file
+                if (is_string($data['config'])) {
+                    $configFile = $this->get('global.absolutePath') . "/" . $data['config'];
+                    $this->loadSettingsYamlFile($configFile, false); // extensions settings are not allowed to overwrite existing settings
+                // Extension config is provided
+                } elseif (is_array($data['config'])) {
+                    foreach ($data['config'] as $setting => $value) {
+                        $this->set($setting, $value, false);
+                    }
+                // Extension config is provided
+                } else {
+                    throw new Exception("Unable to load config for extension '{$extName}' in '{$filePath}'", 500);
+                }
             }
+
+            $this->extensions[] = new Extension($extName, $bootstrapFile);
         }
 
         return $this;
