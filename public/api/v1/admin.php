@@ -32,6 +32,30 @@ $api->group('/admin', function () {
     /**
      * @phan-closure-scope \Slim\Container
      */
+    $this->get('/test/login', function (Request $request, Response $response, $args = []) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
+        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
+            throw new Exception("Not allowed in production environment", 403);
+        }
+
+        if (!$ampersandApp->getSettings()->get('session.loginEnabled')) {
+            throw new Exception("Testing login feature not applicable. Login functionality is not enabled", 400);
+        }
+
+        if (!isset($args['accountId'])) {
+            throw new Exception("No account identifier 'accountId' provided", 400);
+        }
+
+        $account = Atom::makeAtom($args['accountId'], 'Account');
+
+        $ampersandApp->login($account);
+    });
+
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/sessions/delete/expired', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
