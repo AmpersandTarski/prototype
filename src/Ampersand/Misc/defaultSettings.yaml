@@ -58,7 +58,7 @@ settings:
   notifications.defaultShowInvariants: true
 
   ### Frontend settings
-  frontend.homePage: "#/prototype/welcome"
+  frontend.homePage: "/prototype/welcome" # Angular route. Don't put a '#' in front of the path
 
   ### ExecEngine settings
   execengine.execEngineRoleNames: [ExecEngine]
