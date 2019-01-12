@@ -555,7 +555,9 @@ class AmpersandApp
      */
     public function getSessionRoles(): array
     {
-        $activeRoleIds = array_column($this->getActiveRoles(), 'id');
+        $activeRoleIds = array_map(function (Atom $role) {
+            return $role->getId();
+        }, $this->getActiveRoles());
         
         return array_map(function (Atom $roleAtom) use ($activeRoleIds) {
             return (object) ['id' => $roleAtom->getId()
@@ -650,7 +652,11 @@ class AmpersandApp
      */
     public function checkProcessRules(): void
     {
-        $this->logger->debug("Checking process rules for active roles: " . implode(', ', array_column($this->getActiveRoles(), 'id')));
+        $activeRoleIds = array_map(function (Atom $role) {
+            return $role->getId();
+        }, $this->getActiveRoles());
+
+        $this->logger->debug("Checking process rules for active roles: " . implode(', ', $activeRoleIds));
         
         // Check rules and signal notifications for all violations
         foreach (RuleEngine::getViolationsFromCache($this->rulesToMaintain) as $violation) {
