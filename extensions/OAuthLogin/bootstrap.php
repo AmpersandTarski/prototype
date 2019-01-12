@@ -3,8 +3,8 @@
 use Ampersand\AmpersandApp;
 
 // Includes
-require('./src/OAuthLoginController.php');
-require('./api/oauthlogin.php');
+require_once(__DIR__ . '/src/OAuthLoginController.php');
+require_once(__DIR__ . '/api/oauthlogin.php');
 
 // UI
 /** @var \Ampersand\AngularApp $angularApp */
