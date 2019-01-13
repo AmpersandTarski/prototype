@@ -59,7 +59,7 @@ Cascade::fileConfig(dirname(__FILE__, 2) . '/config/logging.yaml'); // loads log
 $logger = Logger::getLogger('APPLICATION');
 $model = new Model(dirname(__FILE__, 2) . '/generics', $logger);
 
-$settings = new Settings(); // includes default framework settings
+$settings = new Settings($logger); // includes default framework settings
 $settings->set('global.absolutePath', dirname(__FILE__, 2));
 $settings->loadSettingsJsonFile($model->getFilePath('settings')); // load model settings from Ampersand generator
 $settings->loadSettingsYamlFile(dirname(__FILE__, 2) . '/config/project.yaml'); // load project specific settings

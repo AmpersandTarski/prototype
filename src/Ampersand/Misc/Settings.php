@@ -13,6 +13,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Encoder\YamlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
+use Psr\Log\LoggerInterface;
 
 /**
  *
@@ -21,6 +22,13 @@ use Symfony\Component\Serializer\Encoder\JsonDecode;
  */
 class Settings
 {
+    /**
+     * Logger
+     *
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $logger;
+
     /**
      * Array of all settings
      * Setting keys (e.g. global.debugmode) are case insensitive
@@ -39,8 +47,9 @@ class Settings
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(LoggerInterface $logger)
     {
+        $this->logger = $logger;
         $this->loadSettingsYamlFile(dirname(__FILE__) . '/defaultSettings.yaml');
     }
 
@@ -53,6 +62,8 @@ class Settings
      */
     public function loadSettingsJsonFile(string $filePath, bool $overwriteAllowed = true): Settings
     {
+        $this->logger->info("Loading settings from {$filePath}");
+
         $fileSystem = new Filesystem;
         if (!$fileSystem->exists($filePath)) {
             throw new Exception("Cannot load settings file. Specified path does not exist: '{$filePath}'", 500);
@@ -77,6 +88,8 @@ class Settings
      */
     public function loadSettingsYamlFile(string $filePath, bool $overwriteAllowed = true): Settings
     {
+        $this->logger->info("Loading settings from {$filePath}");
+
         $fileSystem = new Filesystem;
         if (!$fileSystem->exists($filePath)) {
             throw new Exception("Cannot load settings file. Specified path does not exist: '{$filePath}'", 500);
