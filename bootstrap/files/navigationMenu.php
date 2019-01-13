@@ -9,7 +9,8 @@ $angularApp->addMenuItem(
     'refresh',
     'app/src/admin/installer-menu-item.html',
     function (AmpersandApp $app) {
-        return !$app->getSettings()->get('global.productionEnv');
+        $roles = $app->getSettings()->get('rbac.adminRoles');
+        return (!$app->getSettings()->get('global.productionEnv')) && $app->hasActiveRole($roles);
     }
 );
 
@@ -43,6 +44,7 @@ $angularApp->addMenuItem(
     'ext',
     'app/src/admin/exporter-menu-item.html',
     function (AmpersandApp $app) {
-        return !$app->getSettings()->get('global.productionEnv');
+        $roles = $app->getSettings()->get('rbac.adminRoles');
+        return (!$app->getSettings()->get('global.productionEnv')) && $app->hasActiveRole($roles);
     }
 );
