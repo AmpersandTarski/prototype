@@ -110,6 +110,14 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      * @var string
      */
     protected $query;
+
+    /**
+     * Determines if query contains data for subinterfaces
+     * See https://github.com/AmpersandTarski/Ampersand/issues/217
+     *
+     * @var bool
+     */
+    protected $queryContainsSubData = false;
     
     /**
      *
@@ -188,6 +196,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $this->isTot = $ifcDef['expr']['isTot'];
         $this->isIdent = $ifcDef['expr']['isIdent'];
         $this->query = $ifcDef['expr']['query'];
+
+        $this->queryContainsSubData = strpos($this->query, 'ifc_') !== false;
         
         // Subinterfacing
         if (!is_null($ifcDef['subinterfaces'])) {
@@ -845,12 +855,13 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $tgts = [];
 
         // If interface isIdent (i.e. expr = I[Concept]), and no epsilon is required (i.e. srcConcept equals tgtConcept of parent ifc) we can return the src
-        if ($this->isIdent() && $this->srcConcept === $src->concept) {
+        // However, if query for this expression contains sub data, it is more efficient to evaluate the query (see Issue #217)
+        if ($this->isIdent() && $this->srcConcept === $src->concept && !$this->queryContainsSubData) {
             $tgts[] = $src;
         } else {
             // Try to get tgt atom from src query data (in case of uni relation in same table)
             $tgtId = $src->getQueryData('ifc_' . $this->id, $exists); // column is prefixed with ifc_ in query data
-            if ($exists) {
+            if ($exists && !$this->queryContainsSubData) {
                 if (!is_null($tgtId)) {
                     $tgts[] = new Atom($tgtId, $this->tgtConcept);
                 }
