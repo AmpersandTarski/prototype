@@ -163,6 +163,8 @@ class AmpersandApp
     public function init(): AmpersandApp
     {
         try {
+            $scriptStartTime = microtime(true);
+
             $this->logger->info('Initialize Ampersand application');
 
             // Check checksum
@@ -222,6 +224,12 @@ class AmpersandApp
                 $closure->call($this);
             }
 
+            // Log performance
+            $executionTime = round(microtime(true) - $scriptStartTime, 2);
+            $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
+            Logger::getLogger('PERFORMANCE')->debug("PHASE-2 INIT: Memory in use: {$memoryUsage} Mb");
+            Logger::getLogger('PERFORMANCE')->debug("PHASE-2 INIT: Execution time  : {$executionTime} Sec");
+
             return $this;
         } catch (\Ampersand\Exception\NotInstalledException $e) {
             throw $e;
@@ -280,6 +288,8 @@ class AmpersandApp
 
     public function setSession(): AmpersandApp
     {
+        $scriptStartTime = microtime(true);
+
         $this->session = new Session($this->logger, $this);
 
         // Run exec engine and close transaction
@@ -287,6 +297,12 @@ class AmpersandApp
 
         // Set accessible interfaces and rules to maintain
         $this->setInterfacesAndRules();
+
+        // Log performance
+        $executionTime = round(microtime(true) - $scriptStartTime, 2);
+        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
+        Logger::getLogger('PERFORMANCE')->debug("PHASE-3 SESSION: Memory in use: {$memoryUsage} Mb");
+        Logger::getLogger('PERFORMANCE')->debug("PHASE-3 SESSION: Execution time  : {$executionTime} Sec");
 
         return $this;
     }

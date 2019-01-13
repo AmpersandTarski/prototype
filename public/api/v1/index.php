@@ -199,11 +199,35 @@ foreach ($ampersandApp->getSettings()->getExtensions() as $ext) {
  * @phan-closure-scope \Slim\Container
  */
 $api->add(function (Request $req, Response $res, callable $next) {
+    $scriptStartTime = microtime(true);
+
+    $response = $next($req, $res);
+
+    // Report performance until here (i.e. REQUEST phase)
+    $executionTime = round(microtime(true) - $scriptStartTime, 2);
+    $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
+    Logger::getLogger('PERFORMANCE')->debug("PHASE-4 REQUEST: Memory in use: {$memoryUsage} Mb");
+    Logger::getLogger('PERFORMANCE')->debug("PHASE-4 REQUEST: Execution time  : {$executionTime} Sec");
+
+    return $response;
+})
+// Add middleware to initialize the AmpersandApp
+/**
+ * @phan-closure-scope \Slim\Container
+ */
+->add(function (Request $req, Response $res, callable $next) {
     /** @var \Slim\App $this */
     /** @var \Ampersand\AmpersandApp $ampersandApp */
     $ampersandApp = $this['ampersand_app'];
     
     try {
+        // Report performance until here (i.e. CONFIG phase)
+        global $scriptStartTime;
+        $executionTime = round(microtime(true) - $scriptStartTime, 2);
+        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
+        Logger::getLogger('PERFORMANCE')->debug("PHASE-1 CONFIG: Memory in use: {$memoryUsage} Mb");
+        Logger::getLogger('PERFORMANCE')->debug("PHASE-1 CONFIG: Execution time  : {$executionTime} Sec");
+
         $ampersandApp
             ->init() // initialize Ampersand application
             ->setSession(); // initialize session
