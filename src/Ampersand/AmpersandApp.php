@@ -545,7 +545,18 @@ class AmpersandApp
      */
     public function getActiveRoles(): array
     {
-        return $this->session->getSessionActiveRoles();
+        static $checkedTransactionIndex = null;
+        static $activeRoles = [];
+
+        $keys = array_keys($this->transactions);
+        $lastTransactionIndex = end($keys); // TODO: as of php 7.3 array_key_last is introduced
+        if (is_null($checkedTransactionIndex) || $checkedTransactionIndex !== $lastTransactionIndex) {
+            $checkedTransactionIndex = $lastTransactionIndex;
+            return $activeRoles = $this->session->getSessionActiveRoles();
+        } else {
+            $this->logger->debug("Active roles already evaluated. Returning from cache");
+            return $activeRoles;
+        }
     }
 
     /**
