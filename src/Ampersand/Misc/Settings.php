@@ -89,6 +89,18 @@ class Settings
             $this->set($setting, $value, $overwriteAllowed);
         }
 
+        // Process additional config files
+        if (isset($file['config'])) {
+            if (!is_array($file['config'])) {
+                throw new Exception("Unable to process additional config files in {$filePath}. List expected, non-list provided.", 500);
+            }
+
+            foreach ($file['config'] as $path) {
+                $configFile = $this->get('global.absolutePath') . "/" . $path;
+                $this->loadSettingsYamlFile($configFile, true);
+            }
+        }
+
         foreach ((array)$file['extensions'] as $extName => $data) {
             $bootstrapFile = isset($data['bootstrap']) ? $this->get('global.absolutePath') . "/" . $data['bootstrap'] : null;
             
