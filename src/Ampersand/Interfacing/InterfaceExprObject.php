@@ -580,7 +580,9 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // Non-object nodes (i.e. leaves, because subinterfaces are not allowed for non-objects)
         // Notice that ->getResourceContent() is not called. The interface stops here.
         } else {
-            $result = $this->getTgtAtoms($src, $tgtId); // for json_encode $tgt->jsonSerializable() is called
+            $result = array_map(function (Atom $tgt) {
+                return $tgt->jsonSerialize();
+            }, $this->getTgtAtoms($src, $tgtId));
         }
 
         // Return result
@@ -656,8 +658,13 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
                         case 'NULL':
                             $sortValue = null;
                             break;
-                        default:
+                        case 'unknown type':
+                        case 'resource (closed)':
+                        case 'resource':
                             throw new Exception("Unexpected error. Not implemented case for sortvalue", 501);
+                            break;
+                        default:
+                            $sortValue = $value;
                             break;
                     }
                     $content['_sortValues_'][$ifcObj->getIfcId()] = $sortValue;
