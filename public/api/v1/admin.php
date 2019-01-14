@@ -261,7 +261,7 @@ $api->group('/admin', function () {
             case 'xls':
             case 'xlsx':
             case 'ods':
-                $importer = new ExcelImporter(Logger::getLogger('IO'));
+                $importer = new ExcelImporter($ampersandApp, Logger::getLogger('IO'));
                 $importer->parseFile($_FILES['file']['tmp_name']);
                 break;
             default:
