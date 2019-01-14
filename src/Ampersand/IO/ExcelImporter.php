@@ -92,6 +92,10 @@ class ExcelImporter
             throw new Exception("Source concept of interface '{$ifc->getLabel()}' must be SESSION in order to be used as import interface", 400);
         }
 
+        if (!$this->ampersandApp->isAccessibleIfc($ifc)) {
+            throw new Exception("You do not have access to import using interface '{$ifc->getLabel()}' as specified in sheet {$worksheet->getTitle()}", 403);
+        }
+
         // Determine $leftConcept from cell A1
         $leftConcept = Concept::getConceptByLabel((string)$worksheet->getCell('A1'));
         if ($leftConcept !== $ifc->getTgtConcept()) {
