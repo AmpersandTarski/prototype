@@ -580,9 +580,14 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // Non-object nodes (i.e. leaves, because subinterfaces are not allowed for non-objects)
         // Notice that ->getResourceContent() is not called. The interface stops here.
         } else {
-            $result = array_map(function (Atom $tgt) {
-                return $tgt->jsonSerialize();
-            }, $this->getTgtAtoms($src, $tgtId));
+            // Temporary hack to prevent passwords from being returned to user
+            if ($this->tgtConcept->type === 'PASSWORD') {
+                $result = [];
+            } else {
+                $result = array_map(function (Atom $tgt) {
+                    return $tgt->jsonSerialize();
+                }, $this->getTgtAtoms($src, $tgtId));
+            }
         }
 
         // Return result
