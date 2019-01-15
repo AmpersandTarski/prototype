@@ -48,11 +48,10 @@ $api->group('/file', function () {
         $fileResource = fopen($filePath, 'rb');
         $stream = new Stream($fileResource); // create a stream instance for the response body
 
-        return $response->withHeader('Content-Type', 'application/force-download')
-                        ->withHeader('Content-Description', 'File Transfer')
+        return $response->withHeader('Content-Description', 'File Transfer')
+                        // ->withHeader('Content-Type', $mimeType) // TODO: add mimeType of file
                         ->withHeader('Content-Transfer-Encoding', 'binary')
                         ->withHeader('Content-Disposition', 'attachment; filename="' . basename($filePath) . '"')
-                        ->withHeader('Pragma', 'public')
                         ->withBody($stream); // all stream contents will be sent to the response
     });
 });
