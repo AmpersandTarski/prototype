@@ -26,13 +26,12 @@ $api->group('/file', function () {
     /**
      * @phan-closure-scope \Slim\Container
      */
-    $this->get('/{fileName}', function (Request $request, Response $response, $args = []) {
+    $this->get('/{filePath:.*}', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
         $appAbsolutePath = $ampersandApp->getSettings()->get('global.absolutePath');
-        $uploadFolder = $ampersandApp->getSettings()->get('global.uploadPath');
-        $filePath = "{$appAbsolutePath}/{$uploadFolder}/{$args['fileName']}";
+        $filePath = "{$appAbsolutePath}/data/{$args['filePath']}";
         $fs = new Filesystem;
         
         // Check if filePath exists (includes directories)

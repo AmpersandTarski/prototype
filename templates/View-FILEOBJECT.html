@@ -2,7 +2,7 @@ $if(verbose)$<!-- View-FILEOBJECT.html "$label$" : $expAdl$ :: $source$ * $targe
 <!--To use: add the following statements to your script:
     CONCEPT FileObject ""
     IDENT FileObjectName : FileObject (filePath)
-    VIEW FileObject : FileObject DEFAULT {filePath : filePath, fileName : originalFileName} HTML TEMPLATE "View-FILEOBJECT.html" ENDVIEW
+    VIEW FileObject : FileObject DEFAULT {apiPath : TXT "api/v1/file", filePath : filePath, fileName : originalFileName} HTML TEMPLATE "View-FILEOBJECT.html" ENDVIEW
     RELATION filePath[FileObject*FilePath]
     RELATION originalFileName[FileObject*FileName]
     REPRESENT FilePath TYPE ALPHANUMERIC
@@ -11,7 +11,7 @@ $if(verbose)$<!-- View-FILEOBJECT.html "$label$" : $expAdl$ :: $source$ * $targe
 $endif$$if(crudR)$<div class="input-group" ng-controller="AtomicController">
     <div $if(exprIsUni)$ng-repeat="obj in (resource['$name$'] === null ? [] : [resource['$name$']])"$else$ng-repeat="obj in resource['$name$'] track by \$index"$endif$>$if(crudU)$
         <span my-showonhover-box class="glyphicon glyphicon-minus" ng-click="remove(resource, '$name$', obj, patchResource)" uib-tooltip="Remove" tooltip-trigger="mouseenter" tooltip-placement="left"></span>$endif$
-        <a href="{{obj._view_.filePath}}" target="_blank">{{obj._view_.fileName}}</a>
+        <a href="{{obj._view_.apiPath}}/{{obj._view_.filePath}}" target="_blank">{{obj._view_.fileName}}</a>
     </div>$if(crudU)$$if(verbose)$
     <!-- Input to add new link to another resource -->$endif$
     <div$if(exprIsUni)$ ng-if="!resource['$name$']"$endif$ ng-controller="AtomicTypeAheadController">
