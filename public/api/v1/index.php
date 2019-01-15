@@ -189,6 +189,7 @@ $middleWare1 = function (Request $request, Response $response, callable $next) {
 require_once(__DIR__ . '/resources.php'); // API calls starting with '/resource/'
 require_once(__DIR__ . '/admin.php'); // API calls starting with '/admin/'
 require_once(__DIR__ . '/app.php'); // API calls starting with '/app/'
+require_once(__DIR__ . '/files.php'); // API calls starting with '/file/'
 
 foreach ($ampersandApp->getSettings()->getExtensions() as $ext) {
     $ext->bootstrap();

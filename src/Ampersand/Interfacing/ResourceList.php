@@ -175,9 +175,9 @@ class ResourceList
                 $originalFileName = $_FILES['file']['name'];
 
                 $appAbsolutePath = $ampersandApp->getSettings()->get('global.absolutePath');
-                $uploadFolder = $ampersandApp->getSettings()->get('global.uploadPath');
-                $dest = getSafeFileName($appAbsolutePath . DIRECTORY_SEPARATOR . $uploadFolder . DIRECTORY_SEPARATOR . $originalFileName);
-                $relativePath = $uploadFolder . '/' . pathinfo($dest, PATHINFO_BASENAME); // use forward slash as this is used on the web
+                $uploadFolder = $ampersandApp->getSettings()->get('global.uploadDir');
+                $dest = getSafeFileName("{$appAbsolutePath}/data/{$uploadFolder}/{$originalFileName}");
+                $relativePath = $uploadFolder . '/' . pathinfo($dest, PATHINFO_BASENAME); # relative to '/data' folder
                 
                 $result = move_uploaded_file($tmp_name, $dest);
                 

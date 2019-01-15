@@ -12,7 +12,7 @@ settings:
   global.serverURL: http://localhost # set the base url for the application (e.g. http://www.yourdomain.nl)
   global.apiPath: api/v1 # relative path to current api
   global.absolutePath: null # is set during application bootstrap
-  global.uploadPath: uploads
+  global.uploadDir: uploads # folder for user uploads in 'data' directory
 
   global.allowedMimeTypes:
     - application/vnd.ms-excel
