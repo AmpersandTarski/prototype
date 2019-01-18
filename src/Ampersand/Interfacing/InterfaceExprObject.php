@@ -266,7 +266,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      * @throws \Exception when interface expression is not an (editable) relation
      * @return \Ampersand\Core\Relation
      */
-    public function relation(): Relation
+    protected function relation(): Relation
     {
         if (is_null($this->relation)) {
             throw new Exception("Interface expression for '{$this->label}' is not an (editable) relation", 500);
@@ -914,7 +914,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             , 'src' => $this->srcConcept->name
             , 'tgt' => $this->tgtConcept->name
             , 'view' => $this->view->label ?? ''
-            , 'relation' => $this->relation()->signature ?? ''
+            , 'relation' => $this->isEditable() ? $this->relation()->signature : ''
             , 'flipped' => $this->relationIsFlipped
             , 'ref' => $this->refInterfaceId
             ];

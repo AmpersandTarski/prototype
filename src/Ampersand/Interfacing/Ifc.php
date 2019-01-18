@@ -127,6 +127,11 @@ class Ifc
         return $this->ifcObject->getTgtConcept();
     }
 
+    public function getRoleNames(): array
+    {
+        return $this->ifcRoleNames;
+    }
+
     /**
      * Set/overwrite the roles for which this interface is accessible
      * Empty list means public (i.e. accessible for everyone)

@@ -346,9 +346,16 @@ $api->group('/admin/report', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
+        // Input
+        $details = $request->getQueryParam('details', false);
+
         // Get report
         $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
-        $reporter->reportInterfaceDefinitions('csv');
+        if ($details) {
+            $reporter->reportInterfaceObjectDefinitions('csv');
+        } else {
+            $reporter->reportInterfaceDefinitions('csv');
+        }
 
         // Set response headers
         $filename = $ampersandApp->getName() . "_interface-definitions_" . date('Y-m-d\TH-i-s') . ".csv";

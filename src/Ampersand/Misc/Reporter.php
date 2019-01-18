@@ -99,15 +99,40 @@ class Reporter
         return $this;
     }
 
+    public function reportInterfaceDefinitions(string $format): Reporter
+    {
+        $content = array_map(function (Ifc $ifc) {
+            $ifcDetails =
+                [ 'id' => $ifc->getId()
+                , 'label' => $ifc->getLabel()
+                , 'isAPI' => $ifc->isAPI()
+                , 'isPublic' => $ifc->isPublic()
+                , 'src' => $ifc->getSrcConcept()
+                , 'tgt' => $ifc->getTgtConcept()
+                , 'create' => $ifc->getIfcObject()->crudC()
+                , 'read' => $ifc->getIfcObject()->crudR()
+                , 'update' => $ifc->getIfcObject()->crudU()
+                , 'delete' => $ifc->getIfcObject()->crudD()
+                ];
+            foreach ($ifc->getRoleNames() as $roleName) {
+                $ifcDetails[$roleName] = true;
+            }
+            return $ifcDetails;
+        }, Ifc::getAllInterfaces());
+
+        $this->write($format, array_values($content));
+
+        return $this;
+    }
+
     /**
      * Write interface report
-     * Specifies aspects for all interfaces (incl. subinterfaces), like path, label,
-     * crud-rights, etc
+     * Inlcuding interface (sub) objects aspects like path, label, crud-rights, etc
      *
      * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportInterfaceDefinitions(string $format): Reporter
+    public function reportInterfaceObjectDefinitions(string $format): Reporter
     {
         $content = [];
         foreach (Ifc::getAllInterfaces() as $key => $ifc) {
