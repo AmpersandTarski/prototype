@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.1.0 (18 january 2019)
 * **Major refactoring of backend implementation of prototype framework**
 * Minimum requirement of php version >= 7.1 (was >= 7.0)
 * Update OAuthLogin extension: use Linkedin API v2, because v1 is phases out by 2019-03-01. Note! in project config file the linkedin 'apiUrl' must be updated to: 'https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))'
