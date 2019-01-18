@@ -5,7 +5,7 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
         // default start page
         .when('/', {
             resolveRedirectTo : ['NavigationBarService', function (NavigationBarService) {
-                return NavigationBarService.navbar.home;
+                return NavigationBarService.getRouteForHomePage();
             }]
         })
         .when('/prototype/welcome', { 
