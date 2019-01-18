@@ -3,6 +3,13 @@ app = angular.module('AmpersandApp')
     $routeProvider
         // default start page
         .when('/ext/Login', {
+            resolveRedirectTo : ['LoginService', function (LoginService) {
+                if (LoginService.sessionIsLoggedIn()) {
+                    return '/'; // nav to home when user is already loggedin
+                } else {
+                    return; // will continue this route using controller and template below
+                }
+            }],
             controller : 'LoginExtLoginController',
             templateUrl : 'app/ext/OAuthLogin/views/Login.html',
             interfaceLabel : 'Login'
@@ -13,7 +20,7 @@ app.requires[app.requires.length] = 'LoginModule'; // add LoginModule to depende
 
 // LoginModule declaration
 angular.module('LoginModule', ['ngRoute', 'restangular'])
-.controller('LoginExtLoginController', function($scope, Restangular, NotificationService){
+.controller('LoginExtLoginController', function($scope, Restangular, NotificationService, LoginService){
     Restangular.one('oauthlogin/login').get().then(
         function(data){ // on success
             data = data.plain();
