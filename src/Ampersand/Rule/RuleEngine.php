@@ -7,9 +7,7 @@
 
 namespace Ampersand\Rule;
 
-use Ampersand\Misc\Config;
 use Ampersand\Rule\Violation;
-use Psr\Cache\CacheItemPoolInterface;
 
 /**
  *
@@ -50,10 +48,11 @@ class RuleEngine
         $conjunctRuleMap = []; // needed because violations are instantiated per rule (not per conjunct)
         foreach ($rules as $rule) {
             /** @var \Ampersand\Rule\Rule $rule */
-            foreach ($rule->conjuncts as $conjunct) {
-                $conjunctRuleMap[$conjunct->id][] = $rule;
+            foreach ($rule->getConjuncts() as $conjunct) {
+                /** @var \Ampersand\Rule\Conjunct $conjunct */
+                $conjunctRuleMap[$conjunct->getId()][] = $rule;
             }
-            $conjuncts = array_merge($conjuncts, $rule->conjuncts);
+            $conjuncts = array_merge($conjuncts, $rule->getConjuncts());
         }
         $conjuncts = array_unique($conjuncts); // remove duplicates
         

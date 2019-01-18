@@ -23,7 +23,7 @@ class Atom implements JsonSerializable
      * Ampersand identifier of the atom
      * @var string
      */
-    public $id;
+    protected $id;
     
     /**
      * Specifies the concept of which this atom is an instance
@@ -57,6 +57,11 @@ class Atom implements JsonSerializable
         // if atom id is longer than 40 chars, display first and last 20 chars
         $id = strlen($this->id) > 40 ? substr($this->id, 0, 20) . '...' . substr($this->id, -20) : $this->id;
         return "{$id}[{$this->concept}]";
+    }
+
+    public function getId()
+    {
+        return $this->id;
     }
 
     /**
@@ -285,7 +290,7 @@ class Atom implements JsonSerializable
         } else {
             // column name is prefixed with 'ifc_' to prevent duplicates with 'src' and 'tgt' cols, which are standard added to query data
             $exists = array_key_exists($colName, (array) $this->queryData);
-            return $this->queryData[$colName];
+            return $this->queryData[$colName] ?? null;
         }
     }
 

@@ -23,20 +23,20 @@ class MysqlDBRelationTable extends MysqlDBTable
      *
      * @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol
      */
-    private $srcCol = null;
+    protected $srcCol = null;
 
     /**
      *
      * @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol
      */
-    private $tgtCol = null;
+    protected $tgtCol = null;
 
     /**
      * Specifies if this relation is administrated in the table of the src concept ('src'), the tgt concept ('tgt') or its own n-n table (null)
      *
      * @var string
      */
-    public $tableOf;
+    protected $tableOf;
 
     /**
      * Constructor of RelationTable
@@ -59,6 +59,11 @@ class MysqlDBRelationTable extends MysqlDBTable
         }
     }
 
+    public function inTableOf(): ?string
+    {
+        return $this->tableOf;
+    }
+
     /**
      *
      * @param \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $col
@@ -67,7 +72,7 @@ class MysqlDBRelationTable extends MysqlDBTable
     public function addSrcCol(MysqlDBTableCol $col)
     {
         $this->srcCol = $col;
-        $this->cols[$col->name] = $col;
+        $this->cols[$col->getName()] = $col;
     }
 
     /**
@@ -78,7 +83,7 @@ class MysqlDBRelationTable extends MysqlDBTable
     public function addTgtCol(MysqlDBTableCol $col)
     {
         $this->tgtCol = $col;
-        $this->cols[$col->name] = $col;
+        $this->cols[$col->getName()] = $col;
     }
 
     /**

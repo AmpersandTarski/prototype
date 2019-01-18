@@ -2,46 +2,35 @@
 
 namespace Ampersand;
 
-use Ampersand\Misc\Config;
+use Ampersand\Misc\Settings;
 use Ampersand\IO\Importer;
+use Ampersand\Model;
 use Ampersand\Transaction;
 use Ampersand\Plugs\StorageInterface;
+use Ampersand\Plugs\ConceptPlugInterface;
+use Ampersand\Plugs\RelationPlugInterface;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Session;
 use Ampersand\Core\Atom;
 use Exception;
-use Ampersand\Interfacing\InterfaceObject;
 use Ampersand\Core\Concept;
 use Ampersand\Role;
 use Ampersand\Rule\RuleEngine;
-use Ampersand\Log\Notifications;
-use Ampersand\IO\JSONReader;
 use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
-use Pimple\Container;
+use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\View;
 use Ampersand\Rule\Rule;
 use Closure;
-use Ampersand\Rule\ExecEngine;
-use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
-use Ampersand\Misc\Generics;
+use Psr\Cache\CacheItemPoolInterface;
+use Ampersand\Interfacing\Ifc;
+use Symfony\Component\Serializer\Encoder\JsonDecode;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Ampersand\Plugs\MysqlDB\MysqlDB;
 
 class AmpersandApp
 {
-    /**
-     * Specifies the required version of the localsettings file that
-     * @const float
-     */
-    const REQ_LOCALSETTINGS_VERSION = 1.6;
-
-    /**
-     * Dependency injection container
-     *
-     * @var \Pimple\Container
-     */
-    protected $container;
-
     /**
      * Logger
      *
@@ -50,17 +39,62 @@ class AmpersandApp
     protected $logger;
 
     /**
+     * User logger (i.e. logs are returned to user)
+     *
+     * @var \Ampersand\Log\UserLogger
+     */
+    protected $userLogger;
+
+    /**
+     * Ampersand application name (i.e. CONTEXT of ADL entry script)
+     *
+     * @var string
+     */
+    protected $name;
+
+    /**
      * Reference to generated Ampersand model
      *
-     * @var \Ampersand\Misc\Generics
+     * @var \Ampersand\Model
      */
     protected $model;
+
+    /**
+     * Settings object
+     *
+     * @var \Ampersand\Misc\Settings
+     */
+    protected $settings;
 
     /**
      * List with storages that are registered for this application
      * @var \Ampersand\Plugs\StorageInterface[]
      */
     protected $storages = [];
+
+    /**
+     * Default storage plug
+     * @var \Ampersand\Plugs\MysqlDB\MysqlDB
+     */
+    protected $defaultStorage = null;
+
+    /**
+     * Cache implementation for conjunct violation cache
+     * @var \Psr\Cache\CacheItemPoolInterface
+     */
+    protected $conjunctCache = null;
+
+    /**
+     * List of custom plugs for concepts
+     * @var array[string]\Ampersand\Plugs\ConceptPlugInterface[]
+     */
+    protected $customConceptPlugs = [];
+
+    /**
+     * List of custom plugs for relations
+     * @var array[string]\Ampersand\Plugs\RelationPlugInterface[]
+     */
+    protected $customRelationPlugs = [];
 
     /**
      * List with anonymous functions (closures) to be executed during initialization
@@ -73,14 +107,14 @@ class AmpersandApp
     /**
      * The session between AmpersandApp and user
      *
-     * @var Session
+     * @var \Ampersand\Session
      */
     protected $session = null;
 
     /**
      * List of accessible interfaces for the user of this Ampersand application
      *
-     * @var \Ampersand\Interfacing\InterfaceObject[] $accessibleInterfaces
+     * @var \Ampersand\Interfacing\Ifc[]
      */
     protected $accessibleInterfaces = [];
     
@@ -90,75 +124,116 @@ class AmpersandApp
      * @var \Ampersand\Rule\Rule[] $rulesToMaintain
      */
     protected $rulesToMaintain = []; // rules that are maintained by active roles
+
+    /**
+     * List of all transactions (open and closed)
+     *
+     * @var \Ampersand\Transaction[]
+     */
+    protected $transactions = [];
     
     /**
      * Constructor
      *
+     * @param \Ampersand\Model $model
+     * @param \Ampersand\Misc\Settings $settings
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Container $container, LoggerInterface $logger)
+    public function __construct(Model $model, Settings $settings, LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->container = $container;
-        $this->model = new Generics(Config::get('pathToGeneratedFiles'), $logger);
+        $this->userLogger = new UserLogger($logger);
+        $this->model = $model;
+        $this->settings = $settings;
+
+        // Set app name
+        $this->name = $this->settings->get('global.contextName');
     }
 
-    public function init()
+    public function getName(): string
     {
-        $this->logger->info('Initialize Ampersand application');
+        return $this->name;
+    }
 
-        $defaultPlug = $this->container['default_plug'];
-        $conjunctCache = $this->container['conjunctCachePool'] ?? new MysqlConjunctCache($defaultPlug);
+    public function userLog(): UserLogger
+    {
+        return $this->userLogger;
+    }
 
-        if (!$this->model->verifyChecksum() && !Config::get('productionEnv')) {
-            Logger::getUserLogger()->warning("Generated model is changed. You SHOULD reinstall your application");
-        }
+    public function init(): AmpersandApp
+    {
+        try {
+            $scriptStartTime = microtime(true);
 
-        // Instantiate object definitions from generated files
-        $genericsFolder = $this->model->getFolder() . '/';
-        Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULE'), $defaultPlug, $conjunctCache);
-        View::setAllViews($genericsFolder . 'views.json', $defaultPlug);
-        Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'));
-        Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'));
-        InterfaceObject::setAllInterfaces($genericsFolder . 'interfaces.json', $defaultPlug);
-        Rule::setAllRules($genericsFolder . 'rules.json', $defaultPlug, Logger::getLogger('RULE'));
-        Role::setAllRoles($genericsFolder . 'roles.json');
+            $this->logger->info('Initialize Ampersand application');
 
-        // Add concept plugs
-        $conceptPlugList = $this->container['conceptPlugs'] ?? [];
-        foreach (Concept::getAllConcepts() as $cpt) {
-            if (array_key_exists($cpt->label, $conceptPlugList)) {
-                foreach ($conceptPlugList[$cpt->label] as $plug) {
-                    $cpt->addPlug($plug);
-                    $this->registerStorage($plug);
-                }
-            } else {
-                $cpt->addPlug($defaultPlug);
-                $this->registerStorage($defaultPlug);
+            // Check checksum
+            if (!$this->model->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
+                $this->userLogger->warning("Generated model is changed. You SHOULD reinstall your application");
             }
-        }
 
-        // Add relation plugs
-        $relationPlugList = $this->container['relationPlugs'] ?? [];
-        foreach (Relation::getAllRelations() as $rel) {
-            if (array_key_exists($rel->signature, $relationPlugList)) {
-                foreach ($relationPlugList[$rel->signature] as $plug) {
-                    $rel->addPlug($plug);
-                    $this->registerStorage($plug);
-                }
-            } else {
-                $rel->addPlug($defaultPlug);
-                $this->registerStorage($defaultPlug);
+            // Check for default storage plug
+            if (!in_array($this->defaultStorage, $this->storages)) {
+                throw new Exception("No default storage plug registered", 500);
             }
-        }
 
-        // Run registered initialization closures
-        foreach ($this->initClosures as $closure) {
-            $closure->call($this);
-        }
+            // Check for conjunct cache
+            if (is_null($this->conjunctCache)) {
+                throw new Exception("No conjunct cache implementaion registered", 500);
+            }
 
-        // Initiate session
-        $this->setSession();
+            // Initialize storage plugs
+            foreach ($this->storages as $storagePlug) {
+                $storagePlug->init();
+            }
+
+            // Instantiate object definitions from generated files
+            $genericsFolder = $this->model->getFolder() . '/';
+            Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULEENGINE'), $this, $this->defaultStorage, $this->conjunctCache);
+            View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
+            Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
+            Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'), $this);
+            Ifc::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage);
+            Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, $this, Logger::getLogger('RULEENGINE'));
+            Role::setAllRoles($genericsFolder . 'roles.json');
+
+            // Add concept plugs
+            foreach (Concept::getAllConcepts() as $cpt) {
+                if (array_key_exists($cpt->label, $this->customConceptPlugs)) {
+                    foreach ($this->customConceptPlugs[$cpt->label] as $plug) {
+                        $cpt->addPlug($plug);
+                    }
+                } else {
+                    $cpt->addPlug($this->defaultStorage);
+                }
+            }
+
+            // Add relation plugs
+            foreach (Relation::getAllRelations() as $rel) {
+                if (array_key_exists($rel->signature, $this->customRelationPlugs)) {
+                    foreach ($this->customRelationPlugs[$rel->signature] as $plug) {
+                        $rel->addPlug($plug);
+                    }
+                } else {
+                    $rel->addPlug($this->defaultStorage);
+                }
+            }
+
+            // Run registered initialization closures
+            foreach ($this->initClosures as $closure) {
+                $closure->call($this);
+            }
+
+            // Log performance
+            $executionTime = round(microtime(true) - $scriptStartTime, 2);
+            $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
+            Logger::getLogger('PERFORMANCE')->debug("PHASE-2 INIT: Memory in use: {$memoryUsage} Mb");
+            Logger::getLogger('PERFORMANCE')->debug("PHASE-2 INIT: Execution time  : {$executionTime} Sec");
+
+            return $this;
+        } catch (\Ampersand\Exception\NotInstalledException $e) {
+            throw $e;
+        }
     }
 
     /**
@@ -167,12 +242,12 @@ class AmpersandApp
      * @param \Closure $closure
      * @return void
      */
-    public function registerInitClosure(Closure $closure)
+    public function registerInitClosure(Closure $closure): void
     {
         $this->initClosures[] = $closure;
     }
     
-    public function registerStorage(StorageInterface $storage)
+    public function registerStorage(StorageInterface $storage): void
     {
         if (!in_array($storage, $this->storages)) {
             $this->logger->debug("Add storage: " . $storage->getLabel());
@@ -180,23 +255,68 @@ class AmpersandApp
         }
     }
 
-    protected function setSession()
+    public function registerCustomConceptPlug(string $conceptLabel, ConceptPlugInterface $plug): void
     {
-        $this->session = new Session(Logger::getLogger('SESSION'));
+        $this->customConceptPlugs[$conceptLabel][] = $plug;
+        $this->registerStorage($plug);
+    }
+
+    public function registerCustomRelationPlug(string $relSignature, RelationPlugInterface $plug): void
+    {
+        $this->customRelationPlugs[$relSignature][] = $plug;
+        $this->registerStorage($plug);
+    }
+
+    /**
+     * Set default storage.
+     * For know we only support a MysqlDB as default storage.
+     * Ampersand generator outputs a SQL (construct) query for each concept, relation, interface-, view- and conjunct expression
+     *
+     * @param \Ampersand\Plugs\MysqlDB\MysqlDB $storage
+     * @return void
+     */
+    public function setDefaultStorage(MysqlDB $storage): void
+    {
+        $this->defaultStorage = $storage;
+        $this->registerStorage($storage);
+    }
+
+    public function setConjunctCache(CacheItemPoolInterface $cache): void
+    {
+        $this->conjunctCache = $cache;
+    }
+
+    public function setSession(): AmpersandApp
+    {
+        $scriptStartTime = microtime(true);
+
+        $this->session = new Session($this->logger, $this);
+
+        // Run exec engine and close transaction
+        $this->getCurrentTransaction()->runExecEngine()->close();
 
         // Set accessible interfaces and rules to maintain
         $this->setInterfacesAndRules();
+
+        // Log performance
+        $executionTime = round(microtime(true) - $scriptStartTime, 2);
+        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
+        Logger::getLogger('PERFORMANCE')->debug("PHASE-3 SESSION: Memory in use: {$memoryUsage} Mb");
+        Logger::getLogger('PERFORMANCE')->debug("PHASE-3 SESSION: Execution time  : {$executionTime} Sec");
+
+        return $this;
     }
 
-    protected function setInterfacesAndRules()
+    protected function setInterfacesAndRules(): AmpersandApp
     {
         // Add public interfaces
-        $this->accessibleInterfaces = InterfaceObject::getPublicInterfaces();
+        $this->accessibleInterfaces = Ifc::getPublicInterfaces();
 
         // Add interfaces and rules for all active session roles
         foreach ($this->getActiveRoles() as $roleAtom) {
+            /** @var \Ampersand\Core\Atom $roleAtom */
             try {
-                $role = Role::getRoleByName($roleAtom->id);
+                $role = Role::getRoleByName($roleAtom->getId());
                 $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $role->interfaces());
                 $this->rulesToMaintain = array_merge($this->rulesToMaintain, $role->maintains());
             } catch (Exception $e) {
@@ -207,62 +327,112 @@ class AmpersandApp
         // Remove duplicates
         $this->accessibleInterfaces = array_unique($this->accessibleInterfaces);
         $this->rulesToMaintain = array_unique($this->rulesToMaintain);
+
+        return $this;
     }
 
     /**
      * Get the session object for this instance of the ampersand application
      *
-     * @return Session
+     * @return \Ampersand\Session
      */
-    public function getSession()
+    public function getSession(): Session
     {
+        if (is_null($this->session)) {
+            throw new Exception("Session not yet initialized", 500);
+        }
         return $this->session;
     }
 
     /**
      * Get Ampersand model for this application
      *
-     * @return \Ampersand\Misc\Generics
+     * @return \Ampersand\Model
      */
-    public function getModel(): Generics
+    public function getModel(): Model
     {
         return $this->model;
     }
 
     /**
+     * Get settings object for this application
+     *
+     * @return \Ampersand\Misc\Settings
+     */
+    public function getSettings(): Settings
+    {
+        return $this->settings;
+    }
+
+    /**
      * Get list of accessible interfaces for the user of this Ampersand application
      *
-     * @return \Ampersand\Interfacing\InterfaceObject[]
+     * @return \Ampersand\Interfacing\Ifc[]
      */
-    public function getAccessibleInterfaces()
+    public function getAccessibleInterfaces(): array
     {
         return $this->accessibleInterfaces;
     }
 
+    /**********************************************************************************************
+     * TRANSACTIONS
+     **********************************************************************************************/
     /**
-     * Get the rules that are maintained by the active roles of this Ampersand application
+     * Open new transaction.
+     * Note! Make sure that a open transaction is closed first
      *
-     * @return \Ampersand\Rule\Rule[]
+     * @return \Ampersand\Transaction
      */
-    public function getRulesToMaintain()
+    public function newTransaction(): Transaction
     {
-        return $this->rulesToMaintain;
+        return $this->transactions[] = new Transaction($this, Logger::getLogger('TRANSACTION'));
     }
+    
+    /**
+     * Return current open transaction or open new transactions
+     *
+     * @return \Ampersand\Transaction
+     */
+    public function getCurrentTransaction(): Transaction
+    {
+        // Check and return if there is a open transaction
+        foreach ($this->transactions as $transaction) {
+            if ($transaction->isOpen()) {
+                return $transaction;
+            }
+        }
+        return $this->newTransaction();
+    }
+
+    /**
+     * Return list of all transactions in this app (open and closed)
+     *
+     * @return \Ampersand\Transaction[]
+     */
+    public function getTransactions(): array
+    {
+        return $this->transactions;
+    }
+
+    /**********************************************************************************************
+     * OTHER
+     **********************************************************************************************/
 
     /**
      * Login user and commit transaction
      *
      * @return void
      */
-    public function login(Atom $account)
+    public function login(Atom $account): void
     {
+        // Renew session. See topic 'Renew the Session ID After Any Privilege Level Change' in OWASP session management cheat sheet
+        $this->session->reset();
+
         // Set sessionAccount
         $this->session->setSessionAccount($account);
 
-        $transaction = Transaction::getCurrentTransaction();
-
         // Run ExecEngine to populate session related relations (e.g. sessionAllowedRoles)
-        $transaction->runExecEngine();
+        $transaction = $this->getCurrentTransaction()->runExecEngine();
 
         // Activate all allowed roles by default
         foreach ($this->session->getSessionAllowedRoles() as $atom) {
@@ -281,71 +451,78 @@ class AmpersandApp
      *
      * @return void
      */
-    public function logout()
+    public function logout(): void
     {
+        // Renew session. See OWASP session management cheat sheet
         $this->session->reset();
+
+        // Run exec engine and close transaction
+        $this->getCurrentTransaction()->runExecEngine()->close();
+
         $this->setInterfacesAndRules();
     }
 
     /**
      * Function to reinstall the application. This includes database structure and load default population
      *
-     * @param boolean $installDefaultPop specifies whether or not to install the default population
-     * @return \Ampersand\Transaction in which application is reinstalled
+     * @param bool $installDefaultPop specifies whether or not to install the default population
+     * @param bool $ignoreInvariantRules
+     * @return \Ampersand\AmpersandApp $this
      */
-    public function reinstall($installDefaultPop = true): Transaction
+    public function reinstall(bool $installDefaultPop = true, bool $ignoreInvariantRules = false): AmpersandApp
     {
         $this->logger->info("Start application reinstall");
 
         // Clear notifications
-        Notifications::clearAll();
+        $this->userLogger->clearAll();
 
         // Write new checksum file of generated Ampersand moel
         $this->model->writeChecksumFile();
 
         // Call reinstall method on every registered storage (e.g. for MysqlDB implementation this means (re)creating database structure)
         foreach ($this->storages as $storage) {
-            $storage->reinstallStorage();
+            $storage->reinstallStorage($this->model);
         }
 
-        // Clear atom cache
+        $this->init();
+
+        // Clear caches
+        $this->conjunctCache->clear(); // external cache item pool
         foreach (Concept::getAllConcepts() as $cpt) {
-            $cpt->clearAtomCache();
+            $cpt->clearAtomCache(); // local cache in Ampersand code
         }
 
         // Default population
         if ($installDefaultPop) {
             $this->logger->info("Install default population");
 
-            $reader = new JSONReader();
-            $reader->loadFile(Config::get('pathToGeneratedFiles') . 'populations.json');
-            $importer = new Importer($reader, Logger::getLogger('IO'));
-            $importer->importPopulation();
+            $transaction = $this->newTransaction();
+
+            $decoder = new JsonDecode(false);
+            $population = $decoder->decode(file_get_contents($this->model->getFilePath('populations')), JsonEncoder::FORMAT);
+            $importer = new Importer(Logger::getLogger('IO'));
+            $importer->importPopulation($population);
+
+            // Close transaction
+            $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
+            if ($transaction->isRolledBack()) {
+                throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
+            }
         } else {
             $this->logger->info("Skip default population");
         }
 
-        // Close transaction
-        $transaction = Transaction::getCurrentTransaction()->runExecEngine()->close();
-        if ($transaction->isRolledBack()) {
-            Logger::getUserLogger()->error("Initial installation does not satisfy invariant rules");
-        }
-
-        // Initial conjunct evaluation
-        $this->logger->info("Initial evaluation of all conjuncts after application reinstallation");
-        
         // Evaluate all conjunct and save cache
+        $this->logger->info("Initial evaluation of all conjuncts after application reinstallation");
         foreach (Conjunct::getAllConjuncts() as $conj) {
             /** @var \Ampersand\Rule\Conjunct $conj */
             $conj->evaluate()->persistCacheItem();
         }
 
-        // Initiate session again
-        $this->setSession();
-
+        $this->userLogger->notice("Application successfully reinstalled");
         $this->logger->info("End application reinstall");
 
-        return $transaction;
+        return $this;
     }
 
     /**
@@ -354,7 +531,7 @@ class AmpersandApp
      * @param array $roles
      * @return void
      */
-    public function setActiveRoles(array $roles)
+    public function setActiveRoles(array $roles): void
     {
         foreach ($roles as $role) {
             // Set sessionActiveRoles[SESSION*Role]
@@ -362,7 +539,7 @@ class AmpersandApp
         }
         
         // Commit transaction (exec-engine kicks also in)
-        Transaction::getCurrentTransaction()->runExecEngine()->close();
+        $this->getCurrentTransaction()->runExecEngine()->close();
 
         $this->setInterfacesAndRules();
     }
@@ -372,7 +549,7 @@ class AmpersandApp
      *
      * @return \Ampersand\Core\Atom[]
      */
-    public function getAllowedRoles()
+    public function getAllowedRoles(): array
     {
         return $this->session->getSessionAllowedRoles();
     }
@@ -384,7 +561,18 @@ class AmpersandApp
      */
     public function getActiveRoles(): array
     {
-        return $this->session->getSessionActiveRoles();
+        static $checkedTransactionIndex = null;
+        static $activeRoles = [];
+
+        $keys = array_keys($this->transactions);
+        $lastTransactionIndex = end($keys); // TODO: as of php 7.3 array_key_last is introduced
+        if (is_null($checkedTransactionIndex) || $checkedTransactionIndex !== $lastTransactionIndex) {
+            $checkedTransactionIndex = $lastTransactionIndex;
+            return $activeRoles = $this->session->getSessionActiveRoles();
+        } else {
+            $this->logger->debug("Active roles already evaluated. Returning from cache");
+            return $activeRoles;
+        }
     }
 
     /**
@@ -394,12 +582,14 @@ class AmpersandApp
      */
     public function getSessionRoles(): array
     {
-        $activeRoleIds = array_column($this->getActiveRoles(), 'id');
+        $activeRoleIds = array_map(function (Atom $role) {
+            return $role->getId();
+        }, $this->getActiveRoles());
         
         return array_map(function (Atom $roleAtom) use ($activeRoleIds) {
-            return (object) ['id' => $roleAtom->id
+            return (object) ['id' => $roleAtom->getId()
                             ,'label' => $roleAtom->getLabel()
-                            ,'active' => in_array($roleAtom->id, $activeRoleIds)
+                            ,'active' => in_array($roleAtom->getId(), $activeRoleIds)
                             ];
         }, $this->getAllowedRoles());
     }
@@ -419,7 +609,7 @@ class AmpersandApp
 
         // Check for allowed roles
         return array_reduce($this->getAllowedRoles(), function (bool $carry, Atom $role) use ($roles) {
-            return in_array($role->id, $roles) || $carry;
+            return in_array($role->getId(), $roles) || $carry;
         }, false);
     }
 
@@ -438,50 +628,46 @@ class AmpersandApp
 
         // Check for active roles
         return array_reduce($this->getActiveRoles(), function (bool $carry, Atom $role) use ($roles) {
-            return in_array($role->id, $roles) || $carry;
+            return in_array($role->getId(), $roles) || $carry;
         }, false);
     }
 
     /**
      * Get interfaces that are accessible in the current session to 'Read' a certain concept
-     * @param \Ampersand\Core\Concept[] $concepts
-     * @return \Ampersand\Interfacing\InterfaceObject[]
+     *
+     * @param \Ampersand\Core\Concept $cpt
+     * @return \Ampersand\Interfacing\Ifc[]
      */
-    public function getInterfacesToReadConcepts($concepts)
+    public function getInterfacesToReadConcept(Concept $cpt): array
     {
-        return array_values(
-            array_filter($this->accessibleInterfaces, function ($ifc) use ($concepts) {
-                foreach ($concepts as $cpt) {
-                    if ($ifc->srcConcept->hasSpecialization($cpt, true)
-                        && $ifc->crudR()
-                        && (!$ifc->crudC() or ($ifc->crudU() or $ifc->crudD()))
-                        ) {
-                        return true;
-                    }
-                }
-                return false;
-            })
-        );
+        return array_filter($this->accessibleInterfaces, function (Ifc $ifc) use ($cpt) {
+            $ifcObj = $ifc->getIfcObject();
+            return $ifc->getSrcConcept()->hasSpecialization($cpt, true)
+                    && $ifcObj->crudR()
+                    && (!$ifcObj->crudC() or ($ifcObj->crudU() or $ifcObj->crudD()) // exclude CRud pattern
+                    && !$ifc->isAPI()); // don't include API interfaces
+        });
     }
 
     /**
      * Determine if provided concept is editable concept in one of the accessible interfaces in the current session
      * @param \Ampersand\Core\Concept $concept
-     * @return boolean
+     * @return bool
      */
-    public function isEditableConcept(Concept $concept)
+    public function isEditableConcept(Concept $concept): bool
     {
-        return array_reduce($this->accessibleInterfaces, function ($carry, $ifc) use ($concept) {
-            return ($carry || in_array($concept, $ifc->getEditableConcepts()));
+        return array_reduce($this->accessibleInterfaces, function ($carry, Ifc $ifc) use ($concept) {
+            $ifcObj = $ifc->getIfcObject();
+            return ($carry || in_array($concept, $ifcObj->getEditableConcepts()));
         }, false);
     }
     
     /**
      * Determine if provided interface is accessible in the current session
-     * @param \Ampersand\Interfacing\InterfaceObject $ifc
-     * @return boolean
+     * @param \Ampersand\Interfacing\Ifc $ifc
+     * @return bool
      */
-    public function isAccessibleIfc(InterfaceObject $ifc)
+    public function isAccessibleIfc(Ifc $ifc): bool
     {
         return in_array($ifc, $this->accessibleInterfaces, true);
     }
@@ -491,13 +677,17 @@ class AmpersandApp
      *
      * @return void
      */
-    public function checkProcessRules()
+    public function checkProcessRules(): void
     {
-        $this->logger->debug("Checking process rules for active roles: " . implode(', ', array_column($this->getActiveRoles(), 'id')));
+        $activeRoleIds = array_map(function (Atom $role) {
+            return $role->getId();
+        }, $this->getActiveRoles());
+
+        $this->logger->debug("Checking process rules for active roles: " . implode(', ', $activeRoleIds));
         
         // Check rules and signal notifications for all violations
-        foreach (RuleEngine::getViolationsFromCache($this->getRulesToMaintain()) as $violation) {
-            Notifications::addSignal($violation);
+        foreach (RuleEngine::getViolationsFromCache($this->rulesToMaintain) as $violation) {
+            $this->userLogger->signal($violation);
         }
     }
 }

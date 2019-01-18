@@ -9,11 +9,10 @@ namespace Ampersand\Rule;
 
 use Exception;
 use Generator;
-use Ampersand\Log\Logger;
-use Ampersand\Misc\Config;
-use Psr\Log\LoggerInterface;
+use Ampersand\AmpersandApp;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  *
@@ -45,6 +44,13 @@ class Conjunct
     private $logger;
 
     /**
+     * Reference to Ampersand app for which this conjunct is defined
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $app;
+
+    /**
      * Database to evaluate conjuncts and store violation cache
      *
      * @var \Ampersand\Plugs\MysqlDB\MysqlDB
@@ -70,28 +76,28 @@ class Conjunct
      *
      * @var string
      */
-    public $id;
+    protected $id;
     
     /**
      * Query to evaluate conjunct (i.e. get violations)
      *
      * @var string
      */
-    private $query;
+    protected $query;
     
     /**
      * List invariant rules that use this conjunct
      *
      * @var string[]
      */
-    public $invRuleNames;
+    protected $invRuleNames;
     
     /**
      * List signal rules that use this conjunct
      *
      * @var string[]
      */
-    public $sigRuleNames;
+    protected $sigRuleNames;
     
     /**
      * Specifies if conjunct is already evaluated
@@ -105,12 +111,15 @@ class Conjunct
      * Private function to prevent outside instantiation of conjuncts. Use Conjunct::getConjunct($conjId)
      *
      * @param array $conjDef
+     * @param \Ampersand\AmpersandApp $app
      * @param \Psr\Log\LoggerInterface $logger
+     * @param \Ampersand\Plugs\MysqlDB\MysqlDB $database
+     * @param \Psr\Cache\CacheItemPoolInterface $cachePool
      */
-    private function __construct(array $conjDef, LoggerInterface $logger, MysqlDB $database, CacheItemPoolInterface $cachePool)
+    private function __construct(array $conjDef, AmpersandApp $app, LoggerInterface $logger, MysqlDB $database, CacheItemPoolInterface $cachePool)
     {
         $this->logger = $logger;
-
+        $this->app = $app;
         $this->database = $database;
         
         $this->id = $conjDef['id'];
@@ -128,6 +137,11 @@ class Conjunct
      * @return string identifier of conjunct
      */
     public function __toString(): string
+    {
+        return $this->id;
+    }
+
+    public function getId(): string
     {
         return $this->id;
     }
@@ -193,7 +207,7 @@ class Conjunct
     public function getViolations(bool $forceReEvaluation = false): array
     {
         // Skipping evaluation of UNI and INJ conjuncts. TODO: remove after fix for issue #535
-        if (Config::get('skipUniInjConjuncts', 'transactions') && $this->isUniOrInjConj()) {
+        if ($this->app->getSettings()->get('transactions.skipUniInjConjuncts') && $this->isUniOrInjConj()) {
             $this->logger->debug("Skipping conjunct '{$this}', because it is part of a UNI/INJ rule");
             return [];
         }
@@ -238,16 +252,22 @@ class Conjunct
 
             return $this;
         } catch (Exception $e) {
-            Logger::getUserLogger()->error("Error while evaluating conjunct '{$this->id}'");
-            $this->logger->error($e->getMessage());
-
-            return $this;
+            $this->logger->error("Error evaluating conjunct '{$this->id}': " . $e->getMessage());
+            throw $e;
         }
     }
 
     public function persistCacheItem()
     {
         $this->cachePool->save($this->cacheItem);
+    }
+
+    public function showInfo(): array
+    {
+        return [ 'id' => $this->id
+               , 'invRules' => $this->invRuleNames
+               , 'sigRules' => $this->sigRuleNames
+               ];
     }
     
     /**********************************************************************************************
@@ -322,10 +342,12 @@ class Conjunct
      *
      * @param string $fileName containing the Ampersand conjunct definitions
      * @param \Psr\Log\LoggerInterface $logger
+     * @param \Ampersand\AmpersandApp $app
      * @param \Ampersand\Plugs\MysqlDB\MysqlDB $database
+     * @param \Psr\Cache\CacheItemPoolInterface $cachePool
      * @return void
      */
-    public static function setAllConjuncts(string $fileName, LoggerInterface $logger, MysqlDB $database, CacheItemPoolInterface $cachePool)
+    public static function setAllConjuncts(string $fileName, LoggerInterface $logger, AmpersandApp $app, MysqlDB $database, CacheItemPoolInterface $cachePool)
     {
         self::$allConjuncts = [];
         self::$conjunctCache = $cachePool;
@@ -333,7 +355,7 @@ class Conjunct
         $allConjDefs = (array)json_decode(file_get_contents($fileName), true);
     
         foreach ($allConjDefs as $conjDef) {
-            self::$allConjuncts[$conjDef['id']] = new Conjunct($conjDef, $logger, $database, $cachePool);
+            self::$allConjuncts[$conjDef['id']] = new Conjunct($conjDef, $app, $logger, $database, $cachePool);
         }
     }
 }

@@ -24,28 +24,28 @@ class Violation
      *
      * @var \Ampersand\Rule\Rule
      */
-    public $rule;
+    protected $rule;
 
     /**
      * The source atom of the violation
      *
      * @var \Ampersand\Core\Atom
      */
-    public $src;
+    protected $src;
 
     /**
      * The target atom of the violation
      *
      * @var \Ampersand\Core\Atom
      */
-    public $tgt;
+    protected $tgt;
 
     /**
      * The violation message
      *
      * @var string
      */
-    private $message;
+    protected $message;
 
     /**
      * Constructor of violation
@@ -69,6 +69,21 @@ class Violation
     public function __toString()
     {
         return "({$this->src},{$this->tgt})";
+    }
+
+    public function getRule(): Rule
+    {
+        return $this->rule;
+    }
+
+    public function getSrc(): Atom
+    {
+        return $this->src;
+    }
+
+    public function getTgt(): Atom
+    {
+        return $this->tgt;
     }
     
     /**
@@ -118,29 +133,5 @@ class Violation
             }
         }
         return $this->message = implode($strArr); // glue as one string
-    }
-
-    /**
-     * Get list of interfaces to solve the violation
-     *
-     * @param string $srcOrTgt specifies to get interfaces for source concept (src), target concept (tgt) or both (null)
-     * @return \Ampersand\Interfacing\InterfaceObject[]
-     */
-    public function getInterfaces($srcOrTgt = null): array
-    {
-        /** @var \Pimple\Container $container */
-        global $container; // TODO: remove dependency to global $container var
-        
-        switch ($srcOrTgt) {
-            case 'src':
-                return $container['ampersand_app']->getInterfacesToReadConcepts([$this->src->concept]);
-                break;
-            case 'tgt':
-                return $container['ampersand_app']->getInterfacesToReadConcepts([$this->tgt->concept]);
-                break;
-            default:
-                return $container['ampersand_app']->getInterfacesToReadConcepts([$this->src->concept, $this->tgt->concept]);
-                break;
-        }
     }
 }

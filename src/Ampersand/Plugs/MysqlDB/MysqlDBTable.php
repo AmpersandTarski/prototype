@@ -21,13 +21,13 @@ class MysqlDBTable
      *
      * @var string
      */
-    public $name;
+    protected $name;
 
     /**
      *
      * @var array
      */
-    private $cols = [];
+    protected $cols = [];
     
     /**
      *
@@ -42,10 +42,15 @@ class MysqlDBTable
      */
     public function __construct(string $name)
     {
-        if ($name == '') {
+        if ($name === '') {
             throw new Exception("Database table name is an empty string", 500);
         }
         $this->name = $name;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
     }
 
     /**
@@ -56,7 +61,7 @@ class MysqlDBTable
      */
     public function addCol(MysqlDBTableCol $col)
     {
-        $this->cols[$col->name] = $col;
+        $this->cols[$col->getName()] = $col;
     }
 
     /**
@@ -80,11 +85,7 @@ class MysqlDBTable
      */
     public function getColNames(): array
     {
-        $colNames = [];
-        foreach ($this->getCols() as $col) {
-            $colNames[] = $col->name;
-        }
-        return $colNames;
+        return array_keys($this->cols);
     }
 
     /**

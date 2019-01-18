@@ -1,5 +1,5 @@
 angular.module('AmpersandApp')
-.service('LoginService', function($location, $localStorage){
+.service('LoginService', function($rootScope, $location, $localStorage, $sessionStorage){
     let urlLoginPage = null;
     
     let service = {
@@ -8,7 +8,6 @@ angular.module('AmpersandApp')
         },
 
         gotoLoginPage : function () {
-            $localStorage.login_urlBeforeLogin = $location.url(); // "/some/path?foo=bar&baz=xoxo"
             if (urlLoginPage) {
                 $location.url(urlLoginPage);
             }
@@ -16,8 +15,20 @@ angular.module('AmpersandApp')
 
         getPageBeforeLogin : function () {
             return $localStorage.login_urlBeforeLogin;
+        },
+
+        sessionIsLoggedIn : function () {
+            return $sessionStorage.session.loggedIn;
         }
     };
+
+    $rootScope.$on('$routeChangeSuccess', function (event, current, previous) {
+        if (current.$$route.originalPath !== urlLoginPage) {
+            $localStorage.login_urlBeforeLogin = $location.path();
+        } else {
+            console.log('login page');
+        }
+    });
     
     return service;
 });

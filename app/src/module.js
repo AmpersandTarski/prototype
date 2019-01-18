@@ -3,10 +3,15 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
 .config(function($routeProvider, $locationProvider) {
     $routeProvider
         // default start page
-        .when('/', { 
+        .when('/', {
+            resolveRedirectTo : ['NavigationBarService', function (NavigationBarService) {
+                return NavigationBarService.getRouteForHomePage();
+            }]
+        })
+        .when('/prototype/welcome', { 
             controller : '',
-            templateUrl : 'app/src/shared/home.html',
-            interfaceLabel : 'Home'
+            templateUrl : 'app/src/shared/welcome.html',
+            interfaceLabel : 'Welcome'
             })
         // installer page
         .when('/admin/installer', {
@@ -65,7 +70,10 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
                 NotificationService.addError(message, response.status, true, response.data.html);
             }
             
-            if(response.data.notifications !== undefined) NotificationService.updateNotifications(response.data.notifications); 
+            if(response.data.notifications !== undefined) NotificationService.updateNotifications(response.data.notifications);
+            if (response.data.navTo != null) {
+                $location.url(response.data.navTo);
+            }
         }else{
             message = response.status + ' ' + response.statusText;
             details = response.data; // html content is excepted

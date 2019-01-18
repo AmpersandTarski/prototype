@@ -10,8 +10,7 @@ return [
     "backward_compatibility_checks" => false,
 
     "file_list" => [
-        'index.php',
-        'localSettings.php'
+        'public/index.php',
     ],
 
     // A list of directories that should be parsed for class and
@@ -22,10 +21,11 @@ return [
     // Thus, both first-party and third-party code being used by
     // your application should be included in this list.
     'directory_list' => [
-        'src',
-        'lib',
+        'bootstrap',
         'extensions',
-        'api',
+        'lib',
+        'public/api',
+        'src',
     ],
 
     "analyzed_file_extensions" => [

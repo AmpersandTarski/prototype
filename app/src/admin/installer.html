@@ -14,8 +14,9 @@
                 <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-                <li><a href="" ng-click="install(true)">Reinstall application</a></li>
-                <li><a href="" ng-click="install(false)">Reinstall application (without default population)</a></li>
+                <li><a href="" ng-click="install(true, false)">Reinstall application</a></li>
+                <li><a href="" ng-click="install(false, false)">Reinstall application (without default population)</a></li>
+                <li><a href="" ng-click="install(true, true)">Reinstall application (ignore invariant rules)</a></li>
             </ul>
         </div>
     </div>

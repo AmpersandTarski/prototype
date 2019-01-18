@@ -64,6 +64,15 @@ angular.module('AmpersandApp')
                 }, 3000);
             }
         },
+
+        clearNotifications : function () {
+            notifications.signals = [];
+            notifications.invariants = [];
+            notifications.infos = [];
+            notifications.successes = [];
+            notifications.warnings = [];
+            notifications.errors = [];
+        },
         
         addSuccess : function(message){
             notifications.successes.push({

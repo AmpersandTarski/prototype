@@ -8,8 +8,8 @@
 namespace Ampersand\Rule;
 
 use Exception;
+use Ampersand\AmpersandApp;
 use Ampersand\Core\Concept;
-use Ampersand\Log\Logger;
 use Ampersand\Plugs\ViewPlugInterface;
 use Psr\Log\LoggerInterface;
 
@@ -36,18 +36,25 @@ class Rule
     private $logger;
 
     /**
+     * Reference to Ampersand app for which this rule is defined
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $ampersandApp;
+
+    /**
      * Dependency injection of an ViewPlug implementation
      *
      * @var \Ampersand\Plugs\ViewPlugInterface
      */
-    public $plug;
+    protected $plug;
 
     /**
      * Rule identifier
      *
      * @var string
      */
-    public $id;
+    protected $id;
     
     /**
      * The file and line number of the Ampersand script where this rule is defined
@@ -96,7 +103,7 @@ class Rule
      *
      * @var \Ampersand\Rule\Conjunct[]
      */
-    public $conjuncts;
+    protected $conjuncts = [];
     
     /**
      * List with segments to build violation messages
@@ -119,11 +126,13 @@ class Rule
      * @param array $ruleDef
      * @param \Ampersand\Plugs\ViewPlugInterface $plug
      * @param string $type specifies if it is a signal (sig) or invariant (inv) rule
+     * @param \Ampersand\AmpersandApp $app
+     * @param \Psr\Log\LoggerInterface $logger
     */
-    private function __construct(array $ruleDef, ViewPlugInterface $plug, string $type, LoggerInterface $logger)
+    private function __construct(array $ruleDef, ViewPlugInterface $plug, string $type, AmpersandApp $app, LoggerInterface $logger)
     {
         $this->logger = $logger;
-
+        $this->ampersandApp = $app;
         $this->plug = $plug;
         
         $this->id = $ruleDef['name'];
@@ -162,6 +171,26 @@ class Rule
     public function __toString(): string
     {
         return $this->id;
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function getPlug(): ViewPlugInterface
+    {
+        return $this->plug;
+    }
+
+    /**
+     * List of conjuncts of which this rule is made of
+     *
+     * @return \Ampersand\Rule\Conjunct[]
+     */
+    public function getConjuncts(): array
+    {
+        return $this->conjuncts;
     }
 
     /**
@@ -232,7 +261,8 @@ class Rule
             return $violations;
         } catch (Exception $e) {
             $this->logger->error("Error while evaluating rule '{$this}': {$e->getMessage()}");
-            Logger::getUserLogger()->error("Error while evaluating rule");
+            $this->ampersandApp->userLog()->error("Error while evaluating rule");
+            return [];
         }
     }
     
@@ -308,10 +338,11 @@ class Rule
      *
      * @param string $fileName containing the Ampersand rule definitions
      * @param \Ampersand\Plugs\ViewPlugInterface $defaultPlug
+     * @param \Ampersand\AmpersandApp $app
      * @param \Psr\Log\LoggerInterface $logger
      * @return void
      */
-    public static function setAllRules(string $fileName, ViewPlugInterface $defaultPlug, LoggerInterface $logger)
+    public static function setAllRules(string $fileName, ViewPlugInterface $defaultPlug, AmpersandApp $app, LoggerInterface $logger)
     {
         self::$allRules = [];
 
@@ -319,13 +350,13 @@ class Rule
         
         // Signal rules
         foreach ($allRuleDefs['signals'] as $ruleDef) {
-            $rule = new Rule($ruleDef, $defaultPlug, 'signal', $logger);
+            $rule = new Rule($ruleDef, $defaultPlug, 'signal', $app, $logger);
             self::$allRules[$rule->id] = $rule;
         }
         
         // Invariant rules
         foreach ($allRuleDefs['invariants'] as $ruleDef) {
-            $rule = new Rule($ruleDef, $defaultPlug, 'invariant', $logger);
+            $rule = new Rule($ruleDef, $defaultPlug, 'invariant', $app, $logger);
             self::$allRules[$rule->id] = $rule;
         }
     }

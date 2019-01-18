@@ -9,7 +9,8 @@ namespace Ampersand;
 
 use Exception;
 use Psr\Log\LoggerInterface;
-use Ampersand\Interfacing\InterfaceObject;
+use Ampersand\AmpersandApp;
+use Ampersand\Interfacing\Ifc;
 
 /**
  *
@@ -18,12 +19,18 @@ use Ampersand\Interfacing\InterfaceObject;
  */
 class AngularApp
 {
-    
     /**
      *
      * @var \Psr\Log\LoggerInterface
      */
     private $logger;
+
+    /**
+     * Reference to Ampersand app of which this frontend app (Angular) belongs to
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $ampersandApp;
     
     /**
      * List of items for the extensions menu (in navbar)
@@ -54,19 +61,21 @@ class AngularApp
     protected $navToResponse = [];
 
     /**
-     * Undocumented function
+     * Constructor
      *
+     * @param \Ampersand\AmpersandApp $ampersandApp
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(AmpersandApp $ampersandApp, LoggerInterface $logger)
     {
+        $this->ampersandApp = $ampersandApp;
         $this->logger = $logger;
     }
     
     /**
      * @param string $menu specifies to which part of the menu (navbar) this item belongs to
      * @param string $itemUrl location of html template to use as menu item
-     * @param callable function which returns true/false determining to add the menu item or not
+     * @param callable $function function which returns true/false determining to add the menu item or not
      */
     public function addMenuItem(string $menu, string $itemUrl, callable $function)
     {
@@ -88,8 +97,7 @@ class AngularApp
     
     public function getMenuItems($menu)
     {
-        global $container;
-        $ampersandApp = $container['ampersand_app'];
+        $ampersandApp = $this->ampersandApp;
 
         switch ($menu) {
             // Items for extension menu
@@ -98,88 +106,72 @@ class AngularApp
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
                 break;
-            
             // Items for refresh menu
             case 'refresh':
                 $result = array_filter($this->refreshMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
                 break;
-            
             // Items for role menu
             case 'role':
                 $result = array_filter($this->roleMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
                 break;
-            
             // Items in menu to create new resources (indicated with + sign)
             case 'new':
-                $result = [];
-                foreach ($this->getNavBarIfcs('new') as $ifc) {
-                    /** @var \Ampersand\Interfacing\InterfaceObject $ifc */
-                    $sort = $ifc->tgtConcept->name; // or sort by classification tree: $sort = $ifc->tgtConcept->getLargestConcept()->name;
+                // Filter interfaces that are capable to create new Resources
+                $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (Ifc $ifc) {
+                    $ifcObj = $ifc->getIfcObject();
+                    // crudC, otherwise the atom cannot be created
+                    // isIdent (interface expr = I[Concept]), because otherwise a src atom is necesarry, which we don't have wiht +-menu
+                    if ($ifcObj->crudC() && $ifcObj->isIdent()) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
 
-                    if (!isset($result[$sort])) {
-                        $result[$sort] = ['label' => "New {$ifc->tgtConcept->label}", 'ifcs' => []];
+                // Prepare output and group by type
+                $result = [];
+                foreach ($interfaces as $ifc) {
+                    /** @var \Ampersand\Interfacing\Ifc $ifc */
+                    $type = $ifc->getTgtConcept()->name;
+
+                    if (!isset($result[$type])) {
+                        $result[$type] = ['label' => "New {$ifc->getTgtConcept()->label}", 'ifcs' => []];
                     }
 
-                    $result[$sort]['ifcs'][] = ['id' => $ifc->id
-                                               ,'label' => $ifc->label
-                                               ,'link' => '/' . $ifc->id
-                                               ,'resourceType' => $ifc->tgtConcept->name
+                    $result[$type]['ifcs'][] = ['id' => $ifc->getId()
+                                               ,'label' => $ifc->getLabel()
+                                               ,'link' => '/' . $ifc->getId()
+                                               ,'resourceType' => $type
                                                ];
                 }
                 break;
-            
             // Top level items in menu bar
             case 'top':
-                $result = array_map(function (InterfaceObject $ifc) {
-                    return [ 'id' => $ifc->id
-                           , 'label' => $ifc->label
-                           , 'link' => '/' . $ifc->id
+                $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (Ifc $ifc) {
+                    $ifcObj = $ifc->getIfcObject();
+                    if ($ifc->getSrcConcept()->isSession() && $ifcObj->crudR()) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+
+                $result = array_map(function (Ifc $ifc) {
+                    return [ 'id' => $ifc->getId()
+                           , 'label' => $ifc->getLabel()
+                           , 'link' => '/' . $ifc->getId()
                            ];
-                }, $this->getNavBarIfcs('top'));
+                }, $interfaces);
                 break;
             default:
                 throw new Exception("Cannot get menu items. Unknown menu: '{$menu}'", 500);
-                break;
         }
-        
-        return array_values($result); // reindex array
-    }
-    
-    /**
-     * Get interfaces for certain use cases
 
-     * @param string $menu
-     * @return \Ampersand\Interfacing\InterfaceObject[]
-     */
-    protected function getNavBarIfcs(string $menu): array
-    {
-        global $container;
-
-        // Filter interfaces for requested part of navbar
-        return array_filter($container['ampersand_app']->getAccessibleInterfaces(), function (InterfaceObject $ifc) use ($menu) {
-            switch ($menu) {
-                case 'top':
-                    if ($ifc->srcConcept->isSession() && $ifc->crudR()) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                case 'new':
-                    // crudC, otherwise the atom cannot be created
-                    // isIdent (interface expr = I[Concept]), because otherwise a src atom is necesarry, which we don't have wiht +-menu
-                    if ($ifc->crudC() && $ifc->isIdent()) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                default:
-                    throw new Exception("Cannot get navbar interfaces. Unknown menu: '{$menu}'", 500);
-            }
-        });
+        return array_values($result); // Make sure that a true numeric array is returned
     }
 
     public function getNavToResponse($case)
@@ -223,7 +215,7 @@ class AngularApp
         static $skipRels = ['lastAccess[SESSION*DateTime]']; // these relations do not result in a session refresh advice
 
         $affectedRelations = [];
-        foreach (Transaction::getTransactions() as $transaction) {
+        foreach ($this->ampersandApp->getTransactions() as $transaction) {
             if (!$transaction->isCommitted()) {
                 continue;
             }

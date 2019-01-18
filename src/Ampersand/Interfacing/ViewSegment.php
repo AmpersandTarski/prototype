@@ -110,7 +110,7 @@ class ViewSegment
                 if ($exists) {
                     return $data;
                 } else {
-                    $tgtAtoms = $this->view->plug->executeViewExpression($this, $srcAtom);
+                    $tgtAtoms = $this->view->getPlug()->executeViewExpression($this, $srcAtom);
                     return count($tgtAtoms) ? $tgtAtoms[0] : null;
                 }
                 break;

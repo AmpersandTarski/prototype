@@ -9,15 +9,15 @@ namespace Ampersand;
 
 use Exception;
 use Ampersand\Misc\Hook;
-use Ampersand\Misc\Config;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
-use Ampersand\Log\Logger;
 use Ampersand\Plugs\StorageInterface;
 use Ampersand\Rule\RuleEngine;
 use Ampersand\Rule\ExecEngine;
-use Ampersand\Log\Notifications;
 use Ampersand\Rule\Rule;
+use Ampersand\AmpersandApp;
+use Psr\Log\LoggerInterface;
+use Ampersand\Log\Logger;
 
 /**
  *
@@ -26,20 +26,12 @@ use Ampersand\Rule\Rule;
  */
 class Transaction
 {
-    
     /**
-     * Points to the current/active transaction
+     * Points to the current open transaction
      *
      * @var \Ampersand\Transaction|null
      */
     private static $currentTransaction = null;
-
-    /**
-     * List of all transactions (open or closed)
-     *
-     * @var \Ampersand\Transaction[]
-     */
-    protected static $transactions = [];
     
     /**
      * Transaction number (random int)
@@ -54,6 +46,13 @@ class Transaction
      * @var \Psr\Log\LoggerInterface
      */
     private $logger;
+
+    /**
+     * Reference to Ampersand app for which this transaction is instantiated
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $app;
     
     /**
      * Contains all affected Concepts during a transaction
@@ -90,39 +89,42 @@ class Transaction
      * @var \Ampersand\Plugs\StorageInterface[] $storages
      */
     private $storages = [];
+
+    /**
+     * List of exec engines
+     *
+     * @var \Ampersand\Rule\ExecEngine[]
+     */
+    protected $execEngines = [];
+
+    /**
+     * List of services (i.e. role names) for which a run is requested
+     *
+     * @var string[]
+     */
+    protected $requestedServiceIds = [];
     
     /**
      * Constructor
+     * Note! Don't use this constructor. Use AmpersandApp::newTransaction of AmpersandApp::getCurrentTransaction instead
      *
+     * @param \Ampersand\AmpersandApp $app
      */
-    private function __construct()
+    public function __construct(AmpersandApp $app, LoggerInterface $logger)
     {
-        $this->logger = Logger::getLogger('TRANSACTION');
+        $this->logger = $logger;
+        $this->app = $app;
+
+        // Check to ensure only a single open transaction. AmpersandApp class is responsible for this.
+        if (!is_null(self::$currentTransaction)) {
+            throw new Exception("Something is wrong in the code. Only a single open transaction is allowed.", 500);
+        } else {
+            self::$currentTransaction = $this;
+        }
+
         $this->id = rand();
         $this->logger->info("Opening transaction: {$this->id}");
-    }
-
-    /**
-     * Get current or new transaction
-     *
-     * @return \Ampersand\Transaction
-     */
-    public static function getCurrentTransaction(): Transaction
-    {
-        if (is_null(self::$currentTransaction)) {
-            self::$transactions[] = self::$currentTransaction = new Transaction();
-        }
-        return self::$currentTransaction;
-    }
-
-    /**
-     * Return all transaction object
-     *
-     * @return \Ampersand\Transaction[]
-     */
-    public static function getTransactions(): array
-    {
-        return self::$transactions;
+        $this->initExecEngines();
     }
 
     /**
@@ -135,18 +137,133 @@ class Transaction
         return 'Transaction ' . $this->id;
     }
 
+    protected function initExecEngines()
+    {
+        $execEngineRoleNames = $this->app->getSettings()->get('execengine.execEngineRoleNames');
+        foreach ((array) $execEngineRoleNames as $roleName) {
+            try {
+                $role = Role::getRoleByName($roleName);
+                $this->execEngines[] = new ExecEngine($role, $this, $this->app, Logger::getLogger('EXECENGINE'));
+            } catch (Exception $e) {
+                $this->logger->warning("ExecEngine role '{$roleName}' configured, but role is not used/defined in &-script");
+            }
+        }
+    }
+
+    /**
+     * Run exec engines
+     *
+     * @param bool $checkAllRules specifies if all rules must be evaluated (true) or only the affected rules in this transaction (false)
+     * @return \Ampersand\Transaction
+     */
+    public function runExecEngine(bool $checkAllRules = false): Transaction
+    {
+        $logger = Logger::getLogger('EXECENGINE');
+        $logger->info("ExecEngine started");
+
+        // Initial values
+        $maxRunCount = $this->app->getSettings()->get('execengine.maxRunCount');
+        $autoRerun = $this->app->getSettings()->get('execengine.autoRerun');
+        $doRun = true;
+        $runCounter = 0;
+
+        // Rules to check
+        $rulesToCheck = $checkAllRules ? Rule::getAllRules() : $this->getAffectedRules();
+
+        // Do run exec engines while there is work to do
+        do {
+            $runCounter++;
+            $logger->info("{+ Run #{{$runCounter}} (auto rerun: " . var_export($autoRerun, true) . ")");
+            
+            // Run all exec engines
+            $rulesFixed = [];
+            foreach ($this->execEngines as $ee) {
+                $logger->debug("Select exec engine '{{$ee->getId()}}'");
+                $rulesFixed = array_merge($rulesFixed, $ee->checkFixRules($rulesToCheck));
+            }
+
+            // Run all requested services
+            foreach ($this->requestedServiceIds as $serviceId) {
+                $logger->debug("Select service '{{$serviceId}}'");
+                $rulesFixed = array_merge($rulesFixed, $this->runService($serviceId));
+            }
+            $this->requestedServiceIds = []; // Empty list of requested services
+
+            // If no rules fixed (i.e. no violations) in this loop: stop exec engine
+            if (empty($rulesFixed)) {
+                $doRun = false;
+            }
+
+            // Prevent infinite loop in exec engine reruns
+            if ($runCounter >= $maxRunCount && $doRun) {
+                $logger->error("Maximum reruns exceeded. Rules fixed in last run:" . implode(', ', $rulesFixed) . ")");
+                $this->app->userLog()->error("Maximum reruns exceeded for ExecEngine", ['Rules fixed in last run' => $rulesFixed]);
+                $doRun = false;
+            }
+            $logger->info("+} Exec engine run finished");
+            $rulesToCheck = $this->getAffectedRules(); // next run only affected rules need to be checked
+        } while ($doRun && $autoRerun);
+
+        $logger->info("ExecEngine finished");
+        
+        return $this;
+    }
+
     /**
      * Run exec engine for affected rules in this transaction
      *
-     * @return Transaction
+     * @param string $id
+     * @return \Ampersand\Transaction
      */
-    public function runExecEngine(): Transaction
+    public function singleRunForExecEngine(string $id): Transaction
     {
-        // Run ExecEngine
-        ExecEngine::run($this);
+        // Find/run specific exec engine
+        foreach ($this->execEngines as $ee) {
+            if ($ee->getId() == $id) {
+                $ee->checkFixRules($this->getAffectedRules());
+            }
+        }
 
         return $this;
     }
+
+    /**********************************************************************************************
+     * SERVICES
+     *********************************************************************************************/
+
+    public function requestServiceRun(string $serviceId): void
+    {
+        if (!in_array($serviceId, $this->requestedServiceIds)) {
+            $this->requestedServiceIds[] = $serviceId;
+        }
+    }
+
+    /**
+     * Single run of a specific service
+     * A service is a collection of RULES that are evaluated and fixed the same way as with ExecEngine roles
+     *
+     * @param string $serviceId identifier of the service (i.e. name of ROLE)
+     * @return \Ampersand\Rule\Rule[] $rulesFixed by this service
+     */
+    protected function runService(string $serviceId): array
+    {
+        try {
+            $role = Role::getRoleByName($serviceId);
+        } catch (Exception $e) {
+            $this->logger->warning("Transaction::runService is called with role '{$serviceId}', but this role is not used/defined in &-script");
+        }
+
+        if (isset($role)) {
+            $service = new ExecEngine($role, $this, $this->app, Logger::getLogger('EXECENGINE'));
+            return $service->checkFixRules($role->maintains()); // check all rules of this service
+        } else {
+            return [];
+        }
+    }
+
+    /**********************************************************************************************
+     * CLOSING THE TRANSACTION (leading to a commit or rollback)
+     *********************************************************************************************/
 
     /**
      * Cancel (i.e. rollback) the transaction
@@ -182,9 +299,10 @@ class Transaction
      * Close transaction
      *
      * @param bool $dryRun
+     * @param bool $ignoreInvariantViolations
      * @return \Ampersand\Transaction $this
      */
-    public function close(bool $dryRun = false): Transaction
+    public function close(bool $dryRun = false, bool $ignoreInvariantViolations = false): Transaction
     {
         $this->logger->info("Request to close transaction: {$this->id}");
         
@@ -208,13 +326,13 @@ class Transaction
             $this->rollback();
         } else {
             if ($this->invariantRulesHold) {
-                $this->logger->info("Commit transaction");
+                $this->logger->info("Commit transaction: {$this->id}");
                 $this->commit();
-            } elseif (!$this->invariantRulesHold && Config::get('ignoreInvariantViolations', 'transactions')) {
-                $this->logger->warning("Commit transaction with invariant violations");
+            } elseif (!$this->invariantRulesHold && ($this->app->getSettings()->get('transactions.ignoreInvariantViolations') || $ignoreInvariantViolations)) {
+                $this->logger->warning("Commit transaction {$this->id} with invariant violations");
                 $this->commit();
             } else {
-                $this->logger->info("Rollback transaction, because invariant rules do not hold");
+                $this->logger->info("Rollback transaction {$this->id}, because invariant rules do not hold");
                 $this->rollback();
             }
         }
@@ -278,6 +396,10 @@ class Transaction
             $this->storages[] = $storage;
         }
     }
+
+    /**********************************************************************************************
+     * KEEPING TRACK OF AFFECTED CONCEPTS, RELATIONS, CONJUNCTS and RULES
+     *********************************************************************************************/
     
     public function getAffectedConcepts()
     {
@@ -383,7 +505,7 @@ class Transaction
         $rulesHold = true;
         foreach (RuleEngine::getViolations($affectedInvRules) as $violation) {
             $rulesHold = false; // set to false if there is one or more violation
-            Notifications::addInvariant($violation); // notify user of broken invariant rules
+            $this->app->userLog()->invariant($violation); // notify user of broken invariant rules
         }
 
         return $rulesHold;
