@@ -18,7 +18,8 @@ $angularApp->addMenuItem(
     'refresh',
     'app/src/admin/check-rules-menu-item.html',
     function (AmpersandApp $app) {
-        return !$app->getSettings()->get('rbac.adminRoles');
+        $roles = $app->getSettings()->get('rbac.adminRoles');
+        return $app->hasActiveRole($roles);
     }
 );
 
