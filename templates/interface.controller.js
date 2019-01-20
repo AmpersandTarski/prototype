@@ -11,24 +11,36 @@ angular.module('AmpersandApp').controller('Ifc$interfaceName$Controller', functi
     const resourceType = '$source$';
     const ifcName = '$interfaceName$';
 
-    // If entry resource is session
-    if(resourceType == 'SESSION') 
-        \$scope.resource = { _id_ : null, _path_ : 'resource/SESSION/1', _isRoot_ : true };
+    // Input params
+    if(resourceType == 'SESSION') {
+        resourceId = '1';
+        resourcePath = 'resource/SESSION/1';
+    } else {
+        resourceId = \$routeParams.resourceId;
+        resourcePath = 'resource/' + resourceType + '/' + \$routeParams.resourceId;
+    }
 
-    // Else entry resource is other type
-    else \$scope.resource = { _id_ : \$routeParams.resourceId, _path_ : 'resource/' + resourceType + '/' + \$routeParams.resourceId , _isRoot_ : true };
+    \$scope.resource = {
+        _id_ : resourceId,
+        _path_ : resourcePath,
+        _isRoot_ : true,
+        [ifcName] : $if(exprIsUni)$null$else$[]$endif$, // placeholder for interface data
+        get : function() {
+            ResourceService.getResource(this, ifcName, this);
+        },
+        save : function() {
+            ResourceService.patchResource(this, true);
+        }
+    };
     
-    \$scope.resource[ifcName] = $if(exprIsUni)$null$else$[]$endif$;
     \$scope.patchResource = \$scope.resource;
     
-    \$scope.resource.get = function(){ ResourceService.getResource(\$scope.resource, ifcName, \$scope.patchResource);};
-    \$scope.saveResource = function(resource){
-        ResourceService.patchResource(resource, true);
+    // Controller functions
+    \$scope.switchResource = function(resourceId) {
+        \$location.url('/$interfaceName$/' + resourceId);
     };
-    \$scope.switchResource = function(resourceId){ \$location.url('/$interfaceName$/' + resourceId);};
     
     // Get resource
     \$scope.resource.get();
-    
 });
 /* jshint ignore:end */
