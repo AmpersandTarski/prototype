@@ -15,9 +15,11 @@ angular.module('AmpersandApp').controller('Ifc$interfaceName$Controller', functi
     if(resourceType == 'SESSION') {
         resourceId = '1';
         resourcePath = 'resource/SESSION/1';
+        tgtId = \$routeParams.resourceId; // if resourceId is specified, it is interpreted as to retreive a single tgt. Can be undefined
     } else {
         resourceId = \$routeParams.resourceId;
         resourcePath = 'resource/' + resourceType + '/' + \$routeParams.resourceId;
+        tgtId = undefined;
     }
 
     \$scope.resource = {
@@ -25,8 +27,8 @@ angular.module('AmpersandApp').controller('Ifc$interfaceName$Controller', functi
         _path_ : resourcePath,
         _isRoot_ : true,
         [ifcName] : $if(exprIsUni)$null$else$[]$endif$, // placeholder for interface data
-        get : function() {
-            ResourceService.getResource(this, ifcName, this);
+        get : function(tgtId) {
+            ResourceService.getResource(this, ifcName, this, tgtId);
         },
         save : function() {
             ResourceService.patchResource(this, true);
@@ -41,6 +43,6 @@ angular.module('AmpersandApp').controller('Ifc$interfaceName$Controller', functi
     };
     
     // Get resource
-    \$scope.resource.get();
+    \$scope.resource.get(tgtId);
 });
 /* jshint ignore:end */

@@ -11,19 +11,46 @@ angular.module('AmpersandApp')
          * @param {Object} resource
          * @param {string} ifc
          * @param {Object} callingObj will be used for loading indicator
+         * @param {string} tgtId get a specific target resource
          * @returns {Promise}
          */
-        getResource : function(resource, ifc, callingObj){
+        getResource : function(resource, ifc, callingObj, tgtId) {
+            // Url to GET resource
+            url = resource._path_ + '/' + ifc;
+
+            // Append tgtId if specified
+            if (tgtId !== undefined) {
+                url += '/' + tgtId;
+            }
+
             promise = Restangular
-            .one(resource._path_ + '/' + ifc)
+            .one(url)
             .get()
             .then(function(data){
                 try {
                     data = data.plain();
-                }catch(error){}
-                if($.isEmptyObject(data)) NotificationService.addInfo('No results found');
-                else if(resource[ifc] === null || Array.isArray(resource[ifc])) resource[ifc] = data;
-                else angular.extend(resource[ifc], data);
+                } catch(error) {
+                    console.error(error);
+                }
+
+                // No results
+                if ($.isEmptyObject(data)) {
+                    NotificationService.addInfo('No results found');
+                // No specific target was requested
+                } else if (tgtId === undefined) {
+                    if (resource[ifc] === null || Array.isArray(resource[ifc])) {
+                        resource[ifc] = data;
+                    } else {
+                        angular.extend(resource[ifc], data);
+                    }
+                // Specific target was requested
+                } else {
+                    if (Array.isArray(resource[ifc])) {
+                        resource[ifc].push(data);
+                    } else {
+                        resource[ifc] = data;
+                    }
+                }
                 
                 ResourceService.initResourceMetaData(resource);
 
