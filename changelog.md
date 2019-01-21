@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* Remove header in interface templates ROWS, HROWS, ROWSNL, HROWSNL. Delete templates ROWSNH (no header)
 
 ## v1.1.0 (18 january 2019)
 * **Major refactoring of backend implementation of prototype framework**
