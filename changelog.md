@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.1.1 (21 january 2019)
 * Hotfix: bug in delete query when removing multiple links at once
 
 ## v1.1.0 (18 january 2019)
