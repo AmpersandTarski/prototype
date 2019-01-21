@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* Hotfix: bug in delete query when removing multiple links at once
 
 ## v1.1.0 (18 january 2019)
 * **Major refactoring of backend implementation of prototype framework**
