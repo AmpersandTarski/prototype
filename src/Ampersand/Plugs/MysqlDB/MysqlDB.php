@@ -722,26 +722,30 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         
         switch ($srcOrTgt) {
             case 'src':
-                $col = $relationTable->srcCol();
+                $whereCol = $relationTable->srcCol();
                 break;
             case 'tgt':
-                $col = $relationTable->tgtCol();
+                $whereCol = $relationTable->tgtCol();
                 break;
             default:
                 throw new Exception("Unknown/unsupported param option '{$srcOrTgt}'. Supported options are 'src' or 'tgt'", 500);
                 break;
         }
-        
-        // If n-n table, remove row
-        if (is_null($relationTable->inTableOf())) {
-            $query = "DELETE FROM \"{$relationTable->getName()}\" WHERE \"{$col->getName()}\" = '{$atomId}'";
-        // If col cannot be set to null, remove the entire row (cascades delete for TOT and SUR relations)
-        // Don't include this case, because the user doesn't understand what is happing. A whole row is deleted if a single TOT constraint is violated
-        // } elseif (!$col->nullAllowed()) {
-        //     $query = "DELETE FROM \"{$relationTable->getName()}\" WHERE \"{$col->getName()}\" = '{$atomId}'";
-        // Else update
-        } else {
-            $query = "UPDATE \"{$relationTable->getName()}\" SET \"{$col->getName()}\" = NULL WHERE \"{$col->getName()}\" = '{$atomId}'";
+
+        switch ($relationTable->inTableOf()) {
+            case null: // n-n table -> remove entire row
+                $query = "DELETE FROM \"{$relationTable->getName()}\" WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
+                break;
+            case 'src': // administrated in table of src
+                $setCol = $relationTable->tgtCol();
+                $query = "UPDATE \"{$relationTable->getName()}\" SET \"{$setCol->getName()}\" = NULL WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
+                break;
+            case 'tgt': // adminsitrated in table of tgt
+                $setCol = $relationTable->srcCol();
+                $query = "UPDATE \"{$relationTable->getName()}\" SET \"{$setCol->getName()}\" = NULL WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
+                break;
+            default:
+                throw new Exception("Unknown 'tableOf' option for relation '{$relation}'", 500);
         }
         
         $this->execute($query);
