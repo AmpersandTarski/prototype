@@ -32,20 +32,20 @@ class Concept
     private static $allConcepts;
 
     protected static $representTypes =
-        [ 'ALPHANUMERIC'        => ['datatype' => 'string']
-        , 'BIGALPHANUMERIC'     => ['datatype' => 'string']
-        , 'HUGEALPHANUMERIC'    => ['datatype' => 'string']
-        , 'PASSWORD'            => ['datatype' => 'string']
-        , 'BINARY'              => ['datatype' => 'binary']
-        , 'BIGBINARY'           => ['datatype' => 'binary']
-        , 'HUGEBINARY'          => ['datatype' => 'binary']
-        , 'DATE'                => ['datatype' => 'date']
-        , 'DATETIME'            => ['datatype' => 'datetime']
-        , 'BOOLEAN'             => ['datatype' => 'boolean']
-        , 'INTEGER'             => ['datatype' => 'integer']
-        , 'FLOAT'               => ['datatype' => 'float']
-        , 'OBJECT'              => ['datatype' => 'object']
-        , 'TYPEOFONE'           => ['datatype' => 'string']
+        [ 'ALPHANUMERIC'        => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'BIGALPHANUMERIC'     => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'HUGEALPHANUMERIC'    => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'PASSWORD'            => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'BINARY'              => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
+        , 'BIGBINARY'           => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
+        , 'HUGEBINARY'          => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
+        , 'DATE'                => ['datatype' => 'date',       'xml' => 'http://www.w3.org/2001/XMLSchema#data']
+        , 'DATETIME'            => ['datatype' => 'datetime',   'xml' => 'http://www.w3.org/2001/XMLSchema#dateType']
+        , 'BOOLEAN'             => ['datatype' => 'boolean',    'xml' => 'http://www.w3.org/2001/XMLSchema#boolean']
+        , 'INTEGER'             => ['datatype' => 'integer',    'xml' => 'http://www.w3.org/2001/XMLSchema#integer']
+        , 'FLOAT'               => ['datatype' => 'float',      'xml' => 'http://www.w3.org/2001/XMLSchema#float']
+        , 'OBJECT'              => ['datatype' => 'object',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'TYPEOFONE'           => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
         ];
     
     /**
@@ -255,9 +255,15 @@ class Concept
         return $this->name;
     }
 
-    public function getDatatype(): string
+    /**
+     * Undocumented function
+     *
+     * @param string $serialization options are: 'datatype', 'xml'
+     * @return string
+     */
+    public function getDatatype($serialization = 'datatype'): string
     {
-        return self::$representTypes[$this->type]['datatype'];
+        return self::$representTypes[$this->type][$serialization];
     }
     
     /**
