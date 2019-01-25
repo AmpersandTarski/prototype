@@ -92,7 +92,7 @@ class RDFGraph extends EasyRdf_Graph
         $type = $relation->tgtConcept->isObject() ? 'owl:ObjectProperty' : 'owl:DatatypeProperty';
 
         /** @var \EasyRdf_Resource $relationResource */
-        $relationUniqueName = "{$relation->name}-{$relation->srcConcept->getId()}";
+        $relationUniqueName = "{$relation->srcConcept->getId()}-{$relation->name}"; // TODO: also add tgt concept, because full signature must be unique
         $relationResource = $this->resource("app:{$relationUniqueName}", $type);
         $relationResource->set('rdfs:label', $relation->name);
 
