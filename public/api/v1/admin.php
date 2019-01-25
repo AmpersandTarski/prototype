@@ -230,7 +230,7 @@ $api->group('/admin', function () {
     /**
      * @phan-closure-scope \Slim\Container
      */
-    $this->get('/metamodel', function (Request $request, Response $response, $args = []) {
+    $this->get('/export/metamodel', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
