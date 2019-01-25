@@ -20,7 +20,6 @@ angular.module('AmpersandApp')
             .get()
             .then(
                 function(data){
-                    data = data.plain();
                     NotificationService.updateNotifications(data);
                 },
                 function(){
@@ -35,7 +34,6 @@ angular.module('AmpersandApp')
             .get()
             .then(
                 function(data){
-                    data = data.plain();
                     NotificationService.addSuccess('Evaluated all rules.');
                     NotificationService.updateNotifications(data);
                 },function(){

@@ -12,7 +12,6 @@ angular.module('AmpersandApp')
         .one('admin/installer')
         .get({defaultPop : defPop, ignoreInvariantRules : ignoreInvariantRules})
         .then(function(data) {
-            data = data.plain();
             NotificationService.updateNotifications(data);
             NavigationBarService.refreshNavBar();
             

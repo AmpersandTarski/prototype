@@ -5,7 +5,6 @@ angular.module('AmpersandApp')
         Restangular.one('admin/execengine/run').get()
         .then(
             function(data){ // on success
-                data = data.plain();
                 NotificationService.updateNotifications(data);
             }
         );

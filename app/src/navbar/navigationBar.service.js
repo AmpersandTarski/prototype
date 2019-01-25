@@ -64,8 +64,6 @@ angular.module('AmpersandApp')
         refreshNavBar : function(){
             return getNavbarPromise()
             .then(function(data){
-                data = data.plain();
-
                 // Content of navbar
                 navbar.home = data.home;
                 navbar.top = data.top;
