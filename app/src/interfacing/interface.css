@@ -99,6 +99,10 @@ fieldset {
     width: 400px;
 }
 
+.interface .required {
+    border-color: indianred;
+}
+
 input .ng-invalid .ng-dirty {
     border: 2px solid red;
 }
