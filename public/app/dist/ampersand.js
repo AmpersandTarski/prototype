@@ -62,6 +62,7 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
                 if(response.data.data.loginPage) {
                     LoginService.setLoginPage(response.data.data.loginPage);
                 }
+                LoginService.setSessionIsLoggedIn(false);
                 LoginService.gotoLoginPage();
                 NotificationService.addInfo(response.data.msg || 'Login required to access this page');
             
@@ -174,6 +175,46 @@ angular.module('uiSwitch', [])
     }
   }
 });
+var app = angular.module('AmpersandApp');
+app.requires[app.requires.length] = 'angularFileUpload'; // add angularFileUpload to dependency list
+app.config(["$routeProvider", function($routeProvider) {
+    $routeProvider
+        .when('/ext/importer', {
+            controller : 'PopulationImportController',
+            templateUrl : 'app/src/importer/importer.html',
+            interfaceLabel : 'Population importer'
+        });
+}]).service('ImportService', ["FileUploader", "NotificationService", "NavigationBarService", function(FileUploader, NotificationService, NavigationBarService){
+    let uploader = new FileUploader({
+        url: 'api/v1/admin/import'
+    });
+
+    uploader.onSuccessItem = function(fileItem, response, status, headers) {
+        NotificationService.updateNotifications(response.notifications);
+        if(response.sessionRefreshAdvice) NavigationBarService.refreshNavBar();
+    };
+    
+    uploader.onErrorItem = function(item, response, status, headers){
+        let message;
+        let details;
+        if(typeof response === 'object'){
+            if (response.notifications !== undefined) {
+                NotificationService.updateNotifications(response.notifications);
+            }
+            message = response.msg || 'Error while importing';
+            NotificationService.addError(message, status, true, response.html);
+        }else{
+            message = status + ' Error while importing';
+            details = response; // html content is excepted
+            NotificationService.addError(message, status, true, details);
+        }
+    };
+    
+    return {uploader : uploader};
+}]).controller('PopulationImportController', ["$scope", "ImportService", function ($scope, ImportService) {
+    $scope.uploader = ImportService.uploader;
+}]);
+
 angular.module('AmpersandApp')
 .controller('AtomicController', ["$scope", "ResourceService", function($scope, ResourceService){
     
@@ -875,46 +916,6 @@ angular.module('AmpersandApp')
     return ResourceService;
 }]);
 
-var app = angular.module('AmpersandApp');
-app.requires[app.requires.length] = 'angularFileUpload'; // add angularFileUpload to dependency list
-app.config(["$routeProvider", function($routeProvider) {
-    $routeProvider
-        .when('/ext/importer', {
-            controller : 'PopulationImportController',
-            templateUrl : 'app/src/importer/importer.html',
-            interfaceLabel : 'Population importer'
-        });
-}]).service('ImportService', ["FileUploader", "NotificationService", "NavigationBarService", function(FileUploader, NotificationService, NavigationBarService){
-    let uploader = new FileUploader({
-        url: 'api/v1/admin/import'
-    });
-
-    uploader.onSuccessItem = function(fileItem, response, status, headers) {
-        NotificationService.updateNotifications(response.notifications);
-        if(response.sessionRefreshAdvice) NavigationBarService.refreshNavBar();
-    };
-    
-    uploader.onErrorItem = function(item, response, status, headers){
-        let message;
-        let details;
-        if(typeof response === 'object'){
-            if (response.notifications !== undefined) {
-                NotificationService.updateNotifications(response.notifications);
-            }
-            message = response.msg || 'Error while importing';
-            NotificationService.addError(message, status, true, response.html);
-        }else{
-            message = status + ' Error while importing';
-            details = response; // html content is excepted
-            NotificationService.addError(message, status, true, details);
-        }
-    };
-    
-    return {uploader : uploader};
-}]).controller('PopulationImportController', ["$scope", "ImportService", function ($scope, ImportService) {
-    $scope.uploader = ImportService.uploader;
-}]);
-
 angular.module('AmpersandApp')
 .service('LoginService', ["$rootScope", "$location", "$localStorage", "$sessionStorage", function($rootScope, $location, $localStorage, $sessionStorage){
     let urlLoginPage = null;
@@ -936,6 +937,10 @@ angular.module('AmpersandApp')
 
         sessionIsLoggedIn : function () {
             return $sessionStorage.session.loggedIn;
+        },
+
+        setSessionIsLoggedIn : function (bool) {
+            $sessionStorage.session.loggedIn = bool;
         }
     };
 
