@@ -63,6 +63,7 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
                     LoginService.setLoginPage(response.data.data.loginPage);
                 }
                 LoginService.setSessionIsLoggedIn(false);
+                NavigationBarService.refreshNavBar();
                 LoginService.gotoLoginPage();
                 NotificationService.addInfo(response.data.msg || 'Login required to access this page');
             
