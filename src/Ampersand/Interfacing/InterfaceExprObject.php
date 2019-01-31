@@ -511,7 +511,9 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             $ifcs = $ampersandApp->getInterfacesToReadConcept($this->tgtConcept);
         }
         
-        return $ifcs;
+        return array_filter($ifcs, function (Ifc $ifc) {
+            return !$ifc->isAPI();
+        });
     }
 
     /**
