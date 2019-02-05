@@ -434,6 +434,17 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     }
 
     /**
+     * Function to manually set optimized query
+     *
+     * @param string $query
+     * @return void
+     */
+    public function setQuery(string $query): void
+    {
+        $this->query = $query;
+    }
+
+    /**
      * Returns if subinterface is defined
      *
      * @param string $ifcId
