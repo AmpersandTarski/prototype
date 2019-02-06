@@ -97,11 +97,11 @@ CONTEXT PrototypeFramework IN ENGLISH
 
     ROLE ExecEngine MAINTAINS "Automatically designate root of PF_NavMenItem tree as PF_NavMenu"
     RULE "Automatically designate root of PF_NavMenItem tree as PF_NavMenu": I[PF_NavMenuItem] - isSubItemOf;isSubItemOf~ |- I[PF_NavMenu]
-    VIOLATION (TXT "{EX} SetConcept;PF_NavMenuItem;PF_NavMenu;", SRC I)
+    VIOLATION (TXT "{EX} SetConcept;PF_NavMenuItem;PF_NavMenu;", SRC I[PF_NavMenuItem])
 
     ROLE ExecEngine MAINTAINS "De-assign non-root PF_NavMenItems as PF_NavMenu"
     RULE "De-assign non-root PF_NavMenItems as PF_NavMenu": I[PF_NavMenu] |- I[PF_NavMenuItem] - isSubItemOf;isSubItemOf~ 
-    VIOLATION (TXT "{EX} ClearConcept;PF_NavMenu;", SRC I)
+    VIOLATION (TXT "{EX} ClearConcept;PF_NavMenu;", SRC I[PF_NavMenu])
 
     --[ADMIN INTERFACES to adapt the menus]--------------------------------------------------------
     INTERFACE "Edit navigation menu" FOR Admin: "_SESSION";V[SESSION*PF_NavMenu] INTERFACE "Edit menu item"
