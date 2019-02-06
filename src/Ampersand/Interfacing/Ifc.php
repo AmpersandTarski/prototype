@@ -127,6 +127,11 @@ class Ifc
         return $this->ifcObject->getTgtConcept();
     }
 
+    /**
+     * List of rules names that have access to this interface
+     *
+     * @return string[]
+     */
     public function getRoleNames(): array
     {
         return $this->ifcRoleNames;
@@ -142,16 +147,6 @@ class Ifc
     public function setRoleNames(array $ifcRoleNames): void
     {
         $this->ifcRoleNames = $ifcRoleNames;
-    }
-
-    /**
-     * List of rules names that have access to this interface
-     *
-     * @return string[]
-     */
-    public function getRoleNames(): array
-    {
-        return $this->ifcRoleNames;
     }
 
     /**********************************************************************************************
