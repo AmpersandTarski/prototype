@@ -14,6 +14,7 @@ use PHPExcel_Worksheet_Row;
 use Psr\Log\LoggerInterface;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\ResourceList;
+use Ampersand\AmpersandApp;
 
 class ExcelImporter
 {
@@ -24,13 +25,21 @@ class ExcelImporter
     private $logger;
 
     /**
+     * Reference to application instance
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $ampersandApp;
+
+    /**
      * Constructor
      *
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(AmpersandApp $app, LoggerInterface $logger)
     {
         $this->logger = $logger;
+        $this->ampersandApp = $app;
     }
     
     /**
@@ -83,17 +92,18 @@ class ExcelImporter
             throw new Exception("Source concept of interface '{$ifc->getLabel()}' must be SESSION in order to be used as import interface", 400);
         }
 
+        if (!$this->ampersandApp->isAccessibleIfc($ifc)) {
+            throw new Exception("You do not have access to import using interface '{$ifc->getLabel()}' as specified in sheet {$worksheet->getTitle()}", 403);
+        }
+
         // Determine $leftConcept from cell A1
         $leftConcept = Concept::getConceptByLabel((string)$worksheet->getCell('A1'));
         if ($leftConcept !== $ifc->getTgtConcept()) {
             throw new Exception("Target concept of interface '{$ifc->getLabel()}' does not match concept specified in cell {$worksheet->getTitle()}!A1", 400);
         }
 
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp; // TODO: remove dependency on global var
-
         // The list to add/update items from
-        $resourceList = ResourceList::makeFromInterface($ampersandApp->getSession()->getSessionAtom(), $ifc->getId());
+        $resourceList = ResourceList::makeFromInterface($this->ampersandApp->getSession()->getId(), $ifc->getId());
         
         // Parse other columns of first row
         $dataColumns = [];
@@ -138,7 +148,7 @@ class ExcelImporter
                     if ($leftAtom->exists()) {
                         $leftResource = $resourceList->one($firstCol);
                     } else { // Try a POST
-                        $leftResource = $resourceList->create($leftAtom->id);
+                        $leftResource = $resourceList->create($leftAtom->getId());
                     }
                 }
             } catch (Exception $e) {

@@ -1,5 +1,5 @@
 angular.module('AmpersandApp')
-.service('NavigationBarService', function(Restangular, $localStorage, $sessionStorage, $timeout, NotificationService){
+.service('NavigationBarService', function(Restangular, $localStorage, $sessionStorage, $timeout, NotificationService, $q){
     let navbar = {
         home: null, // home/start page, can be set in project.yaml (default: '#/prototype/welcome')
         top: [],
@@ -26,6 +26,20 @@ angular.module('AmpersandApp')
         });
     };
 
+    let pendingNavbarPromise = null;
+    function getNavbarPromise() {
+        if (pendingNavbarPromise === null) {
+            pendingNavbarPromise = Restangular
+            .one('app/navbar')
+            .get()
+            .finally(function() {
+                pendingNavbarPromise = null;
+            });
+        }
+
+        return pendingNavbarPromise;
+    }
+
     let service = {
         navbar : navbar,
         defaultSettings : defaultSettings,
@@ -34,13 +48,22 @@ angular.module('AmpersandApp')
             observerCallables.push(callable);
         },
 
-        refreshNavBar : function(){
-            return Restangular
-            .one('app/navbar')
-            .get()
-            .then(function(data){
-                data = data.plain();
+        getRouteForHomePage : function() {
+            if (navbar.home === null) {
+                return getNavbarPromise()
+                .then(function (data){
+                    return data.home;
+                }, function (error) {
+                    console.error('Error in getting nav bar data: ', error);
+                })
+            } else {
+                return $q.resolve(navbar.home);
+            }
+        },
 
+        refreshNavBar : function(){
+            return getNavbarPromise()
+            .then(function(data){
                 // Content of navbar
                 menus = treeify(data.navs, 'id', 'parent', 'children');
                 navbar.home = data.home;

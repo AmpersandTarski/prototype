@@ -21,7 +21,7 @@ class MysqlDBTable
      *
      * @var string
      */
-    public $name;
+    protected $name;
 
     /**
      *
@@ -48,6 +48,11 @@ class MysqlDBTable
         $this->name = $name;
     }
 
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
     /**
      * Add database table column object to this table
      *
@@ -56,7 +61,7 @@ class MysqlDBTable
      */
     public function addCol(MysqlDBTableCol $col)
     {
-        $this->cols[$col->name] = $col;
+        $this->cols[$col->getName()] = $col;
     }
 
     /**
@@ -80,11 +85,7 @@ class MysqlDBTable
      */
     public function getColNames(): array
     {
-        $colNames = [];
-        foreach ($this->getCols() as $col) {
-            $colNames[] = $col->name;
-        }
-        return $colNames;
+        return array_keys($this->cols);
     }
 
     /**

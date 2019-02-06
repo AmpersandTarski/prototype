@@ -278,7 +278,7 @@ class Session
         if (Ifc::interfaceExists('SessionVars')) {
             try {
                 $this->logger->debug("Getting interface 'SessionVars' for {$this->sessionAtom}");
-                return ResourceList::makeFromInterface($this->sessionAtom, 'SessionVars')->get(Options::INCLUDE_NOTHING);
+                return ResourceList::makeFromInterface($this->id, 'SessionVars')->get(Options::INCLUDE_NOTHING);
             } catch (Exception $e) {
                 $this->logger->error("Error while getting SessionVars interface: " . $e->getMessage());
                 return false;

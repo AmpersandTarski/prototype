@@ -77,6 +77,9 @@ class ResourceList
         if (!empty($tgts)) {
             // Resource found
             return $this->makeResource(current($tgts));
+        // Temporary fix for #884. TODO: remove this elseif clause when solution is implemented
+        } elseif ($this->ifcObject->crudC() && !$this->tgtIdInPath()) {
+            return $this->create($tgtId);
         } else {
             // When not found
             throw new Exception("Resource '{$tgtId}' not found", 404);
@@ -104,11 +107,11 @@ class ResourceList
      */
     public function walkPath(array $pathList)
     {
-        if (empty($pathList)) {
+        if (empty($pathList) && $this->tgtIdInPath()) {
             return $this;
         }
 
-        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->id;
+        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->getId();
         
         return $this->one($tgtId)->walkPath($pathList);
     }
@@ -119,7 +122,7 @@ class ResourceList
             throw new Exception("Provided path MUST end with a resource identifier", 400);
         }
 
-        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->id;
+        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->getId();
 
         return $this->one($tgtId)->walkPathToResource($pathList);
     }
@@ -130,7 +133,7 @@ class ResourceList
             return $this;
         }
         
-        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->id;
+        $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->getId();
 
         return $this->one($tgtId)->walkPathToList($pathList);
     }
@@ -175,9 +178,9 @@ class ResourceList
                 $originalFileName = $_FILES['file']['name'];
 
                 $appAbsolutePath = $ampersandApp->getSettings()->get('global.absolutePath');
-                $uploadFolder = $ampersandApp->getSettings()->get('global.uploadPath');
-                $dest = getSafeFileName($appAbsolutePath . DIRECTORY_SEPARATOR . $uploadFolder . DIRECTORY_SEPARATOR . $originalFileName);
-                $relativePath = $uploadFolder . '/' . pathinfo($dest, PATHINFO_BASENAME); // use forward slash as this is used on the web
+                $uploadFolder = $ampersandApp->getSettings()->get('global.uploadDir');
+                $dest = getSafeFileName("{$appAbsolutePath}/data/{$uploadFolder}/{$originalFileName}");
+                $relativePath = $uploadFolder . '/' . pathinfo($dest, PATHINFO_BASENAME); # relative to '/data' folder
                 
                 $result = move_uploaded_file($tmp_name, $dest);
                 
@@ -241,28 +244,44 @@ class ResourceList
 
     protected function makeResource(Atom $atom): Resource
     {
-        return new Resource($atom->id, $atom->concept, $this);
+        return new Resource($atom->getId(), $atom->concept, $this);
     }
 
     /**********************************************************************************************
      * STATIC METHODS
      *********************************************************************************************/
 
-    public static function makeFromInterface(Atom $srcAtom, string $ifcIdOrLabel): ResourceList
+    /**
+     * Instantiate resource list with given src atom and interface
+     *
+     * @param string $srcAtomId
+     * @param string $ifcIdOrLabel
+     * @return \Ampersand\Interfacing\ResourceList
+     */
+    public static function makeFromInterface(string $srcAtomId, string $ifcIdOrLabel): ResourceList
     {
+        $ifc = Ifc::getInterface($ifcIdOrLabel, true);
+        $srcAtom = new Atom($srcAtomId, $ifc->getSrcConcept());
+
         // Same as in InterfaceNullObject::buildResourcePath()
         if ($srcAtom->concept->isSession()) {
             $pathEntry = "resource/SESSION/1"; // Don't put session id here, this is implicit
         } else {
-            $pathEntry = "resource/{$srcAtom->concept->name}/{$srcAtom->id}";
+            $pathEntry = "resource/{$srcAtom->concept->name}/{$srcAtom->getId()}";
         }
 
-        return new ResourceList($srcAtom, Ifc::getInterface($ifcIdOrLabel, true)->getIfcObject(), $pathEntry);
+        return new ResourceList($srcAtom, $ifc->getIfcObject(), $pathEntry);
     }
 
-    public static function makeWithoutInterface(string $resourceType): ResourceList
+    /**
+     * Instantiate resource list for a given resource type (i.e. concept)
+     *
+     * @param string $conceptId
+     * @return \Ampersand\Interfacing\ResourceList
+     */
+    public static function makeWithoutInterface(string $conceptId): ResourceList
     {
         $one = new Atom('ONE', Concept::getConcept('ONE'));
-        return new ResourceList($one, InterfaceObjectFactory::getNullObject($resourceType), '');
+        return new ResourceList($one, InterfaceObjectFactory::getNullObject($conceptId), '');
     }
 }

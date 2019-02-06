@@ -30,7 +30,7 @@ class View
      * Dependency injection of an ViewPlug implementation
      * @var \Ampersand\Plugs\ViewPlugInterface
      */
-    public $plug;
+    protected $plug;
     
     /**
      * Name (and unique identifier) of view
@@ -42,7 +42,7 @@ class View
      * Specifies if this view is defined as default view for $this->concept
      * @var boolean
      */
-    public $isDefault;
+    protected $isDefault;
     
     /**
      * Specifies the concept for which this view can defined
@@ -54,7 +54,7 @@ class View
      * Array with view segments that are used to build the view
      * @var \Ampersand\Interfacing\ViewSegment[]
      */
-    public $segments = [];
+    protected $segments = [];
     
     
     /**
@@ -80,6 +80,11 @@ class View
     public function getLabel()
     {
         return $this->label;
+    }
+
+    public function getPlug(): ViewPlugInterface
+    {
+        return $this->plug;
     }
     
     /**

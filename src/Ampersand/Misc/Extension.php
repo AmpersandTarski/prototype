@@ -18,20 +18,16 @@ class Extension
 
     protected $bootstrapFile;
 
-    protected $configFile;
-
     /**
      * Undocumented function
      *
      * @param string $name
      * @param string|null $bootstrapFile
-     * @param string|null $configFile
      */
-    public function __construct(string $name, string $bootstrapFile = null, string $configFile = null)
+    public function __construct(string $name, string $bootstrapFile = null)
     {
         $this->name = $name;
         $this->bootstrapFile = $bootstrapFile;
-        $this->configFile = $configFile;
     }
 
     /**

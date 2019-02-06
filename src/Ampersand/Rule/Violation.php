@@ -24,28 +24,28 @@ class Violation
      *
      * @var \Ampersand\Rule\Rule
      */
-    public $rule;
+    protected $rule;
 
     /**
      * The source atom of the violation
      *
      * @var \Ampersand\Core\Atom
      */
-    public $src;
+    protected $src;
 
     /**
      * The target atom of the violation
      *
      * @var \Ampersand\Core\Atom
      */
-    public $tgt;
+    protected $tgt;
 
     /**
      * The violation message
      *
      * @var string
      */
-    private $message;
+    protected $message;
 
     /**
      * Constructor of violation
@@ -69,6 +69,21 @@ class Violation
     public function __toString()
     {
         return "({$this->src},{$this->tgt})";
+    }
+
+    public function getRule(): Rule
+    {
+        return $this->rule;
+    }
+
+    public function getSrc(): Atom
+    {
+        return $this->src;
+    }
+
+    public function getTgt(): Atom
+    {
+        return $this->tgt;
     }
     
     /**

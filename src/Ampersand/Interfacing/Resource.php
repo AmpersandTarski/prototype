@@ -137,11 +137,24 @@ class Resource extends Atom implements ArrayAccess
  * ArrayAccess methods
  *************************************************************************************************/
 
-    public function offsetExists($offset)
+    /**
+     * Implementation of ArrayAccess::offsetExists
+     *
+     * @param string $offset
+     * @return bool
+     */
+    public function offsetExists($offset): bool
     {
-        return $this->ifc->hasSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
+        $tgts = $this->all($offset)->getResources();
+        return !empty($tgts);
     }
 
+    /**
+     * Implementation of ArrayAccess::offsetGet
+     *
+     * @param string $offset
+     * @return \Ampersand\Interfacing\Resource|\Ampersand\Interfacing\Resource[]|null
+     */
     public function offsetGet($offset)
     {
         $list = $this->all($offset);

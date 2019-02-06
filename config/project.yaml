@@ -3,9 +3,15 @@
 # This file is automatically loaded when located at '/config/project.yaml'
 # See defaultSettings.yaml for list of all possible settings
 
+## Key/value pair list of config settings
 settings:
 
-extensions:
-  # ExtensionXYZ
-    # bootstrap:
-    # config:
+## List of other config files
+# config:
+#   - path/to/other/config.yaml
+
+## Named list of extensions
+# extensions:
+#   ExtensionXYZ:
+#     bootstrap:
+#     config:

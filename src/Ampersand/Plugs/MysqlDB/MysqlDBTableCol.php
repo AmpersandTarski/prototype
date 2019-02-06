@@ -21,29 +21,29 @@ class MysqlDBTableCol
      *
      * @var string
      */
-    public $name;
+    protected $name;
 
     /**
      * Specifies if value in this database column can be NULL
      *
-     * @var bool|NULL
+     * @var bool
      */
-    public $null;
+    protected $null;
 
     /**
      * Specifies if this database column has uniquness constraint (i.e. no duplicates may exist in all rows)
-     * @var bool|NULL
+     * @var bool
      */
-    public $unique;
+    protected $unique;
 
     /**
      * Constructor of Database table column
      *
      * @param string $name
-     * @param bool|null $null
-     * @param bool|null $unique
+     * @param bool $null
+     * @param bool $unique
      */
-    public function __construct(string $name, bool $null = null, bool $unique = null)
+    public function __construct(string $name, bool $null = false, bool $unique = true)
     {
         if ($name === '') {
             throw new Exception("Database table column name is an empty string", 500);
@@ -51,5 +51,15 @@ class MysqlDBTableCol
         $this->name = $name;
         $this->null = $null;
         $this->unique = $unique;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function nullAllowed(): bool
+    {
+        return $this->null;
     }
 }

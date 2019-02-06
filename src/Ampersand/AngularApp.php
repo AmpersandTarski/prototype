@@ -105,22 +105,22 @@ class AngularApp
         switch ($menu) {
             // Items for extension menu
             case 'ext':
-                return array_filter($this->extMenu, function ($item) use ($ampersandApp) {
+                $result = array_filter($this->extMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
-            
+                break;
             // Items for refresh menu
             case 'refresh':
-                return array_filter($this->refreshMenu, function ($item) use ($ampersandApp) {
+                $result = array_filter($this->refreshMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
-            
+                break;
             // Items for role menu
             case 'role':
-                return array_filter($this->roleMenu, function ($item) use ($ampersandApp) {
+                $result = array_filter($this->roleMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
-
+                break;
             // Items in menu to create new resources (indicated with + sign)
             case 'new':
                 // Filter interfaces that are capable to create new Resources
@@ -151,8 +151,7 @@ class AngularApp
                                                ,'resourceType' => $type
                                                ];
                 }
-                return $result;
-
+                break;
             // Top level items in menu bar
             case 'top':
                 $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (Ifc $ifc) {
@@ -164,15 +163,18 @@ class AngularApp
                     }
                 });
 
-                return array_map(function (Ifc $ifc) {
+                $result = array_map(function (Ifc $ifc) {
                     return [ 'id' => $ifc->getId()
                            , 'label' => $ifc->getLabel()
                            , 'link' => '/' . $ifc->getId()
                            ];
                 }, $interfaces);
+                break;
             default:
                 throw new Exception("Cannot get menu items. Unknown menu: '{$menu}'", 500);
         }
+
+        return array_values($result); // Make sure that a true numeric array is returned
     }
 
     public function getNavMenuItems(): array

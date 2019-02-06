@@ -191,8 +191,9 @@ class ExecEngine extends RuleEngine
             $total = count($violations);
             $this->info("{++ ExecEngine fixing {$total} violations for rule '{$rule}'");
             foreach ($violations as $key => $violation) {
+                /** @var \Ampersand\Rule\Violation $violation */
                 $num = $key + 1;
-                $this->info("{+++ Fixing violation {$num}/{$total}: ({$violation->src},{$violation->tgt})");
+                $this->info("{+++ Fixing violation {$num}/{$total}: ({$violation})");
                 $this->fixViolation($violation);
                 $this->info("+++}");
                 

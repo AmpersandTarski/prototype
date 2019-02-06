@@ -107,7 +107,7 @@ class AmpersandApp
     /**
      * The session between AmpersandApp and user
      *
-     * @var Session
+     * @var \Ampersand\Session
      */
     protected $session = null;
 
@@ -150,7 +150,7 @@ class AmpersandApp
         $this->name = $this->settings->get('global.contextName');
     }
 
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -160,9 +160,11 @@ class AmpersandApp
         return $this->userLogger;
     }
 
-    public function init()
+    public function init(): AmpersandApp
     {
         try {
+            $scriptStartTime = microtime(true);
+
             $this->logger->info('Initialize Ampersand application');
 
             // Check checksum
@@ -221,6 +223,14 @@ class AmpersandApp
             foreach ($this->initClosures as $closure) {
                 $closure->call($this);
             }
+
+            // Log performance
+            $executionTime = round(microtime(true) - $scriptStartTime, 2);
+            $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
+            Logger::getLogger('PERFORMANCE')->debug("PHASE-2 INIT: Memory in use: {$memoryUsage} Mb");
+            Logger::getLogger('PERFORMANCE')->debug("PHASE-2 INIT: Execution time  : {$executionTime} Sec");
+
+            return $this;
         } catch (\Ampersand\Exception\NotInstalledException $e) {
             throw $e;
         }
@@ -232,12 +242,12 @@ class AmpersandApp
      * @param \Closure $closure
      * @return void
      */
-    public function registerInitClosure(Closure $closure)
+    public function registerInitClosure(Closure $closure): void
     {
         $this->initClosures[] = $closure;
     }
     
-    public function registerStorage(StorageInterface $storage)
+    public function registerStorage(StorageInterface $storage): void
     {
         if (!in_array($storage, $this->storages)) {
             $this->logger->debug("Add storage: " . $storage->getLabel());
@@ -245,13 +255,13 @@ class AmpersandApp
         }
     }
 
-    public function registerCustomConceptPlug(string $conceptLabel, ConceptPlugInterface $plug)
+    public function registerCustomConceptPlug(string $conceptLabel, ConceptPlugInterface $plug): void
     {
         $this->customConceptPlugs[$conceptLabel][] = $plug;
         $this->registerStorage($plug);
     }
 
-    public function registerCustomRelationPlug(string $relSignature, RelationPlugInterface $plug)
+    public function registerCustomRelationPlug(string $relSignature, RelationPlugInterface $plug): void
     {
         $this->customRelationPlugs[$relSignature][] = $plug;
         $this->registerStorage($plug);
@@ -265,19 +275,21 @@ class AmpersandApp
      * @param \Ampersand\Plugs\MysqlDB\MysqlDB $storage
      * @return void
      */
-    public function setDefaultStorage(MysqlDB $storage)
+    public function setDefaultStorage(MysqlDB $storage): void
     {
         $this->defaultStorage = $storage;
         $this->registerStorage($storage);
     }
 
-    public function setConjunctCache(CacheItemPoolInterface $cache)
+    public function setConjunctCache(CacheItemPoolInterface $cache): void
     {
         $this->conjunctCache = $cache;
     }
 
-    public function setSession()
+    public function setSession(): AmpersandApp
     {
+        $scriptStartTime = microtime(true);
+
         $this->session = new Session($this->logger, $this);
 
         // Run exec engine and close transaction
@@ -285,17 +297,26 @@ class AmpersandApp
 
         // Set accessible interfaces and rules to maintain
         $this->setInterfacesAndRules();
+
+        // Log performance
+        $executionTime = round(microtime(true) - $scriptStartTime, 2);
+        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
+        Logger::getLogger('PERFORMANCE')->debug("PHASE-3 SESSION: Memory in use: {$memoryUsage} Mb");
+        Logger::getLogger('PERFORMANCE')->debug("PHASE-3 SESSION: Execution time  : {$executionTime} Sec");
+
+        return $this;
     }
 
-    protected function setInterfacesAndRules()
+    protected function setInterfacesAndRules(): AmpersandApp
     {
         // Add public interfaces
         $this->accessibleInterfaces = Ifc::getPublicInterfaces();
 
         // Add interfaces and rules for all active session roles
         foreach ($this->getActiveRoles() as $roleAtom) {
+            /** @var \Ampersand\Core\Atom $roleAtom */
             try {
-                $role = Role::getRoleByName($roleAtom->id);
+                $role = Role::getRoleByName($roleAtom->getId());
                 $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $role->interfaces());
                 $this->rulesToMaintain = array_merge($this->rulesToMaintain, $role->maintains());
             } catch (Exception $e) {
@@ -306,15 +327,20 @@ class AmpersandApp
         // Remove duplicates
         $this->accessibleInterfaces = array_unique($this->accessibleInterfaces);
         $this->rulesToMaintain = array_unique($this->rulesToMaintain);
+
+        return $this;
     }
 
     /**
      * Get the session object for this instance of the ampersand application
      *
-     * @return Session
+     * @return \Ampersand\Session
      */
-    public function getSession()
+    public function getSession(): Session
     {
+        if (is_null($this->session)) {
+            throw new Exception("Session not yet initialized", 500);
+        }
         return $this->session;
     }
 
@@ -343,19 +369,9 @@ class AmpersandApp
      *
      * @return \Ampersand\Interfacing\Ifc[]
      */
-    public function getAccessibleInterfaces()
+    public function getAccessibleInterfaces(): array
     {
         return $this->accessibleInterfaces;
-    }
-
-    /**
-     * Get the rules that are maintained by the active roles of this Ampersand application
-     *
-     * @return \Ampersand\Rule\Rule[]
-     */
-    public function getRulesToMaintain()
-    {
-        return $this->rulesToMaintain;
     }
 
     /**********************************************************************************************
@@ -407,7 +423,7 @@ class AmpersandApp
      *
      * @return void
      */
-    public function login(Atom $account)
+    public function login(Atom $account): void
     {
         // Renew session. See topic 'Renew the Session ID After Any Privilege Level Change' in OWASP session management cheat sheet
         $this->session->reset();
@@ -435,7 +451,7 @@ class AmpersandApp
      *
      * @return void
      */
-    public function logout()
+    public function logout(): void
     {
         // Renew session. See OWASP session management cheat sheet
         $this->session->reset();
@@ -550,7 +566,7 @@ class AmpersandApp
      * @param array $roles
      * @return void
      */
-    public function setActiveRoles(array $roles)
+    public function setActiveRoles(array $roles): void
     {
         foreach ($roles as $role) {
             // Set sessionActiveRoles[SESSION*Role]
@@ -568,7 +584,7 @@ class AmpersandApp
      *
      * @return \Ampersand\Core\Atom[]
      */
-    public function getAllowedRoles()
+    public function getAllowedRoles(): array
     {
         return $this->session->getSessionAllowedRoles();
     }
@@ -580,7 +596,18 @@ class AmpersandApp
      */
     public function getActiveRoles(): array
     {
-        return $this->session->getSessionActiveRoles();
+        static $checkedTransactionIndex = null;
+        static $activeRoles = [];
+
+        $keys = array_keys($this->transactions);
+        $lastTransactionIndex = end($keys); // TODO: as of php 7.3 array_key_last is introduced
+        if (is_null($checkedTransactionIndex) || $checkedTransactionIndex !== $lastTransactionIndex) {
+            $checkedTransactionIndex = $lastTransactionIndex;
+            return $activeRoles = $this->session->getSessionActiveRoles();
+        } else {
+            $this->logger->debug("Active roles already evaluated. Returning from cache");
+            return $activeRoles;
+        }
     }
 
     /**
@@ -590,12 +617,14 @@ class AmpersandApp
      */
     public function getSessionRoles(): array
     {
-        $activeRoleIds = array_column($this->getActiveRoles(), 'id');
+        $activeRoleIds = array_map(function (Atom $role) {
+            return $role->getId();
+        }, $this->getActiveRoles());
         
         return array_map(function (Atom $roleAtom) use ($activeRoleIds) {
-            return (object) ['id' => $roleAtom->id
+            return (object) ['id' => $roleAtom->getId()
                             ,'label' => $roleAtom->getLabel()
-                            ,'active' => in_array($roleAtom->id, $activeRoleIds)
+                            ,'active' => in_array($roleAtom->getId(), $activeRoleIds)
                             ];
         }, $this->getAllowedRoles());
     }
@@ -615,7 +644,7 @@ class AmpersandApp
 
         // Check for allowed roles
         return array_reduce($this->getAllowedRoles(), function (bool $carry, Atom $role) use ($roles) {
-            return in_array($role->id, $roles) || $carry;
+            return in_array($role->getId(), $roles) || $carry;
         }, false);
     }
 
@@ -634,7 +663,7 @@ class AmpersandApp
 
         // Check for active roles
         return array_reduce($this->getActiveRoles(), function (bool $carry, Atom $role) use ($roles) {
-            return in_array($role->id, $roles) || $carry;
+            return in_array($role->getId(), $roles) || $carry;
         }, false);
     }
 
@@ -644,7 +673,7 @@ class AmpersandApp
      * @param \Ampersand\Core\Concept $cpt
      * @return \Ampersand\Interfacing\Ifc[]
      */
-    public function getInterfacesToReadConcept(Concept $cpt)
+    public function getInterfacesToReadConcept(Concept $cpt): array
     {
         return array_filter($this->accessibleInterfaces, function (Ifc $ifc) use ($cpt) {
             $ifcObj = $ifc->getIfcObject();
@@ -658,9 +687,9 @@ class AmpersandApp
     /**
      * Determine if provided concept is editable concept in one of the accessible interfaces in the current session
      * @param \Ampersand\Core\Concept $concept
-     * @return boolean
+     * @return bool
      */
-    public function isEditableConcept(Concept $concept)
+    public function isEditableConcept(Concept $concept): bool
     {
         return array_reduce($this->accessibleInterfaces, function ($carry, Ifc $ifc) use ($concept) {
             $ifcObj = $ifc->getIfcObject();
@@ -671,9 +700,9 @@ class AmpersandApp
     /**
      * Determine if provided interface is accessible in the current session
      * @param \Ampersand\Interfacing\Ifc $ifc
-     * @return boolean
+     * @return bool
      */
-    public function isAccessibleIfc(Ifc $ifc)
+    public function isAccessibleIfc(Ifc $ifc): bool
     {
         return in_array($ifc, $this->accessibleInterfaces, true);
     }
@@ -683,12 +712,16 @@ class AmpersandApp
      *
      * @return void
      */
-    public function checkProcessRules()
+    public function checkProcessRules(): void
     {
-        $this->logger->debug("Checking process rules for active roles: " . implode(', ', array_column($this->getActiveRoles(), 'id')));
+        $activeRoleIds = array_map(function (Atom $role) {
+            return $role->getId();
+        }, $this->getActiveRoles());
+
+        $this->logger->debug("Checking process rules for active roles: " . implode(', ', $activeRoleIds));
         
         // Check rules and signal notifications for all violations
-        foreach (RuleEngine::getViolationsFromCache($this->getRulesToMaintain()) as $violation) {
+        foreach (RuleEngine::getViolationsFromCache($this->rulesToMaintain) as $violation) {
             $this->userLogger->signal($violation);
         }
     }

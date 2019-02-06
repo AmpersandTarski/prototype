@@ -76,28 +76,28 @@ class Conjunct
      *
      * @var string
      */
-    public $id;
+    protected $id;
     
     /**
      * Query to evaluate conjunct (i.e. get violations)
      *
      * @var string
      */
-    private $query;
+    protected $query;
     
     /**
      * List invariant rules that use this conjunct
      *
      * @var string[]
      */
-    public $invRuleNames;
+    protected $invRuleNames;
     
     /**
      * List signal rules that use this conjunct
      *
      * @var string[]
      */
-    public $sigRuleNames;
+    protected $sigRuleNames;
     
     /**
      * Specifies if conjunct is already evaluated
@@ -137,6 +137,11 @@ class Conjunct
      * @return string identifier of conjunct
      */
     public function __toString(): string
+    {
+        return $this->id;
+    }
+
+    public function getId(): string
     {
         return $this->id;
     }
@@ -255,6 +260,14 @@ class Conjunct
     public function persistCacheItem()
     {
         $this->cachePool->save($this->cacheItem);
+    }
+
+    public function showInfo(): array
+    {
+        return [ 'id' => $this->id
+               , 'invRules' => $this->invRuleNames
+               , 'sigRules' => $this->sigRuleNames
+               ];
     }
     
     /**********************************************************************************************

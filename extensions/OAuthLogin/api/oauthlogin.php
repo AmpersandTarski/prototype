@@ -88,6 +88,7 @@ $api->group('/oauthlogin', function () {
             $identityProviders[$idp]['redirectUrl'],
             $identityProviders[$idp]['tokenUrl']
         );
+        $authController->setAmpersandApp($ampersandApp);
 
         $api_url = $identityProviders[$idp]['apiUrl'];
         $isLoggedIn = $authController->authenticate($code, $idp, $api_url);

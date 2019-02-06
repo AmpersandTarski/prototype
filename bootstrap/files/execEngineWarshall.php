@@ -73,9 +73,9 @@ ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPl
         /** @var \Ampersand\Core\Link $link */
         $src = $link->src();
         $tgt = $link->tgt();
-        $closure[$src->id][$tgt->id] = true;
-        $atoms[$src->id] = $src;
-        $atoms[$tgt->id] = $tgt;
+        $closure[$src->getId()][$tgt->getId()] = true;
+        $atoms[$src->getId()] = $src;
+        $atoms[$tgt->getId()] = $tgt;
         
         // Store a copy in rCopy relation
         (new Link($relationRCopy, $src, $tgt))->add();

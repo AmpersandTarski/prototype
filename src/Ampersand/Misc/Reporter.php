@@ -87,15 +87,9 @@ class Reporter
             
             $relArr['affectedConjuncts'] = [];
             foreach ($relation->getRelatedConjuncts() as $conjunct) {
-                $relArr['affectedConjuncts'][$conjunct->id] = [];
-                foreach ($conjunct->invRuleNames as $ruleName) {
-                    $relArr['affectedConjuncts'][$conjunct->id]['invRules'][] = $ruleName;
-                }
-                foreach ($conjunct->sigRuleNames as $ruleName) {
-                    $relArr['affectedConjuncts'][$conjunct->id]['sigRules'][] = $ruleName;
-                }
+                $relArr['affectedConjuncts'][] = $conjunct->showInfo();
             }
-            $relArr['srcOrTgtTable'] = $relation->getMysqlTable()->tableOf;
+            $relArr['srcOrTgtTable'] = $relation->getMysqlTable()->inTableOf();
             
             return $relArr;
         }, Relation::getAllRelations());
@@ -105,15 +99,40 @@ class Reporter
         return $this;
     }
 
+    public function reportInterfaceDefinitions(string $format): Reporter
+    {
+        $content = array_map(function (Ifc $ifc) {
+            $ifcDetails =
+                [ 'id' => $ifc->getId()
+                , 'label' => $ifc->getLabel()
+                , 'isAPI' => $ifc->isAPI()
+                , 'isPublic' => $ifc->isPublic()
+                , 'src' => $ifc->getSrcConcept()
+                , 'tgt' => $ifc->getTgtConcept()
+                , 'create' => $ifc->getIfcObject()->crudC()
+                , 'read' => $ifc->getIfcObject()->crudR()
+                , 'update' => $ifc->getIfcObject()->crudU()
+                , 'delete' => $ifc->getIfcObject()->crudD()
+                ];
+            foreach ($ifc->getRoleNames() as $roleName) {
+                $ifcDetails[$roleName] = true;
+            }
+            return $ifcDetails;
+        }, Ifc::getAllInterfaces());
+
+        $this->write($format, array_values($content));
+
+        return $this;
+    }
+
     /**
      * Write interface report
-     * Specifies aspects for all interfaces (incl. subinterfaces), like path, label,
-     * crud-rights, etc
+     * Inlcuding interface (sub) objects aspects like path, label, crud-rights, etc
      *
      * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportInterfaceDefinitions(string $format): Reporter
+    public function reportInterfaceObjectDefinitions(string $format): Reporter
     {
         $content = [];
         foreach (Ifc::getAllInterfaces() as $key => $ifc) {
@@ -204,12 +223,11 @@ class Reporter
             $endTimeStamp = microtime(true);
             set_time_limit((int) ini_get('max_execution_time')); // reset time limit counter
             
-            $content = [ 'id' => $conjunct->id
+            $content = [ 'id' => $conjunct->getId()
                        , 'start' => round($startTimeStamp, 6)
                        , 'end' => round($endTimeStamp, 6)
                        , 'duration' => round($endTimeStamp - $startTimeStamp, 6)
-                       , 'invariantRules' => implode(';', $conjunct->invRuleNames)
-                       , 'signalRules' => implode(';', $conjunct->sigRuleNames)
+                       , 'rules' => implode(';', $conjunct->getRuleNames())
                        ];
         }
         

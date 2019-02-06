@@ -32,20 +32,20 @@ class Concept
     private static $allConcepts;
 
     protected static $representTypes =
-        [ 'ALPHANUMERIC'        => ['datatype' => 'string']
-        , 'BIGALPHANUMERIC'     => ['datatype' => 'string']
-        , 'HUGEALPHANUMERIC'    => ['datatype' => 'string']
-        , 'PASSWORD'            => ['datatype' => 'string']
-        , 'BINARY'              => ['datatype' => 'binary']
-        , 'BIGBINARY'           => ['datatype' => 'binary']
-        , 'HUGEBINARY'          => ['datatype' => 'binary']
-        , 'DATE'                => ['datatype' => 'date']
-        , 'DATETIME'            => ['datatype' => 'datetime']
-        , 'BOOLEAN'             => ['datatype' => 'boolean']
-        , 'INTEGER'             => ['datatype' => 'integer']
-        , 'FLOAT'               => ['datatype' => 'float']
-        , 'OBJECT'              => ['datatype' => 'object']
-        , 'TYPEOFONE'           => ['datatype' => 'string']
+        [ 'ALPHANUMERIC'        => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'BIGALPHANUMERIC'     => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'HUGEALPHANUMERIC'    => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'PASSWORD'            => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'BINARY'              => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
+        , 'BIGBINARY'           => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
+        , 'HUGEBINARY'          => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
+        , 'DATE'                => ['datatype' => 'date',       'xml' => 'http://www.w3.org/2001/XMLSchema#data']
+        , 'DATETIME'            => ['datatype' => 'datetime',   'xml' => 'http://www.w3.org/2001/XMLSchema#dateType']
+        , 'BOOLEAN'             => ['datatype' => 'boolean',    'xml' => 'http://www.w3.org/2001/XMLSchema#boolean']
+        , 'INTEGER'             => ['datatype' => 'integer',    'xml' => 'http://www.w3.org/2001/XMLSchema#integer']
+        , 'FLOAT'               => ['datatype' => 'float',      'xml' => 'http://www.w3.org/2001/XMLSchema#float']
+        , 'OBJECT'              => ['datatype' => 'object',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'TYPEOFONE'           => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
         ];
     
     /**
@@ -109,7 +109,7 @@ class Concept
      *
      * @var \Ampersand\Rule\Conjunct[]
      */
-    public $relatedConjuncts = [];
+    protected $relatedConjuncts = [];
     
     /**
      * List of concepts (name) that are specializations of this concept
@@ -151,7 +151,7 @@ class Concept
      *
      * @var string[]
      */
-    public $interfaceIds = [];
+    protected $interfaceIds = [];
     
     /**
      * Default view object for atoms of this concept
@@ -255,9 +255,15 @@ class Concept
         return $this->name;
     }
 
-    public function getDatatype(): string
+    /**
+     * Undocumented function
+     *
+     * @param string $serialization options are: 'datatype', 'xml'
+     * @return string
+     */
+    public function getDatatype($serialization = 'datatype'): string
     {
-        return self::$representTypes[$this->type]['datatype'];
+        return self::$representTypes[$this->type][$serialization];
     }
     
     /**
@@ -500,8 +506,9 @@ class Concept
 
         // TODO: remove this hack with _AI (autoincrement feature)
         if (strpos($this->name, '_AI') !== false && $this->isInteger()) {
+            /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $firstCol */
             $firstCol = current($this->mysqlConceptTable->getCols());
-            $query = "SELECT MAX(\"$firstCol->name\") as \"MAX\" FROM \"{$this->mysqlConceptTable->name}\"";
+            $query = "SELECT MAX(\"{$firstCol->getName()}\") as \"MAX\" FROM \"{$this->mysqlConceptTable->getName()}\"";
              
             $result = array_column((array)$this->primaryPlug->executeCustomSQLQuery($query), 'MAX');
     
@@ -560,15 +567,15 @@ class Concept
             if (!$this->inSameClassificationTree($atom->concept)) {
                 throw new Exception("Concept of atom '{$atom}' not in same classifcation tree with {$this}", 500);
             } else {
-                $atom = new Atom($atom->id, $this);
+                $atom = new Atom($atom->getId(), $this);
             }
         }
 
         // Check if atom exists in concept population
-        if (in_array($atom->id, $this->atomCache, true)) { // strict mode to prevent 'Nesting level too deep' error
+        if (in_array($atom->getId(), $this->atomCache, true)) { // strict mode to prevent 'Nesting level too deep' error
             return true;
         } elseif ($this->primaryPlug->atomExists($atom)) {
-            $this->atomCache[] = $atom->id; // Add to cache
+            $this->atomCache[] = $atom->getId(); // Add to cache
             return true;
         } else {
             return false;
@@ -620,7 +627,7 @@ class Concept
                 foreach ($this->getPlugs() as $plug) {
                     $plug->addAtom($atom); // Add to plug
                 }
-                $this->atomCache[] = $atom->id; // Add to cache
+                $this->atomCache[] = $atom->getId(); // Add to cache
             }
             return $atom;
         // Adding atom[A] to another concept [B] ($this)
@@ -668,7 +675,7 @@ class Concept
             foreach ($this->getPlugs() as $plug) {
                 $plug->removeAtom($atom); // Remove from concept in plug
             }
-            if (($key = array_search($atom->id, $this->atomCache)) !== false) {
+            if (($key = array_search($atom->getId(), $this->atomCache)) !== false) {
                 unset($this->atomCache[$key]); // Delete from cache
             }
             
@@ -695,7 +702,7 @@ class Concept
             foreach ($this->getPlugs() as $plug) {
                 $plug->deleteAtom($atom); // Delete from plug
             }
-            if (($key = array_search($atom->id, $this->atomCache)) !== false) {
+            if (($key = array_search($atom->getId(), $this->atomCache)) !== false) {
                 unset($this->atomCache[$key]); // Delete from cache
             }
             
@@ -729,7 +736,7 @@ class Concept
         }
 
         // Skip when left and right atoms are the same
-        if ($leftAtom->id === $rightAtom->id) {
+        if ($leftAtom->getId() === $rightAtom->getId()) {
             $this->logger->warning("Merge not needed, because leftAtom and rightAtom are already the same '{$leftAtom}'");
             return;
         }

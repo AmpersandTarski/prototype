@@ -119,12 +119,29 @@ class Ifc
 
     public function getSrcConcept(): Concept
     {
-        return $this->ifcObject->srcConcept;
+        return $this->ifcObject->getSrcConcept();
     }
 
     public function getTgtConcept(): Concept
     {
-        return $this->ifcObject->tgtConcept;
+        return $this->ifcObject->getTgtConcept();
+    }
+
+    public function getRoleNames(): array
+    {
+        return $this->ifcRoleNames;
+    }
+
+    /**
+     * Set/overwrite the roles for which this interface is accessible
+     * Empty list means public (i.e. accessible for everyone)
+     *
+     * @param string[] $ifcRoleNames
+     * @return void
+     */
+    public function setRoleNames(array $ifcRoleNames): void
+    {
+        $this->ifcRoleNames = $ifcRoleNames;
     }
 
     /**

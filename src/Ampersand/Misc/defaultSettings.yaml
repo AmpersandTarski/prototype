@@ -4,6 +4,7 @@
 
 settings:
   ### Application global settings
+  global.version: v0.1.0 # version of your application
   global.productionEnv: false # set environment as production deployment (or not = default)
   global.debugMode: true # set debugMode (or not = default). Impacts the way errors are returned by API
   global.scriptTimeout: 30 # number of seconds for php to run. Use 0 to have no time limit (not advised)
@@ -12,7 +13,7 @@ settings:
   global.serverURL: http://localhost # set the base url for the application (e.g. http://www.yourdomain.nl)
   global.apiPath: api/v1 # relative path to current api
   global.absolutePath: null # is set during application bootstrap
-  global.uploadPath: uploads
+  global.uploadDir: uploads # folder for user uploads in 'data' directory
 
   global.allowedMimeTypes:
     - application/vnd.ms-excel
@@ -58,7 +59,7 @@ settings:
   notifications.defaultShowInvariants: true
 
   ### Frontend settings
-  frontend.homePage: "#/prototype/welcome"
+  frontend.homePage: "/prototype/welcome" # Angular route. Don't put a '#' in front of the path
 
   ### ExecEngine settings
   execengine.execEngineRoleNames: [ExecEngine]

@@ -52,10 +52,10 @@ ExecEngine::registerFunction('InsPair', function ($relationName, $srcConceptName
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
     if ($srcAtom === "_NEW") {
-        $srcAtom = $this->getCreatedAtom()->id;
+        $srcAtom = $this->getCreatedAtom()->getId();
     }
     if ($tgtAtom === "_NEW") {
-        $tgtAtom = $this->getCreatedAtom()->id;
+        $tgtAtom = $this->getCreatedAtom()->getId();
     }
     
     $srcAtomIds = explode('_AND', $srcAtom);
@@ -101,10 +101,10 @@ ExecEngine::registerFunction('DelPair', function ($relationName, $srcConceptName
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
     if ($srcAtom === "_NEW") {
-        $srcAtom = $this->getCreatedAtom()->id;
+        $srcAtom = $this->getCreatedAtom()->getId();
     }
     if ($tgtAtom === "_NEW") {
-        $tgtAtom = $this->getCreatedAtom()->id;
+        $tgtAtom = $this->getCreatedAtom()->getId();
     }
     
     $srcAtoms = explode('_AND', $srcAtom);
@@ -198,10 +198,10 @@ ExecEngine::registerFunction('NewStruct', function () {
     
         // Replace atom by the newstruct atom if _NEW is used
         if (in_array($srcConcept, $c->getGeneralizationsIncl()) && $srcAtomId === '_NEW') {
-            $srcAtomId = $atom->id;
+            $srcAtomId = $atom->getId();
         }
         if (in_array($tgtConcept, $c->getGeneralizationsIncl()) && $tgtAtomId === '_NEW') {
-            $tgtAtomId = $atom->id;
+            $tgtAtomId = $atom->getId();
         }
         
         // Any logging is done by InsPair
@@ -412,7 +412,7 @@ ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angular
         throw new Exception("SetNavToOnCommit() expects 1 argument, but you have provided ".func_num_args(), 500);
     }
     if (strpos($navTo, '_NEW') !== false) {
-        $navTo = str_replace('_NEW', $this->getCreatedAtom()->id, $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
+        $navTo = str_replace('_NEW', $this->getCreatedAtom()->getId(), $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
         $this->debug("replaced navTo string with '{$navTo}'");
     }
 
@@ -434,7 +434,7 @@ ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($angul
         throw new Exception("SetNavToOnRollback() expects 1 argument, but you have provided ".func_num_args(), 500);
     }
     if (strpos($navTo, '_NEW') !== false) {
-        $navTo = str_replace('_NEW', $this->getCreatedAtom()->id, $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
+        $navTo = str_replace('_NEW', $this->getCreatedAtom()->getId(), $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
         $this->debug("replaced navTo string with '{$navTo}'");
     }
     

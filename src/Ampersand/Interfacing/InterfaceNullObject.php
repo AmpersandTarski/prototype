@@ -86,8 +86,9 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
         // Allow when there is at least an interface accesible for the user to create a new tgt
         foreach ($ampersandApp->getAccessibleInterfaces() as $ifc) {
+            /** @var \Ampersand\Interfacing\Ifc $ifc */
             $ifcObj = $ifc->getIfcObject();
-            if ($ifcObj->crudC() && $ifcObj->tgtConcept === $this->tgtConcept) {
+            if ($ifcObj->crudC() && $ifc->getTgtConcept() === $this->tgtConcept) {
                 return true;
             }
         }
@@ -146,7 +147,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
         // Make sure that only the current session of the user can be selected
         if ($this->tgtConcept->isSession()) {
-            $selectTgt = $ampersandApp->getSession()->getSessionAtom()->id;
+            $selectTgt = $ampersandApp->getSession()->getSessionAtom()->getId();
         }
 
         if (isset($selectTgt)) {
@@ -173,7 +174,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         if ($tgt->concept->isSession()) {
             return "resource/SESSION/1"; // Don't put real session id here. Instead we use '1' to indicate the user session
         } else {
-            return "resource/{$tgt->concept->name}/{$tgt->id}";
+            return "resource/{$tgt->concept->name}/{$tgt->getId()}";
         }
     }
 
@@ -276,13 +277,14 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         $result = [];
 
         foreach ($this->getTgtAtoms($src, $tgtId) as $tgt) {
+            /** @var \Ampersand\Core\Atom $tgt */
             // Basic UI data of a resource
             if ($options & Options::INCLUDE_UI_DATA) {
                 $resource = [];
                 $viewData = $tgt->concept->getViewData($tgt); // default concept view
 
                 // Add Ampersand atom attributes
-                $resource['_id_'] = $tgt->id;
+                $resource['_id_'] = $tgt->getId();
                 $resource['_label_'] = empty($viewData) ? $tgt->getLabel() : implode('', $viewData);
                 $resource['_path_'] = $this->buildResourcePath($tgt, $pathToSrc);
             
@@ -293,7 +295,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
                 $result[] = $resource;
             } else {
-                $result[] = $tgt->id;
+                $result[] = $tgt->getId();
             }
         }
 

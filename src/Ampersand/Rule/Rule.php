@@ -47,14 +47,14 @@ class Rule
      *
      * @var \Ampersand\Plugs\ViewPlugInterface
      */
-    public $plug;
+    protected $plug;
 
     /**
      * Rule identifier
      *
      * @var string
      */
-    public $id;
+    protected $id;
     
     /**
      * The file and line number of the Ampersand script where this rule is defined
@@ -103,7 +103,7 @@ class Rule
      *
      * @var \Ampersand\Rule\Conjunct[]
      */
-    public $conjuncts;
+    protected $conjuncts = [];
     
     /**
      * List with segments to build violation messages
@@ -171,6 +171,26 @@ class Rule
     public function __toString(): string
     {
         return $this->id;
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function getPlug(): ViewPlugInterface
+    {
+        return $this->plug;
+    }
+
+    /**
+     * List of conjuncts of which this rule is made of
+     *
+     * @return \Ampersand\Rule\Conjunct[]
+     */
+    public function getConjuncts(): array
+    {
+        return $this->conjuncts;
     }
 
     /**

@@ -11,19 +11,40 @@ angular.module('AmpersandApp')
          * @param {Object} resource
          * @param {string} ifc
          * @param {Object} callingObj will be used for loading indicator
+         * @param {string} tgtId get a specific target resource
          * @returns {Promise}
          */
-        getResource : function(resource, ifc, callingObj){
+        getResource : function(resource, ifc, callingObj, tgtId) {
+            // Url to GET resource
+            url = resource._path_ + '/' + ifc;
+
+            // Append tgtId if specified
+            if (tgtId !== undefined) {
+                url += '/' + tgtId;
+            }
+
             promise = Restangular
-            .one(resource._path_ + '/' + ifc)
+            .one(url)
             .get()
             .then(function(data){
-                try {
-                    data = data.plain();
-                }catch(error){}
-                if($.isEmptyObject(data)) NotificationService.addInfo('No results found');
-                else if(resource[ifc] === null || Array.isArray(resource[ifc])) resource[ifc] = data;
-                else angular.extend(resource[ifc], data);
+                // No results
+                if ($.isEmptyObject(data)) {
+                    NotificationService.addInfo('No results found');
+                // No specific target was requested
+                } else if (tgtId === undefined) {
+                    if (resource[ifc] === null || Array.isArray(resource[ifc])) {
+                        resource[ifc] = data;
+                    } else {
+                        angular.extend(resource[ifc], data);
+                    }
+                // Specific target was requested
+                } else {
+                    if (Array.isArray(resource[ifc])) {
+                        resource[ifc].push(data);
+                    } else {
+                        resource[ifc] = data;
+                    }
+                }
                 
                 ResourceService.initResourceMetaData(resource);
 
@@ -53,8 +74,6 @@ angular.module('AmpersandApp')
                 .one(resource._path_)
                 .patch(resource._patchesCache_, {})
                 .then(function(data) {
-                    data = data.plain();
-                    
                     // Update visual feedback (notifications and buttons)
                     ResourceService.processResponse(resource, data);
 
@@ -89,7 +108,6 @@ angular.module('AmpersandApp')
             .one(resource._path_)
             .get()
             .then(function(data){
-                data = data.plain();
                 if($.isEmptyObject(data)) NotificationService.addInfo('No results found');
                 else angular.extend(resource, data);
                 
@@ -118,7 +136,6 @@ angular.module('AmpersandApp')
             .one(resource._path_).all(ifc)
             .post({}, {})
             .then(function(data){
-                data = data.plain();
                 newResource = data.content;
 
                 // Update visual feedback (notifications and buttons)
@@ -189,7 +206,6 @@ angular.module('AmpersandApp')
                 .one(resource._path_)
                 .remove({})
                 .then(function(data){
-                    data = data.plain();
                     // Update visual feedback (notifications and buttons)
                     NotificationService.updateNotifications(data.notifications);
                     

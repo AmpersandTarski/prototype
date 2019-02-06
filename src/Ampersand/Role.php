@@ -28,19 +28,13 @@ class Role
      * Role identifier
      * @var int
      */
-    public $id;
+    protected $id;
     
     /**
      * Name of the role
      * @var string
      */
     public $label;
-    
-    /**
-     * Specifies if this role is active within the current session
-     * @var boolean
-     */
-    public $active = false;
     
     /**
      * List of all rules that are maintained by this role

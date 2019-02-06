@@ -72,8 +72,10 @@ $api->group('/resource', function () {
         // Don't save/commit new resource (yet)
         // Transaction is not closed
 
+        $content = ['_id_' => $resource->getId()];
+
         // Response
-        return $response->withJson($resource->get(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
     // GET for interfaces that start with other resource
