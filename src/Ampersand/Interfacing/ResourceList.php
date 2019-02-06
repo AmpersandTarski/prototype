@@ -77,6 +77,9 @@ class ResourceList
         if (!empty($tgts)) {
             // Resource found
             return $this->makeResource(current($tgts));
+        // Temporary fix for #884. TODO: remove this elseif clause when solution is implemented
+        } elseif ($this->ifcObject->crudC() && !$this->tgtIdInPath()) {
+            return $this->create($tgtId);
         } else {
             // When not found
             throw new Exception("Resource '{$tgtId}' not found", 404);
@@ -104,7 +107,7 @@ class ResourceList
      */
     public function walkPath(array $pathList)
     {
-        if (empty($pathList)) {
+        if (empty($pathList) && $this->tgtIdInPath()) {
             return $this;
         }
 
