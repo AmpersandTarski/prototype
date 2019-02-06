@@ -15,6 +15,7 @@
                     <span class="glyphicon glyphicon-link"></span>
                     <span> {{item.label}}</span>
                 </a>
+                <span ng-if="!item.ifc && !item.url">{{item.label}}</span>
             </li>
         </ul>
         <ul class="nav navbar-nav navbar-right" id="navbar-options">
