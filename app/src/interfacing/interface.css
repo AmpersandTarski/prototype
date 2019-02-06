@@ -99,12 +99,12 @@ fieldset {
     width: 400px;
 }
 
-.interface .required {
-    border-color: indianred;
+input.ng-invalid {
+    border: 1px solid indianred;
 }
 
-input .ng-invalid .ng-dirty {
-    border: 2px solid red;
+textarea.ng-invalid {
+    border: 1px solid indianred;
 }
 
 .pointer {
