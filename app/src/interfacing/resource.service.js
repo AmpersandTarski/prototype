@@ -27,12 +27,6 @@ angular.module('AmpersandApp')
             .one(url)
             .get()
             .then(function(data){
-                try {
-                    data = data.plain();
-                } catch(error) {
-                    console.error(error);
-                }
-
                 // No results
                 if ($.isEmptyObject(data)) {
                     NotificationService.addInfo('No results found');
@@ -80,8 +74,6 @@ angular.module('AmpersandApp')
                 .one(resource._path_)
                 .patch(resource._patchesCache_, {})
                 .then(function(data) {
-                    data = data.plain();
-                    
                     // Update visual feedback (notifications and buttons)
                     ResourceService.processResponse(resource, data);
 
@@ -116,7 +108,6 @@ angular.module('AmpersandApp')
             .one(resource._path_)
             .get()
             .then(function(data){
-                data = data.plain();
                 if($.isEmptyObject(data)) NotificationService.addInfo('No results found');
                 else angular.extend(resource, data);
                 
@@ -145,7 +136,6 @@ angular.module('AmpersandApp')
             .one(resource._path_).all(ifc)
             .post({}, {})
             .then(function(data){
-                data = data.plain();
                 newResource = data.content;
 
                 // Update visual feedback (notifications and buttons)
@@ -216,7 +206,6 @@ angular.module('AmpersandApp')
                 .one(resource._path_)
                 .remove({})
                 .then(function(data){
-                    data = data.plain();
                     // Update visual feedback (notifications and buttons)
                     NotificationService.updateNotifications(data.notifications);
                     

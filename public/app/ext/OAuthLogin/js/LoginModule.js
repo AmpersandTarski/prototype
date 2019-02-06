@@ -23,7 +23,6 @@ angular.module('LoginModule', ['ngRoute', 'restangular'])
 .controller('LoginExtLoginController', function($scope, Restangular, NotificationService, LoginService){
     Restangular.one('oauthlogin/login').get().then(
         function(data){ // on success
-            data = data.plain();
             $scope.idps = data.identityProviders;
             NotificationService.updateNotifications(data.notifications);
         }
@@ -32,7 +31,6 @@ angular.module('LoginModule', ['ngRoute', 'restangular'])
     $scope.logout = function(){
         Restangular.one('oauthlogin/logout').get().then(
             function(data){ // success
-                data = data.plain();
                 NotificationService.updateNotifications(data.notifications);
                 NavigationBarService.refreshNavBar();
                 $location.path('/'); // goto home

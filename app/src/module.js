@@ -34,7 +34,7 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
     
     RestangularProvider.setBaseUrl('api/v1'); // Generate: path to API folder
     RestangularProvider.setDefaultHeaders({"Content-Type": "application/json"});
-    // RestangularProvider.setPlainByDefault(true); available from Restangular v1.5.3
+    RestangularProvider.setPlainByDefault(true);
     
 }).run(function(Restangular, $rootScope, $location, $route, NotificationService, RoleService, NavigationBarService, LoginService){
 
@@ -62,6 +62,8 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
                 if(response.data.data.loginPage) {
                     LoginService.setLoginPage(response.data.data.loginPage);
                 }
+                LoginService.setSessionIsLoggedIn(false);
+                NavigationBarService.refreshNavBar();
                 LoginService.gotoLoginPage();
                 NotificationService.addInfo(response.data.msg || 'Login required to access this page');
             

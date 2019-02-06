@@ -19,6 +19,10 @@ angular.module('AmpersandApp')
 
         sessionIsLoggedIn : function () {
             return $sessionStorage.session.loggedIn;
+        },
+
+        setSessionIsLoggedIn : function (bool) {
+            $sessionStorage.session.loggedIn = bool;
         }
     };
 
