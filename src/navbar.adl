@@ -54,34 +54,26 @@ CONTEXT PrototypeFramework IN ENGLISH
     RELATION isSubItemOf[PF_NavMenuItem*PF_NavMenuItem] [UNI,IRF,ASY]
     MEANING "A navbar item can be a sub item of another item"
 
-    --[SESSION MENU ITEMS (i.e. items that are active/visible for a specific session)]-------------
-    RELATION sessionMenuItem[SESSION*PF_NavMenuItem]
-    MEANING "The navbar items that are active/visible for a session"
+    RELATION pf_navItemRoles[PF_NavMenuItem*PF_Role]
+    MEANING "A navbar item is accessible for a role"
 
-        -- Activate/deactive menu items based on the sessionActiveRoles
-        ROLE ExecEngine MAINTAINS "Activate interface menu items"
-        RULE "Activate interface menu items": sessionActiveRoles[SESSION*Role];ifcRoles~;ifc~ |- sessionMenuItem
-        VIOLATION (TXT "{EX}InsPair;sessionMenuItem;SESSION;", SRC I, TXT ";PF_NavMenuItem;", TGT I)
+        -- Add/remove menu items based on interface roles
+        ROLE ExecEngine MAINTAINS "Add navItemRoles for interfaces"
+        RULE "Add navItemRoles for interfaces" : ifc;ifcRoles |- pf_navItemRoles
+        VIOLATION (TXT "{EX}InsPair;pf_navItemRoles;PF_NavMenuItem;", SRC I, TXT ";PF_Role;", TGT I)
 
-        ROLE ExecEngine MAINTAINS "Deactivate interface menu items"
-        RULE "Deactivate interface menu items": sessionMenuItem;ifc |- sessionActiveRoles[SESSION*Role];ifcRoles~
-        VIOLATION (TXT "{EX}DelPair;sessionMenuItem;SESSION;", SRC I, TXT ";PF_NavMenuItem;", TGT I)
+        ROLE ExecEngine MAINTAINS "Remove navItemRoles for interfaces"
+        RULE "Remove navItemRoles for interfaces" : ifc~;pf_navItemRoles |- ifcRoles
+        VIOLATION (TXT "{EX}DelPair;pf_navItemRoles;PF_NavMenuItem;", TGT I, TXT ";PF_Role;", SRC I)
 
-        -- Activate/deactive parent menu items if needed
-        ROLE ExecEngine MAINTAINS "Activate parent menu items"
-        RULE "Activate parent menu items": sessionMenuItem;isSubItemOf |- sessionMenuItem
-        VIOLATION (TXT "{EX}InsPair;sessionMenuItem;SESSION;", SRC I, TXT ";PF_NavMenuItem;", TGT I)
+        -- Add/remove parent menu items if needed
+        ROLE ExecEngine MAINTAINS "Add navItemRoles for parent items"
+        RULE "Add navItemRoles for parent items": isSubItemOf~;pf_navItemRoles |- pf_navItemRoles
+        VIOLATION (TXT "{EX}InsPair;pf_navItemRoles;PF_NavMenuItem;", SRC I, TXT ";PF_Role;", TGT I)
 
-        ROLE ExecEngine MAINTAINS "Deactivate empty menu items"
-        RULE "Deactivate empty menu items": sessionMenuItem;(I /\ isSubItemOf~;isSubItemOf) |- sessionMenuItem;isSubItemOf
-        MEANING "A session menu item (i.e. active item) that has subelements MUST at least have a sub item that is also active"
-        VIOLATION (TXT "{EX}DelPair;sessionMenuItem;SESSION;", SRC I, TXT ";PF_NavMenuItem;", TGT I)
-
-        -- Activate/deactive menu items without interface reference
-        ROLE ExecEngine MAINTAINS "Activate menu items without interface reference"
-        RULE "Activate menu items without interface reference": "_SESSION";V;(I-ifc;ifc~) |- sessionMenuItem
-        VIOLATION (TXT "{EX}InsPair;sessionMenuItem;SESSION;", SRC I, TXT ";PF_NavMenuItem;", TGT I)
-
+        ROLE ExecEngine MAINTAINS "Remove navItemRoles for parent items"
+        RULE "Remove navItemRoles for parent items": (I /\ isSubItemOf~;isSubItemOf);pf_navItemRoles |- isSubItemOf~;pf_navItemRoles
+        VIOLATION (TXT "{EX}DelPair;pf_navItemRoles;PF_NavMenuItem;", SRC I, TXT ";PF_Role;", TGT I)
     
     --[NAVBAR MENUS]-------------------------------------------------------------------------------
     CONCEPT PF_NavMenu ""
@@ -116,10 +108,11 @@ CONTEXT PrototypeFramework IN ENGLISH
             , "Edit"     : I LINKTO INTERFACE "Edit menu item"
             ]
         , "Url"          : url                      cRUd
+        , "Roles"        : pf_navItemRoles          cRUd
         ]
 
     --[SYSTEM INTERFACES to adapt the menus]-------------------------------------------------------
-    API "PF_MenuItems" FOR SYSTEM: "_SESSION";sessionMenuItem BOX
+    API "PF_MenuItems" FOR SYSTEM: sessionActiveRoles[SESSION*Role];pf_navItemRoles~ BOX
         [ "id"              : I
         , "label"           : label
         , "seqNr"           : seqNr
