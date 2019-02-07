@@ -74,10 +74,6 @@ $api->group('/admin/installer', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
-            throw new Exception("Checksum update is not allowed in production environment", 403);
-        }
-
         $ampersandApp->getModel()->writeChecksumFile();
         
         $ampersandApp->userLog()->info('New checksum calculated for generated Ampersand model files');
