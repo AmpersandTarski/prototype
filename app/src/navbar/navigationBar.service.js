@@ -71,11 +71,13 @@ angular.module('AmpersandApp')
                     item.hasChildren = hasChildren.bind(item);
                     return item;
                 });
-                menus = treeify(data.navs, 'id', 'parent', 'children');
+                menus = treeify(navItems, 'id', 'parent', 'children');
                 navbar.home = data.home;
-                navbar.top = menus.find(function(menu){
+                
+                mainMenu = menus.find(function(menu){
                     return menu.id === 'MainMenu'
-                }).children;
+                });
+                navbar.top = mainMenu === undefined ? [] : mainMenu.children;
                 navbar.new = data.new;
                 navbar.role = data.role;
                 navbar.ext = data.ext;
@@ -95,6 +97,8 @@ angular.module('AmpersandApp')
                 notifyObservers();
             }, function(error){
                 service.initializeSettings();
+            }).catch(function(error) { 
+                console.error(error);
             });
         },
 
