@@ -4,7 +4,6 @@ angular.module('AmpersandApp')
         home: null, // home/start page, can be set in project.yaml (default: '#/prototype/welcome')
         top: [],
         new: [],
-        refresh: [],
         role: [],
         ext: []
     };
@@ -78,7 +77,6 @@ angular.module('AmpersandApp')
                     return menu.id === 'MainMenu'
                 }).children;
                 navbar.new = data.new;
-                navbar.refresh = data.refresh;
                 navbar.role = data.role;
                 navbar.ext = data.ext;
 

@@ -32,7 +32,6 @@
             <li class="dropdown hidden-xs" uib-tooltip="Tool menu" tooltip-trigger="mouseenter" tooltip-placement="left">
                 <a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-th"></span></a>
                 <ul class="dropdown-menu" role="menu">
-                    <li ng-repeat="app in navbar.refresh" ng-include="app.url"/>
                     <li><a href="" ng-click="reload()"><span class="glyphicon glyphicon-refresh"></span> Refresh page</a></li>
                     <li ng-repeat="ext in navbar.ext" ng-include="ext.url"/>
                 </ul>

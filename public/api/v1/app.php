@@ -42,7 +42,6 @@ $api->group('/app', function () {
         $content =  ['home' => $ampersandApp->getSettings()->get('frontend.homePage')
                     ,'navs' => $angularApp->getNavMenuItems()
                     ,'new' => $angularApp->getMenuItems('new')
-                    ,'refresh' => $angularApp->getMenuItems('refresh')
                     ,'ext' => $angularApp->getMenuItems('ext')
                     ,'role' => $angularApp->getMenuItems('role')
                     ,'defaultSettings' => ['notify_showSignals'        => $settings->get('notifications.defaultShowSignals')

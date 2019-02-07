@@ -42,13 +42,6 @@ class AngularApp
     protected $extMenu = [];
     
     /**
-     * List of items for the refresh menu (in navbar)
-     *
-     * @var array
-     */
-    protected $refreshMenu = [];
-    
-    /**
      * List of items for the role menu (in navbar)
      *
      * @var array
@@ -85,9 +78,6 @@ class AngularApp
             case 'ext':
                 $this->extMenu[] = ['url' => $itemUrl, 'function' => $function];
                 break;
-            case 'refresh':
-                $this->refreshMenu[] = ['url' => $itemUrl, 'function' => $function];
-                break;
             case 'role':
                 $this->roleMenu[] = ['url' => $itemUrl, 'function' => $function];
                 break;
@@ -105,12 +95,6 @@ class AngularApp
             // Items for extension menu
             case 'ext':
                 $result = array_filter($this->extMenu, function ($item) use ($ampersandApp) {
-                    return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
-                });
-                break;
-            // Items for refresh menu
-            case 'refresh':
-                $result = array_filter($this->refreshMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
                 break;
