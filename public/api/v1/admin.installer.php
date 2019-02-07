@@ -54,6 +54,18 @@ $api->group('/admin/installer', function () {
     /**
      * @phan-closure-scope \Slim\Container
      */
+    $this->get('/navmenu', function (Request $request, Response $response, $args = []) {
+        /** @var \Slim\Container $this */
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
+        $installer = new Installer($ampersandApp, Logger::getLogger('APPLICATION'));
+        $installer->reinstallNavigationMenus();
+    });
+
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
     $this->get('/checksum/update', function (Request $request, Response $response, $args = []) {
         /** @var \Slim\Container $this */
         /** @var \Ampersand\AmpersandApp $ampersandApp */
