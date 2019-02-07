@@ -106,16 +106,18 @@ CONTEXT PrototypeFramework IN ENGLISH
     VIOLATION (TXT "{EX} ClearConcept;PF_NavMenu;", SRC I[PF_NavMenu])
 
     --[ADMIN INTERFACES to adapt the menus]--------------------------------------------------------
-    INTERFACE "Edit navigation menu" FOR Admin: "_SESSION";V[SESSION*PF_NavMenu] INTERFACE "Edit menu item"
+    VIEW "PF_NavMenuItem" : PF_NavMenuItem DEFAULT { label : label } ENDVIEW
+
+    INTERFACE "Edit navigation menu" FOR Administrator: "_SESSION";V[SESSION*PF_NavMenu] INTERFACE "Edit menu item"
     
-    INTERFACE "Edit menu item" FOR Admin: I[PF_NavMenuItem] cRud BOX
+    INTERFACE "Edit menu item" FOR Administrator: I[PF_NavMenuItem] cRud BOX
         [ "Label"        : label
         , "Items"        : isSubItemOf~ CRuD BOX <SCOLS>
-            [ "# "       : seqNr                    cRUd
+            [ "Item"     : I LINKTO INTERFACE "Edit menu item"
+            , "# "       : seqNr                    cRUd
             , "Label"    : label                    cRUd
             , "Ifc"      : ifc                      cRUd
-            , "Roles"    : ifc;ifcRoles             cRud
-            , "Edit"     : I LINKTO INTERFACE "Edit menu item"
+            , "Roles"    : pf_navItemRoles          cRud
             ]
         , "Url"          : url                      cRUd
         , "Roles"        : pf_navItemRoles          cRUd
