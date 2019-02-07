@@ -26,6 +26,7 @@ $api->group('/admin/installer', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
+        // Additional access check. Reinstalling the whole application is not allowed in production environment
         if ($ampersandApp->getSettings()->get('global.productionEnv')) {
             throw new Exception("Reinstallation of application not allowed in production environment", 403);
         }
