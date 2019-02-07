@@ -28,6 +28,7 @@ use Ampersand\Interfacing\Ifc;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
+use Ampersand\Misc\Installer;
 
 class AmpersandApp
 {
@@ -492,53 +493,11 @@ class AmpersandApp
             $cpt->clearAtomCache(); // local cache in Ampersand code
         }
 
-        // Meta population
+        $installer = new Installer($this);
+
+        // Meta population and navigation menus
         try {
-            $transaction = $this->newTransaction();
-
-            // Add interfaces
-            foreach (Ifc::getAllInterfaces() as $ifc) {
-                /** @var \Ampersand\Interfacing\Ifc $ifc */
-                $ifcAtom = Atom::makeAtom($ifc->getId(), 'PF_Interface')->add();
-                $ifcAtom->link($ifc->getLabel(), 'label[PF_Interface*PF_Label]')->add();
-                foreach ($ifc->getRoleNames() as $roleName) {
-                    $ifcAtom->link($roleName, 'pf_ifcRoles[PF_Interface*PF_Role]')->add();
-                }
-                if ($ifc->isPublic()) {
-                    $ifcAtom->link($ifcAtom, 'isPublic[PF_Interface*PF_Interface]')->add();
-                }
-                if ($ifc->isAPI()) {
-                    $ifcAtom->link($ifcAtom, 'isAPI[PF_Interface*PF_Interface]')->add();
-                }
-            }
-
-            // Add menu items
-            $mainMenu = Atom::makeAtom('MainMenu', 'PF_NavMenu')->add();
-            $mainMenu->link('Main menu', 'label[PF_NavMenuItem*PF_Label]')->add();
-            $mainMenu->link($mainMenu, 'isPartOf[PF_NavMenuItem*PF_NavMenu]')->add();
-            $i = '0';
-            foreach (Ifc::getAllInterfaces() as $ifc) {
-                /** @var \Ampersand\Interfacing\Ifc $ifc */
-                // Skip API and non-readable interfaces
-                if ($ifc->isAPI() || !$ifc->getIfcObject()->crudR()) {
-                    continue;
-                }
-
-                // MainMenu (i.e. all interfaces with SESSION as src concept)
-                if ($ifc->getSrcConcept()->isSession()) {
-                    $i++;
-                    $menuItem = Atom::makeAtom($ifc->getId(), 'PF_NavMenuItem')->add();
-                    $menuItem->link($ifc->getLabel(), 'label[PF_NavMenuItem*PF_Label]')->add();
-                    $menuItem->link($ifc->getId(), 'ifc[PF_NavMenuItem*PF_Interface]')->add();
-                    $menuItem->link($i, 'seqNr[PF_NavMenuItem*PF_SeqNr]')->add();
-                    $menuItem->link($mainMenu, 'isSubItemOf[PF_NavMenuItem*PF_NavMenuItem]')->add();
-                }
-            }
-
-            $transaction->runExecEngine()->close(false, false);
-            if ($transaction->isRolledBack()) {
-                throw new Exception("Meta population does not satisfy invariant rules. See log files", 500);
-            }
+            $installer->reinstallMetaPopulation()->reinstallNavigationMenus();
         } catch (Exception $e) {
             throw new Exception("Error in installing meta population: {$e->getMessage()}", 500, $e);
         }
