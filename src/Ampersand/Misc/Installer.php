@@ -10,8 +10,12 @@ namespace Ampersand\Misc;
 use Ampersand\AmpersandApp;
 use Ampersand\Core\Atom;
 use Ampersand\Interfacing\Ifc;
+use Ampersand\IO\Importer;
+use Ampersand\Model;
 use Exception;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Serializer\Encoder\JsonDecode;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
 
 /**
  *
@@ -79,6 +83,26 @@ class Installer
         if ($transaction->isRolledBack()) {
             throw new Exception("Meta population does not satisfy invariant rules. See log files", 500);
         }
+        return $this;
+    }
+
+    public function addInitialPopulation(Model $model, bool $ignoreInvariantRules = false): Installer
+    {
+        $this->logger->info("Add initial population");
+
+        $transaction = $this->ampersandApp->newTransaction();
+
+        $decoder = new JsonDecode(false);
+        $population = $decoder->decode(file_get_contents($model->getFilePath('populations')), JsonEncoder::FORMAT);
+        $importer = new Importer($this->logger);
+        $importer->importPopulation($population);
+
+        // Close transaction
+        $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
+        if ($transaction->isRolledBack()) {
+            throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
+        }
+
         return $this;
     }
 

@@ -3,7 +3,6 @@
 namespace Ampersand;
 
 use Ampersand\Misc\Settings;
-use Ampersand\IO\Importer;
 use Ampersand\Model;
 use Ampersand\Transaction;
 use Ampersand\Plugs\StorageInterface;
@@ -25,8 +24,6 @@ use Ampersand\Rule\Rule;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
-use Symfony\Component\Serializer\Encoder\JsonDecode;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Ampersand\Misc\Installer;
 
@@ -502,24 +499,11 @@ class AmpersandApp
             throw new Exception("Error in installing meta population: {$e->getMessage()}", 500, $e);
         }
 
-        // Default population
+        // Initial population
         if ($installDefaultPop) {
-            $this->logger->info("Install default population");
-
-            $transaction = $this->newTransaction();
-
-            $decoder = new JsonDecode(false);
-            $population = $decoder->decode(file_get_contents($this->model->getFilePath('populations')), JsonEncoder::FORMAT);
-            $importer = new Importer(Logger::getLogger('IO'));
-            $importer->importPopulation($population);
-
-            // Close transaction
-            $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
-            if ($transaction->isRolledBack()) {
-                throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
-            }
+            $installer->addInitialPopulation($this->model, $ignoreInvariantRules);
         } else {
-            $this->logger->info("Skip default population");
+            $this->logger->info("Skip initial population");
         }
 
         // Evaluate all conjunct and save cache
