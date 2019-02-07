@@ -519,8 +519,8 @@ class AmpersandApp
             $i = '0';
             foreach (Ifc::getAllInterfaces() as $ifc) {
                 /** @var \Ampersand\Interfacing\Ifc $ifc */
-                // Skip API interfaces
-                if ($ifc->isAPI()) {
+                // Skip API and non-readable interfaces
+                if ($ifc->isAPI() || !$ifc->getIfcObject()->crudR()) {
                     continue;
                 }
 
