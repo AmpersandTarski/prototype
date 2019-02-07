@@ -151,24 +151,6 @@ class AngularApp
                                                ];
                 }
                 break;
-            // Top level items in menu bar
-            case 'top':
-                $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (Ifc $ifc) {
-                    $ifcObj = $ifc->getIfcObject();
-                    if ($ifc->getSrcConcept()->isSession() && $ifcObj->crudR()) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                });
-
-                $result = array_map(function (Ifc $ifc) {
-                    return [ 'id' => $ifc->getId()
-                           , 'label' => $ifc->getLabel()
-                           , 'link' => '/' . $ifc->getId()
-                           ];
-                }, $interfaces);
-                break;
             default:
                 throw new Exception("Cannot get menu items. Unknown menu: '{$menu}'", 500);
         }

@@ -41,7 +41,6 @@ $api->group('/app', function () {
         $settings = $ampersandApp->getSettings();
         $content =  ['home' => $ampersandApp->getSettings()->get('frontend.homePage')
                     ,'navs' => $angularApp->getNavMenuItems()
-                    ,'top' => $angularApp->getMenuItems('top')
                     ,'new' => $angularApp->getMenuItems('new')
                     ,'refresh' => $angularApp->getMenuItems('refresh')
                     ,'ext' => $angularApp->getMenuItems('ext')
