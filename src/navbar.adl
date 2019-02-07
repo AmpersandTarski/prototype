@@ -73,8 +73,8 @@ CONTEXT PrototypeFramework IN ENGLISH
         VIOLATION (TXT "{EX}InsPair;pf_navItemRoles;PF_NavMenuItem;", SRC I, TXT ";PF_Role;", TGT I)
 
         ROLE ExecEngine MAINTAINS "Remove navItemRoles for interfaces"
-        RULE "Remove navItemRoles for interfaces" : ifc~;pf_navItemRoles |- ifcRoles
-        VIOLATION (TXT "{EX}DelPair;pf_navItemRoles;PF_NavMenuItem;", TGT I, TXT ";PF_Role;", SRC I)
+        RULE "Remove navItemRoles for interfaces" : (I /\ ifc;ifc~);pf_navItemRoles |- ifcRoles
+        VIOLATION (TXT "{EX}DelPair;pf_navItemRoles;PF_NavMenuItem;", SRC I, TXT ";PF_Role;", TGT I)
 
         -- Add/remove parent menu items if needed
         ROLE ExecEngine MAINTAINS "Add navItemRoles for parent items"
