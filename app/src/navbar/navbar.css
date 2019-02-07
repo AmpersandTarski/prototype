@@ -119,9 +119,13 @@
 }
 
 /* dropdown submenu's */
+.dropdown-menu {
+    font-size: inherit;
+}
 
 .dropdown-submenu {
     position: relative;
+    font-size: inherit;
 }
 
 .dropdown-submenu>.dropdown-menu {
