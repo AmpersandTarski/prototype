@@ -36,12 +36,6 @@ $api->group('/admin/installer', function () {
         $ampersandApp
             ->reinstall($defaultPop, $ignoreInvariantRules) // reinstall and initialize application
             ->setSession();
-
-        $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
-
-        $content = $ampersandApp->userLog()->getAll(); // Return all notifications
-
-        return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     })->setName('applicationInstaller');
 
     /**
@@ -54,11 +48,6 @@ $api->group('/admin/installer', function () {
 
         $installer = new Installer($ampersandApp, Logger::getLogger('APPLICATION'));
         $installer->reinstallMetaPopulation();
-
-        $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
-        $content = $ampersandApp->userLog()->getAll(); // Return all notifications
-
-        return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
     /**
@@ -72,12 +61,8 @@ $api->group('/admin/installer', function () {
         $ampersandApp->getModel()->writeChecksumFile();
         
         $ampersandApp->userLog()->info('New checksum calculated for generated Ampersand model files');
-
-        $content = $ampersandApp->userLog()->getAll(); // Return all notifications
-
-        return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
-})
+})->add($middleWare1)
 /**
  * @phan-closure-scope \Slim\Container
  */
@@ -85,10 +70,18 @@ $api->group('/admin/installer', function () {
     /** @var \Ampersand\AmpersandApp $ampersandApp */
     $ampersandApp = $this['ampersand_app'];
 
+    // Access check
     $allowedRoles = $ampersandApp->getSettings()->get('rbac.adminRoles');
     if (!$ampersandApp->hasRole($allowedRoles)) {
         throw new Exception("You do not have access to /admin/installer", 403);
     }
 
-    return $next($req, $res);
+    // Do stuff
+    $response = $next($req, $res);
+
+    // Create response message
+    $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
+    $content = $ampersandApp->userLog()->getAll(); // Return all notifications
+
+    return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 });
