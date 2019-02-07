@@ -52,11 +52,6 @@ $api->group('/admin/installer', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        $allowedRoles = $ampersandApp->getSettings()->get('rbac.adminRoles');
-        if (!$ampersandApp->hasRole($allowedRoles)) {
-            throw new Exception("You do not have access to install metapopulation", 403);
-        }
-
         $installer = new Installer($ampersandApp, Logger::getLogger('APPLICATION'));
         $installer->reinstallMetaPopulation();
 
@@ -82,4 +77,18 @@ $api->group('/admin/installer', function () {
 
         return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
+})
+/**
+ * @phan-closure-scope \Slim\Container
+ */
+->add(function (Request $req, Response $res, callable $next) {
+    /** @var \Ampersand\AmpersandApp $ampersandApp */
+    $ampersandApp = $this['ampersand_app'];
+
+    $allowedRoles = $ampersandApp->getSettings()->get('rbac.adminRoles');
+    if (!$ampersandApp->hasRole($allowedRoles)) {
+        throw new Exception("You do not have access to /admin/installer", 403);
+    }
+
+    return $next($req, $res);
 });
