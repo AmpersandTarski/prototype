@@ -493,7 +493,7 @@ class AmpersandApp
             $cpt->clearAtomCache(); // local cache in Ampersand code
         }
 
-        $installer = new Installer($this);
+        $installer = new Installer($this, $this->logger);
 
         // Meta population and navigation menus
         try {

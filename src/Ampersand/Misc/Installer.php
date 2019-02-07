@@ -11,6 +11,7 @@ use Ampersand\AmpersandApp;
 use Ampersand\Core\Atom;
 use Ampersand\Interfacing\Ifc;
 use Exception;
+use Psr\Log\LoggerInterface;
 
 /**
  *
@@ -19,6 +20,13 @@ use Exception;
  */
 class Installer
 {
+    /**
+     * Logger
+     *
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $logger;
+
     /**
      * Reference to app
      *
@@ -31,8 +39,9 @@ class Installer
      *
      * @param \Ampersand\AmpersandApp $ampersandApp
      */
-    public function __construct(AmpersandApp $ampersandApp)
+    public function __construct(AmpersandApp $ampersandApp, LoggerInterface $logger)
     {
+        $this->logger = $logger;
         $this->ampersandApp = $ampersandApp;
     }
 
@@ -43,6 +52,8 @@ class Installer
      */
     public function reinstallMetaPopulation(): Installer
     {
+        $this->logger->info("(Re)install meta population");
+
         $transaction = $this->ampersandApp->newTransaction();
 
         // TODO: add function to clear/delete current meta population
@@ -57,6 +68,8 @@ class Installer
 
     public function reinstallNavigationMenus(): Installer
     {
+        $this->logger->info("(Re)install default navigation menus");
+
         $transaction = $this->ampersandApp->newTransaction();
 
         // TODO: add function to clear/delete current nav menu population
