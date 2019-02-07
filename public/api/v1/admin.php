@@ -17,6 +17,7 @@ use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
 use Ampersand\IO\RDFGraph;
+use Ampersand\Misc\Installer;
 
 /**
  * @var \Slim\App $api
@@ -130,6 +131,28 @@ $api->group('/admin', function () {
 
         return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     })->setName('applicationInstaller');
+
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
+    $this->get('/installer/metapopulation', function (Request $request, Response $response, $args = []) {
+        /** @var \Slim\Container $this */
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
+        $allowedRoles = $ampersandApp->getSettings()->get('rbac.adminRoles');
+        if (!$ampersandApp->hasRole($allowedRoles)) {
+            throw new Exception("You do not have access to install metapopulation", 403);
+        }
+
+        $installer = new Installer($ampersandApp, Logger::getLogger('APPLICATION'));
+        $installer->reinstallMetaPopulation();
+
+        $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
+        $content = $ampersandApp->userLog()->getAll(); // Return all notifications
+
+        return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    });
 
     /**
      * @phan-closure-scope \Slim\Container
