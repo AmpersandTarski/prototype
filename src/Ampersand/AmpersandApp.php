@@ -502,7 +502,7 @@ class AmpersandApp
                 $ifcAtom = Atom::makeAtom($ifc->getId(), 'PF_Interface')->add();
                 $ifcAtom->link($ifc->getLabel(), 'label[PF_Interface*PF_Label]')->add();
                 foreach ($ifc->getRoleNames() as $roleName) {
-                    $ifcAtom->link($roleName, 'ifcRoles[PF_Interface*PF_Role]')->add();
+                    $ifcAtom->link($roleName, 'pf_ifcRoles[PF_Interface*PF_Role]')->add();
                 }
                 if ($ifc->isPublic()) {
                     $ifcAtom->link($ifcAtom, 'isPublic[PF_Interface*PF_Interface]')->add();

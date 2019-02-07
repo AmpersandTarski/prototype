@@ -10,7 +10,7 @@ CONTEXT PrototypeFramework IN ENGLISH
     RELATION label[PF_Interface*PF_Label] [UNI,TOT]
     REPRESENT PF_Label TYPE ALPHANUMERIC
 
-    RELATION ifcRoles[PF_Interface*PF_Role]
+    RELATION pf_ifcRoles[PF_Interface*PF_Role]
     MEANING "This relation contains the roles for which an interface is available"
     -- TODO: empty used to be that the interface is public, this is now implemented with an isPublic property
         CONCEPT PF_Role ""
@@ -19,11 +19,11 @@ CONTEXT PrototypeFramework IN ENGLISH
     RELATION isPublic[PF_Interface*PF_Interface] [PROP]
     MEANING "This property defines if an interface is accessible for everyone (i.e. public)"
 
-        RULE "Public interface integrity" : V[PF_Role*PF_Interface];isPublic |- ifcRoles~
+        RULE "Public interface integrity" : V[PF_Role*PF_Interface];isPublic |- pf_ifcRoles~
 
         ROLE ExecEngine MAINTAINS "Add public interfaces to all roles"
-        RULE "Add public interfaces to all roles": V[PF_Role*PF_Interface];isPublic |- ifcRoles~
-        VIOLATION (TXT "{EX}InsPair;ifcRoles;PF_Interface;", TGT I, TXT ";PF_Role;", SRC I)
+        RULE "Add public interfaces to all roles": V[PF_Role*PF_Interface];isPublic |- pf_ifcRoles~
+        VIOLATION (TXT "{EX}InsPair;pf_ifcRoles;PF_Interface;", TGT I, TXT ";PF_Role;", SRC I)
 
     RELATION isAPI[PF_Interface*PF_Interface] [PROP]
     MEANING "This property defines if an interface is meant as API (machine-2-machine) or as UI"
@@ -32,7 +32,7 @@ CONTEXT PrototypeFramework IN ENGLISH
         [ "Interface"           : I
         , "Is public"           : isPublic      cRUd
         , "Is API"              : isAPI         cRud -- do not allow editing this property, because non-APIs require a design time generated UI
-        , "For roles"           : ifcRoles      cRUd
+        , "For roles"           : pf_ifcRoles      cRUd
         ]
 
     --[NAVBAR ITEMS]-------------------------------------------------------------------------------
@@ -69,11 +69,11 @@ CONTEXT PrototypeFramework IN ENGLISH
 
         -- Add/remove menu items based on interface roles
         ROLE ExecEngine MAINTAINS "Add navItemRoles for interfaces"
-        RULE "Add navItemRoles for interfaces" : ifc;ifcRoles |- pf_navItemRoles
+        RULE "Add navItemRoles for interfaces" : ifc;pf_ifcRoles |- pf_navItemRoles
         VIOLATION (TXT "{EX}InsPair;pf_navItemRoles;PF_NavMenuItem;", SRC I, TXT ";PF_Role;", TGT I)
 
         ROLE ExecEngine MAINTAINS "Remove navItemRoles for interfaces"
-        RULE "Remove navItemRoles for interfaces" : (I /\ ifc;ifc~);pf_navItemRoles |- ifc;ifcRoles
+        RULE "Remove navItemRoles for interfaces" : (I /\ ifc;ifc~);pf_navItemRoles |- ifc;pf_ifcRoles
         VIOLATION (TXT "{EX}DelPair;pf_navItemRoles;PF_NavMenuItem;", SRC I, TXT ";PF_Role;", TGT I)
 
         -- Add/remove parent menu items if needed
