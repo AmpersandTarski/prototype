@@ -12,6 +12,7 @@ var mainBowerFiles = require('gulp-main-bower-files')
 var flatten = require('gulp-flatten')
 var clean = require('gulp-clean')
 const jsValidate = require('gulp-jsvalidate')
+const babel = require('gulp-babel');
 
 function prepareTemplates(folder, prefix) {
     return gulp.src(folder + '**/*.html')
@@ -69,6 +70,9 @@ gulp.task('build-ampersand', function (done) {
         .pipe(addStream.obj(prepareTemplates('app/src/', 'app/src/')))
         .pipe(sourcemaps.init())
         .pipe(concat('ampersand.js'))
+        .pipe(babel({
+            presets: ['@babel/env']
+        }))
         .pipe(jsValidate())
         .pipe(ngAnnotate())
         .pipe(sourcemaps.write('.'))
