@@ -44,6 +44,9 @@ gulp.task('build-lib', function (done) {
         // library javascript
         .pipe(filterJS)
         .pipe(concat('lib.min.js'))
+        .pipe(babel({
+            presets: ['@babel/env']
+        }))
         .pipe(uglify())
         .pipe(gulp.dest('public/app/dist'))
         .pipe(filterJS.restore)
@@ -108,6 +111,9 @@ gulp.task('build-project', function (done) {
         .pipe(addStream.obj(prepareTemplates('public/app/project/', 'app/project/')))
         .pipe(sourcemaps.init())
         .pipe(concat('project.js'))
+        .pipe(babel({
+            presets: ['@babel/env']
+        }))
         .pipe(jsValidate())
         .pipe(ngAnnotate())
         .pipe(sourcemaps.write('.'))
