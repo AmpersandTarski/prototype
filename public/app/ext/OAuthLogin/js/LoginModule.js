@@ -1,4 +1,4 @@
-app = angular.module('AmpersandApp')
+angular.module('AmpersandApp')
 .config(function($routeProvider) {
     $routeProvider
         // default start page
@@ -14,9 +14,7 @@ app = angular.module('AmpersandApp')
             templateUrl : 'app/ext/OAuthLogin/views/Login.html',
             interfaceLabel : 'Login'
         });
-});
-// Add Login module to dependency list
-app.requires[app.requires.length] = 'LoginModule'; // add LoginModule to dependencies
+}).requires.push('LoginModule'); // add LoginModule to dependency list
 
 // LoginModule declaration
 angular.module('LoginModule', ['ngRoute', 'restangular'])

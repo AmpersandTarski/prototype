@@ -1,3 +1,4 @@
+/* jshint node: true */
 var gulp = require('gulp')
 var concat = require('gulp-concat')
 var sourcemaps = require('gulp-sourcemaps')
@@ -12,6 +13,7 @@ var mainBowerFiles = require('gulp-main-bower-files')
 var flatten = require('gulp-flatten')
 var clean = require('gulp-clean')
 const jsValidate = require('gulp-jsvalidate')
+const babel = require('gulp-babel');
 
 function prepareTemplates(folder, prefix) {
     return gulp.src(folder + '**/*.html')
@@ -43,6 +45,9 @@ gulp.task('build-lib', function (done) {
         // library javascript
         .pipe(filterJS)
         .pipe(concat('lib.min.js'))
+        .pipe(babel({
+            presets: ['@babel/env']
+        }))
         .pipe(uglify())
         .pipe(gulp.dest('public/app/dist'))
         .pipe(filterJS.restore)
@@ -69,6 +74,9 @@ gulp.task('build-ampersand', function (done) {
         .pipe(addStream.obj(prepareTemplates('app/src/', 'app/src/')))
         .pipe(sourcemaps.init())
         .pipe(concat('ampersand.js'))
+        .pipe(babel({
+            presets: ['@babel/env']
+        }))
         .pipe(jsValidate())
         .pipe(ngAnnotate())
         .pipe(sourcemaps.write('.'))
@@ -104,6 +112,9 @@ gulp.task('build-project', function (done) {
         .pipe(addStream.obj(prepareTemplates('public/app/project/', 'app/project/')))
         .pipe(sourcemaps.init())
         .pipe(concat('project.js'))
+        .pipe(babel({
+            presets: ['@babel/env']
+        }))
         .pipe(jsValidate())
         .pipe(ngAnnotate())
         .pipe(sourcemaps.write('.'))

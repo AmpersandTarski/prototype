@@ -6,14 +6,14 @@ angular.module('AmpersandApp')
      * A role has the following attributes: id, label, active
      */
     
-    RoleService = {
+    return {
         selectRole : function(roleId){
-            RoleService.toggleRole(roleId, true);
+            this.toggleRole(roleId, true);
         },
         
         selectRoleByLabel : function (roleLabel){
             angular.forEach($sessionStorage.sessionRoles, function(role) {
-                if(role.label == roleLabel) return RoleService.selectRole(role.id);
+                if(role.label == roleLabel) return this.selectRole(role.id);
             });
         },
         
@@ -46,6 +46,4 @@ angular.module('AmpersandApp')
             return Restangular.all('app/roles').patch($sessionStorage.sessionRoles);
         }
     };
-    
-    return RoleService;
 });

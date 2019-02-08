@@ -1,4 +1,11 @@
 {
-    "esversion" : 6,
-    "asi": true
+    "esversion": 6,
+    "asi": true,
+    "strict": "implied",
+    "globals": {
+        "angular": true
+    },
+    "browser": true,
+    "devel": true,
+    "jquery": true
 }

@@ -1,6 +1,5 @@
-var app = angular.module('AmpersandApp');
-app.requires[app.requires.length] = 'angularFileUpload'; // add angularFileUpload to dependency list
-app.config(function($routeProvider) {
+angular.module('AmpersandApp')
+.config(function($routeProvider) {
     $routeProvider
         .when('/ext/importer', {
             controller : 'PopulationImportController',
@@ -36,4 +35,4 @@ app.config(function($routeProvider) {
     return {uploader : uploader};
 }).controller('PopulationImportController', function ($scope, ImportService) {
     $scope.uploader = ImportService.uploader;
-});
+}).requires.push('angularFileUpload'); // add angularFileUpload to dependency list
