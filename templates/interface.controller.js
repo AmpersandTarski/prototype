@@ -10,6 +10,9 @@ $endif$*/
 angular.module('AmpersandApp').controller('Ifc$interfaceName$Controller', function (\$scope, \$route, \$routeParams, ResourceService, \$location) {
     const resourceType = '$source$';
     const ifcName = '$interfaceName$';
+    let resourceId;
+    let resourcePath;
+    let tgtId;
 
     // Input params
     if(resourceType == 'SESSION') {

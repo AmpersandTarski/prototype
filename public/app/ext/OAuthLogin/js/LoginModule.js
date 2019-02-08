@@ -1,4 +1,4 @@
-let app = angular.module('AmpersandApp')
+var app = angular.module('AmpersandApp')
 .config(function($routeProvider) {
     $routeProvider
         // default start page
