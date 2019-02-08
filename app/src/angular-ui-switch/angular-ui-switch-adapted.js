@@ -2,10 +2,10 @@ angular.module('uiSwitch', [])
 
 .directive('switch', function(){
   return {
-    restrict: 'AE'
-  , replace: true
-  , transclude: true
-  , template: function(element, attrs) {
+    restrict: 'AE',
+    replace: true,
+    transclude: true,
+    template: function(element, attrs) {
       var html = '';
       html += '<a href=""';
       html +=   (attrs.ngModel && !attrs.ngClick) ? ' ng-click="' + attrs.ngModel + '=!' + attrs.ngModel + '"' : '';

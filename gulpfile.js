@@ -1,3 +1,4 @@
+/* jshint node: true */
 var gulp = require('gulp')
 var concat = require('gulp-concat')
 var sourcemaps = require('gulp-sourcemaps')

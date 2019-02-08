@@ -1,3 +1,4 @@
+/* jshint node: true */
 const presets = [
     [
       "@babel/env",
