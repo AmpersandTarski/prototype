@@ -45,9 +45,10 @@ gulp.task('build-lib', function (done) {
         // library javascript
         .pipe(filterJS)
         .pipe(concat('lib.min.js'))
-        .pipe(babel({
-            presets: ['@babel/env']
-        }))
+        // don't use babel for vendor libraries. Something strange happens.
+        // .pipe(babel({
+        //     presets: ['@babel/env']
+        // }))
         .pipe(uglify())
         .pipe(gulp.dest('public/app/dist'))
         .pipe(filterJS.restore)
