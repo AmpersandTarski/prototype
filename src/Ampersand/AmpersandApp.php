@@ -528,8 +528,8 @@ class AmpersandApp
     public function setActiveRoles(array $roles): void
     {
         foreach ($roles as $role) {
-            // Set sessionActiveRoles[SESSION*Role]
-            $this->session->toggleActiveRole(Concept::makeRoleAtom($role->label), $role->active);
+            // Set sessionActiveRoles[SESSION*PF_Role]
+            $this->session->toggleActiveRole(Concept::getRoleConcept()->makeAtom($role->label), $role->active);
         }
         
         // Commit transaction (exec-engine kicks also in)
