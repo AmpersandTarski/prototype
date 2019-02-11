@@ -141,6 +141,7 @@ class Installer
         // MainMenu (i.e. all UI interfaces with SESSION as src concept)
         $mainMenu = Atom::makeAtom('MainMenu', 'PF_NavMenu')->add();
         $mainMenu->link('Main menu', 'label[PF_NavMenuItem*PF_Label]')->add();
+        $mainMenu->link($mainMenu, 'isVisible[PF_NavMenuItem*PF_NavMenuItem]')->add(); // make visible by default
         $mainMenu->link($mainMenu, 'isPartOf[PF_NavMenuItem*PF_NavMenu]')->add();
         $i = '0';
         foreach (Ifc::getAllInterfaces() as $ifc) {
@@ -154,6 +155,7 @@ class Installer
                 $i++;
                 $menuItem = Atom::makeAtom($ifc->getId(), 'PF_NavMenuItem')->add();
                 $menuItem->link($ifc->getLabel(), 'label[PF_NavMenuItem*PF_Label]')->add();
+                $menuItem->link($menuItem, 'isVisible[PF_NavMenuItem*PF_NavMenuItem]')->add(); // make visible by default
                 $menuItem->link($ifc->getId(), 'ifc[PF_NavMenuItem*PF_Interface]')->add();
                 $menuItem->link($i, 'seqNr[PF_NavMenuItem*PF_SeqNr]')->add();
                 $menuItem->link($mainMenu, 'isSubItemOf[PF_NavMenuItem*PF_NavMenuItem]')->add();

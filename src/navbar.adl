@@ -43,6 +43,9 @@ CONTEXT PrototypeFramework IN ENGLISH
     MEANING "The human readable text that represents the navbar item and is shown to the user"
         CONCEPT PF_Label ""
         REPRESENT PF_Label TYPE ALPHANUMERIC
+
+    RELATION isVisible[PF_NavMenuItem*PF_NavMenuItem] [PROP]
+    MEANING "A navbar item can be visible or not"
     
     RELATION ifc[PF_NavMenuItem*PF_Interface] [UNI] 
         MEANING "A navbar item can direct to an interface"
@@ -116,6 +119,7 @@ CONTEXT PrototypeFramework IN ENGLISH
         , "Items"        : isSubItemOf~ CRuD BOX <SCOLS>
             [ "Item"     : I LINKTO INTERFACE "Edit menu item"
             , "# "       : seqNr                    cRUd
+            , "Visible"  : isVisible                cRUd
             , "Label"    : label                    cRUd
             , "Roles"    : pf_navItemRoles          cRud
             ]
@@ -125,7 +129,7 @@ CONTEXT PrototypeFramework IN ENGLISH
         ]
 
     --[SYSTEM INTERFACES to adapt the menus]-------------------------------------------------------
-    API "PF_MenuItems" FOR SYSTEM: sessionActiveRoles[SESSION*Role];pf_navItemRoles~ BOX
+    API "PF_MenuItems" FOR SYSTEM: sessionActiveRoles[SESSION*Role];pf_navItemRoles~;isVisible BOX
         [ "id"              : I
         , "label"           : label
         , "seqNr"           : seqNr
