@@ -108,8 +108,7 @@ class Session
             // If login functionality is not enabled, add all defined roles as allowed roles
             // TODO: can be removed when meat-grinder populates this meta-relation by itself
             if (!$this->settings->get('session.loginEnabled')) {
-                foreach (Role::getAllRoles() as $role) {
-                    $roleAtom = Concept::makeRoleAtom($role->label);
+                foreach (Concept::getRoleConcept()->getAllAtomObjects() as $roleAtom) {
                     $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*PF_Role]')->add();
                     // Activate all allowed roles by default
                     $this->toggleActiveRole($roleAtom, true);
