@@ -110,7 +110,7 @@ class Session
             if (!$this->settings->get('session.loginEnabled')) {
                 foreach (Role::getAllRoles() as $role) {
                     $roleAtom = Concept::makeRoleAtom($role->label);
-                    $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*Role]')->add();
+                    $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*PF_Role]')->add();
                     // Activate all allowed roles by default
                     $this->toggleActiveRole($roleAtom, true);
                 }
@@ -159,7 +159,7 @@ class Session
             throw new Exception("Role {$roleAtom} is not defined", 500);
         }
 
-        $link = $this->sessionAtom->link($roleAtom, 'sessionActiveRoles[SESSION*Role]');
+        $link = $this->sessionAtom->link($roleAtom, 'sessionActiveRoles[SESSION*PF_Role]');
         switch ($setActive) {
             case true:
                 $link->add();
@@ -190,7 +190,7 @@ class Session
     {
         return array_map(function (Link $link) {
             return $link->tgt();
-        }, $this->sessionAtom->getLinks('sessionAllowedRoles[SESSION*Role]'));
+        }, $this->sessionAtom->getLinks('sessionAllowedRoles[SESSION*PF_Role]'));
     }
 
     /**
@@ -202,7 +202,7 @@ class Session
     {
         return array_map(function (Link $link) {
             return $link->tgt();
-        }, $this->sessionAtom->getLinks('sessionActiveRoles[SESSION*Role]'));
+        }, $this->sessionAtom->getLinks('sessionActiveRoles[SESSION*PF_Role]'));
     }
     
     /**
