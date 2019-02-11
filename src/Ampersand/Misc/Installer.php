@@ -16,6 +16,8 @@ use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Ampersand\Role;
+use Ampersand\Core\Concept;
 
 /**
  *
@@ -114,6 +116,11 @@ class Installer
      */
     protected function addMetaPopulation(): void
     {
+        // Add roles
+        foreach (Role::getAllRoles() as $role) {
+            Concept::getRoleConcept()->makeAtom($role->label)->add();
+        }
+
         // Add interfaces
         foreach (Ifc::getAllInterfaces() as $ifc) {
             /** @var \Ampersand\Interfacing\Ifc $ifc */
