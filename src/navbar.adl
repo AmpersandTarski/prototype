@@ -117,9 +117,9 @@ CONTEXT PrototypeFramework IN ENGLISH
             [ "Item"     : I LINKTO INTERFACE "Edit menu item"
             , "# "       : seqNr                    cRUd
             , "Label"    : label                    cRUd
-            , "Ifc"      : ifc                      cRUd
             , "Roles"    : pf_navItemRoles          cRud
             ]
+        , "Interface ref": ifc                      cRUd
         , "Url"          : url                      cRUd
         , "Roles"        : pf_navItemRoles          cRUd
         ]
