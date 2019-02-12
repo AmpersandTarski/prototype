@@ -64,17 +64,17 @@ angular.module('AmpersandApp')
             return getNavbarPromise()
             .then(function(data){
                 // Content of navbar
-                hasChildren = function () {
+                let hasChildren = function () {
                     return this.children.length > 0;
                 };
-                navItems = data.navs.map(function (item) {
+                let navItems = data.navs.map(function (item) {
                     item.hasChildren = hasChildren.bind(item);
                     return item;
                 });
-                menus = treeify(navItems, 'id', 'parent', 'children');
+                let menus = treeify(navItems, 'id', 'parent', 'children');
                 navbar.home = data.home;
                 
-                mainMenu = menus.find(function(menu){
+                let mainMenu = menus.find(function(menu){
                     return menu.id === 'MainMenu'
                 });
                 navbar.top = mainMenu === undefined ? [] : mainMenu.children;
