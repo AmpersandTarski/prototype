@@ -606,6 +606,17 @@ class Concept
             return $this->defaultView->getViewData($atom);
         }
     }
+
+    /**
+     * Instantiate a new atom
+     *
+     * @param string $atomId
+     * @return \Ampersand\Core\Atom
+     */
+    public function makeAtom(string $atomId): Atom
+    {
+        return new Atom($atomId, $this);
+    }
     
     /**
      * Creating and adding a new atom to the plug
@@ -823,14 +834,14 @@ class Concept
         throw new Exception("Concept '{$conceptLabel}' is not defined", 500);
     }
     
-    public static function makeSessionAtom($atomId)
+    public static function getSessionConcept(): Concept
     {
-        return new Atom($atomId, self::getConcept('SESSION'));
+        return self::getConcept('SESSION');
     }
 
-    public static function makeRoleAtom($atomId)
+    public static function getRoleConcept(): Concept
     {
-        return new Atom($atomId, self::getConcept('Role'));
+        return self::getConceptByLabel('PF_Role');
     }
     
     /**

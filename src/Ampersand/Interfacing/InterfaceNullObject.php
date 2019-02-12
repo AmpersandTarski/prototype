@@ -151,7 +151,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         }
 
         if (isset($selectTgt)) {
-            $tgt = Atom::makeAtom($selectTgt, $this->tgtConcept->getId());
+            $tgt = new Atom($selectTgt, $this->tgtConcept);
             // For the InterfaceNullObject, let's assume the atom exists, otherwise
             // an exception 'Resource not found' is returned by ResourceList class,
             // which exposes information while we haven't checked access using an interface yet.

@@ -6,7 +6,7 @@ use Ampersand\AmpersandApp;
 /** @var \Ampersand\AngularApp $angularApp */
 global $angularApp;
 $angularApp->addMenuItem(
-    'refresh',
+    'ext',
     'app/src/admin/installer-menu-item.html',
     function (AmpersandApp $app) {
         $roles = $app->getSettings()->get('rbac.adminRoles');
@@ -15,7 +15,7 @@ $angularApp->addMenuItem(
 );
 
 $angularApp->addMenuItem(
-    'refresh',
+    'ext',
     'app/src/admin/check-rules-menu-item.html',
     function (AmpersandApp $app) {
         $roles = $app->getSettings()->get('rbac.adminRoles');
@@ -24,7 +24,7 @@ $angularApp->addMenuItem(
 );
 
 $angularApp->addMenuItem(
-    'refresh',
+    'ext',
     'app/src/admin/execengine-menu-item.html',
     function (AmpersandApp $app) {
         $roles = $app->getSettings()->get('rbac.adminRoles');

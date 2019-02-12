@@ -4,7 +4,6 @@ angular.module('AmpersandApp')
         home: null, // home/start page, can be set in project.yaml (default: '#/prototype/welcome')
         top: [],
         new: [],
-        refresh: [],
         role: [],
         ext: []
     };
@@ -65,10 +64,21 @@ angular.module('AmpersandApp')
             return getNavbarPromise()
             .then(function(data){
                 // Content of navbar
+                hasChildren = function () {
+                    return this.children.length > 0;
+                };
+                navItems = data.navs.map(function (item) {
+                    item.hasChildren = hasChildren.bind(item);
+                    return item;
+                });
+                menus = treeify(navItems, 'id', 'parent', 'children');
                 navbar.home = data.home;
-                navbar.top = data.top;
+                
+                mainMenu = menus.find(function(menu){
+                    return menu.id === 'MainMenu'
+                });
+                navbar.top = mainMenu === undefined ? [] : mainMenu.children;
                 navbar.new = data.new;
-                navbar.refresh = data.refresh;
                 navbar.role = data.role;
                 navbar.ext = data.ext;
 
@@ -87,6 +97,8 @@ angular.module('AmpersandApp')
                 notifyObservers();
             }, function(error){
                 service.initializeSettings();
+            }).catch(function(error) { 
+                console.error(error);
             });
         },
 
@@ -115,6 +127,43 @@ angular.module('AmpersandApp')
             }, 500);
         }
     };
+
+    /**
+     * Creates a tree from flat list of elements with parent specified.
+     * If no parent specified, the element is considered a root node
+     * The function returns a list of root nodes
+     * 'id', 'parent' and 'children' object labels can be set
+     * 
+     * @param {Array} list 
+     * @param {string} idAttr 
+     * @param {string} parentAttr 
+     * @param {string} childrenAttr 
+     * @returns {Array}
+     */
+    function treeify(list, idAttr, parentAttr, childrenAttr) {
+        if (!idAttr) idAttr = 'id';
+        if (!parentAttr) parentAttr = 'parent';
+        if (!childrenAttr) childrenAttr = 'children';
+        var treeList = [];
+        var lookup = {};
+        list.forEach(function(obj) {
+            lookup[obj[idAttr]] = obj;
+            obj[childrenAttr] = [];
+        });
+        list.forEach(function(obj) {
+            if (obj[parentAttr] != null) {
+                if (lookup[obj[parentAttr]] === undefined) { // error when parent element is not defined in list
+                    console.error('Parent element is undefined: ', obj[parentAttr]);
+                } else {
+                    lookup[obj[parentAttr]][childrenAttr].push(obj);
+                    obj[parentAttr] = lookup[obj[parentAttr]]; // replace parent id with reference to actual parent element
+                }
+            } else {
+                treeList.push(obj);
+            }
+        });
+        return treeList;
+    }
     
     return service;
 });

@@ -408,6 +408,9 @@ ExecEngine::registerFunction('SetConceptCond', function ($conceptA, $conceptB, $
  */
 ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angularApp) {
     /** @var \Ampersand\Rule\ExecEngine $this */
+    if (func_num_args() != 1) {
+        throw new Exception("SetNavToOnCommit() expects 1 argument, but you have provided ".func_num_args(), 500);
+    }
     if (strpos($navTo, '_NEW') !== false) {
         $navTo = str_replace('_NEW', $this->getCreatedAtom()->getId(), $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
         $this->debug("replaced navTo string with '{$navTo}'");
@@ -427,6 +430,9 @@ ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angular
  */
 ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($angularApp) {
     /** @var \Ampersand\Rule\ExecEngine $this */
+    if (func_num_args() != 1) {
+        throw new Exception("SetNavToOnRollback() expects 1 argument, but you have provided ".func_num_args(), 500);
+    }
     if (strpos($navTo, '_NEW') !== false) {
         $navTo = str_replace('_NEW', $this->getCreatedAtom()->getId(), $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
         $this->debug("replaced navTo string with '{$navTo}'");
@@ -446,6 +452,9 @@ ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($angul
  */
 ExecEngine::registerFunction('TerminateThisExecEngine', function (string $userMessage = null) {
     /** @var \Ampersand\Rule\ExecEngine $this */
+    if (func_num_args() < 2) {
+        throw new Exception("TerminateThisExecEngine() expects at most 1 argument, but you have provided ".func_num_args(), 500);
+    }
     $this->terminate();
     if (!empty($userMessage)) {
         $this->userLog()->info($userMessage);
@@ -458,5 +467,8 @@ ExecEngine::registerFunction('TerminateThisExecEngine', function (string $userMe
  */
 ExecEngine::registerFunction('TriggerService', function (string $roleName) {
     /** @var \Ampersand\Rule\ExecEngine $this */
+    if (func_num_args() != 1) {
+        throw new Exception("TriggerService() expects 1 argument, but you have provided ".func_num_args(), 500);
+    }
     $this->triggerService($roleName);
 });

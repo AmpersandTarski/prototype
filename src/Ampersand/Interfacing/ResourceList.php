@@ -255,12 +255,12 @@ class ResourceList
      * Instantiate resource list with given src atom and interface
      *
      * @param string $srcAtomId
-     * @param string $ifcId
+     * @param string $ifcIdOrLabel
      * @return \Ampersand\Interfacing\ResourceList
      */
-    public static function makeFromInterface(string $srcAtomId, string $ifcId): ResourceList
+    public static function makeFromInterface(string $srcAtomId, string $ifcIdOrLabel): ResourceList
     {
-        $ifc = Ifc::getInterface($ifcId);
+        $ifc = Ifc::getInterface($ifcIdOrLabel, true);
         $srcAtom = new Atom($srcAtomId, $ifc->getSrcConcept());
 
         // Same as in InterfaceNullObject::buildResourcePath()

@@ -127,6 +127,11 @@ class Ifc
         return $this->ifcObject->getTgtConcept();
     }
 
+    /**
+     * List of rules names that have access to this interface
+     *
+     * @return string[]
+     */
     public function getRoleNames(): array
     {
         return $this->ifcRoleNames;
@@ -160,13 +165,18 @@ class Ifc
     /**
      * Returns toplevel interface object
      * @param string $ifcId
+     * @param bool $fallbackOnLabel if set to true, the param $ifcId may also contain an interface label (i.e. name as defined in &-script)
      * @throws \Exception when interface does not exist
      * @return \Ampersand\Interfacing\Ifc
      */
-    public static function getInterface(string $ifcId): Ifc
+    public static function getInterface(string $ifcId, $fallbackOnLabel = false): Ifc
     {
         if (!array_key_exists($ifcId, $interfaces = self::getAllInterfaces())) {
-            throw new Exception("Interface '{$ifcId}' is not defined", 500);
+            if ($fallbackOnLabel) {
+                return self::getInterfaceByLabel($ifcId);
+            } else {
+                throw new Exception("Interface '{$ifcId}' is not defined", 500);
+            }
         }
 
         return $interfaces[$ifcId];

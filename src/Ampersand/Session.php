@@ -99,7 +99,7 @@ class Session
     
     protected function initSessionAtom()
     {
-        $this->sessionAtom = Concept::makeSessionAtom($this->id);
+        $this->sessionAtom = Concept::getSessionConcept()->makeAtom($this->id);
         
         // Create a new Ampersand session atom if not yet in SESSION table (i.e. new php session)
         if (!$this->sessionAtom->exists()) {
@@ -108,9 +108,8 @@ class Session
             // If login functionality is not enabled, add all defined roles as allowed roles
             // TODO: can be removed when meat-grinder populates this meta-relation by itself
             if (!$this->settings->get('session.loginEnabled')) {
-                foreach (Role::getAllRoles() as $role) {
-                    $roleAtom = Concept::makeRoleAtom($role->label);
-                    $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*Role]')->add();
+                foreach (Concept::getRoleConcept()->getAllAtomObjects() as $roleAtom) {
+                    $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*PF_Role]')->add();
                     // Activate all allowed roles by default
                     $this->toggleActiveRole($roleAtom, true);
                 }
@@ -159,7 +158,7 @@ class Session
             throw new Exception("Role {$roleAtom} is not defined", 500);
         }
 
-        $link = $this->sessionAtom->link($roleAtom, 'sessionActiveRoles[SESSION*Role]');
+        $link = $this->sessionAtom->link($roleAtom, 'sessionActiveRoles[SESSION*PF_Role]');
         switch ($setActive) {
             case true:
                 $link->add();
@@ -190,7 +189,7 @@ class Session
     {
         return array_map(function (Link $link) {
             return $link->tgt();
-        }, $this->sessionAtom->getLinks('sessionAllowedRoles[SESSION*Role]'));
+        }, $this->sessionAtom->getLinks('sessionAllowedRoles[SESSION*PF_Role]'));
     }
 
     /**
@@ -202,7 +201,7 @@ class Session
     {
         return array_map(function (Link $link) {
             return $link->tgt();
-        }, $this->sessionAtom->getLinks('sessionActiveRoles[SESSION*Role]'));
+        }, $this->sessionAtom->getLinks('sessionActiveRoles[SESSION*PF_Role]'));
     }
     
     /**

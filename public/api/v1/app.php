@@ -40,9 +40,8 @@ $api->group('/app', function () {
         $session = $ampersandApp->getSession();
         $settings = $ampersandApp->getSettings();
         $content =  ['home' => $ampersandApp->getSettings()->get('frontend.homePage')
-                    ,'top' => $angularApp->getMenuItems('top')
+                    ,'navs' => $angularApp->getNavMenuItems()
                     ,'new' => $angularApp->getMenuItems('new')
-                    ,'refresh' => $angularApp->getMenuItems('refresh')
                     ,'ext' => $angularApp->getMenuItems('ext')
                     ,'role' => $angularApp->getMenuItems('role')
                     ,'defaultSettings' => ['notify_showSignals'        => $settings->get('notifications.defaultShowSignals')
