@@ -210,7 +210,8 @@ class AmpersandApp
             }
 
             // Add relation plugs
-            foreach (Relation::getAllRelations() as $rel) {
+            foreach ($this->model->getRelations() as $rel) {
+                /** @var \Ampersand\Core\Relation $rel */
                 if (array_key_exists($rel->signature, $this->customRelationPlugs)) {
                     foreach ($this->customRelationPlugs[$rel->signature] as $plug) {
                         $rel->addPlug($plug);

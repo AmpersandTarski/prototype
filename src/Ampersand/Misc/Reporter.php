@@ -56,13 +56,13 @@ class Reporter
 
     /**
      * Write relation definition report
-     * Specifies multiplicity constraints, related conjuncts and other
-     * aspects of all relations
+     * Specifies multiplicity constraints, related conjuncts and other aspects of provided relations
      *
+     * @param \Ampersand\Core\Relation[] $relations
      * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportRelationDefinitions(string $format): Reporter
+    public function reportRelationDefinitions(array $relations, string $format): Reporter
     {
         $content = array_map(function (Relation $relation) {
             $relArr = [];
@@ -92,7 +92,7 @@ class Reporter
             $relArr['srcOrTgtTable'] = $relation->getMysqlTable()->inTableOf();
             
             return $relArr;
-        }, Relation::getAllRelations());
+        }, $relations);
 
         $this->write($format, $content);
         

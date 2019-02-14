@@ -45,7 +45,7 @@ class RDFGraph extends EasyRdf_Graph
         }
 
         // Ampersand RELATION --> owl:Property
-        foreach (Relation::getAllRelations() as $relation) {
+        foreach ($ampersandApp->getModel()->getRelations() as $relation) {
             $this->addRelation($relation);
         }
     }

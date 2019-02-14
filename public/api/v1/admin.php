@@ -233,9 +233,12 @@ $api->group('/admin/report', function () {
      * @phan-closure-scope \Slim\Container
      */
     $this->get('/relations', function (Request $request, Response $response, $args = []) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get report
         $reporter = new Reporter(new JsonEncoder(), $response->getBody());
-        $reporter->reportRelationDefinitions('json');
+        $reporter->reportRelationDefinitions($ampersandApp->getModel()->getRelations(), 'json');
 
         // Return reponse
         return $response->withHeader('Content-Type', 'application/json;charset=utf-8');

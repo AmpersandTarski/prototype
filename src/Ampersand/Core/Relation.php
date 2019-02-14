@@ -25,12 +25,6 @@ class Relation
 {
     
     /**
-     * Contains all relation definitions
-     * @var Relation[]
-     */
-    private static $allRelations;
-    
-    /**
      *
      * @var \Psr\Log\LoggerInterface
      */
@@ -374,18 +368,5 @@ class Relation
         
         // Else
         throw new Exception("Relation '{$relationSignature}[{$srcConcept}*{$tgtConcept}]' is not defined", 500);
-    }
-    
-    /**
-     * Returns array with all Relation objects
-     * @return \Ampersand\Core\Relation[]
-     */
-    public static function getAllRelations()
-    {
-        if (!isset(self::$allRelations)) {
-            throw new Exception("Relation definitions not loaded yet", 500);
-        }
-         
-        return self::$allRelations;
     }
 }

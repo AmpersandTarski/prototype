@@ -770,7 +770,7 @@ class Concept
         }
 
         // Merge step 2: rename right atom by left atom in relation sets
-        foreach (Relation::getAllRelations() as $relation) {
+        foreach ($this->app->getModel()->getRelations() as $relation) {
             // Source
             if ($this->inSameClassificationTree($relation->srcConcept)) {
                 // Delete and add links where atom is the source
