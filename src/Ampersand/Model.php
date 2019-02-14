@@ -14,6 +14,7 @@ use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Ampersand\Log\Logger;
 use Ampersand\Core\Relation;
+use Ampersand\Core\Concept;
 
 /**
  *
@@ -128,6 +129,53 @@ class Model
         }
          
         return $this->relations;
+    }
+
+    /**
+     * Return relation object
+     *
+     * @param string $relationSignature
+     * @param \Ampersand\Core\Concept|null $srcConcept
+     * @param \Ampersand\Core\Concept|null $tgtConcept
+     *
+     * @throws \Exception if relation is not defined
+     * @return \Ampersand\Core\Relation
+     */
+    public function getRelation($relationSignature, Concept $srcConcept = null, Concept $tgtConcept = null): Relation
+    {
+        if (!isset($this->relations)) {
+            throw new Exception("Relation definitions are not loaded yet", 500);
+        }
+        
+        // If relation can be found by its fullRelationSignature return the relation
+        if (array_key_exists($relationSignature, $this->relations)) {
+            $relation = $this->relations[$relationSignature];
+            
+            // If srcConceptName and tgtConceptName are provided, check that they match the found relation
+            if (!is_null($srcConcept) && !in_array($srcConcept, $relation->srcConcept->getSpecializationsIncl())) {
+                throw new Exception("Provided src concept '{$srcConcept}' does not match the relation '{$relation}'", 500);
+            }
+            if (!is_null($tgtConcept) && !in_array($tgtConcept, $relation->tgtConcept->getSpecializationsIncl())) {
+                throw new Exception("Provided tgt concept '{$tgtConcept}' does not match the relation '{$relation}'", 500);
+            }
+            
+            return $relation;
+        }
+        
+        // Else try to find the relation by its name, srcConcept and tgtConcept
+        if (!is_null($srcConcept) && !is_null($tgtConcept)) {
+            foreach ($this->relations as $relation) {
+                if ($relation->name == $relationSignature
+                        && in_array($srcConcept, $relation->srcConcept->getSpecializationsIncl())
+                        && in_array($tgtConcept, $relation->tgtConcept->getSpecializationsIncl())
+                  ) {
+                    return $relation;
+                }
+            }
+        }
+        
+        // Else
+        throw new Exception("Relation '{$relationSignature}[{$srcConcept}*{$tgtConcept}]' is not defined", 500);
     }
 
     /**
