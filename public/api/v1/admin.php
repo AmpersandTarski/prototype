@@ -186,7 +186,7 @@ $api->group('/admin', function () {
             case 'json':
                 $decoder = new JsonDecode(false);
                 $population = $decoder->decode(file_get_contents($_FILES['file']['tmp_name']), JsonEncoder::FORMAT);
-                $importer = new Importer(Logger::getLogger('IO'));
+                $importer = new Importer($ampersandApp, Logger::getLogger('IO'));
                 $importer->importPopulation($population);
                 break;
             case 'xls':

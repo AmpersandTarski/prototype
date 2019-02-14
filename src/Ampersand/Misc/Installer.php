@@ -96,7 +96,7 @@ class Installer
 
         $decoder = new JsonDecode(false);
         $population = $decoder->decode(file_get_contents($model->getFilePath('populations')), JsonEncoder::FORMAT);
-        $importer = new Importer($this->logger);
+        $importer = new Importer($this->ampersandApp, $this->logger);
         $importer->importPopulation($population);
 
         // Close transaction

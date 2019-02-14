@@ -118,8 +118,7 @@ class Relation
     private $mysqlTable;
     
     /**
-     * Relation constructor
-     * Private function to prevent outside instantiation of Relations. Use Relation::getRelation($relationSignature)
+     * Constructor
      *
      * @param array $relationDef
      * @param \Psr\Log\LoggerInterface $logger

@@ -12,7 +12,6 @@ use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
 use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
-use Ampersand\Core\Relation;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\ResourceList;
@@ -296,11 +295,11 @@ class Session
     public static function deleteExpiredSessions()
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp;
+        global $ampersandApp; // TODO: remove ref to global var
 
         $experationTimeStamp = time() - $ampersandApp->getSettings()->get('session.expirationTime');
         
-        $links = Relation::getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
+        $links = $ampersandApp->getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
         foreach ($links as $link) {
             if (strtotime($link->tgt()->getLabel()) < $experationTimeStamp) {
                 $link->src()->delete();

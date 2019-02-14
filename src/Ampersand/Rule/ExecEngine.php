@@ -108,6 +108,11 @@ class ExecEngine extends RuleEngine
         return $this->id;
     }
 
+    public function getApp(): AmpersandApp
+    {
+        return $this->ampersandApp;
+    }
+
     /**
      * Logs with an arbitrary level.
      *

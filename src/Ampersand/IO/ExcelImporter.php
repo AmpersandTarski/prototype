@@ -5,7 +5,6 @@ namespace Ampersand\IO;
 use Exception;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Concept;
-use Ampersand\Core\Relation;
 use PHPExcel_Cell;
 use PHPExcel_Shared_Date;
 use PHPExcel_IOFactory;
@@ -271,13 +270,13 @@ class ExcelImporter
                             $rightConcept = Concept::getConceptByLabel($line2[$col]);
                             
                             $header[$col] = ['concept' => $rightConcept
-                                            ,'relation' => Relation::getRelation(substr($line1[$col], 0, -1), $rightConcept, $leftConcept)
+                                            ,'relation' => $this->ampersandApp->getRelation(substr($line1[$col], 0, -1), $rightConcept, $leftConcept)
                                             ,'flipped' => true
                                             ];
                         } else {
                             $rightConcept = Concept::getConceptByLabel($line2[$col]);
                             $header[$col] = ['concept' => $rightConcept
-                                            ,'relation' => Relation::getRelation($line1[$col], $leftConcept, $rightConcept)
+                                            ,'relation' => $this->ampersandApp->getRelation($line1[$col], $leftConcept, $rightConcept)
                                             ,'flipped' => false
                                             ];
                         }

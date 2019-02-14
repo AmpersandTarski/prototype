@@ -29,7 +29,6 @@
 */
 
 use Ampersand\Core\Concept;
-use Ampersand\Core\Relation;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Core\Link;
 
@@ -58,9 +57,9 @@ ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPl
 
     // Get concept and relation objects
     $concept = Concept::getConceptByLabel($C);
-    $relationR = Relation::getRelation($r, $concept, $concept);
-    $relationRCopy = Relation::getRelation($rCopy, $concept, $concept);
-    $relationRPlus = Relation::getRelation($rPlus, $concept, $concept);
+    $relationR = $this->getApp()->getRelation($r, $concept, $concept);
+    $relationRCopy = $this->getApp()->getRelation($rCopy, $concept, $concept);
+    $relationRPlus = $this->getApp()->getRelation($rPlus, $concept, $concept);
 
     // Empty rCopy and rPlus
     $relationRCopy->empty();

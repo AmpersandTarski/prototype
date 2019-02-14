@@ -102,6 +102,7 @@ class Model
     public function init(AmpersandApp $app): Model
     {
         $this->loadRelations(Logger::getLogger('CORE'), $app);
+        return $this;
     }
 
     protected function loadRelations(LoggerInterface $logger, AmpersandApp $app): void

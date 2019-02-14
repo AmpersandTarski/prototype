@@ -688,4 +688,22 @@ class AmpersandApp
             $this->userLogger->signal($violation);
         }
     }
+    
+    /**********************************************************************************************
+     * SHORT CUTS
+     **********************************************************************************************/
+    /**
+     * Return relation object
+     *
+     * @param string $relationSignature
+     * @param \Ampersand\Core\Concept|null $srcConcept
+     * @param \Ampersand\Core\Concept|null $tgtConcept
+     *
+     * @throws \Exception if relation is not defined
+     * @return \Ampersand\Core\Relation
+     */
+    public function getRelation($relationSignature, Concept $srcConcept = null, Concept $tgtConcept = null): Relation
+    {
+        return $this->model->getRelation($relationSignature, $srcConcept, $tgtConcept);
+    }
 }

@@ -13,7 +13,6 @@
    This file has been modified to produce Exceptions rather than that it dies...
 */
 
-use Ampersand\Core\Relation;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
 use Ampersand\Rule\ExecEngine;
@@ -42,7 +41,7 @@ ExecEngine::registerFunction('InsPair', function ($relationName, $srcConceptName
     // Check if relation signature exists: $relationName[$srcConceptName*$tgtConceptName]
     $srcConcept = Concept::getConceptByLabel($srcConceptName);
     $tgtConcept = Concept::getConceptByLabel($tgtConceptName);
-    $relation = Relation::getRelation($relationName, $srcConcept, $tgtConcept);
+    $relation = $this->getApp()->getRelation($relationName, $srcConcept, $tgtConcept);
     
     // if either srcAtomIdStr or tgtAtom is not provided by the pairview function (i.e. value set to '_NULL'): skip the insPair
     if ($srcAtom === '_NULL' or $tgtAtom === '_NULL') {
@@ -91,7 +90,7 @@ ExecEngine::registerFunction('DelPair', function ($relationName, $srcConceptName
     // Check if relation signature exists: $relationName[$srcConceptName*$tgtConceptName]
     $srcConcept = Concept::getConceptByLabel($srcConceptName);
     $tgtConcept = Concept::getConceptByLabel($tgtConceptName);
-    $relation = Relation::getRelation($relationName, $srcConcept, $tgtConcept);
+    $relation = $this->getApp()->getRelation($relationName, $srcConcept, $tgtConcept);
     
     // if either srcAtomIdStr or tgtAtom is not provided by the pairview function (i.e. value set to '_NULL'): skip the insPair
     if ($srcAtom === '_NULL' or $tgtAtom === '_NULL') {

@@ -8,7 +8,6 @@
 namespace Ampersand\IO;
 
 use Ampersand\Core\Concept;
-use Ampersand\Core\Relation;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;

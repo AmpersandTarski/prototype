@@ -234,7 +234,7 @@ class Atom implements JsonSerializable
     public function link($tgtAtom, $relation, $isFlipped = false)
     {
         if (!($relation instanceof Relation)) {
-            $relation = Relation::getRelation($relation);
+            $relation = $this->concept->getApp()->getRelation($relation);
         }
         if (!($tgtAtom instanceof Atom)) {
             $tgtAtom = $isFlipped ? new Atom($tgtAtom, $relation->srcConcept) : new Atom($tgtAtom, $relation->tgtConcept);
@@ -255,7 +255,7 @@ class Atom implements JsonSerializable
     public function getLinks($relation, $isFlipped = false)
     {
         if (!($relation instanceof Relation)) {
-            $relation = Relation::getRelation($relation);
+            $relation = $this->concept->getApp()->getRelation($relation);
         }
         
         if ($isFlipped) {

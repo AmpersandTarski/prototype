@@ -9,10 +9,10 @@ namespace Ampersand\IO;
 
 use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
-use Ampersand\Core\Relation;
 use Ampersand\Core\Link;
 use Psr\Log\LoggerInterface;
 use stdClass;
+use Ampersand\AmpersandApp;
 
 class Importer
 {
@@ -25,14 +25,23 @@ class Importer
     protected $logger;
 
     /**
+     * Reference to application object
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $app;
+
+    /**
      * Constructor
      *
+     * @param \Ampersand\AmpersandApp $app
      * @param \Psr\Log\LoggerInterface $logger
      * @param array $options
      */
-    public function __construct(LoggerInterface $logger, array $options = [])
+    public function __construct(AmpersandApp $app, LoggerInterface $logger, array $options = [])
     {
         $this->logger = $logger;
+        $this->app = $app;
     }
     
     /**
@@ -54,7 +63,7 @@ class Importer
         $this->logger->debug("Checking if all relations for which population is provided are defined");
         foreach ($population->links as $pop) {
             if (!empty($pop->links)) {
-                Relation::getRelation($pop->relation);
+                $this->app->getRelation($pop->relation);
             }
         }
 
@@ -106,7 +115,7 @@ class Importer
                 continue; // Skip when nothing to import
             }
 
-            $relation = Relation::getRelation($population->relation);
+            $relation = $this->app->getRelation($population->relation);
             $total = count($population->links);
             $this->logger->debug("Importing {$total} links for relation {$relation}");
             

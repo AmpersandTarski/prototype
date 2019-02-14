@@ -255,6 +255,11 @@ class Concept
         return $this->name;
     }
 
+    public function getApp(): AmpersandApp
+    {
+        return $this->app;
+    }
+
     /**
      * Undocumented function
      *
