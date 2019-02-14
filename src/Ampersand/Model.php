@@ -12,6 +12,8 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Ampersand\Log\Logger;
+use Ampersand\Core\Relation;
 
 /**
  *
@@ -51,6 +53,13 @@ class Model
     protected $modelFiles = [];
 
     /**
+     * List with all defined relations in this Ampersand model
+     *
+     * @var \Ampersand\Core\Relation[]
+     */
+    protected $relations = null;
+
+    /**
      * Constructor
      *
      * @param string $folder directory where Ampersand model is generated in
@@ -87,6 +96,33 @@ class Model
         if (!file_exists($this->checksumFile)) {
             $this->writeChecksumFile();
         }
+    }
+
+    protected function loadRelations(LoggerInterface $logger, AmpersandApp $app): void
+    {
+        // Import json file
+        $allRelationDefs = (array)json_decode(file_get_contents($this->modelFiles['relations']), true);
+    
+        $this->relations = [];
+        foreach ($allRelationDefs as $relationDef) {
+            $relation = new Relation($relationDef, $logger, $app);
+            $this->relations[$relation->signature] = $relation;
+        }
+    }
+
+    /**
+     * Returns list of all relation definitions
+     *
+     * @throws \Exception when relations are not loaded (yet) because model is not initialized
+     * @return \Ampersand\Core\Relation[]
+     */
+    public function getRelations(): array
+    {
+        if (!isset($this->relations)) {
+            throw new Exception("Relation definitions are not loaded yet", 500);
+        }
+         
+        return $this->relations;
     }
 
     /**

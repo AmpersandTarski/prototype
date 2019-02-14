@@ -425,24 +425,4 @@ class Relation
          
         return self::$allRelations;
     }
-    
-    /**
-     * Import all Relation definitions from json file and instantiate Relation objects
-     *
-     * @param string $fileName containing the Ampersand relation definitions
-     * @param \Psr\Log\LoggerInterface $logger
-     * @return void
-     */
-    public static function setAllRelations(string $fileName, LoggerInterface $logger, AmpersandApp $app)
-    {
-        self::$allRelations = [];
-    
-        // Import json file
-        $allRelationDefs = (array)json_decode(file_get_contents($fileName), true);
-    
-        foreach ($allRelationDefs as $relationDef) {
-            $relation = new Relation($relationDef, $logger, $app);
-            self::$allRelations[$relation->signature] = $relation;
-        }
-    }
 }
