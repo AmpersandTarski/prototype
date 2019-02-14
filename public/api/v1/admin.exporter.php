@@ -27,10 +27,6 @@ $api->group('/admin/exporter', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
-            throw new Exception("Export not allowed in production environment", 403);
-        }
-        
         // Export population to response body
         $exporter = new Exporter(new JsonEncoder(), $response->getBody(), Logger::getLogger('IO'));
         $exporter->exportAllPopulation('json');
@@ -47,10 +43,6 @@ $api->group('/admin/exporter', function () {
     $this->get('/export/metamodel', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
-
-        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
-            throw new Exception("Export of meta model not allowed in production environment", 403);
-        }
 
         // Content negotiation
         $acceptHeader = $request->getParam('format') ?? $request->getHeaderLine('Accept');
@@ -85,12 +77,10 @@ $api->group('/admin/exporter', function () {
         throw new Exception("You do not have access to /admin/exporter", 403);
     }
 
+    if ($ampersandApp->getSettings()->get('global.productionEnv')) {
+        throw new Exception("Export not allowed in production environment", 403);
+    }
+
     // Do stuff
-    $response = $next($req, $res);
-
-    // Create response message
-    $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
-    $content = $ampersandApp->userLog()->getAll(); // Return all notifications
-
-    return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    return $next($req, $res);
 });
