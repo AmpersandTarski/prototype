@@ -692,7 +692,7 @@ class Concept
             
             // Delete all links where $atom is used as src or tgt atom
             // from relations where $this concept (or any of its specializations) is used as src or tgt concept
-            Relation::deleteAllSpecializationLinks($atom);
+            $this->deleteAllSpecializationLinks($atom);
         } else {
             $this->logger->debug("Cannot remove atom {$atom} from {$this}, because atom does not exist");
         }
@@ -718,7 +718,7 @@ class Concept
             }
             
             // Delete all links where $atom is used as src or tgt atom
-            Relation::deleteAllLinksWithAtom($atom);
+            $this->deleteAllLinksWithAtom($atom);
         } else {
             $this->logger->debug("Cannot delete atom {$atom}, because it does not exist");
         }
@@ -792,6 +792,45 @@ class Concept
 
         // Merge step 3: delete rightAtom
         $this->deleteAtom($rightAtom);
+    }
+
+    /**
+     * Delete all links where $atom is used
+     *
+     * @param \Ampersand\Core\Atom $atom
+     * @return void
+     */
+    protected function deleteAllLinksWithAtom(Atom $atom): void
+    {
+        foreach ($this->app->getModel()->getRelations() as $relation) {
+            /** @var \Ampersand\Core\Relation $relation */
+            if ($atom->concept->inSameClassificationTree($relation->srcConcept)) {
+                $relation->deleteAllLinks($atom, 'src');
+            }
+            if ($atom->concept->inSameClassificationTree($relation->tgtConcept)) {
+                $relation->deleteAllLinks($atom, 'tgt');
+            }
+        }
+    }
+    
+    /**
+     * Delete all links where $atom is used as src or tgt atom
+     * from relations where $atom's concept (or any of its specializations) is used as src or tgt concept
+     *
+     * @param \Ampersand\Core\Atom $atom
+     * @return void
+     */
+    protected function deleteAllSpecializationLinks(Atom $atom): void
+    {
+        foreach ($this->app->getModel()->getRelations() as $relation) {
+            /** @var \Ampersand\Core\Relation $relation */
+            if ($atom->concept->hasSpecialization($relation->srcConcept, true)) {
+                $relation->deleteAllLinks($atom, 'src');
+            }
+            if ($atom->concept->hasSpecialization($relation->tgtConcept, true)) {
+                $relation->deleteAllLinks($atom, 'tgt');
+            }
+        }
     }
     
     /**********************************************************************************************
