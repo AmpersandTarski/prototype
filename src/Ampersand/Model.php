@@ -98,6 +98,11 @@ class Model
         }
     }
 
+    public function init(AmpersandApp $app): Model
+    {
+        $this->loadRelations(Logger::getLogger('CORE'), $app);
+    }
+
     protected function loadRelations(LoggerInterface $logger, AmpersandApp $app): void
     {
         // Import json file

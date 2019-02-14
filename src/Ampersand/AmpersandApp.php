@@ -185,12 +185,15 @@ class AmpersandApp
                 $storagePlug->init();
             }
 
+            // Initialize Ampersand model (i.e. load all defintions from generated json files)
+            
+
             // Instantiate object definitions from generated files
             $genericsFolder = $this->model->getFolder() . '/';
             Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULEENGINE'), $this, $this->defaultStorage, $this->conjunctCache);
             View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
             Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
-            Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'), $this);
+            $this->model->init($this);
             Ifc::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage);
             Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, $this, Logger::getLogger('RULEENGINE'));
             Role::setAllRoles($genericsFolder . 'roles.json');
