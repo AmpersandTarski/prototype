@@ -14,7 +14,7 @@ angular.module('AmpersandApp')
             }, function(){
                 if (scope.item.hasChildren() && element.hasClass('overflow-menu-item')) {
                     element.addClass('dropdown-submenu');
-                } else {
+                } else if (scope.item.hasChildren() && element.hasClass('top-menu-item')) {
                     element.removeClass('dropdown-submenu');
                 }
             });
