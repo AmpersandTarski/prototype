@@ -21,7 +21,7 @@ $api->group('/admin/installer', function () {
     /**
      * @phan-closure-scope \Slim\Container
      */
-    $this->get('/', function (Request $request, Response $response, $args = []) {
+    $this->get('', function (Request $request, Response $response, $args = []) {
         /** @var \Slim\Container $this */
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
