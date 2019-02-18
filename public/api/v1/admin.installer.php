@@ -2,7 +2,6 @@
 
 use Ampersand\Log\Logger;
 use Ampersand\Misc\Installer;
-use Exception;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
