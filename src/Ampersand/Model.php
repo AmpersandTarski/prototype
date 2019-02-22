@@ -214,6 +214,87 @@ class Model
         throw new Exception("Relation '{$relationSignature}[{$srcConcept}*{$tgtConcept}]' is not defined", 500);
     }
 
+    /**********************************************************************************************
+     * INTERFACES
+    **********************************************************************************************/
+    /**
+     * Returns all interfaces
+     *
+     * @return \Ampersand\Interfacing\Ifc[]
+     */
+    public function getAllInterfaces(): array
+    {
+        if (!isset($this->interfaces)) {
+            throw new Exception("Interface definitions not loaded yet", 500);
+        }
+        
+        return $this->interfaces;
+    }
+
+    /**
+     * Returns if interface exists
+     * @var string $ifcId Identifier of interface
+     * @return bool
+     */
+    public function interfaceExists(string $ifcId): bool
+    {
+        return array_key_exists($ifcId, $this->getAllInterfaces());
+    }
+
+    /**
+     * Returns toplevel interface object
+     * @param string $ifcId
+     * @param bool $fallbackOnLabel if set to true, the param $ifcId may also contain an interface label (i.e. name as defined in &-script)
+     * @throws \Exception when interface does not exist
+     * @return \Ampersand\Interfacing\Ifc
+     */
+    public function getInterface(string $ifcId, $fallbackOnLabel = false): Ifc
+    {
+        if (!array_key_exists($ifcId, $interfaces = $this->getAllInterfaces())) {
+            if ($fallbackOnLabel) {
+                return $this->getInterfaceByLabel($ifcId);
+            } else {
+                throw new Exception("Interface '{$ifcId}' is not defined", 500);
+            }
+        }
+
+        return $interfaces[$ifcId];
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param string $ifcLabel
+     * @throws \Exception when interface does not exist
+     * @return \Ampersand\Interfacing\Ifc
+     */
+    public function getInterfaceByLabel(string $ifcLabel): Ifc
+    {
+        foreach ($this->getAllInterfaces() as $interface) {
+            /** @var \Ampersand\Interfacing\Ifc $interface */
+            if ($interface->getLabel() === $ifcLabel) {
+                return $interface;
+            }
+        }
+        
+        throw new Exception("Interface with label '{$ifcLabel}' is not defined", 500);
+    }
+
+    /**
+     * Returns all interfaces that are public (i.e. not assigned to a role)
+     *
+     * @return \Ampersand\Interfacing\Ifc[]
+     */
+    public function getPublicInterfaces(): array
+    {
+        return array_values(array_filter($this->getAllInterfaces(), function (Ifc $ifc) {
+            return $ifc->isPublic();
+        }));
+    }
+
+    /**********************************************************************************************
+     * MISC
+    **********************************************************************************************/
     /**
      * Write new checksum file of generated model
      *
