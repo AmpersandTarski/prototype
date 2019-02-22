@@ -35,6 +35,13 @@ class Model
     private $logger;
 
     /**
+     * Specifies if Model is initialized (i.e. all definitions are loaded from the json files)
+     *
+     * @var bool
+     */
+    protected $initialized = false;
+
+    /**
      * Directory where Ampersand model is generated in
      *
      * @var string
@@ -60,14 +67,14 @@ class Model
      *
      * @var \Ampersand\Core\Relation[]
      */
-    protected $relations = null;
+    protected $relations = [];
 
     /**
      * List with all defined interfaces in this Ampersand model
      *
      * @var \Ampersand\Interfacing\Ifc[]
      */
-    protected $interfaces = null;
+    protected $interfaces = [];
 
     /**
      * Constructor
@@ -116,6 +123,8 @@ class Model
     {
         $this->loadRelations(Logger::getLogger('CORE'), $app);
         $this->loadInterfaces($app->getDefaultStorage());
+
+        $this->initialized = true;
         return $this;
     }
 
@@ -160,8 +169,8 @@ class Model
      */
     public function getRelations(): array
     {
-        if (!isset($this->relations)) {
-            throw new Exception("Relation definitions are not loaded yet", 500);
+        if (!$this->initialized) {
+            throw new Exception("Ampersand model is not yet initialized", 500);
         }
          
         return $this->relations;
@@ -179,8 +188,8 @@ class Model
      */
     public function getRelation($relationSignature, Concept $srcConcept = null, Concept $tgtConcept = null): Relation
     {
-        if (!isset($this->relations)) {
-            throw new Exception("Relation definitions are not loaded yet", 500);
+        if (!$this->initialized) {
+            throw new Exception("Ampersand model is not yet initialized", 500);
         }
         
         // If relation can be found by its fullRelationSignature return the relation
@@ -224,8 +233,8 @@ class Model
      */
     public function getAllInterfaces(): array
     {
-        if (!isset($this->interfaces)) {
-            throw new Exception("Interface definitions not loaded yet", 500);
+        if (!$this->initialized) {
+            throw new Exception("Ampersand model is not yet initialized", 500);
         }
         
         return $this->interfaces;
