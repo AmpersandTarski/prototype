@@ -17,6 +17,8 @@ use Ampersand\Core\Relation;
 use Ampersand\Core\Concept;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Plugs\IfcPlugInterface;
+use Ampersand\Rule\Rule;
+use Ampersand\Plugs\ViewPlugInterface;
 
 /**
  *
@@ -77,6 +79,13 @@ class Model
     protected $interfaces = [];
 
     /**
+     * List with all defined rules in this Ampersand model
+     *
+     * @var \Ampersand\Rule\Rule[]
+     */
+    protected $rules = [];
+
+    /**
      * Constructor
      *
      * @param string $folder directory where Ampersand model is generated in
@@ -123,6 +132,7 @@ class Model
     {
         $this->loadRelations(Logger::getLogger('CORE'), $app);
         $this->loadInterfaces($app->getDefaultStorage());
+        $this->loadRules($app->getDefaultStorage(), $app, Logger::getLogger('RULEENGINE'));
 
         $this->initialized = true;
         return $this;
@@ -154,6 +164,33 @@ class Model
         foreach ($allInterfaceDefs as $ifcDef) {
             $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['interfaceRoles'], $ifcDef['ifcObject'], $defaultPlug, $this);
             $this->interfaces[$ifc->getId()] = $ifc;
+        }
+    }
+
+    /**
+     * Import all rule definitions from json file and instantiate Rule objects
+     *
+     * @param \Ampersand\Plugs\ViewPlugInterface $defaultPlug
+     * @param \Ampersand\AmpersandApp $app
+     * @param \Psr\Log\LoggerInterface $logger
+     * @return void
+     */
+    public function loadRules(ViewPlugInterface $defaultPlug, AmpersandApp $app, LoggerInterface $logger)
+    {
+        $this->rules = [];
+
+        $allRuleDefs = (array) json_decode(file_get_contents($this->modelFiles['rules']), true);
+        
+        // Signal rules
+        foreach ($allRuleDefs['signals'] as $ruleDef) {
+            $rule = new Rule($ruleDef, $defaultPlug, 'signal', $app, $logger);
+            $this->rules[$rule->getId()] = $rule;
+        }
+        
+        // Invariant rules
+        foreach ($allRuleDefs['invariants'] as $ruleDef) {
+            $rule = new Rule($ruleDef, $defaultPlug, 'invariant', $app, $logger);
+            $this->rules[$rule->getId()] = $rule;
         }
     }
 
@@ -301,6 +338,60 @@ class Model
         }));
     }
 
+    /**********************************************************************************************
+     * RULES
+    **********************************************************************************************/
+    /**
+     * Get list with all rules
+     *
+     * @return Rule[]
+     */
+    public function getAllRules(string $type = null): array
+    {
+        if (!$this->initialized) {
+            throw new Exception("Ampersand model is not yet initialized", 500);
+        }
+
+        switch ($type) {
+            case null: // all rules
+                return $this->rules;
+                break;
+            case 'signal': // all signal rules
+                return array_values(array_filter($this->rules, function (Rule $rule) {
+                    return $rule->isSignalRule();
+                }));
+                break;
+            case 'invariant': // all invariant rules
+                return array_values(array_filter($this->rules, function (Rule $rule) {
+                    return $rule->isInvariantRule();
+                }));
+                break;
+            default:
+                throw new Exception("Specified rule type is wrong", 500);
+                break;
+        }
+    }
+
+    /**
+     * Get rule with a given rule name
+     *
+     * @param string $ruleName
+     * @throws Exception if rule is not defined
+     * @return \Ampersand\Rule\Rule
+     */
+    public function getRule($ruleName): Rule
+    {
+        if (!$this->initialized) {
+            throw new Exception("Ampersand model is not yet initialized", 500);
+        }
+
+        if (!array_key_exists($ruleName, $this->rules)) {
+            throw new Exception("Rule '{$ruleName}' is not defined", 500);
+        }
+
+        return $this->rules[$ruleName];
+    }
+    
     /**********************************************************************************************
      * MISC
     **********************************************************************************************/

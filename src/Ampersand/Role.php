@@ -8,7 +8,6 @@
 namespace Ampersand;
 
 use Exception;
-use Ampersand\Rule\Rule;
 use Ampersand\Model;
 
 /**
@@ -62,7 +61,7 @@ class Role
         $this->label = $roleDef['name'];
         
         foreach ((array)$roleDef['maintains'] as $ruleName) {
-            $this->maintains[] = Rule::getRule($ruleName);
+            $this->maintains[] = $model->getRule($ruleName);
         }
         
         foreach ($roleDef['interfaces'] as $ifcId) {

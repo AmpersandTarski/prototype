@@ -20,14 +20,6 @@ use Psr\Log\LoggerInterface;
  */
 class Rule
 {
-
-    /**
-     * List of all rules
-     *
-     * @var \Ampersand\Rule\Rule[]
-     */
-    private static $allRules;
-    
     /**
      * Logger
      *
@@ -121,7 +113,6 @@ class Rule
     
     /**
      * Rule constructor
-     * Private function to prevent outside instantiation. Use Rule::getRule($ruleName)
      *
      * @param array $ruleDef
      * @param \Ampersand\Plugs\ViewPlugInterface $plug
@@ -129,7 +120,7 @@ class Rule
      * @param \Ampersand\AmpersandApp $app
      * @param \Psr\Log\LoggerInterface $logger
     */
-    private function __construct(array $ruleDef, ViewPlugInterface $plug, string $type, AmpersandApp $app, LoggerInterface $logger)
+    public function __construct(array $ruleDef, ViewPlugInterface $plug, string $type, AmpersandApp $app, LoggerInterface $logger)
     {
         $this->logger = $logger;
         $this->ampersandApp = $app;
@@ -263,101 +254,6 @@ class Rule
             $this->logger->error("Error while evaluating rule '{$this}': {$e->getMessage()}");
             $this->ampersandApp->userLog()->error("Error while evaluating rule");
             return [];
-        }
-    }
-    
-    /**********************************************************************************************
-     *
-     * Static functions
-     *
-     *********************************************************************************************/
-
-    /**
-     * Get rule with a given rule name
-     *
-     * @param string $ruleName
-     * @throws Exception if rule is not defined
-     * @return Rule
-     */
-    public static function getRule($ruleName): Rule
-    {
-        if (!array_key_exists($ruleName, $rules = self::getAllRules())) {
-            throw new Exception("Rule '{$ruleName}' is not defined", 500);
-        }
-
-        return $rules[$ruleName];
-    }
-    
-    /**
-     * Get list with all invariant rules
-     *
-     * @return Rule[]
-     */
-    public static function getAllInvRules(): array
-    {
-        $invRules = [];
-        foreach (self::getAllRules() as $rule) {
-            if ($rule->type === 'invariant') {
-                $invRules[] = $rule;
-            }
-        }
-        return $invRules;
-    }
-    
-    /**
-     * Get list with all signal rules
-     * @return Rule[]
-     */
-    public static function getAllSigRules(): array
-    {
-        $sigRules = [];
-        foreach (self::getAllRules() as $rule) {
-            if ($rule->type === 'signal') {
-                $sigRules[] = $rule;
-            }
-        }
-        return $sigRules;
-    }
-
-    /**
-     * Get list with all rules
-     *
-     * @return Rule[]
-     */
-    public static function getAllRules(): array
-    {
-        if (!isset(self::$allRules)) {
-            throw new Exception("Rule definitions not loaded yet", 500);
-        }
-         
-        return self::$allRules;
-    }
-
-    /**
-     * Import all rule definitions from json file and instantiate Rule objects
-     *
-     * @param string $fileName containing the Ampersand rule definitions
-     * @param \Ampersand\Plugs\ViewPlugInterface $defaultPlug
-     * @param \Ampersand\AmpersandApp $app
-     * @param \Psr\Log\LoggerInterface $logger
-     * @return void
-     */
-    public static function setAllRules(string $fileName, ViewPlugInterface $defaultPlug, AmpersandApp $app, LoggerInterface $logger)
-    {
-        self::$allRules = [];
-
-        $allRuleDefs = (array) json_decode(file_get_contents($fileName), true);
-        
-        // Signal rules
-        foreach ($allRuleDefs['signals'] as $ruleDef) {
-            $rule = new Rule($ruleDef, $defaultPlug, 'signal', $app, $logger);
-            self::$allRules[$rule->id] = $rule;
-        }
-        
-        // Invariant rules
-        foreach ($allRuleDefs['invariants'] as $ruleDef) {
-            $rule = new Rule($ruleDef, $defaultPlug, 'invariant', $app, $logger);
-            self::$allRules[$rule->id] = $rule;
         }
     }
 }

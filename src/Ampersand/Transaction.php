@@ -168,7 +168,7 @@ class Transaction
         $runCounter = 0;
 
         // Rules to check
-        $rulesToCheck = $checkAllRules ? Rule::getAllRules() : $this->getAffectedRules();
+        $rulesToCheck = $checkAllRules ? $this->app->getModel()->getAllRules() : $this->getAffectedRules();
 
         // Do run exec engines while there is work to do
         do {
@@ -484,7 +484,7 @@ class Transaction
         $affectedRuleNames = array_unique($affectedRuleNames);
 
         return array_map(function (string $ruleName): Rule {
-            return Rule::getRule($ruleName);
+            return $this->app->getModel()->getRule($ruleName);
         }, $affectedRuleNames);
     }
 

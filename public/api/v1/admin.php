@@ -2,7 +2,6 @@
 
 use Ampersand\Log\Logger;
 use Ampersand\Rule\Conjunct;
-use Ampersand\Rule\Rule;
 use Ampersand\Rule\RuleEngine;
 use Ampersand\IO\Importer;
 use Ampersand\IO\ExcelImporter;
@@ -147,10 +146,10 @@ $api->group('/admin', function () {
             $conj->evaluate()->persistCacheItem();
         }
         
-        foreach (RuleEngine::getViolations(Rule::getAllInvRules()) as $violation) {
+        foreach (RuleEngine::getViolations($ampersandApp->getModel()->getAllRules('invariant')) as $violation) {
             $ampersandApp->userLog()->invariant($violation);
         }
-        foreach (RuleEngine::getViolations(Rule::getAllSigRules()) as $violation) {
+        foreach (RuleEngine::getViolations($ampersandApp->getModel()->getAllRules('signal')) as $violation) {
             $ampersandApp->userLog()->signal($violation);
         }
         

@@ -20,7 +20,6 @@ use Ampersand\Log\Logger;
 use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\View;
-use Ampersand\Rule\Rule;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
@@ -194,7 +193,6 @@ class AmpersandApp
             View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
             Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
             $this->model->init($this);
-            Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, $this, Logger::getLogger('RULEENGINE'));
             Role::setAllRoles($genericsFolder . 'roles.json', $this->model);
 
             // Add concept plugs
