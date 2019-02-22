@@ -284,23 +284,5 @@ class Ifc
         }));
     }
     
-    /**
-     * Import all interface object definitions from json file and instantiate interfaces
-     *
-     * @param string $fileName containing the Ampersand interface definitions
-     * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
-     * @param \Ampersand\Model $model
-     * @return void
-     */
-    public static function setAllInterfaces(string $fileName, IfcPlugInterface $defaultPlug, Model $model)
-    {
-        self::$allInterfaces = [];
-        
-        $allInterfaceDefs = (array)json_decode(file_get_contents($fileName), true);
-        
-        foreach ($allInterfaceDefs as $ifcDef) {
-            $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['interfaceRoles'], $ifcDef['ifcObject'], $defaultPlug, $model);
-            self::$allInterfaces[$ifc->getId()] = $ifc;
-        }
-    }
+    
 }

@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Ampersand\Log\Logger;
 use Ampersand\Core\Relation;
 use Ampersand\Core\Concept;
+use Ampersand\Interfacing\Ifc;
+use Ampersand\Plugs\IfcPlugInterface;
 
 /**
  *
@@ -61,6 +63,13 @@ class Model
     protected $relations = null;
 
     /**
+     * List with all defined interfaces in this Ampersand model
+     *
+     * @var \Ampersand\Interfacing\Ifc[]
+     */
+    protected $interfaces = null;
+
+    /**
      * Constructor
      *
      * @param string $folder directory where Ampersand model is generated in
@@ -99,9 +108,14 @@ class Model
         }
     }
 
+    /**********************************************************************************************
+     * INITIALIZATION
+    **********************************************************************************************/
+
     public function init(AmpersandApp $app): Model
     {
         $this->loadRelations(Logger::getLogger('CORE'), $app);
+        $this->loadInterfaces($app->getDefaultStorage());
         return $this;
     }
 
@@ -116,6 +130,27 @@ class Model
             $this->relations[$relation->signature] = $relation;
         }
     }
+
+    /**
+     * Import all interface object definitions from json file and instantiate interfaces
+     *
+     * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
+     * @return void
+     */
+    public function loadInterfaces(IfcPlugInterface $defaultPlug)
+    {
+        $allInterfaceDefs = (array)json_decode(file_get_contents($this->modelFiles['interfaces']), true);
+        
+        $this->interfaces = [];
+        foreach ($allInterfaceDefs as $ifcDef) {
+            $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['interfaceRoles'], $ifcDef['ifcObject'], $defaultPlug, $this);
+            $this->interfaces[$ifc->getId()] = $ifc;
+        }
+    }
+
+    /**********************************************************************************************
+     * RELATIONS
+    **********************************************************************************************/
 
     /**
      * Returns list of all relation definitions

@@ -194,7 +194,6 @@ class AmpersandApp
             View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
             Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
             $this->model->init($this);
-            Ifc::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage, $this->model);
             Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, $this, Logger::getLogger('RULEENGINE'));
             Role::setAllRoles($genericsFolder . 'roles.json');
 
@@ -267,6 +266,11 @@ class AmpersandApp
     {
         $this->customRelationPlugs[$relSignature][] = $plug;
         $this->registerStorage($plug);
+    }
+
+    public function getDefaultStorage(): MysqlDB
+    {
+        return $this->defaultStorage;
     }
 
     /**
