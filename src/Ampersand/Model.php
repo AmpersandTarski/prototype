@@ -19,6 +19,7 @@ use Ampersand\Interfacing\Ifc;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Rule\Rule;
 use Ampersand\Plugs\ViewPlugInterface;
+use Ampersand\Role;
 
 /**
  *
@@ -86,6 +87,13 @@ class Model
     protected $rules = [];
 
     /**
+     * List with all defined roles in this Ampersand model
+     *
+     * @var \Ampersand\Role[]
+     */
+    protected $roles = [];
+
+    /**
      * Constructor
      *
      * @param string $folder directory where Ampersand model is generated in
@@ -133,6 +141,7 @@ class Model
         $this->loadRelations(Logger::getLogger('CORE'), $app);
         $this->loadInterfaces($app->getDefaultStorage());
         $this->loadRules($app->getDefaultStorage(), $app, Logger::getLogger('RULEENGINE'));
+        $this->loadRoles();
 
         $this->initialized = true;
         return $this;
@@ -191,6 +200,20 @@ class Model
         foreach ($allRuleDefs['invariants'] as $ruleDef) {
             $rule = new Rule($ruleDef, $defaultPlug, 'invariant', $app, $logger);
             $this->rules[$rule->getId()] = $rule;
+        }
+    }
+
+    /**
+     * Import all role definitions from json file and instantiate Role objects
+     *
+     * @return void
+     */
+    public function loadRoles(): void
+    {
+        $allRoleDefs = (array) json_decode(file_get_contents($this->modelFiles['roles']), true);
+        
+        foreach ($allRoleDefs as $roleDef) {
+            $this->roles[$roleDef['name']] = new Role($roleDef, $this);
         }
     }
 
@@ -390,6 +413,59 @@ class Model
         }
 
         return $this->rules[$ruleName];
+    }
+
+    /**********************************************************************************************
+     * ROLES
+    **********************************************************************************************/
+    /**
+     * Returns array with all role objects
+     *
+     * @return \Ampersand\Role[]
+     */
+    public function getAllRoles()
+    {
+        if (!$this->initialized) {
+            throw new Exception("Ampersand model is not yet initialized", 500);
+        }
+         
+        return $this->roles;
+    }
+
+    /**
+     * Return role object
+     *
+     * @param int $roleId
+     * @return \Ampersand\Role
+     */
+    public function getRoleById(int $roleId): Role
+    {
+        if (!is_int($roleId)) {
+            throw new Exception("No valid role id provided. Role id must be an integer", 500);
+        }
+        
+        foreach ($this->getAllRoles() as $role) {
+            if ($role->getId() === $roleId) {
+                return $role;
+            }
+        }
+        
+        throw new Exception("Role with id '{$roleId}' is not defined", 500);
+    }
+    
+    /**
+     * Return role object
+     *
+     * @param string $roleName
+     * @return \Ampersand\Role
+     */
+    public function getRoleByName($roleName): Role
+    {
+        if (!array_key_exists($roleName, $roles = $this->getAllRoles())) {
+            throw new Exception("Role '{$roleName}' is not defined", 500);
+        }
+    
+        return $roles[$roleName];
     }
     
     /**********************************************************************************************

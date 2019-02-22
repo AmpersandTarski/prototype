@@ -13,7 +13,6 @@ use Ampersand\Session;
 use Ampersand\Core\Atom;
 use Exception;
 use Ampersand\Core\Concept;
-use Ampersand\Role;
 use Ampersand\Rule\RuleEngine;
 use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
@@ -193,7 +192,6 @@ class AmpersandApp
             View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
             Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
             $this->model->init($this);
-            Role::setAllRoles($genericsFolder . 'roles.json', $this->model);
 
             // Add concept plugs
             foreach (Concept::getAllConcepts() as $cpt) {
@@ -320,7 +318,7 @@ class AmpersandApp
         foreach ($this->getActiveRoles() as $roleAtom) {
             /** @var \Ampersand\Core\Atom $roleAtom */
             try {
-                $role = Role::getRoleByName($roleAtom->getId());
+                $role = $this->model->getRoleByName($roleAtom->getId());
                 $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $role->interfaces());
                 $this->rulesToMaintain = array_merge($this->rulesToMaintain, $role->maintains());
             } catch (Exception $e) {

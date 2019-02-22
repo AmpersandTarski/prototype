@@ -142,7 +142,7 @@ class Transaction
         $execEngineRoleNames = $this->app->getSettings()->get('execengine.execEngineRoleNames');
         foreach ((array) $execEngineRoleNames as $roleName) {
             try {
-                $role = Role::getRoleByName($roleName);
+                $role = $this->app->getModel()->getRoleByName($roleName);
                 $this->execEngines[] = new ExecEngine($role, $this, $this->app, Logger::getLogger('EXECENGINE'));
             } catch (Exception $e) {
                 $this->logger->warning("ExecEngine role '{$roleName}' configured, but role is not used/defined in &-script");
@@ -248,7 +248,7 @@ class Transaction
     protected function runService(string $serviceId): array
     {
         try {
-            $role = Role::getRoleByName($serviceId);
+            $role = $this->app->getModel()->getRoleByName($serviceId);
         } catch (Exception $e) {
             $this->logger->warning("Transaction::runService is called with role '{$serviceId}', but this role is not used/defined in &-script");
         }
