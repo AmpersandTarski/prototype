@@ -24,13 +24,6 @@ use Ampersand\Interfacing\InterfaceTxtObject;
 class Ifc
 {
     /**
-     * Contains all interface definitions
-     *
-     * @var \Ampersand\Interfacing\Ifc[]
-     */
-    protected static $allInterfaces;
-
-    /**
      * Interface id (i.e. escaped name) to use for referencing
      *
      * @var string
