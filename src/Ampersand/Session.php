@@ -12,7 +12,6 @@ use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
 use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
-use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\ResourceList;
 
@@ -273,7 +272,7 @@ class Session
      */
     public function getSessionVars()
     {
-        if (Ifc::interfaceExists('SessionVars')) {
+        if ($this->ampersandApp->getModel()->interfaceExists('SessionVars')) {
             try {
                 $this->logger->debug("Getting interface 'SessionVars' for {$this->sessionAtom}");
                 return ResourceList::makeFromInterface($this->id, 'SessionVars')->get(Options::INCLUDE_NOTHING);

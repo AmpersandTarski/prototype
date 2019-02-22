@@ -99,7 +99,7 @@ class Reporter
         return $this;
     }
 
-    public function reportInterfaceDefinitions(string $format): Reporter
+    public function reportInterfaceDefinitions(array $interfaces, string $format): Reporter
     {
         $content = array_map(function (Ifc $ifc) {
             $ifcDetails =
@@ -118,7 +118,7 @@ class Reporter
                 $ifcDetails[$roleName] = true;
             }
             return $ifcDetails;
-        }, Ifc::getAllInterfaces());
+        }, $interfaces);
 
         $this->write($format, array_values($content));
 
@@ -132,10 +132,10 @@ class Reporter
      * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportInterfaceObjectDefinitions(string $format): Reporter
+    public function reportInterfaceObjectDefinitions(array $interfaces, string $format): Reporter
     {
         $content = [];
-        foreach (Ifc::getAllInterfaces() as $key => $ifc) {
+        foreach ($interfaces as $ifc) {
             /** @var \Ampersand\Interfacing\Ifc $ifc */
             $content = array_merge($content, $ifc->getIfcObject()->getIfcObjFlattened());
         }
@@ -156,10 +156,10 @@ class Reporter
      * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportInterfaceIssues(string $format): Reporter
+    public function reportInterfaceIssues(array $interfaces, string $format): Reporter
     {
         $content = [];
-        foreach (Ifc::getAllInterfaces() as $interface) {
+        foreach ($interfaces as $interface) {
             /** @var \Ampersand\Interfacing\Ifc $interface */
             foreach ($interface->getIfcObject()->getIfcObjFlattened() as $ifcObj) {
                 /** @var InterfaceObjectInterface $ifcObj */

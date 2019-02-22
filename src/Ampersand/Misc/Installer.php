@@ -9,7 +9,6 @@ namespace Ampersand\Misc;
 
 use Ampersand\AmpersandApp;
 use Ampersand\Core\Atom;
-use Ampersand\Interfacing\Ifc;
 use Ampersand\IO\Importer;
 use Ampersand\Model;
 use Exception;
@@ -122,7 +121,7 @@ class Installer
         }
 
         // Add interfaces
-        foreach (Ifc::getAllInterfaces() as $ifc) {
+        foreach ($this->ampersandApp->getModel()->getAllInterfaces() as $ifc) {
             /** @var \Ampersand\Interfacing\Ifc $ifc */
             $ifcAtom = Atom::makeAtom($ifc->getId(), 'PF_Interface')->add();
             $ifcAtom->link($ifc->getLabel(), 'label[PF_Interface*PF_Label]')->add();
@@ -151,7 +150,7 @@ class Installer
         $mainMenu->link($mainMenu, 'isVisible[PF_NavMenuItem*PF_NavMenuItem]')->add(); // make visible by default
         $mainMenu->link($mainMenu, 'isPartOf[PF_NavMenuItem*PF_NavMenu]')->add();
         $i = '0';
-        foreach (Ifc::getAllInterfaces() as $ifc) {
+        foreach ($this->ampersandApp->getModel()->getAllInterfaces() as $ifc) {
             /** @var \Ampersand\Interfacing\Ifc $ifc */
             // Skip API and non-readable interfaces
             if ($ifc->isAPI() || !$ifc->getIfcObject()->crudR()) {

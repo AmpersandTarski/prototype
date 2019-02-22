@@ -9,7 +9,7 @@ namespace Ampersand;
 
 use Exception;
 use Ampersand\Rule\Rule;
-use Ampersand\Interfacing\Ifc;
+use Ampersand\Model;
 
 /**
  *
@@ -54,8 +54,9 @@ class Role
      * Use Role::getRoleById($roleId) or Role::getRoleByName($roleName)
      *
      * @param array $roleDef
+     * @param \Ampersand\Model $model
      */
-    private function __construct($roleDef)
+    private function __construct($roleDef, Model $model)
     {
         $this->id = $roleDef['id'];
         $this->label = $roleDef['name'];
@@ -65,7 +66,7 @@ class Role
         }
         
         foreach ($roleDef['interfaces'] as $ifcId) {
-            $this->interfaces[] = Ifc::getInterface($ifcId);
+            $this->interfaces[] = $model->getInterface($ifcId);
         }
     }
     
@@ -158,16 +159,17 @@ class Role
      * Import all role definitions from json file and instantiate Role objects
      *
      * @param string $fileName containing the Ampersand role definitions
+     * @param \Ampersand\Model $model
      * @return void
      */
-    public static function setAllRoles(string $fileName)
+    public static function setAllRoles(string $fileName, Model $model)
     {
         self::$allRoles = [];
 
         $allRoleDefs = (array) json_decode(file_get_contents($fileName), true);
         
         foreach ($allRoleDefs as $roleDef) {
-            self::$allRoles[$roleDef['name']] = new Role($roleDef);
+            self::$allRoles[$roleDef['name']] = new Role($roleDef, $model);
         }
     }
 }

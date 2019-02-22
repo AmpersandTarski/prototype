@@ -286,9 +286,9 @@ $api->group('/admin/report', function () {
         // Get report
         $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
         if ($details) {
-            $reporter->reportInterfaceObjectDefinitions('csv');
+            $reporter->reportInterfaceObjectDefinitions($ampersandApp->getModel()->getAllInterfaces(), 'csv');
         } else {
-            $reporter->reportInterfaceDefinitions('csv');
+            $reporter->reportInterfaceDefinitions($ampersandApp->getModel()->getAllInterfaces(), 'csv');
         }
 
         // Set response headers
@@ -306,7 +306,7 @@ $api->group('/admin/report', function () {
 
         // Get report
         $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
-        $reporter->reportInterfaceIssues('csv');
+        $reporter->reportInterfaceIssues($ampersandApp->getModel()->getAllInterfaces(), 'csv');
 
         // Set response headers
         $filename = $ampersandApp->getName() . "_interface-issues_" . date('Y-m-d\TH-i-s') . ".csv";

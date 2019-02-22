@@ -260,7 +260,9 @@ class ResourceList
      */
     public static function makeFromInterface(string $srcAtomId, string $ifcIdOrLabel): ResourceList
     {
-        $ifc = Ifc::getInterface($ifcIdOrLabel, true);
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
+        $ifc = $ampersandApp->getModel()->getInterface($ifcIdOrLabel, true);
         $srcAtom = new Atom($srcAtomId, $ifc->getSrcConcept());
 
         // Same as in InterfaceNullObject::buildResourcePath()

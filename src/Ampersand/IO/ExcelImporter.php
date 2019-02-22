@@ -58,7 +58,7 @@ class ExcelImporter
             /** @var \PHPExcel_Worksheet $worksheet */
             try {
                 // First check if there is an interface with the same id as the worksheet
-                $ifc = Ifc::getInterfaceByLabel($worksheet->getTitle());
+                $ifc = $this->ampersandApp->getModel()->getInterfaceByLabel($worksheet->getTitle());
             } catch (Exception $e) {
                 $this->logger->notice("No interface found with name as title of worksheet '{$worksheet->getTitle()}'. Parsing file without interface");
                 $this->parseWorksheet($worksheet); // Older two-header-row format

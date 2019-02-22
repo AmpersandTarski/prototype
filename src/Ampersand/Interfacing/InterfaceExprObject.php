@@ -164,20 +164,28 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     protected $subInterfaces = [];
 
     /**
+     * Interface of which this object is part of
+     *
+     * @var \Ampersand\Interfacing\Ifc
+     */
+    protected $rootIfc;
+
+    /**
      * Constructor
      *
      * @param array $ifcDef Interface object definition as provided by Ampersand generator
      * @param \Ampersand\Plugs\IfcPlugInterface $plug
-     * @param \Ampersand\Interfacing\Ifc $interface
+     * @param \Ampersand\Interfacing\Ifc $rootIfc
      * @param \Ampersand\Interfacing\InterfaceObjectInterface|null $parent
      */
-    public function __construct(array $ifcDef, IfcPlugInterface $plug, Ifc $interface, InterfaceObjectInterface $parent = null)
+    public function __construct(array $ifcDef, IfcPlugInterface $plug, Ifc $rootIfc, InterfaceObjectInterface $parent = null)
     {
         if ($ifcDef['type'] != 'ObjExpression') {
             throw new Exception("Provided interface definition is not of type ObjExpression", 500);
         }
 
         $this->plug = $plug;
+        $this->rootIfc = $rootIfc;
         
         // Set attributes from $ifcDef
         $this->id = $ifcDef['id'];
@@ -187,7 +195,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $this->path = is_null($parent) ? $this->label : "{$parent->getPath()}/{$this->label}"; // Use label, because path is only used for human readable purposes (e.g. Exception messages)
         
         // Information about the (editable) relation if applicable
-        $this->relation = is_null($ifcDef['relation']) ? null : $interface->getModel()->getRelation($ifcDef['relation']);
+        $this->relation = is_null($ifcDef['relation']) ? null : $rootIfc->getModel()->getRelation($ifcDef['relation']);
         $this->relationIsFlipped = $ifcDef['relationIsFlipped'];
         
         // Interface expression information
@@ -221,7 +229,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             
             // Inline subinterface definitions
             foreach ((array)$ifcDef['subinterfaces']['ifcObjects'] as $subIfcDef) {
-                $subifc = $interface->newObject($subIfcDef, $this->plug, $this);
+                $subifc = $rootIfc->newObject($subIfcDef, $this->plug, $this);
                 $this->subInterfaces[$subifc->getIfcId()] = $subifc;
             }
         }
@@ -333,7 +341,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     protected function getRefToIfc(): Ifc
     {
         if ($this->isRef()) {
-            return Ifc::getInterface($this->refInterfaceId);
+            return $this->rootIfc->getModel()->getInterface($this->refInterfaceId);
         } else {
             throw new Exception("Interface is not a reference interface: " . $this->getPath(), 500);
         }

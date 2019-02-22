@@ -195,7 +195,7 @@ class AmpersandApp
             Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
             $this->model->init($this);
             Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, $this, Logger::getLogger('RULEENGINE'));
-            Role::setAllRoles($genericsFolder . 'roles.json');
+            Role::setAllRoles($genericsFolder . 'roles.json', $this->model);
 
             // Add concept plugs
             foreach (Concept::getAllConcepts() as $cpt) {
@@ -316,7 +316,7 @@ class AmpersandApp
     protected function setInterfacesAndRules(): AmpersandApp
     {
         // Add public interfaces
-        $this->accessibleInterfaces = Ifc::getPublicInterfaces();
+        $this->accessibleInterfaces = $this->model->getPublicInterfaces();
 
         // Add interfaces and rules for all active session roles
         foreach ($this->getActiveRoles() as $roleAtom) {
