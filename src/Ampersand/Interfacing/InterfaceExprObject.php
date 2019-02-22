@@ -222,7 +222,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             
             // Inline subinterface definitions
             foreach ((array)$ifcDef['subinterfaces']['ifcObjects'] as $subIfcDef) {
-                $subifc = InterfaceObjectFactory::newObject($subIfcDef, $this->plug, $model, $this);
+                $subifc = Ifc::newObject($subIfcDef, $this->plug, $model, $this);
                 $this->subInterfaces[$subifc->getIfcId()] = $subifc;
             }
         }

@@ -7,12 +7,14 @@
 
 namespace Ampersand\Interfacing;
 
-use Ampersand\Interfacing\InterfaceObjectFactory;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Plugs\IfcPlugInterface;
 use Exception;
 use Ampersand\Core\Concept;
 use Ampersand\Model;
+use Ampersand\Interfacing\InterfaceNullObject;
+use Ampersand\Interfacing\InterfaceExprObject;
+use Ampersand\Interfacing\InterfaceTxtObject;
 
 /**
  *
@@ -81,7 +83,7 @@ class Ifc
         $this->label = $label;
         $this->isAPI = $isAPI;
         $this->ifcRoleNames = $ifcRoleNames;
-        $this->ifcObject = InterfaceObjectFactory::newExprObject($objectDef, $defaultPlug, $model);
+        $this->ifcObject = self::newExprObject($objectDef, $defaultPlug, $model);
     }
 
     public function __toString(): string
@@ -149,6 +151,39 @@ class Ifc
     public function setRoleNames(array $ifcRoleNames): void
     {
         $this->ifcRoleNames = $ifcRoleNames;
+    }
+
+    /**********************************************************************************************
+     * FACTORY METHODS FOR INTERFACE OBJECTS
+    **********************************************************************************************/
+
+    public static function newObject(array $objectDef, IfcPlugInterface $defaultPlug, Model $model, InterfaceObjectInterface $parent = null): InterfaceObjectInterface
+    {
+        switch ($objectDef['type']) {
+            case 'ObjExpression':
+                return new InterfaceExprObject($objectDef, $defaultPlug, $model, $parent);
+                break;
+            case 'ObjText':
+                return new InterfaceTxtObject($objectDef, $parent);
+                break;
+            default:
+                throw new Exception("Unsupported/unknown InterfaceObject type specified: '{$objectDef['type']}' is not supported", 500);
+                break;
+        }
+    }
+
+    public static function newExprObject(array $objectDef, IfcPlugInterface $defaultPlug, Model $model, InterfaceObjectInterface $parent = null): InterfaceExprObject
+    {
+        if ($objectDef['type'] !== 'ObjExpression') {
+            throw new Exception("Interface expression object definition required, but '{$objectDef['type']}' provided.", 500);
+        }
+
+        return self::newObject($objectDef, $defaultPlug, $model, $parent);
+    }
+    
+    public static function getNullObject(string $resourceType): InterfaceObjectInterface
+    {
+        return new InterfaceNullObject($resourceType);
     }
 
     /**********************************************************************************************

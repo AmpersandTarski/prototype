@@ -282,6 +282,6 @@ class ResourceList
     public static function makeWithoutInterface(string $conceptId): ResourceList
     {
         $one = new Atom('ONE', Concept::getConcept('ONE'));
-        return new ResourceList($one, InterfaceObjectFactory::getNullObject($conceptId), '');
+        return new ResourceList($one, Ifc::getNullObject($conceptId), '');
     }
 }
