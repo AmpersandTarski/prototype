@@ -12,6 +12,7 @@ use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Plugs\IfcPlugInterface;
 use Exception;
 use Ampersand\Core\Concept;
+use Ampersand\Model;
 
 /**
  *
@@ -72,14 +73,15 @@ class Ifc
      * @param array $ifcRoleNames
      * @param array $objectDef
      * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
+     * @param \Ampersand\Model $model
      */
-    public function __construct(string $id, string $label, bool $isAPI, array $ifcRoleNames, array $objectDef, IfcPlugInterface $defaultPlug)
+    public function __construct(string $id, string $label, bool $isAPI, array $ifcRoleNames, array $objectDef, IfcPlugInterface $defaultPlug, Model $model)
     {
         $this->id = $id;
         $this->label = $label;
         $this->isAPI = $isAPI;
         $this->ifcRoleNames = $ifcRoleNames;
-        $this->ifcObject = InterfaceObjectFactory::newExprObject($objectDef, $defaultPlug);
+        $this->ifcObject = InterfaceObjectFactory::newExprObject($objectDef, $defaultPlug, $model);
     }
 
     public function __toString(): string
@@ -239,16 +241,17 @@ class Ifc
      *
      * @param string $fileName containing the Ampersand interface definitions
      * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
+     * @param \Ampersand\Model $model
      * @return void
      */
-    public static function setAllInterfaces(string $fileName, IfcPlugInterface $defaultPlug)
+    public static function setAllInterfaces(string $fileName, IfcPlugInterface $defaultPlug, Model $model)
     {
         self::$allInterfaces = [];
         
         $allInterfaceDefs = (array)json_decode(file_get_contents($fileName), true);
         
         foreach ($allInterfaceDefs as $ifcDef) {
-            $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['interfaceRoles'], $ifcDef['ifcObject'], $defaultPlug);
+            $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['interfaceRoles'], $ifcDef['ifcObject'], $defaultPlug, $model);
             self::$allInterfaces[$ifc->getId()] = $ifc;
         }
     }

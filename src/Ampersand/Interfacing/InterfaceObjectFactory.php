@@ -13,6 +13,7 @@ use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\InterfaceNullObject;
 use Ampersand\Interfacing\InterfaceTxtObject;
 use Ampersand\Plugs\IfcPlugInterface;
+use Ampersand\Model;
 
 /**
  *
@@ -21,11 +22,11 @@ use Ampersand\Plugs\IfcPlugInterface;
  */
 class InterfaceObjectFactory
 {
-    public static function newObject(array $objectDef, IfcPlugInterface $defaultPlug, InterfaceObjectInterface $parent = null): InterfaceObjectInterface
+    public static function newObject(array $objectDef, IfcPlugInterface $defaultPlug, Model $model, InterfaceObjectInterface $parent = null): InterfaceObjectInterface
     {
         switch ($objectDef['type']) {
             case 'ObjExpression':
-                return new InterfaceExprObject($objectDef, $defaultPlug, $parent);
+                return new InterfaceExprObject($objectDef, $defaultPlug, $model, $parent);
                 break;
             case 'ObjText':
                 return new InterfaceTxtObject($objectDef, $parent);
@@ -36,13 +37,13 @@ class InterfaceObjectFactory
         }
     }
 
-    public static function newExprObject(array $objectDef, IfcPlugInterface $defaultPlug, InterfaceObjectInterface $parent = null): InterfaceExprObject
+    public static function newExprObject(array $objectDef, IfcPlugInterface $defaultPlug, Model $model, InterfaceObjectInterface $parent = null): InterfaceExprObject
     {
         if ($objectDef['type'] !== 'ObjExpression') {
             throw new Exception("Interface expression object definition required, but '{$objectDef['type']}' provided.", 500);
         }
 
-        return self::newObject($objectDef, $defaultPlug, $parent);
+        return self::newObject($objectDef, $defaultPlug, $model, $parent);
     }
     
     public static function getNullObject(string $resourceType): InterfaceObjectInterface

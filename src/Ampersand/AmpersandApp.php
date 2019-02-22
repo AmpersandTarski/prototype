@@ -194,7 +194,7 @@ class AmpersandApp
             View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
             Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
             $this->model->init($this);
-            Ifc::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage);
+            Ifc::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage, $this->model);
             Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, $this, Logger::getLogger('RULEENGINE'));
             Role::setAllRoles($genericsFolder . 'roles.json');
 

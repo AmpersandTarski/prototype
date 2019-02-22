@@ -19,6 +19,7 @@ use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\AbstractIfcObject;
+use Ampersand\Model;
 
 /**
  *
@@ -168,9 +169,10 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      *
      * @param array $ifcDef Interface object definition as provided by Ampersand generator
      * @param \Ampersand\Plugs\IfcPlugInterface $plug
+     * @param \Ampersand\Model $model
      * @param \Ampersand\Interfacing\InterfaceObjectInterface|null $parent
      */
-    public function __construct(array $ifcDef, IfcPlugInterface $plug, InterfaceObjectInterface $parent = null)
+    public function __construct(array $ifcDef, IfcPlugInterface $plug, Model $model, InterfaceObjectInterface $parent = null)
     {
         if ($ifcDef['type'] != 'ObjExpression') {
             throw new Exception("Provided interface definition is not of type ObjExpression", 500);
@@ -186,7 +188,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $this->path = is_null($parent) ? $this->label : "{$parent->getPath()}/{$this->label}"; // Use label, because path is only used for human readable purposes (e.g. Exception messages)
         
         // Information about the (editable) relation if applicable
-        $this->relation = is_null($ifcDef['relation']) ? null : Relation::getRelation($ifcDef['relation']);
+        $this->relation = is_null($ifcDef['relation']) ? null : $model->getRelation($ifcDef['relation']);
         $this->relationIsFlipped = $ifcDef['relationIsFlipped'];
         
         // Interface expression information
@@ -220,7 +222,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             
             // Inline subinterface definitions
             foreach ((array)$ifcDef['subinterfaces']['ifcObjects'] as $subIfcDef) {
-                $subifc = InterfaceObjectFactory::newObject($subIfcDef, $this->plug, $this);
+                $subifc = InterfaceObjectFactory::newObject($subIfcDef, $this->plug, $model, $this);
                 $this->subInterfaces[$subifc->getIfcId()] = $subifc;
             }
         }
