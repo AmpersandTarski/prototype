@@ -10,7 +10,6 @@ namespace Ampersand\Interfacing;
 use Exception;
 use Ampersand\Core\Relation;
 use Ampersand\Core\Concept;
-use Ampersand\Interfacing\View;
 use Ampersand\Core\Atom;
 use function Ampersand\Misc\isSequential;
 use Ampersand\Plugs\IfcPlugInterface;
@@ -190,7 +189,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // Set attributes from $ifcDef
         $this->id = $ifcDef['id'];
         $this->label = $ifcDef['label'];
-        $this->view = is_null($ifcDef['viewId']) ? null : View::getView($ifcDef['viewId']);
+        $this->view = is_null($ifcDef['viewId']) ? null : $rootIfc->getModel()->getView($ifcDef['viewId']);
         
         $this->path = is_null($parent) ? $this->label : "{$parent->getPath()}/{$this->label}"; // Use label, because path is only used for human readable purposes (e.g. Exception messages)
         

@@ -106,38 +106,4 @@ class View
         }
         throw new Exception("View segment '{$this->label}:{$label}' not found", 500);
     }
-    
-    /**********************************************************************************************
-     *
-     * Static functions
-     *
-     *********************************************************************************************/
-    
-    /**
-     * Return view object
-     * @param string $viewLabel
-     * @throws Exception if view is not defined
-     * @return View
-     */
-    public static function getView($viewLabel)
-    {
-        if (!array_key_exists($viewLabel, $views = self::getAllViews())) {
-            throw new Exception("View '{$viewLabel}' is not defined", 500);
-        }
-    
-        return $views[$viewLabel];
-    }
-    
-    /**
-     * Returns array with all view objects
-     * @return View[]
-     */
-    public static function getAllViews()
-    {
-        if (!isset(self::$allViews)) {
-            throw new Exception("View definitions not loaded yet", 500);
-        }
-         
-        return self::$allViews;
-    }
 }

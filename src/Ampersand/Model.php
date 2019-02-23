@@ -502,6 +502,43 @@ class Model
     }
 
     /**********************************************************************************************
+     * VIEWS
+    **********************************************************************************************/
+    /**
+     * Returns array with all view objects
+     *
+     * @return \Ampersand\Interfacing\View[]
+     */
+    public function getAllViews()
+    {
+        if (!$this->initialized) {
+            throw new Exception("Ampersand model is not yet initialized", 500);
+        }
+         
+        return $this->views;
+    }
+
+    /**
+     * Return view object
+     *
+     * @param string $viewLabel
+     * @throws \Exception if view is not defined
+     * @return \Ampersand\Interfacing\View
+     */
+    public function getView($viewLabel): View
+    {
+        if (!$this->initialized) {
+            throw new Exception("Ampersand model is not yet initialized", 500);
+        }
+
+        if (!array_key_exists($viewLabel, $this->views)) {
+            throw new Exception("View '{$viewLabel}' is not defined", 500);
+        }
+    
+        return $this->views[$viewLabel];
+    }
+
+    /**********************************************************************************************
      * RULES
     **********************************************************************************************/
     /**

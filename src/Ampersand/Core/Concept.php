@@ -10,7 +10,6 @@ namespace Ampersand\Core;
 use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTable;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
-use Ampersand\Interfacing\View;
 use Ampersand\Core\Atom;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
@@ -202,7 +201,7 @@ class Concept
         $this->largestConceptId = $conceptDef['largestConcept'];
         
         if (!is_null($conceptDef['defaultViewId'])) {
-            $this->defaultView = View::getView($conceptDef['defaultViewId']);
+            $this->defaultView = $app->getModel()->getView($conceptDef['defaultViewId']);
         }
         
         $this->mysqlConceptTable = new MysqlDBTable($conceptDef['conceptTable']['name']);
@@ -222,7 +221,7 @@ class Concept
      */
     public function setAllAtomsQuery(string $viewId, string $query)
     {
-        $this->defaultView = View::getView($viewId);
+        $this->defaultView = $this->app->getModel()->getView($viewId);
         $this->mysqlConceptTable->allAtomsQuery = $query;
     }
     
