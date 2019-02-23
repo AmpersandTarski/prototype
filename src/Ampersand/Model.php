@@ -194,8 +194,6 @@ class Model
      */
     public function loadConjuncts(LoggerInterface $logger, AmpersandApp $app, MysqlDB $database, CacheItemPoolInterface $cachePool)
     {
-        Conjunct::$conjunctCache = $cachePool;
-        
         $allConjDefs = (array)json_decode(file_get_contents($this->modelFiles['conjuncts']), true);
     
         foreach ($allConjDefs as $conjDef) {

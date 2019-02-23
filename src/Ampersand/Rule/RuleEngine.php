@@ -8,6 +8,7 @@
 namespace Ampersand\Rule;
 
 use Ampersand\Rule\Violation;
+use Generator;
 
 /**
  *
@@ -62,11 +63,45 @@ class RuleEngine
 
         // Return violation
         $violations = [];
-        foreach (Conjunct::getConjunctViolations($conjuncts) as $conjViolation) {
+        foreach (self::getConjunctViolations($conjuncts) as $conjViolation) {
             foreach ($conjunctRuleMap[$conjViolation['conjId']] as $rule) {
                 $violations[] = new Violation($rule, $conjViolation['src'], $conjViolation['tgt']);
             }
         }
         return $violations;
+    }
+
+    /**
+     * Get conjunct violations (if possible from cache) for given set of conjuncts
+     *
+     * @param \Ampersand\Rule\Conjunct[] $conjuncts
+     * @return \Generator
+     */
+    protected static function getConjunctViolations(array $conjuncts = []): Generator
+    {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
+
+        // Foreach conjunct provided, check if there is a hit in cache (i.e. ->isHit())
+        $hits = $nonHits = [];
+        foreach ($conjuncts as $conjunct) {
+            /** @var \Ampersand\Rule\Conjunct $conjunct */
+            if ($ampersandApp->getConjunctCache()->getItem($conjunct->getId())->isHit()) {
+                $hits[] = $conjunct->getId();
+            } else {
+                $nonHits[] = $conjunct;
+            }
+        }
+
+        // For all hits, use CacheItemPoolInterface->getItems()
+        foreach ($ampersandApp->getConjunctCache()->getItems($hits) as $cacheItem) {
+            /** @var \Psr\Cache\CacheItemInterface $cacheItem */
+            yield from $cacheItem->get();
+        }
+
+        // For all non-hits, get violations from Conjunct object
+        foreach ($nonHits as $conjunct) {
+            yield from $conjunct->getViolations();
+        }
     }
 }
