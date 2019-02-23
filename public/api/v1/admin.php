@@ -13,7 +13,6 @@ use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Ampersand\Core\Concept;
-use Ampersand\Core\Atom;
 
 /**
  * @var \Slim\App $api
@@ -46,7 +45,7 @@ $api->group('/admin', function () {
             throw new Exception("No account identifier 'accountId' provided", 400);
         }
 
-        $account = Atom::makeAtom($args['accountId'], 'Account');
+        $account = $ampersandApp->getModel()->getConceptByLabel('Account')->makeAtom($args['accountId']);
 
         $ampersandApp->login($account);
     });
@@ -93,7 +92,7 @@ $api->group('/admin', function () {
         $transaction = $ampersandApp->newTransaction();
 
         foreach ($list as $item) {
-            $atom = Atom::makeAtom($item->oldId, $resourceType);
+            $atom = $ampersandApp->getModel()->getConceptByLabel($resourceType)->makeAtom($item->oldId);
             $atom->rename($item->newId);
         }
         

@@ -293,31 +293,4 @@ class Atom implements JsonSerializable
             return $this->queryData[$colName] ?? null;
         }
     }
-
-    /**********************************************************************************************
-     * Static functions
-     *********************************************************************************************/
-    
-    /**
-     * Factory function for atom object
-     *
-     * @param string $id
-     * @param string $concept (i.e. name of concept as used in &-script)
-     * @return \Ampersand\Core\Atom
-     */
-    public static function makeAtom(string $id, string $concept): Atom
-    {
-        return new Atom($id, Concept::getConceptByLabel($concept));
-    }
-
-    /**
-     * Factory function for new atom object
-     *
-     * @param string $concept (i.e. name of concept as used in &-script)
-     * @return \Ampersand\Core\Atom
-     */
-    public static function makeNewAtom(string $concept): Atom
-    {
-        return Concept::getConceptByLabel($concept)->createNewAtom();
-    }
 }
