@@ -376,7 +376,7 @@ class Concept
         
         $returnArr = [];
         foreach ($specizalizations as $conceptName) {
-            $returnArr[$conceptName] = self::getConcept($conceptName);
+            $returnArr[$conceptName] = $this->app->getModel()->getConcept($conceptName);
         }
         return $returnArr;
     }
@@ -393,7 +393,7 @@ class Concept
 
         $returnArr = [];
         foreach ($generalizations as $conceptName) {
-            $returnArr[$conceptName] = self::getConcept($conceptName);
+            $returnArr[$conceptName] = $this->app->getModel()->getConcept($conceptName);
         }
         return $returnArr;
     }
@@ -429,7 +429,7 @@ class Concept
      */
     public function getLargestConcept()
     {
-        return Concept::getConcept($this->largestConceptId);
+        return $this->app->getModel()->getConcept($this->largestConceptId);
     }
     
     /**

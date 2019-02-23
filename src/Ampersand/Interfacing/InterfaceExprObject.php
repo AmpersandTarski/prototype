@@ -199,8 +199,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $this->relationIsFlipped = $ifcDef['relationIsFlipped'];
         
         // Interface expression information
-        $this->srcConcept = Concept::getConcept($ifcDef['expr']['srcConceptId']);
-        $this->tgtConcept = Concept::getConcept($ifcDef['expr']['tgtConceptId']);
+        $this->srcConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['srcConceptId']);
+        $this->tgtConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['tgtConceptId']);
         $this->isUni = $ifcDef['expr']['isUni'];
         $this->isTot = $ifcDef['expr']['isTot'];
         $this->isIdent = $ifcDef['expr']['isIdent'];

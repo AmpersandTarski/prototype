@@ -14,7 +14,6 @@ use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Ampersand\Core\Concept;
 
 /**
  *
@@ -116,7 +115,7 @@ class Installer
         $model = $this->ampersandApp->getModel();
         // Add roles
         foreach ($model->getAllRoles() as $role) {
-            Concept::getRoleConcept()->makeAtom($role->getLabel())->add();
+            $model->getRoleConcept()->makeAtom($role->getLabel())->add();
         }
 
         // Add interfaces

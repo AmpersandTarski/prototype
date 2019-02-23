@@ -8,7 +8,6 @@
 namespace Ampersand;
 
 use Exception;
-use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
 use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
@@ -97,7 +96,7 @@ class Session
     
     protected function initSessionAtom()
     {
-        $this->sessionAtom = Concept::getSessionConcept()->makeAtom($this->id);
+        $this->sessionAtom = $this->ampersandApp->getModel()->getSessionConcept()->makeAtom($this->id);
         
         // Create a new Ampersand session atom if not yet in SESSION table (i.e. new php session)
         if (!$this->sessionAtom->exists()) {
@@ -106,7 +105,7 @@ class Session
             // If login functionality is not enabled, add all defined roles as allowed roles
             // TODO: can be removed when meat-grinder populates this meta-relation by itself
             if (!$this->settings->get('session.loginEnabled')) {
-                foreach (Concept::getRoleConcept()->getAllAtomObjects() as $roleAtom) {
+                foreach ($this->ampersandApp->getModel()->getRoleConcept()->getAllAtomObjects() as $roleAtom) {
                     $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*PF_Role]')->add();
                     // Activate all allowed roles by default
                     $this->toggleActiveRole($roleAtom, true);

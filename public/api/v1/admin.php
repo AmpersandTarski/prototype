@@ -12,7 +12,6 @@ use Ampersand\Session;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
-use Ampersand\Core\Concept;
 
 /**
  * @var \Slim\App $api
@@ -80,7 +79,7 @@ $api->group('/admin', function () {
         }
         $resourceType = $args['resourceType'];
 
-        if (!Concept::getConcept($resourceType)->isObject()) {
+        if (!$ampersandApp->getModel()->getConcept($resourceType)->isObject()) {
             throw new Exception("Resource type not found", 404);
         }
         

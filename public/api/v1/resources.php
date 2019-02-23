@@ -1,6 +1,5 @@
 <?php
 
-use Ampersand\Core\Concept;
 use Ampersand\Interfacing\Options;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -39,7 +38,7 @@ $api->group('/resource', function () {
         $content = array_values(
             array_map(function ($cpt) {
                 return $cpt->label; // only show label of resource types
-            }, array_filter(Concept::getAllConcepts(), function ($cpt) {
+            }, array_filter($ampersandApp->getModel()->getAllConcepts(), function ($cpt) {
                 return $cpt->isObject(); // filter concepts without a representation (i.e. resource types)
             }))
         );

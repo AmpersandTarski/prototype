@@ -7,7 +7,6 @@
 
 namespace Ampersand\IO;
 
-use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Link;
 use Psr\Log\LoggerInterface;
@@ -57,7 +56,7 @@ class Importer
         $this->logger->debug("Checking if all concepts for which population is provided are defined");
         foreach ($population->atoms as $pop) {
             if (!empty($pop->atoms)) {
-                Concept::getConcept($pop->concept);
+                $this->app->getModel()->getConcept($pop->concept);
             }
         }
         $this->logger->debug("Checking if all relations for which population is provided are defined");
@@ -88,7 +87,7 @@ class Importer
                 continue; // Skip when nothing to import
             }
 
-            $concept = Concept::getConcept($population->concept);
+            $concept = $this->app->getModel()->getConcept($population->concept);
             $total = count($population->atoms);
             $this->logger->debug("Importing {$total} atoms for concept {$concept}");
             

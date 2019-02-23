@@ -193,7 +193,8 @@ class AmpersandApp
             $this->model->init($this);
 
             // Add concept plugs
-            foreach (Concept::getAllConcepts() as $cpt) {
+            foreach ($this->model->getAllConcepts() as $cpt) {
+                /** @var \Ampersand\Core\Concept $cpt */
                 if (array_key_exists($cpt->label, $this->customConceptPlugs)) {
                     foreach ($this->customConceptPlugs[$cpt->label] as $plug) {
                         $cpt->addPlug($plug);
@@ -489,7 +490,8 @@ class AmpersandApp
 
         // Clear caches
         $this->conjunctCache->clear(); // external cache item pool
-        foreach (Concept::getAllConcepts() as $cpt) {
+        foreach ($this->model->getAllConcepts() as $cpt) {
+            /** @var \Ampersand\Core\Concept $cpt */
             $cpt->clearAtomCache(); // local cache in Ampersand code
         }
 
@@ -532,7 +534,7 @@ class AmpersandApp
     {
         foreach ($roles as $role) {
             // Set sessionActiveRoles[SESSION*PF_Role]
-            $this->session->toggleActiveRole(Concept::getRoleConcept()->makeAtom($role->label), $role->active);
+            $this->session->toggleActiveRole($this->model->getRoleConcept()->makeAtom($role->label), $role->active);
         }
         
         // Commit transaction (exec-engine kicks also in)

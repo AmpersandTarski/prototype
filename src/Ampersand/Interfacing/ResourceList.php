@@ -263,7 +263,7 @@ class ResourceList
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
         $ifc = $ampersandApp->getModel()->getInterface($ifcIdOrLabel, true);
-        $srcAtom = new Atom($srcAtomId, $ifc->getSrcConcept());
+        $srcAtom = $ifc->getSrcConcept()->makeAtom($srcAtomId);
 
         // Same as in InterfaceNullObject::buildResourcePath()
         if ($srcAtom->concept->isSession()) {
@@ -283,7 +283,10 @@ class ResourceList
      */
     public static function makeWithoutInterface(Concept $concept): ResourceList
     {
-        $one = new Atom('ONE', Concept::getConcept('ONE'));
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
+
+        $one = $ampersandApp->getModel()->getConcept('ONE')->makeAtom('ONE');
         return new ResourceList($one, Ifc::getNullObject($concept), '');
     }
 }

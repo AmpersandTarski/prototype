@@ -9,7 +9,6 @@ namespace Ampersand\Rule;
 
 use Exception;
 use Ampersand\AmpersandApp;
-use Ampersand\Core\Concept;
 use Ampersand\Plugs\ViewPlugInterface;
 use Psr\Log\LoggerInterface;
 
@@ -131,8 +130,8 @@ class Rule
         $this->origin = $ruleDef['origin'];
         $this->ruleAdl = $ruleDef['ruleAdl'];
         
-        $this->srcConcept = Concept::getConcept($ruleDef['srcConceptId']);
-        $this->tgtConcept = Concept::getConcept($ruleDef['tgtConceptId']);
+        $this->srcConcept = $app->getModel()->getConcept($ruleDef['srcConceptId']);
+        $this->tgtConcept = $app->getModel()->getConcept($ruleDef['tgtConceptId']);
         
         $this->meaning = $ruleDef['meaning'];
         $this->message = $ruleDef['message'];

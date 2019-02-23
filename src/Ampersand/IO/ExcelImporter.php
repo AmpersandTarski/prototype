@@ -4,7 +4,6 @@ namespace Ampersand\IO;
 
 use Exception;
 use Ampersand\Core\Atom;
-use Ampersand\Core\Concept;
 use PHPExcel_Cell;
 use PHPExcel_Shared_Date;
 use PHPExcel_IOFactory;
@@ -96,7 +95,7 @@ class ExcelImporter
         }
 
         // Determine $leftConcept from cell A1
-        $leftConcept = Concept::getConceptByLabel((string)$worksheet->getCell('A1'));
+        $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel((string)$worksheet->getCell('A1'));
         if ($leftConcept !== $ifc->getTgtConcept()) {
             throw new Exception("Target concept of interface '{$ifc->getLabel()}' does not match concept specified in cell {$worksheet->getTitle()}!A1", 400);
         }
@@ -249,7 +248,7 @@ class ExcelImporter
                 }
             // Header line 2 specifies concept names
             } elseif ($i === 2) {
-                $leftConcept = Concept::getConceptByLabel($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue()); // @phan-suppress-current-line PhanDeprecatedFunction
+                $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue()); // @phan-suppress-current-line PhanDeprecatedFunction
 
                 foreach ($row->getCellIterator() as $cell) {
                     /** @var \PHPExcel_Cell $cell */
@@ -267,14 +266,14 @@ class ExcelImporter
                             $this->logger->notice("Skipping column {$col} in sheet {$worksheet->getTitle()}, because header is not complete");
                         // Relation is flipped when last character is a tilde (~)
                         } elseif (substr($line1[$col], -1) === '~') {
-                            $rightConcept = Concept::getConceptByLabel($line2[$col]);
+                            $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
                             
                             $header[$col] = ['concept' => $rightConcept
                                             ,'relation' => $this->ampersandApp->getRelation(substr($line1[$col], 0, -1), $rightConcept, $leftConcept)
                                             ,'flipped' => true
                                             ];
                         } else {
-                            $rightConcept = Concept::getConceptByLabel($line2[$col]);
+                            $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
                             $header[$col] = ['concept' => $rightConcept
                                             ,'relation' => $this->ampersandApp->getRelation($line1[$col], $leftConcept, $rightConcept)
                                             ,'flipped' => false

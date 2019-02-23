@@ -130,8 +130,8 @@ class Relation
         $this->app = $app;
 
         $this->name = $relationDef['name'];
-        $this->srcConcept = Concept::getConcept($relationDef['srcConceptId']);
-        $this->tgtConcept = Concept::getConcept($relationDef['tgtConceptId']);
+        $this->srcConcept = $app->getModel()->getConcept($relationDef['srcConceptId']);
+        $this->tgtConcept = $app->getModel()->getConcept($relationDef['tgtConceptId']);
         
         $this->signature = $relationDef['signature'];
         

@@ -7,7 +7,6 @@
 
 namespace Ampersand\IO;
 
-use Ampersand\Core\Concept;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
@@ -56,7 +55,8 @@ class Exporter
     public function exportAllPopulation(AmpersandApp $app, string $format)
     {
         $conceptPop = [];
-        foreach (Concept::getAllConcepts() as $concept) {
+        foreach ($app->getModel()->getAllConcepts() as $concept) {
+            /** @var \Ampersand\Core\Concept $concept */
             $conceptPop[] = [
                 'concept' => $concept->name,
                 'atoms' => array_map(function (Atom $atom) {
