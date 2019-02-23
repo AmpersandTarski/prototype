@@ -278,12 +278,12 @@ class ResourceList
     /**
      * Instantiate resource list for a given resource type (i.e. concept)
      *
-     * @param string $conceptId
+     * @param \Ampersand\Core\Concept $concept
      * @return \Ampersand\Interfacing\ResourceList
      */
-    public static function makeWithoutInterface(string $conceptId): ResourceList
+    public static function makeWithoutInterface(Concept $concept): ResourceList
     {
         $one = new Atom('ONE', Concept::getConcept('ONE'));
-        return new ResourceList($one, Ifc::getNullObject($conceptId), '');
+        return new ResourceList($one, Ifc::getNullObject($concept), '');
     }
 }

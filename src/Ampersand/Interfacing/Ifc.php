@@ -187,8 +187,8 @@ class Ifc
         return $this->newObject($objectDef, $defaultPlug, $parent);
     }
     
-    public static function getNullObject(string $resourceType): InterfaceObjectInterface
+    public static function getNullObject(Concept $concept): InterfaceObjectInterface
     {
-        return new InterfaceNullObject($resourceType);
+        return new InterfaceNullObject($concept);
     }
 }
