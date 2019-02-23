@@ -24,13 +24,6 @@ use Ampersand\AmpersandApp;
  */
 class Concept
 {
-    /**
-     * Contains all concept definitions
-     *
-     * @var \Ampersand\Core\Concept[]
-     */
-    private static $allConcepts;
-
     protected static $representTypes =
         [ 'ALPHANUMERIC'        => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
         , 'BIGALPHANUMERIC'     => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
@@ -177,13 +170,12 @@ class Concept
     
     /**
      * Concept constructor
-     * Private function to prevent outside instantiation of concepts. Use Concept::getConcept($conceptName)
      *
      * @param array $conceptDef
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Ampersand\AmpersandApp $app
      */
-    private function __construct(array $conceptDef, LoggerInterface $logger, AmpersandApp $app)
+    public function __construct(array $conceptDef, LoggerInterface $logger, AmpersandApp $app)
     {
         $this->logger = $logger;
         $this->app = $app;
@@ -900,23 +892,5 @@ class Concept
         }
         
         return self::$allConcepts;
-    }
-    
-    /**
-     * Import all concept definitions from json file and instantiate Concept objects
-     *
-     * @param string $fileName containing the Ampersand concept definitions
-     * @param \Psr\Log\LoggerInterface $logger
-     * @return void
-     */
-    public static function setAllConcepts(string $fileName, LoggerInterface $logger, AmpersandApp $app)
-    {
-        self::$allConcepts = [];
-        
-        $allConceptDefs = (array)json_decode(file_get_contents($fileName), true);
-    
-        foreach ($allConceptDefs as $conceptDef) {
-            self::$allConcepts[$conceptDef['id']] = new Concept($conceptDef, $logger, $app);
-        }
     }
 }

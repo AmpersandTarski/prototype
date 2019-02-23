@@ -190,7 +190,6 @@ class AmpersandApp
             $genericsFolder = $this->model->getFolder() . '/';
             Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULEENGINE'), $this, $this->defaultStorage, $this->conjunctCache);
             View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
-            Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
             $this->model->init($this);
 
             // Add concept plugs

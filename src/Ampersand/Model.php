@@ -66,6 +66,13 @@ class Model
     protected $modelFiles = [];
 
     /**
+     * List of all defined concepts in this Ampersand model
+     *
+     * @var \Ampersand\Core\Concept[]
+     */
+    protected $concepts = [];
+
+    /**
      * List with all defined relations in this Ampersand model
      *
      * @var \Ampersand\Core\Relation[]
@@ -138,6 +145,7 @@ class Model
 
     public function init(AmpersandApp $app): Model
     {
+        $this->loadConcepts(Logger::getLogger('CORE'), $app);
         $this->loadRelations(Logger::getLogger('CORE'), $app);
         $this->loadInterfaces($app->getDefaultStorage());
         $this->loadRules($app->getDefaultStorage(), $app, Logger::getLogger('RULEENGINE'));
@@ -145,6 +153,22 @@ class Model
 
         $this->initialized = true;
         return $this;
+    }
+
+    /**
+     * Import all concept definitions from json file and instantiate Concept objects
+     *
+     * @param \Psr\Log\LoggerInterface $logger
+     * @param \Ampersand\AmpersandApp $app
+     * @return void
+     */
+    public function loadConcepts(LoggerInterface $logger, AmpersandApp $app): void
+    {
+        $allConceptDefs = (array)json_decode(file_get_contents($this->modelFiles['concepts']), true);
+    
+        foreach ($allConceptDefs as $conceptDef) {
+            $this->concepts[$conceptDef['id']] = new Concept($conceptDef, $logger, $app);
+        }
     }
 
     protected function loadRelations(LoggerInterface $logger, AmpersandApp $app): void
