@@ -11,7 +11,6 @@ use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTable;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 use Ampersand\Interfacing\View;
-use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Atom;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
@@ -191,7 +190,7 @@ class Concept
         }
         
         foreach ((array)$conceptDef['affectedConjuncts'] as $conjId) {
-            $conj = Conjunct::getConjunct($conjId);
+            $conj = $app->getModel()->getConjunct($conjId);
             $this->relatedConjuncts[] = $conj;
         }
         

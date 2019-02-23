@@ -138,7 +138,7 @@ class Rule
         
         // Conjuncts
         foreach ($ruleDef['conjunctIds'] as $conjId) {
-            $this->conjuncts[] = Conjunct::getConjunct($conjId);
+            $this->conjuncts[] = $app->getModel()->getConjunct($conjId);
         }
         
         // Violation segments

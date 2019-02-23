@@ -1,7 +1,6 @@
 <?php
 
 use Ampersand\Log\Logger;
-use Ampersand\Rule\Conjunct;
 use Ampersand\Rule\RuleEngine;
 use Ampersand\IO\Importer;
 use Ampersand\IO\ExcelImporter;
@@ -139,7 +138,7 @@ $api->group('/admin', function () {
             throw new Exception("You do not have access to evaluate all rules", 403);
         }
 
-        foreach (Conjunct::getAllConjuncts() as $conj) {
+        foreach ($ampersandApp->getModel()->getAllConjuncts() as $conj) {
             /** @var \Ampersand\Rule\Conjunct $conj */
             $conj->evaluate()->persistCacheItem();
         }
@@ -245,9 +244,12 @@ $api->group('/admin/report', function () {
      * @phan-closure-scope \Slim\Container
      */
     $this->get('/conjuncts/usage', function (Request $request, Response $response, $args = []) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get report
         $reporter = new Reporter(new JsonEncoder(), $response->getBody());
-        $reporter->reportConjunctUsage('json');
+        $reporter->reportConjunctUsage($ampersandApp->getModel()->getAllConjuncts(), 'json');
 
         // Return reponse
         return $response->withHeader('Content-Type', 'application/json;charset=utf-8');
@@ -262,7 +264,7 @@ $api->group('/admin/report', function () {
 
         // Get report
         $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
-        $reporter->reportConjunctPerformance('csv', Conjunct::getAllConjuncts());
+        $reporter->reportConjunctPerformance('csv', $ampersandApp->getModel()->getAllConjuncts());
         
         // Set response headers
         $filename = $ampersandApp->getName() . "_conjunct-performance_" . date('Y-m-d\TH-i-s') . ".csv";

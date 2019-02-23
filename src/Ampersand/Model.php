@@ -534,6 +534,43 @@ class Model
     }
 
     /**********************************************************************************************
+     * CONJUNCTS
+    **********************************************************************************************/
+    /**
+     * Returns array with all conjunct objects
+     *
+     * @return \Ampersand\Rule\Conjunct[]
+     */
+    public function getAllConjuncts(): array
+    {
+        if (!$this->initialized) {
+            throw new Exception("Ampersand model is not yet initialized", 500);
+        }
+         
+        return $this->conjuncts;
+    }
+
+    /**
+     * Return conjunct object
+     *
+     * @param string $conjId
+     * @throws \Exception if conjunct is not defined
+     * @return \Ampersand\Rule\Conjunct
+     */
+    public function getConjunct($conjId): Conjunct
+    {
+        if (!$this->initialized) {
+            throw new Exception("Ampersand model is not yet initialized", 500);
+        }
+
+        if (!array_key_exists($conjId, $this->conjuncts)) {
+            throw new Exception("Conjunct '{$conjId}' is not defined", 500);
+        }
+    
+        return $this->conjuncts[$conjId];
+    }
+
+    /**********************************************************************************************
      * ROLES
     **********************************************************************************************/
     /**

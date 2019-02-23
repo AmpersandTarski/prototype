@@ -297,34 +297,4 @@ class Conjunct
             yield from $conjunct->getViolations();
         }
     }
-
-    /**
-     * Return conjunct object
-     *
-     * @param string $conjId
-     * @throws Exception if conjunct is not defined
-     * @return \Ampersand\Rule\Conjunct
-     */
-    public static function getConjunct($conjId): Conjunct
-    {
-        if (!array_key_exists($conjId, $conjuncts = self::getAllConjuncts())) {
-            throw new Exception("Conjunct '{$conjId}' is not defined", 500);
-        }
-    
-        return $conjuncts[$conjId];
-    }
-    
-    /**
-     * Returns array with all conjunct objects
-     *
-     * @return \Ampersand\Rule\Conjunct[]
-     */
-    public static function getAllConjuncts(): array
-    {
-        if (!isset(self::$allConjuncts)) {
-            throw new Exception("Conjunct definitions not loaded yet", 500);
-        }
-         
-        return self::$allConjuncts;
-    }
 }

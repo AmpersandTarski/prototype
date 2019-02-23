@@ -8,7 +8,6 @@
 namespace Ampersand\Misc;
 
 use Ampersand\Interfacing\InterfaceObjectInterface;
-use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\Ifc;
 use Psr\Http\Message\StreamInterface;
@@ -178,16 +177,17 @@ class Reporter
 
     /**
      * Write conjunct usage report
-     * Specifies which conjuncts are used by which rules, grouped by invariants,
-     * signals, and unused conjuncts
+     * Specifies which conjuncts are used by which rules, grouped by invariants, signals, and unused conjuncts
      *
+     * @param \Ampersand\Rule\Conjunct[] $conjuncts
      * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportConjunctUsage(string $format): Reporter
+    public function reportConjunctUsage(array $conjuncts, string $format): Reporter
     {
         $content = [];
-        foreach (Conjunct::getAllConjuncts() as $conj) {
+        foreach ($conjuncts as $conj) {
+            /** @var \Ampersand\Rule\Conjunct $conj */
             if ($conj->isInvConj()) {
                 $content['invConjuncts'][] = $conj->__toString();
             }

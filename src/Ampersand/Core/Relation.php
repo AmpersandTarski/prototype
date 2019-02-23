@@ -11,7 +11,6 @@ use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 use Ampersand\Plugs\MysqlDB\MysqlDBRelationTable;
 use Ampersand\Core\Concept;
-use Ampersand\Rule\Conjunct;
 use Ampersand\Plugs\RelationPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
@@ -142,7 +141,7 @@ class Relation
         $this->isProp = $relationDef['prop'];
         
         foreach ((array)$relationDef['affectedConjuncts'] as $conjId) {
-            $conj = Conjunct::getConjunct($conjId);
+            $conj = $app->getModel()->getConjunct($conjId);
             $this->relatedConjuncts[] = $conj;
         }
 

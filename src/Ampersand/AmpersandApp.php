@@ -8,7 +8,6 @@ use Ampersand\Transaction;
 use Ampersand\Plugs\StorageInterface;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Ampersand\Plugs\RelationPlugInterface;
-use Ampersand\Rule\Conjunct;
 use Ampersand\Session;
 use Ampersand\Core\Atom;
 use Exception;
@@ -517,7 +516,7 @@ class AmpersandApp
 
         // Evaluate all conjunct and save cache
         $this->logger->info("Initial evaluation of all conjuncts after application reinstallation");
-        foreach (Conjunct::getAllConjuncts() as $conj) {
+        foreach ($this->model->getAllConjuncts() as $conj) {
             /** @var \Ampersand\Rule\Conjunct $conj */
             $conj->evaluate()->persistCacheItem();
         }
