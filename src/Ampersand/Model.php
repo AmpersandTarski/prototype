@@ -24,6 +24,7 @@ use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Ampersand\AmpersandApp;
 use Ampersand\Rule\Conjunct;
+use Ampersand\Interfacing\View;
 
 /**
  *
@@ -98,6 +99,13 @@ class Model
     protected $interfaces = [];
 
     /**
+     * List of all defined views in this Ampersand model
+     *
+     * @var \Ampersand\Interfacing\View[]
+     */
+    protected $views = [];
+
+    /**
      * List of all defined rules in this Ampersand model
      *
      * @var \Ampersand\Rule\Rule[]
@@ -158,6 +166,7 @@ class Model
     {
         $this->loadConcepts(Logger::getLogger('CORE'), $app);
         $this->loadConjuncts(Logger::getLogger('RULEENGINE'), $app, $app->getDefaultStorage(), $app->getConjunctCache());
+        $this->loadViews($app->getDefaultStorage());
         $this->loadRelations(Logger::getLogger('CORE'), $app);
         $this->loadInterfaces($app->getDefaultStorage());
         $this->loadRules($app->getDefaultStorage(), $app, Logger::getLogger('RULEENGINE'));
@@ -227,6 +236,21 @@ class Model
         foreach ($allInterfaceDefs as $ifcDef) {
             $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['interfaceRoles'], $ifcDef['ifcObject'], $defaultPlug, $this);
             $this->interfaces[$ifc->getId()] = $ifc;
+        }
+    }
+
+    /**
+     * Import all view definitions from json file and instantiate View objects
+     *
+     * @param \Ampersand\Plugs\ViewPlugInterface $defaultPlug
+     * @return void
+     */
+    public function loadViews(ViewPlugInterface $defaultPlug)
+    {
+        $allViewDefs = (array)json_decode(file_get_contents($this->modelFiles['views']), true);
+        
+        foreach ($allViewDefs as $viewDef) {
+            $this->views[$viewDef['label']] = new View($viewDef, $defaultPlug);
         }
     }
 

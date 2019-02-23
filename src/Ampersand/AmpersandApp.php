@@ -17,7 +17,6 @@ use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
 use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
-use Ampersand\Interfacing\View;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
@@ -183,11 +182,6 @@ class AmpersandApp
             }
 
             // Initialize Ampersand model (i.e. load all defintions from generated json files)
-            
-
-            // Instantiate object definitions from generated files
-            $genericsFolder = $this->model->getFolder() . '/';
-            View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
             $this->model->init($this);
 
             // Add concept plugs
