@@ -21,20 +21,12 @@ use Psr\Log\LoggerInterface;
  */
 class Conjunct
 {
-    
-    /**
-     * List of all conjuncts
-     *
-     * @var \Ampersand\Rule\Conjunct[]
-     */
-    private static $allConjuncts;
-
     /**
      * Cache pool that contains conjunct violations
      *
      * @var \Psr\Cache\CacheItemPoolInterface
      */
-    protected static $conjunctCache;
+    public static $conjunctCache;
     
     /**
      * Logger
@@ -108,7 +100,6 @@ class Conjunct
     
     /**
      * Conjunct constructor
-     * Private function to prevent outside instantiation of conjuncts. Use Conjunct::getConjunct($conjId)
      *
      * @param array $conjDef
      * @param \Ampersand\AmpersandApp $app
@@ -116,7 +107,7 @@ class Conjunct
      * @param \Ampersand\Plugs\MysqlDB\MysqlDB $database
      * @param \Psr\Cache\CacheItemPoolInterface $cachePool
      */
-    private function __construct(array $conjDef, AmpersandApp $app, LoggerInterface $logger, MysqlDB $database, CacheItemPoolInterface $cachePool)
+    public function __construct(array $conjDef, AmpersandApp $app, LoggerInterface $logger, MysqlDB $database, CacheItemPoolInterface $cachePool)
     {
         $this->logger = $logger;
         $this->app = $app;
@@ -335,27 +326,5 @@ class Conjunct
         }
          
         return self::$allConjuncts;
-    }
-    
-    /**
-     * Import all role definitions from json file and instantiate Conjunct objects
-     *
-     * @param string $fileName containing the Ampersand conjunct definitions
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Ampersand\AmpersandApp $app
-     * @param \Ampersand\Plugs\MysqlDB\MysqlDB $database
-     * @param \Psr\Cache\CacheItemPoolInterface $cachePool
-     * @return void
-     */
-    public static function setAllConjuncts(string $fileName, LoggerInterface $logger, AmpersandApp $app, MysqlDB $database, CacheItemPoolInterface $cachePool)
-    {
-        self::$allConjuncts = [];
-        self::$conjunctCache = $cachePool;
-        
-        $allConjDefs = (array)json_decode(file_get_contents($fileName), true);
-    
-        foreach ($allConjDefs as $conjDef) {
-            self::$allConjuncts[$conjDef['id']] = new Conjunct($conjDef, $app, $logger, $database, $cachePool);
-        }
     }
 }

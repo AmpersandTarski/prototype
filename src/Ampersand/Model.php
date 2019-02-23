@@ -20,6 +20,10 @@ use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Rule\Rule;
 use Ampersand\Plugs\ViewPlugInterface;
 use Ampersand\Role;
+use Psr\Cache\CacheItemPoolInterface;
+use Ampersand\Plugs\MysqlDB\MysqlDB;
+use Ampersand\AmpersandApp;
+use Ampersand\Rule\Conjunct;
 
 /**
  *
@@ -73,28 +77,35 @@ class Model
     protected $concepts = [];
 
     /**
-     * List with all defined relations in this Ampersand model
+     * List of all defined conjuncts in this Ampersand model
+     *
+     * @var \Ampersand\Rule\Conjunct[]
+     */
+    protected $conjuncts = [];
+
+    /**
+     * List of all defined relations in this Ampersand model
      *
      * @var \Ampersand\Core\Relation[]
      */
     protected $relations = [];
 
     /**
-     * List with all defined interfaces in this Ampersand model
+     * List of all defined interfaces in this Ampersand model
      *
      * @var \Ampersand\Interfacing\Ifc[]
      */
     protected $interfaces = [];
 
     /**
-     * List with all defined rules in this Ampersand model
+     * List of all defined rules in this Ampersand model
      *
      * @var \Ampersand\Rule\Rule[]
      */
     protected $rules = [];
 
     /**
-     * List with all defined roles in this Ampersand model
+     * List of all defined roles in this Ampersand model
      *
      * @var \Ampersand\Role[]
      */
@@ -146,6 +157,7 @@ class Model
     public function init(AmpersandApp $app): Model
     {
         $this->loadConcepts(Logger::getLogger('CORE'), $app);
+        $this->loadConjuncts(Logger::getLogger('RULEENGINE'), $app, $app->getDefaultStorage(), $app->getConjunctCache());
         $this->loadRelations(Logger::getLogger('CORE'), $app);
         $this->loadInterfaces($app->getDefaultStorage());
         $this->loadRules($app->getDefaultStorage(), $app, Logger::getLogger('RULEENGINE'));
@@ -168,6 +180,26 @@ class Model
     
         foreach ($allConceptDefs as $conceptDef) {
             $this->concepts[$conceptDef['id']] = new Concept($conceptDef, $logger, $app);
+        }
+    }
+
+    /**
+     * Import all role definitions from json file and instantiate Conjunct objects
+     *
+     * @param \Psr\Log\LoggerInterface $logger
+     * @param \Ampersand\AmpersandApp $app
+     * @param \Ampersand\Plugs\MysqlDB\MysqlDB $database
+     * @param \Psr\Cache\CacheItemPoolInterface $cachePool
+     * @return void
+     */
+    public function loadConjuncts(LoggerInterface $logger, AmpersandApp $app, MysqlDB $database, CacheItemPoolInterface $cachePool)
+    {
+        Conjunct::$conjunctCache = $cachePool;
+        
+        $allConjDefs = (array)json_decode(file_get_contents($this->modelFiles['conjuncts']), true);
+    
+        foreach ($allConjDefs as $conjDef) {
+            $this->conjuncts[$conjDef['id']] = new Conjunct($conjDef, $app, $logger, $database, $cachePool);
         }
     }
 
