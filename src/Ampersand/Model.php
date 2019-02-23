@@ -242,6 +242,68 @@ class Model
     }
 
     /**********************************************************************************************
+     * CONCEPTS
+    **********************************************************************************************/
+    /**
+     * Returns list with all concept objects
+     *
+     * @return \Ampersand\Core\Concept[]
+     */
+    public function getAllConcepts(): array
+    {
+        if (!$this->initialized) {
+            throw new Exception("Ampersand model is not yet initialized", 500);
+        }
+        
+        return $this->concepts;
+    }
+
+    /**
+     * Return concept object given a concept identifier
+     *
+     * @param string $conceptId escaped concept name
+     * @throws \Exception if concept is not defined
+     * @return \Ampersand\Core\Concept
+     */
+    public function getConcept(string $conceptId): Concept
+    {
+        if (!array_key_exists($conceptId, $concepts = $this->getAllConcepts())) {
+            throw new Exception("Concept '{$conceptId}' is not defined", 500);
+        }
+         
+        return $concepts[$conceptId];
+    }
+    
+    /**
+     * Return concept object given a concept label
+     *
+     * @param string $conceptLabel Unescaped concept name
+     * @throws \Exception if concept is not defined
+     * @return \Ampersand\Core\Concept
+     */
+    public function getConceptByLabel(string $conceptLabel): Concept
+    {
+        foreach ($this->getAllConcepts() as $concept) {
+            /** @var \Ampersand\Core\Concept $concept */
+            if ($concept->label === $conceptLabel) {
+                return $concept;
+            }
+        }
+        
+        throw new Exception("Concept '{$conceptLabel}' is not defined", 500);
+    }
+    
+    public function getSessionConcept(): Concept
+    {
+        return $this->getConcept('SESSION');
+    }
+
+    public function getRoleConcept(): Concept
+    {
+        return $this->getConceptByLabel('PF_Role');
+    }
+
+    /**********************************************************************************************
      * RELATIONS
     **********************************************************************************************/
 
