@@ -682,7 +682,7 @@ class AmpersandApp
         $this->logger->debug("Checking process rules for active roles: " . implode(', ', $activeRoleIds));
         
         // Check rules and signal notifications for all violations
-        foreach (RuleEngine::getViolationsFromCache($this->rulesToMaintain) as $violation) {
+        foreach (RuleEngine::getViolationsFromCache($this->getConjunctCache(), $this->rulesToMaintain) as $violation) {
             $this->userLogger->signal($violation);
         }
     }
