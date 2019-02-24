@@ -29,10 +29,39 @@ $api->group('/admin/exporter', function () {
 
         // Export population to response body
         $exporter = new Exporter(new JsonEncoder(), $response->getBody(), Logger::getLogger('IO'));
-        $exporter->exportAllPopulation($ampersandApp->getModel()->getAllConcepts(), $ampersandApp->getModel()->getRelations(), 'json');
+        $exporter->exportPopulation($ampersandApp->getModel()->getAllConcepts(), $ampersandApp->getModel()->getRelations(), 'json');
 
         // Return response
         $filename = $ampersandApp->getName() . "_population_" . date('Y-m-d\TH-i-s') . ".json";
+        return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
+                        ->withHeader('Content-Type', 'application/json;charset=utf-8');
+    });
+
+    /**
+     * @phan-closure-scope \Slim\Container
+     */
+    $this->post('/export/selection', function (Request $request, Response $response, $args = []) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
+        // Process input
+        $body = $request->getParsedBody();
+        $model = $ampersandApp->getModel();
+        
+        $concepts = array_map(function (string $conceptLabel) use ($model) {
+            return $model->getConceptByLabel($conceptLabel);
+        }, $body->concepts);
+
+        $relations = array_map(function (string $relSignature) use ($model) {
+            return $model->getRelation($relSignature);
+        }, $body->relations);
+
+        // Export population to response body
+        $exporter = new Exporter(new JsonEncoder(), $response->getBody(), Logger::getLogger('IO'));
+        $exporter->exportPopulation($concepts, $relations, 'json');
+
+        // Return response
+        $filename = $ampersandApp->getName() . "_population-subset_" . date('Y-m-d\TH-i-s') . ".json";
         return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
                         ->withHeader('Content-Type', 'application/json;charset=utf-8');
     });

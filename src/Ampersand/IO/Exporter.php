@@ -59,7 +59,7 @@ class Exporter
      * @param string $format
      * @return \Ampersand\IO\Exporter
      */
-    public function exportAllPopulation(array $concepts, array $relations, string $format): Exporter
+    public function exportPopulation(array $concepts, array $relations, string $format): Exporter
     {
         $conceptPop = [];
         foreach (array_unique($concepts) as $concept) {
