@@ -2,7 +2,6 @@
 
 use Ampersand\Log\Logger;
 use Ampersand\Misc\Installer;
-use Exception;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
@@ -21,7 +20,7 @@ $api->group('/admin/installer', function () {
     /**
      * @phan-closure-scope \Slim\Container
      */
-    $this->get('/', function (Request $request, Response $response, $args = []) {
+    $this->get('', function (Request $request, Response $response, $args = []) {
         /** @var \Slim\Container $this */
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];

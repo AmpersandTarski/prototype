@@ -6,7 +6,7 @@
                 <a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
                 <ul id="navbar-interfaces-dropdown-menu" class="dropdown-menu" role="menu"></ul>
             </li>
-            <li id="{{item.id}}" ng-repeat="item in navbar.top | orderBy : 'seqNr'" my-nav-item data="item"></li>
+            <li id="{{item.id}}" class="top-menu-item" ng-repeat="item in navbar.top | orderBy : 'seqNr'" my-nav-item data="item"></li>
         </ul>
         <ul class="nav navbar-nav navbar-right" id="navbar-options">
             <!-- hidden on extra small devices, e.g. phone (<768px) -->
