@@ -30,9 +30,9 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
      */
     protected $tgtConcept;
 
-    public function __construct(string $tgtConcept)
+    public function __construct(Concept $tgtConcept)
     {
-        $this->tgtConcept = Concept::getConcept($tgtConcept);
+        $this->tgtConcept = $tgtConcept;
     }
 
     public function __toString(): string

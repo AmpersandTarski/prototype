@@ -1,8 +1,6 @@
 <?php
 
 use Ampersand\Log\Logger;
-use Ampersand\Rule\Conjunct;
-use Ampersand\Rule\Rule;
 use Ampersand\Rule\RuleEngine;
 use Ampersand\IO\Importer;
 use Ampersand\IO\ExcelImporter;
@@ -13,8 +11,6 @@ use Ampersand\Session;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
-use Ampersand\Core\Concept;
-use Ampersand\Core\Atom;
 
 /**
  * @var \Slim\App $api
@@ -47,7 +43,7 @@ $api->group('/admin', function () {
             throw new Exception("No account identifier 'accountId' provided", 400);
         }
 
-        $account = Atom::makeAtom($args['accountId'], 'Account');
+        $account = $ampersandApp->getModel()->getConceptByLabel('Account')->makeAtom($args['accountId']);
 
         $ampersandApp->login($account);
     });
@@ -82,7 +78,7 @@ $api->group('/admin', function () {
         }
         $resourceType = $args['resourceType'];
 
-        if (!Concept::getConcept($resourceType)->isObject()) {
+        if (!$ampersandApp->getModel()->getConcept($resourceType)->isObject()) {
             throw new Exception("Resource type not found", 404);
         }
         
@@ -94,7 +90,7 @@ $api->group('/admin', function () {
         $transaction = $ampersandApp->newTransaction();
 
         foreach ($list as $item) {
-            $atom = Atom::makeAtom($item->oldId, $resourceType);
+            $atom = $ampersandApp->getModel()->getConceptByLabel($resourceType)->makeAtom($item->oldId);
             $atom->rename($item->newId);
         }
         
@@ -142,15 +138,15 @@ $api->group('/admin', function () {
             throw new Exception("You do not have access to evaluate all rules", 403);
         }
 
-        foreach (Conjunct::getAllConjuncts() as $conj) {
+        foreach ($ampersandApp->getModel()->getAllConjuncts() as $conj) {
             /** @var \Ampersand\Rule\Conjunct $conj */
             $conj->evaluate()->persistCacheItem();
         }
         
-        foreach (RuleEngine::getViolations(Rule::getAllInvRules()) as $violation) {
+        foreach (RuleEngine::getViolations($ampersandApp->getModel()->getAllRules('invariant')) as $violation) {
             $ampersandApp->userLog()->invariant($violation);
         }
-        foreach (RuleEngine::getViolations(Rule::getAllSigRules()) as $violation) {
+        foreach (RuleEngine::getViolations($ampersandApp->getModel()->getAllRules('signal')) as $violation) {
             $ampersandApp->userLog()->signal($violation);
         }
         
@@ -186,7 +182,7 @@ $api->group('/admin', function () {
             case 'json':
                 $decoder = new JsonDecode(false);
                 $population = $decoder->decode(file_get_contents($_FILES['file']['tmp_name']), JsonEncoder::FORMAT);
-                $importer = new Importer(Logger::getLogger('IO'));
+                $importer = new Importer($ampersandApp, Logger::getLogger('IO'));
                 $importer->importPopulation($population);
                 break;
             case 'xls':
@@ -233,9 +229,12 @@ $api->group('/admin/report', function () {
      * @phan-closure-scope \Slim\Container
      */
     $this->get('/relations', function (Request $request, Response $response, $args = []) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get report
         $reporter = new Reporter(new JsonEncoder(), $response->getBody());
-        $reporter->reportRelationDefinitions('json');
+        $reporter->reportRelationDefinitions($ampersandApp->getModel()->getRelations(), 'json');
 
         // Return reponse
         return $response->withHeader('Content-Type', 'application/json;charset=utf-8');
@@ -245,9 +244,12 @@ $api->group('/admin/report', function () {
      * @phan-closure-scope \Slim\Container
      */
     $this->get('/conjuncts/usage', function (Request $request, Response $response, $args = []) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get report
         $reporter = new Reporter(new JsonEncoder(), $response->getBody());
-        $reporter->reportConjunctUsage('json');
+        $reporter->reportConjunctUsage($ampersandApp->getModel()->getAllConjuncts(), 'json');
 
         // Return reponse
         return $response->withHeader('Content-Type', 'application/json;charset=utf-8');
@@ -262,7 +264,7 @@ $api->group('/admin/report', function () {
 
         // Get report
         $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
-        $reporter->reportConjunctPerformance('csv', Conjunct::getAllConjuncts());
+        $reporter->reportConjunctPerformance('csv', $ampersandApp->getModel()->getAllConjuncts());
         
         // Set response headers
         $filename = $ampersandApp->getName() . "_conjunct-performance_" . date('Y-m-d\TH-i-s') . ".csv";
@@ -283,9 +285,9 @@ $api->group('/admin/report', function () {
         // Get report
         $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
         if ($details) {
-            $reporter->reportInterfaceObjectDefinitions('csv');
+            $reporter->reportInterfaceObjectDefinitions($ampersandApp->getModel()->getAllInterfaces(), 'csv');
         } else {
-            $reporter->reportInterfaceDefinitions('csv');
+            $reporter->reportInterfaceDefinitions($ampersandApp->getModel()->getAllInterfaces(), 'csv');
         }
 
         // Set response headers
@@ -303,7 +305,7 @@ $api->group('/admin/report', function () {
 
         // Get report
         $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
-        $reporter->reportInterfaceIssues('csv');
+        $reporter->reportInterfaceIssues($ampersandApp->getModel()->getAllInterfaces(), 'csv');
 
         // Set response headers
         $filename = $ampersandApp->getName() . "_interface-issues_" . date('Y-m-d\TH-i-s') . ".csv";

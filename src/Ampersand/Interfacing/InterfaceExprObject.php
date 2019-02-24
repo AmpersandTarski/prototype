@@ -10,7 +10,6 @@ namespace Ampersand\Interfacing;
 use Exception;
 use Ampersand\Core\Relation;
 use Ampersand\Core\Concept;
-use Ampersand\Interfacing\View;
 use Ampersand\Core\Atom;
 use function Ampersand\Misc\isSequential;
 use Ampersand\Plugs\IfcPlugInterface;
@@ -164,34 +163,43 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     protected $subInterfaces = [];
 
     /**
+     * Interface of which this object is part of
+     *
+     * @var \Ampersand\Interfacing\Ifc
+     */
+    protected $rootIfc;
+
+    /**
      * Constructor
      *
      * @param array $ifcDef Interface object definition as provided by Ampersand generator
      * @param \Ampersand\Plugs\IfcPlugInterface $plug
+     * @param \Ampersand\Interfacing\Ifc $rootIfc
      * @param \Ampersand\Interfacing\InterfaceObjectInterface|null $parent
      */
-    public function __construct(array $ifcDef, IfcPlugInterface $plug, InterfaceObjectInterface $parent = null)
+    public function __construct(array $ifcDef, IfcPlugInterface $plug, Ifc $rootIfc, InterfaceObjectInterface $parent = null)
     {
         if ($ifcDef['type'] != 'ObjExpression') {
             throw new Exception("Provided interface definition is not of type ObjExpression", 500);
         }
 
         $this->plug = $plug;
+        $this->rootIfc = $rootIfc;
         
         // Set attributes from $ifcDef
         $this->id = $ifcDef['id'];
         $this->label = $ifcDef['label'];
-        $this->view = is_null($ifcDef['viewId']) ? null : View::getView($ifcDef['viewId']);
+        $this->view = is_null($ifcDef['viewId']) ? null : $rootIfc->getModel()->getView($ifcDef['viewId']);
         
         $this->path = is_null($parent) ? $this->label : "{$parent->getPath()}/{$this->label}"; // Use label, because path is only used for human readable purposes (e.g. Exception messages)
         
         // Information about the (editable) relation if applicable
-        $this->relation = is_null($ifcDef['relation']) ? null : Relation::getRelation($ifcDef['relation']);
+        $this->relation = is_null($ifcDef['relation']) ? null : $rootIfc->getModel()->getRelation($ifcDef['relation']);
         $this->relationIsFlipped = $ifcDef['relationIsFlipped'];
         
         // Interface expression information
-        $this->srcConcept = Concept::getConcept($ifcDef['expr']['srcConceptId']);
-        $this->tgtConcept = Concept::getConcept($ifcDef['expr']['tgtConceptId']);
+        $this->srcConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['srcConceptId']);
+        $this->tgtConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['tgtConceptId']);
         $this->isUni = $ifcDef['expr']['isUni'];
         $this->isTot = $ifcDef['expr']['isTot'];
         $this->isIdent = $ifcDef['expr']['isIdent'];
@@ -220,7 +228,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             
             // Inline subinterface definitions
             foreach ((array)$ifcDef['subinterfaces']['ifcObjects'] as $subIfcDef) {
-                $subifc = InterfaceObjectFactory::newObject($subIfcDef, $this->plug, $this);
+                $subifc = $rootIfc->newObject($subIfcDef, $this->plug, $this);
                 $this->subInterfaces[$subifc->getIfcId()] = $subifc;
             }
         }
@@ -332,7 +340,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     protected function getRefToIfc(): Ifc
     {
         if ($this->isRef()) {
-            return Ifc::getInterface($this->refInterfaceId);
+            return $this->rootIfc->getModel()->getInterface($this->refInterfaceId);
         } else {
             throw new Exception("Interface is not a reference interface: " . $this->getPath(), 500);
         }

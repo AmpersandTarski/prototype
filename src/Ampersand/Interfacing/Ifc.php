@@ -7,11 +7,14 @@
 
 namespace Ampersand\Interfacing;
 
-use Ampersand\Interfacing\InterfaceObjectFactory;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Plugs\IfcPlugInterface;
 use Exception;
 use Ampersand\Core\Concept;
+use Ampersand\Model;
+use Ampersand\Interfacing\InterfaceNullObject;
+use Ampersand\Interfacing\InterfaceExprObject;
+use Ampersand\Interfacing\InterfaceTxtObject;
 
 /**
  *
@@ -20,13 +23,6 @@ use Ampersand\Core\Concept;
  */
 class Ifc
 {
-    /**
-     * Contains all interface definitions
-     *
-     * @var \Ampersand\Interfacing\Ifc[]
-     */
-    protected static $allInterfaces;
-
     /**
      * Interface id (i.e. escaped name) to use for referencing
      *
@@ -64,6 +60,13 @@ class Ifc
     protected $ifcObject;
 
     /**
+     * Reference to Ampersand model
+     *
+     * @var \Ampersand\Model
+     */
+    protected $model;
+
+    /**
      * Constructor
      *
      * @param string $id
@@ -72,14 +75,16 @@ class Ifc
      * @param array $ifcRoleNames
      * @param array $objectDef
      * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
+     * @param \Ampersand\Model $model
      */
-    public function __construct(string $id, string $label, bool $isAPI, array $ifcRoleNames, array $objectDef, IfcPlugInterface $defaultPlug)
+    public function __construct(string $id, string $label, bool $isAPI, array $ifcRoleNames, array $objectDef, IfcPlugInterface $defaultPlug, Model $model)
     {
         $this->id = $id;
         $this->label = $label;
         $this->isAPI = $isAPI;
         $this->ifcRoleNames = $ifcRoleNames;
-        $this->ifcObject = InterfaceObjectFactory::newExprObject($objectDef, $defaultPlug);
+        $this->ifcObject = $this->newExprObject($objectDef, $defaultPlug);
+        $this->model = $model;
     }
 
     public function __toString(): string
@@ -149,107 +154,41 @@ class Ifc
         $this->ifcRoleNames = $ifcRoleNames;
     }
 
+    public function getModel(): Model
+    {
+        return $this->model;
+    }
+
     /**********************************************************************************************
-     * STATIC METHODS
+     * FACTORY METHODS FOR INTERFACE OBJECTS
     **********************************************************************************************/
-    /**
-     * Returns if interface exists
-     * @var string $ifcId Identifier of interface
-     * @return bool
-     */
-    public static function interfaceExists(string $ifcId): bool
-    {
-        return array_key_exists($ifcId, self::getAllInterfaces());
-    }
-    
-    /**
-     * Returns toplevel interface object
-     * @param string $ifcId
-     * @param bool $fallbackOnLabel if set to true, the param $ifcId may also contain an interface label (i.e. name as defined in &-script)
-     * @throws \Exception when interface does not exist
-     * @return \Ampersand\Interfacing\Ifc
-     */
-    public static function getInterface(string $ifcId, $fallbackOnLabel = false): Ifc
-    {
-        if (!array_key_exists($ifcId, $interfaces = self::getAllInterfaces())) {
-            if ($fallbackOnLabel) {
-                return self::getInterfaceByLabel($ifcId);
-            } else {
-                throw new Exception("Interface '{$ifcId}' is not defined", 500);
-            }
-        }
 
-        return $interfaces[$ifcId];
-    }
-    
-    /**
-     * Undocumented function
-     *
-     * @param string $ifcLabel
-     * @throws \Exception when interface does not exist
-     * @return \Ampersand\Interfacing\Ifc
-     */
-    public static function getInterfaceByLabel(string $ifcLabel): Ifc
+    public function newObject(array $objectDef, IfcPlugInterface $defaultPlug, InterfaceObjectInterface $parent = null): InterfaceObjectInterface
     {
-        foreach (self::getAllInterfaces() as $interface) {
-            /** @var \Ampersand\Interfacing\Ifc $interface */
-            if ($interface->getLabel() === $ifcLabel) {
-                return $interface;
-            }
+        switch ($objectDef['type']) {
+            case 'ObjExpression':
+                return new InterfaceExprObject($objectDef, $defaultPlug, $this, $parent);
+                break;
+            case 'ObjText':
+                return new InterfaceTxtObject($objectDef, $parent);
+                break;
+            default:
+                throw new Exception("Unsupported/unknown InterfaceObject type specified: '{$objectDef['type']}' is not supported", 500);
+                break;
         }
-        
-        throw new Exception("Interface with label '{$ifcLabel}' is not defined", 500);
-    }
-    
-    /**
-     * Returns all interfaces
-     *
-     * @return \Ampersand\Interfacing\Ifc[]
-     */
-    public static function getAllInterfaces(): array
-    {
-        if (!isset(self::$allInterfaces)) {
-            throw new Exception("Interface definitions not loaded yet", 500);
-        }
-        
-        return self::$allInterfaces;
-    }
-    
-    /**
-     * Returns all interfaces that are public (i.e. not assigned to a role)
-     *
-     * @return \Ampersand\Interfacing\Ifc[]
-     */
-    public static function getPublicInterfaces(): array
-    {
-        return array_values(array_filter(self::getAllInterfaces(), function (Ifc $ifc) {
-            return $ifc->isPublic();
-        }));
     }
 
-    public static function getInterfacesForConcept(Concept $cpt): array
+    public function newExprObject(array $objectDef, IfcPlugInterface $defaultPlug, InterfaceObjectInterface $parent = null): InterfaceExprObject
     {
-        return array_values(array_filter(self::getAllInterfaces(), function (Ifc $ifc) use ($cpt) {
-            return $ifc->getSrcConcept()->hasSpecialization($cpt, true);
-        }));
+        if ($objectDef['type'] !== 'ObjExpression') {
+            throw new Exception("Interface expression object definition required, but '{$objectDef['type']}' provided.", 500);
+        }
+
+        return $this->newObject($objectDef, $defaultPlug, $parent);
     }
     
-    /**
-     * Import all interface object definitions from json file and instantiate interfaces
-     *
-     * @param string $fileName containing the Ampersand interface definitions
-     * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
-     * @return void
-     */
-    public static function setAllInterfaces(string $fileName, IfcPlugInterface $defaultPlug)
+    public static function getNullObject(Concept $concept): InterfaceObjectInterface
     {
-        self::$allInterfaces = [];
-        
-        $allInterfaceDefs = (array)json_decode(file_get_contents($fileName), true);
-        
-        foreach ($allInterfaceDefs as $ifcDef) {
-            $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['interfaceRoles'], $ifcDef['ifcObject'], $defaultPlug);
-            self::$allInterfaces[$ifc->getId()] = $ifc;
-        }
+        return new InterfaceNullObject($concept);
     }
 }

@@ -8,12 +8,9 @@
 namespace Ampersand;
 
 use Exception;
-use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
 use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
-use Ampersand\Core\Relation;
-use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\ResourceList;
 
@@ -99,7 +96,7 @@ class Session
     
     protected function initSessionAtom()
     {
-        $this->sessionAtom = Concept::getSessionConcept()->makeAtom($this->id);
+        $this->sessionAtom = $this->ampersandApp->getModel()->getSessionConcept()->makeAtom($this->id);
         
         // Create a new Ampersand session atom if not yet in SESSION table (i.e. new php session)
         if (!$this->sessionAtom->exists()) {
@@ -108,7 +105,7 @@ class Session
             // If login functionality is not enabled, add all defined roles as allowed roles
             // TODO: can be removed when meat-grinder populates this meta-relation by itself
             if (!$this->settings->get('session.loginEnabled')) {
-                foreach (Concept::getRoleConcept()->getAllAtomObjects() as $roleAtom) {
+                foreach ($this->ampersandApp->getModel()->getRoleConcept()->getAllAtomObjects() as $roleAtom) {
                     $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*PF_Role]')->add();
                     // Activate all allowed roles by default
                     $this->toggleActiveRole($roleAtom, true);
@@ -274,7 +271,7 @@ class Session
      */
     public function getSessionVars()
     {
-        if (Ifc::interfaceExists('SessionVars')) {
+        if ($this->ampersandApp->getModel()->interfaceExists('SessionVars')) {
             try {
                 $this->logger->debug("Getting interface 'SessionVars' for {$this->sessionAtom}");
                 return ResourceList::makeFromInterface($this->id, 'SessionVars')->get(Options::INCLUDE_NOTHING);
@@ -296,11 +293,11 @@ class Session
     public static function deleteExpiredSessions()
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp;
+        global $ampersandApp; // TODO: remove ref to global var
 
         $experationTimeStamp = time() - $ampersandApp->getSettings()->get('session.expirationTime');
         
-        $links = Relation::getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
+        $links = $ampersandApp->getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
         foreach ($links as $link) {
             if (strtotime($link->tgt()->getLabel()) < $experationTimeStamp) {
                 $link->src()->delete();

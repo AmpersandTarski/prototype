@@ -8,7 +8,6 @@
 namespace Ampersand\Misc;
 
 use Ampersand\Interfacing\InterfaceObjectInterface;
-use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Relation;
 use Ampersand\Interfacing\Ifc;
 use Psr\Http\Message\StreamInterface;
@@ -56,13 +55,13 @@ class Reporter
 
     /**
      * Write relation definition report
-     * Specifies multiplicity constraints, related conjuncts and other
-     * aspects of all relations
+     * Specifies multiplicity constraints, related conjuncts and other aspects of provided relations
      *
+     * @param \Ampersand\Core\Relation[] $relations
      * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportRelationDefinitions(string $format): Reporter
+    public function reportRelationDefinitions(array $relations, string $format): Reporter
     {
         $content = array_map(function (Relation $relation) {
             $relArr = [];
@@ -92,14 +91,14 @@ class Reporter
             $relArr['srcOrTgtTable'] = $relation->getMysqlTable()->inTableOf();
             
             return $relArr;
-        }, Relation::getAllRelations());
+        }, $relations);
 
         $this->write($format, $content);
         
         return $this;
     }
 
-    public function reportInterfaceDefinitions(string $format): Reporter
+    public function reportInterfaceDefinitions(array $interfaces, string $format): Reporter
     {
         $content = array_map(function (Ifc $ifc) {
             $ifcDetails =
@@ -118,7 +117,7 @@ class Reporter
                 $ifcDetails[$roleName] = true;
             }
             return $ifcDetails;
-        }, Ifc::getAllInterfaces());
+        }, $interfaces);
 
         $this->write($format, array_values($content));
 
@@ -132,10 +131,10 @@ class Reporter
      * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportInterfaceObjectDefinitions(string $format): Reporter
+    public function reportInterfaceObjectDefinitions(array $interfaces, string $format): Reporter
     {
         $content = [];
-        foreach (Ifc::getAllInterfaces() as $key => $ifc) {
+        foreach ($interfaces as $ifc) {
             /** @var \Ampersand\Interfacing\Ifc $ifc */
             $content = array_merge($content, $ifc->getIfcObject()->getIfcObjFlattened());
         }
@@ -156,10 +155,10 @@ class Reporter
      * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportInterfaceIssues(string $format): Reporter
+    public function reportInterfaceIssues(array $interfaces, string $format): Reporter
     {
         $content = [];
-        foreach (Ifc::getAllInterfaces() as $interface) {
+        foreach ($interfaces as $interface) {
             /** @var \Ampersand\Interfacing\Ifc $interface */
             foreach ($interface->getIfcObject()->getIfcObjFlattened() as $ifcObj) {
                 /** @var InterfaceObjectInterface $ifcObj */
@@ -178,16 +177,17 @@ class Reporter
 
     /**
      * Write conjunct usage report
-     * Specifies which conjuncts are used by which rules, grouped by invariants,
-     * signals, and unused conjuncts
+     * Specifies which conjuncts are used by which rules, grouped by invariants, signals, and unused conjuncts
      *
+     * @param \Ampersand\Rule\Conjunct[] $conjuncts
      * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportConjunctUsage(string $format): Reporter
+    public function reportConjunctUsage(array $conjuncts, string $format): Reporter
     {
         $content = [];
-        foreach (Conjunct::getAllConjuncts() as $conj) {
+        foreach ($conjuncts as $conj) {
+            /** @var \Ampersand\Rule\Conjunct $conj */
             if ($conj->isInvConj()) {
                 $content['invConjuncts'][] = $conj->__toString();
             }

@@ -97,7 +97,7 @@ class ExecEngine extends RuleEngine
     public function __construct(Role $role, Transaction $transaction, AmpersandApp $app, LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->id = $role->label;
+        $this->id = $role->getLabel();
         $this->maintainsRules = $role->maintains();
         $this->transaction = $transaction;
         $this->ampersandApp = $app;
@@ -106,6 +106,11 @@ class ExecEngine extends RuleEngine
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getApp(): AmpersandApp
+    {
+        return $this->ampersandApp;
     }
 
     /**

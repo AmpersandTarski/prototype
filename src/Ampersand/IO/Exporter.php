@@ -7,12 +7,11 @@
 
 namespace Ampersand\IO;
 
-use Ampersand\Core\Concept;
-use Ampersand\Core\Relation;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
 use Ampersand\Core\Atom;
+use Ampersand\AmpersandApp;
 
 class Exporter
 {
@@ -53,10 +52,11 @@ class Exporter
         $this->stream = $stream;
     }
 
-    public function exportAllPopulation(string $format)
+    public function exportAllPopulation(AmpersandApp $app, string $format)
     {
         $conceptPop = [];
-        foreach (Concept::getAllConcepts() as $concept) {
+        foreach ($app->getModel()->getAllConcepts() as $concept) {
+            /** @var \Ampersand\Core\Concept $concept */
             $conceptPop[] = [
                 'concept' => $concept->name,
                 'atoms' => array_map(function (Atom $atom) {
@@ -66,7 +66,7 @@ class Exporter
         }
         
         $relationPop = [];
-        foreach (Relation::getAllRelations() as $rel) {
+        foreach ($app->getModel()->getRelations() as $rel) {
             $relationPop[] = [
                 'relation' => $rel->signature,
                 'links' => $rel->getAllLinks()

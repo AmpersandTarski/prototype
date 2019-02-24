@@ -260,8 +260,10 @@ class ResourceList
      */
     public static function makeFromInterface(string $srcAtomId, string $ifcIdOrLabel): ResourceList
     {
-        $ifc = Ifc::getInterface($ifcIdOrLabel, true);
-        $srcAtom = new Atom($srcAtomId, $ifc->getSrcConcept());
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
+        $ifc = $ampersandApp->getModel()->getInterface($ifcIdOrLabel, true);
+        $srcAtom = $ifc->getSrcConcept()->makeAtom($srcAtomId);
 
         // Same as in InterfaceNullObject::buildResourcePath()
         if ($srcAtom->concept->isSession()) {
@@ -276,12 +278,15 @@ class ResourceList
     /**
      * Instantiate resource list for a given resource type (i.e. concept)
      *
-     * @param string $conceptId
+     * @param \Ampersand\Core\Concept $concept
      * @return \Ampersand\Interfacing\ResourceList
      */
-    public static function makeWithoutInterface(string $conceptId): ResourceList
+    public static function makeWithoutInterface(Concept $concept): ResourceList
     {
-        $one = new Atom('ONE', Concept::getConcept('ONE'));
-        return new ResourceList($one, InterfaceObjectFactory::getNullObject($conceptId), '');
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
+
+        $one = $ampersandApp->getModel()->getConcept('ONE')->makeAtom('ONE');
+        return new ResourceList($one, Ifc::getNullObject($concept), '');
     }
 }

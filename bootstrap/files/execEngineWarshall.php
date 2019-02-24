@@ -28,8 +28,6 @@
    4) Rather than defining/computing rStar (for r*), you may use the expression (I \/ rPlus)
 */
 
-use Ampersand\Core\Concept;
-use Ampersand\Core\Relation;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Core\Link;
 
@@ -57,10 +55,10 @@ ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPl
     $runCount = $this->getRunCount();
 
     // Get concept and relation objects
-    $concept = Concept::getConceptByLabel($C);
-    $relationR = Relation::getRelation($r, $concept, $concept);
-    $relationRCopy = Relation::getRelation($rCopy, $concept, $concept);
-    $relationRPlus = Relation::getRelation($rPlus, $concept, $concept);
+    $concept = $this->getApp()->getModel()->getConceptByLabel($C);
+    $relationR = $this->getApp()->getRelation($r, $concept, $concept);
+    $relationRCopy = $this->getApp()->getRelation($rCopy, $concept, $concept);
+    $relationRPlus = $this->getApp()->getRelation($rPlus, $concept, $concept);
 
     // Empty rCopy and rPlus
     $relationRCopy->empty();

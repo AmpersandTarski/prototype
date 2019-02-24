@@ -7,9 +7,7 @@
 
 namespace Ampersand;
 
-use Exception;
-use Ampersand\Rule\Rule;
-use Ampersand\Interfacing\Ifc;
+use Ampersand\Model;
 
 /**
  *
@@ -18,12 +16,6 @@ use Ampersand\Interfacing\Ifc;
  */
 class Role
 {
-    /**
-     * Contains all role definitions
-     * @var Role[]
-     */
-    private static $allRoles;
-    
     /**
      * Role identifier
      * @var int
@@ -34,7 +26,7 @@ class Role
      * Name of the role
      * @var string
      */
-    public $label;
+    protected $label;
     
     /**
      * List of all rules that are maintained by this role
@@ -50,22 +42,21 @@ class Role
     
     /**
      * Constructor of role
-     * Private function to prevent outside instantiation of roles
-     * Use Role::getRoleById($roleId) or Role::getRoleByName($roleName)
      *
      * @param array $roleDef
+     * @param \Ampersand\Model $model
      */
-    private function __construct($roleDef)
+    public function __construct($roleDef, Model $model)
     {
-        $this->id = $roleDef['id'];
+        $this->setId($roleDef['id']);
         $this->label = $roleDef['name'];
         
         foreach ((array)$roleDef['maintains'] as $ruleName) {
-            $this->maintains[] = Rule::getRule($ruleName);
+            $this->maintains[] = $model->getRule($ruleName);
         }
         
         foreach ($roleDef['interfaces'] as $ifcId) {
-            $this->interfaces[] = Ifc::getInterface($ifcId);
+            $this->interfaces[] = $model->getInterface($ifcId);
         }
     }
     
@@ -75,6 +66,21 @@ class Role
      * @return string
      */
     public function __toString(): string
+    {
+        return $this->label;
+    }
+
+    protected function setId(int $id): void
+    {
+        $this->id = $id;
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getLabel()
     {
         return $this->label;
     }
@@ -97,77 +103,5 @@ class Role
     public function interfaces(): array
     {
         return $this->interfaces;
-    }
-    
-    /**********************************************************************************************
-     *
-     * Static functions
-     *
-     *********************************************************************************************/
-    
-    /**
-     * Return role object
-     * @param int $roleId
-     * @throws Exception
-     * return Role
-     */
-    public static function getRoleById($roleId)
-    {
-        if (!is_int($roleId)) {
-            throw new Exception("No valid role id provided. Role id must be an integer", 500);
-        }
-        
-        foreach (self::getAllRoles() as $role) {
-            if ($role->id == $roleId) {
-                return $role;
-            }
-        }
-        
-        throw new Exception("Role with id '{$roleId}' is not defined", 500);
-    }
-    
-    /**
-     * Return role object
-     * @param string $roleName
-     * @throws Exception if role is not defined
-     * @return \Ampersand\Role
-     */
-    public static function getRoleByName($roleName): Role
-    {
-        if (!array_key_exists($roleName, $roles = self::getAllRoles())) {
-            throw new Exception("Role '{$roleName}' is not defined", 500);
-        }
-    
-        return $roles[$roleName];
-    }
-    
-    /**
-     * Returns array with all role objects
-     * @return Role[]
-     */
-    public static function getAllRoles()
-    {
-        if (!isset(self::$allRoles)) {
-            throw new Exception("Role definitions not loaded yet", 500);
-        }
-         
-        return self::$allRoles;
-    }
-    
-    /**
-     * Import all role definitions from json file and instantiate Role objects
-     *
-     * @param string $fileName containing the Ampersand role definitions
-     * @return void
-     */
-    public static function setAllRoles(string $fileName)
-    {
-        self::$allRoles = [];
-
-        $allRoleDefs = (array) json_decode(file_get_contents($fileName), true);
-        
-        foreach ($allRoleDefs as $roleDef) {
-            self::$allRoles[$roleDef['name']] = new Role($roleDef);
-        }
     }
 }

@@ -8,16 +8,12 @@
 namespace Ampersand\Misc;
 
 use Ampersand\AmpersandApp;
-use Ampersand\Core\Atom;
-use Ampersand\Interfacing\Ifc;
 use Ampersand\IO\Importer;
 use Ampersand\Model;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Ampersand\Role;
-use Ampersand\Core\Concept;
 
 /**
  *
@@ -96,7 +92,7 @@ class Installer
 
         $decoder = new JsonDecode(false);
         $population = $decoder->decode(file_get_contents($model->getFilePath('populations')), JsonEncoder::FORMAT);
-        $importer = new Importer($this->logger);
+        $importer = new Importer($this->ampersandApp, $this->logger);
         $importer->importPopulation($population);
 
         // Close transaction
@@ -116,15 +112,16 @@ class Installer
      */
     protected function addMetaPopulation(): void
     {
+        $model = $this->ampersandApp->getModel();
         // Add roles
-        foreach (Role::getAllRoles() as $role) {
-            Concept::getRoleConcept()->makeAtom($role->label)->add();
+        foreach ($model->getAllRoles() as $role) {
+            $model->getRoleConcept()->makeAtom($role->getLabel())->add();
         }
 
         // Add interfaces
-        foreach (Ifc::getAllInterfaces() as $ifc) {
+        foreach ($model->getAllInterfaces() as $ifc) {
             /** @var \Ampersand\Interfacing\Ifc $ifc */
-            $ifcAtom = Atom::makeAtom($ifc->getId(), 'PF_Interface')->add();
+            $ifcAtom = $model->getConceptByLabel('PF_Interface')->makeAtom($ifc->getId())->add();
             $ifcAtom->link($ifc->getLabel(), 'label[PF_Interface*PF_Label]')->add();
             foreach ($ifc->getRoleNames() as $roleName) {
                 $ifcAtom->link($roleName, 'pf_ifcRoles[PF_Interface*PF_Role]')->add();
@@ -145,13 +142,15 @@ class Installer
      */
     protected function addNavMenuItems(): void
     {
+        $model = $this->ampersandApp->getModel();
+
         // MainMenu (i.e. all UI interfaces with SESSION as src concept)
-        $mainMenu = Atom::makeAtom('MainMenu', 'PF_NavMenu')->add();
+        $mainMenu = $model->getConceptByLabel('PF_NavMenu')->makeAtom('MainMenu')->add();
         $mainMenu->link('Main menu', 'label[PF_NavMenuItem*PF_Label]')->add();
         $mainMenu->link($mainMenu, 'isVisible[PF_NavMenuItem*PF_NavMenuItem]')->add(); // make visible by default
         $mainMenu->link($mainMenu, 'isPartOf[PF_NavMenuItem*PF_NavMenu]')->add();
         $i = '0';
-        foreach (Ifc::getAllInterfaces() as $ifc) {
+        foreach ($model->getAllInterfaces() as $ifc) {
             /** @var \Ampersand\Interfacing\Ifc $ifc */
             // Skip API and non-readable interfaces
             if ($ifc->isAPI() || !$ifc->getIfcObject()->crudR()) {
@@ -160,7 +159,7 @@ class Installer
 
             if ($ifc->getSrcConcept()->isSession()) {
                 $i++;
-                $menuItem = Atom::makeAtom($ifc->getId(), 'PF_NavMenuItem')->add();
+                $menuItem = $model->getConceptByLabel('PF_NavMenuItem')->makeAtom($ifc->getId())->add();
                 $menuItem->link($ifc->getLabel(), 'label[PF_NavMenuItem*PF_Label]')->add();
                 $menuItem->link($menuItem, 'isVisible[PF_NavMenuItem*PF_NavMenuItem]')->add(); // make visible by default
                 $menuItem->link($ifc->getId(), 'ifc[PF_NavMenuItem*PF_Interface]')->add();

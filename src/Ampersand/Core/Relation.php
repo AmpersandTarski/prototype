@@ -11,7 +11,6 @@ use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 use Ampersand\Plugs\MysqlDB\MysqlDBRelationTable;
 use Ampersand\Core\Concept;
-use Ampersand\Rule\Conjunct;
 use Ampersand\Plugs\RelationPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
@@ -23,12 +22,6 @@ use Ampersand\AmpersandApp;
  */
 class Relation
 {
-    
-    /**
-     * Contains all relation definitions
-     * @var Relation[]
-     */
-    private static $allRelations;
     
     /**
      *
@@ -124,8 +117,7 @@ class Relation
     private $mysqlTable;
     
     /**
-     * Relation constructor
-     * Private function to prevent outside instantiation of Relations. Use Relation::getRelation($relationSignature)
+     * Constructor
      *
      * @param array $relationDef
      * @param \Psr\Log\LoggerInterface $logger
@@ -137,8 +129,8 @@ class Relation
         $this->app = $app;
 
         $this->name = $relationDef['name'];
-        $this->srcConcept = Concept::getConcept($relationDef['srcConceptId']);
-        $this->tgtConcept = Concept::getConcept($relationDef['tgtConceptId']);
+        $this->srcConcept = $app->getModel()->getConcept($relationDef['srcConceptId']);
+        $this->tgtConcept = $app->getModel()->getConcept($relationDef['tgtConceptId']);
         
         $this->signature = $relationDef['signature'];
         
@@ -149,7 +141,7 @@ class Relation
         $this->isProp = $relationDef['prop'];
         
         foreach ((array)$relationDef['affectedConjuncts'] as $conjId) {
-            $conj = Conjunct::getConjunct($conjId);
+            $conj = $app->getModel()->getConjunct($conjId);
             $this->relatedConjuncts[] = $conj;
         }
 
@@ -324,125 +316,6 @@ class Relation
 
         foreach ($this->getPlugs() as $plug) {
             $plug->emptyRelation($this);
-        }
-    }
-    
-    /**********************************************************************************************
-     *
-     * Static functions
-     *
-     *********************************************************************************************/
-    
-     /**
-      * Delete all links where $atom is used
-      *
-      * @param \Ampersand\Core\Atom $atom
-      * @return void
-      */
-    public static function deleteAllLinksWithAtom(Atom $atom)
-    {
-        foreach (self::getAllRelations() as $relation) {
-            if ($atom->concept->inSameClassificationTree($relation->srcConcept)) {
-                $relation->deleteAllLinks($atom, 'src');
-            }
-            if ($atom->concept->inSameClassificationTree($relation->tgtConcept)) {
-                $relation->deleteAllLinks($atom, 'tgt');
-            }
-        }
-    }
-    
-    /**
-     * Delete all links where $atom is used as src or tgt atom
-     * from relations where $atom's concept (or any of its specializations) is used as src or tgt concept
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
-     */
-    public static function deleteAllSpecializationLinks(Atom $atom)
-    {
-        foreach (self::getAllRelations() as $relation) {
-            if ($atom->concept->hasSpecialization($relation->srcConcept, true)) {
-                $relation->deleteAllLinks($atom, 'src');
-            }
-            if ($atom->concept->hasSpecialization($relation->tgtConcept, true)) {
-                $relation->deleteAllLinks($atom, 'tgt');
-            }
-        }
-    }
-    
-    /**
-     * Return Relation object
-     * @param string $relationSignature
-     * @param \Ampersand\Core\Concept|null $srcConcept
-     * @param \Ampersand\Core\Concept|null $tgtConcept
-     * @throws Exception if Relation is not defined
-     * @return \Ampersand\Core\Relation
-     */
-    public static function getRelation($relationSignature, Concept $srcConcept = null, Concept $tgtConcept = null)
-    {
-        $relations = self::getAllRelations();
-        
-        // If relation can be found by its fullRelationSignature return the relation
-        if (array_key_exists($relationSignature, $relations)) {
-            $relation = $relations[$relationSignature];
-            
-            // If srcConceptName and tgtConceptName are provided, check that they match the found relation
-            if (!is_null($srcConcept) && !in_array($srcConcept, $relation->srcConcept->getSpecializationsIncl())) {
-                throw new Exception("Provided src concept '{$srcConcept}' does not match the relation '{$relation}'", 500);
-            }
-            if (!is_null($tgtConcept) && !in_array($tgtConcept, $relation->tgtConcept->getSpecializationsIncl())) {
-                throw new Exception("Provided tgt concept '{$tgtConcept}' does not match the relation '{$relation}'", 500);
-            }
-            
-            return $relation;
-        }
-        
-        // Else try to find the relation by its name, srcConcept and tgtConcept
-        if (!is_null($srcConcept) && !is_null($tgtConcept)) {
-            foreach ($relations as $relation) {
-                if ($relation->name == $relationSignature
-                        && in_array($srcConcept, $relation->srcConcept->getSpecializationsIncl())
-                        && in_array($tgtConcept, $relation->tgtConcept->getSpecializationsIncl())
-                  ) {
-                    return $relation;
-                }
-            }
-        }
-        
-        // Else
-        throw new Exception("Relation '{$relationSignature}[{$srcConcept}*{$tgtConcept}]' is not defined", 500);
-    }
-    
-    /**
-     * Returns array with all Relation objects
-     * @return \Ampersand\Core\Relation[]
-     */
-    public static function getAllRelations()
-    {
-        if (!isset(self::$allRelations)) {
-            throw new Exception("Relation definitions not loaded yet", 500);
-        }
-         
-        return self::$allRelations;
-    }
-    
-    /**
-     * Import all Relation definitions from json file and instantiate Relation objects
-     *
-     * @param string $fileName containing the Ampersand relation definitions
-     * @param \Psr\Log\LoggerInterface $logger
-     * @return void
-     */
-    public static function setAllRelations(string $fileName, LoggerInterface $logger, AmpersandApp $app)
-    {
-        self::$allRelations = [];
-    
-        // Import json file
-        $allRelationDefs = (array)json_decode(file_get_contents($fileName), true);
-    
-        foreach ($allRelationDefs as $relationDef) {
-            $relation = new Relation($relationDef, $logger, $app);
-            self::$allRelations[$relation->signature] = $relation;
         }
     }
 }
