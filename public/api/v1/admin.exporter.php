@@ -29,7 +29,7 @@ $api->group('/admin/exporter', function () {
 
         // Export population to response body
         $exporter = new Exporter(new JsonEncoder(), $response->getBody(), Logger::getLogger('IO'));
-        $exporter->exportAllPopulation($ampersandApp, 'json');
+        $exporter->exportAllPopulation($ampersandApp->getModel()->getAllConcepts(), $ampersandApp->getModel()->getRelations(), 'json');
 
         // Return response
         $filename = $ampersandApp->getName() . "_population_" . date('Y-m-d\TH-i-s') . ".json";
