@@ -57,9 +57,10 @@ $api->group('/admin/exporter', function () {
             case 'text/plain':
                 return $response->withHeader('Content-Type', 'text/plain')->write($graph->dump('text'));
             default:
+                $filename = $ampersandApp->getName() . "_meta-model_" . date('Y-m-d\TH-i-s') . "." . $easyRdf_Format->getDefaultExtension();
                 return $response
                     ->withHeader('Content-Type', $easyRdf_Format->getDefaultMimeType())
-                    ->withHeader('Content-Disposition', "attachment; filename=\"app-meta-model.{$easyRdf_Format->getDefaultExtension()}\"")
+                    ->withHeader('Content-Disposition', "attachment; filename=\"{$filename}\"")
                     ->write($graph->serialise($easyRdf_Format));
         }
     });
