@@ -287,6 +287,6 @@ class ResourceList
         global $ampersandApp; // TODO: remove dependency on global var
 
         $one = $ampersandApp->getModel()->getConcept('ONE')->makeAtom('ONE');
-        return new ResourceList($one, Ifc::getNullObject($concept), '');
+        return new ResourceList($one, Ifc::getNullObject($concept, $ampersandApp), '');
     }
 }
