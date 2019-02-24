@@ -13,6 +13,7 @@ use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\ResourceList;
+use Ampersand\AmpersandApp;
 
 /**
  * Class of session objects
@@ -284,17 +285,11 @@ class Session
         }
     }
     
-/**********************************************************************************************
- *
- * Static functions
- *
- *********************************************************************************************/
-     
-    public static function deleteExpiredSessions()
+    /**********************************************************************************************
+     * Static functions
+     *********************************************************************************************/
+    public static function deleteExpiredSessions(AmpersandApp $ampersandApp): void
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp; // TODO: remove ref to global var
-
         $experationTimeStamp = time() - $ampersandApp->getSettings()->get('session.expirationTime');
         
         $links = $ampersandApp->getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
