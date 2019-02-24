@@ -15,6 +15,7 @@ use Ampersand\Model;
 use Ampersand\Interfacing\InterfaceNullObject;
 use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Interfacing\InterfaceTxtObject;
+use Ampersand\AmpersandApp;
 
 /**
  *
@@ -187,8 +188,8 @@ class Ifc
         return $this->newObject($objectDef, $defaultPlug, $parent);
     }
     
-    public static function getNullObject(Concept $concept): InterfaceObjectInterface
+    public static function getNullObject(Concept $concept, AmpersandApp $app): InterfaceObjectInterface
     {
-        return new InterfaceNullObject($concept);
+        return new InterfaceNullObject($concept, $app);
     }
 }

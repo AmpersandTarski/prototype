@@ -61,7 +61,7 @@ $api->group('/admin', function () {
         
         $transaction = $ampersandApp->newTransaction();
 
-        Session::deleteExpiredSessions();
+        Session::deleteExpiredSessions($ampersandApp);
 
         $transaction->runExecEngine()->close();
     });

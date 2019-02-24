@@ -136,7 +136,7 @@ class AmpersandApp
     public function __construct(Model $model, Settings $settings, LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->userLogger = new UserLogger($logger);
+        $this->userLogger = new UserLogger($this, $logger);
         $this->model = $model;
         $this->settings = $settings;
 
@@ -682,7 +682,7 @@ class AmpersandApp
         $this->logger->debug("Checking process rules for active roles: " . implode(', ', $activeRoleIds));
         
         // Check rules and signal notifications for all violations
-        foreach (RuleEngine::getViolationsFromCache($this->rulesToMaintain) as $violation) {
+        foreach (RuleEngine::getViolationsFromCache($this->getConjunctCache(), $this->rulesToMaintain) as $violation) {
             $this->userLogger->signal($violation);
         }
     }
