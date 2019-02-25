@@ -1,6 +1,5 @@
 <?php
 
-use Ampersand\Core\Concept;
 use Ampersand\Interfacing\Options;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -39,7 +38,7 @@ $api->group('/resource', function () {
         $content = array_values(
             array_map(function ($cpt) {
                 return $cpt->label; // only show label of resource types
-            }, array_filter(Concept::getAllConcepts(), function ($cpt) {
+            }, array_filter($ampersandApp->getModel()->getAllConcepts(), function ($cpt) {
                 return $cpt->isObject(); // filter concepts without a representation (i.e. resource types)
             }))
         );
@@ -55,7 +54,7 @@ $api->group('/resource', function () {
         $ampersandApp = $this['ampersand_app'];
         
         // TODO: refactor when resources (e.g. for update field in UI) can be requested with interface definition
-        $resources = ResourceList::makeWithoutInterface($args['resourceType']);
+        $resources = ResourceList::makeWithoutInterface($ampersandApp->getModel()->getConcept($args['resourceType']));
         
         return $response->withJson($resources->get(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
@@ -67,7 +66,7 @@ $api->group('/resource', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        $resource = ResourceList::makeWithoutInterface($args['resourceType'])->post();
+        $resource = ResourceList::makeWithoutInterface($ampersandApp->getModel()->getConcept($args['resourceType']))->post();
         
         // Don't save/commit new resource (yet)
         // Transaction is not closed
@@ -94,7 +93,7 @@ $api->group('/resource', function () {
         $depth = $request->getQueryParam('depth');
 
         // Prepare
-        $resource = ResourceList::makeWithoutInterface($args['resourceType'])->one($args['resourceId']);
+        $resource = ResourceList::makeWithoutInterface($ampersandApp->getModel()->getConcept($args['resourceType']))->one($args['resourceId']);
 
         // Output
         return $response->withJson(
@@ -122,7 +121,7 @@ $api->group('/resource', function () {
 
         // Prepare
         $transaction = $ampersandApp->newTransaction();
-        $entry = ResourceList::makeWithoutInterface($args['resourceType'])->one($args['resourceId']);
+        $entry = ResourceList::makeWithoutInterface($ampersandApp->getModel()->getConcept($args['resourceType']))->one($args['resourceId']);
 
         // Perform action
         switch ($request->getMethod()) {
@@ -196,7 +195,7 @@ $api->group('/resource', function () {
 
         // Prepare
         $transaction = $ampersandApp->newTransaction();
-        $entry = ResourceList::makeWithoutInterface($args['resourceType'])->one($args['resourceId']);
+        $entry = ResourceList::makeWithoutInterface($ampersandApp->getModel()->getConcept($args['resourceType']))->one($args['resourceId']);
         
         // Perform delete
         $entry->walkPathToResource($pathList)->delete();

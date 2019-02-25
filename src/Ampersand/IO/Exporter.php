@@ -7,8 +7,6 @@
 
 namespace Ampersand\IO;
 
-use Ampersand\Core\Concept;
-use Ampersand\Core\Relation;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
@@ -53,10 +51,19 @@ class Exporter
         $this->stream = $stream;
     }
 
-    public function exportAllPopulation(string $format)
+    /**
+     * Export population for given concepts and relations
+     *
+     * @param \Ampersand\Core\Concept[] $concepts
+     * @param \Ampersand\Core\Relation[] $relations
+     * @param string $format
+     * @return \Ampersand\IO\Exporter
+     */
+    public function exportPopulation(array $concepts, array $relations, string $format): Exporter
     {
         $conceptPop = [];
-        foreach (Concept::getAllConcepts() as $concept) {
+        foreach (array_unique($concepts) as $concept) {
+            /** @var \Ampersand\Core\Concept $concept */
             $conceptPop[] = [
                 'concept' => $concept->name,
                 'atoms' => array_map(function (Atom $atom) {
@@ -66,7 +73,8 @@ class Exporter
         }
         
         $relationPop = [];
-        foreach (Relation::getAllRelations() as $rel) {
+        foreach (array_unique($relations) as $rel) {
+            /** @var \Ampersand\Core\Relation $rel */
             $relationPop[] = [
                 'relation' => $rel->signature,
                 'links' => $rel->getAllLinks()

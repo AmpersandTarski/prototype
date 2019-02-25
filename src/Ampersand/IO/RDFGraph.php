@@ -40,12 +40,12 @@ class RDFGraph extends EasyRdf_Graph
         EasyRdf_Namespace::set('app', "{$graphURI}#");
 
         // Ampersand CONCEPT --> owl:Class
-        foreach (Concept::getAllConcepts() as $concept) {
+        foreach ($this->ampersandApp->getModel()->getAllConcepts() as $concept) {
             $this->addConcept($concept);
         }
 
         // Ampersand RELATION --> owl:Property
-        foreach (Relation::getAllRelations() as $relation) {
+        foreach ($ampersandApp->getModel()->getRelations() as $relation) {
             $this->addRelation($relation);
         }
     }

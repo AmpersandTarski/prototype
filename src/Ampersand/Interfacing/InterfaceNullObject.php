@@ -15,6 +15,7 @@ use function Ampersand\Misc\isSequential;
 use Ampersand\Core\Atom;
 use Ampersand\Interfacing\AbstractIfcObject;
 use Ampersand\Core\Concept;
+use Ampersand\AmpersandApp;
 
 /**
  *
@@ -30,9 +31,23 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
      */
     protected $tgtConcept;
 
-    public function __construct(string $tgtConcept)
+    /**
+     * Reference to Ampersand app
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $app;
+
+    /**
+     * Constructor
+     *
+     * @param \Ampersand\Core\Concept $tgtConcept
+     * @param \Ampersand\AmpersandApp $app
+     */
+    public function __construct(Concept $tgtConcept, AmpersandApp $app)
     {
-        $this->tgtConcept = Concept::getConcept($tgtConcept);
+        $this->tgtConcept = $tgtConcept;
+        $this->app = $app;
     }
 
     public function __toString(): string
@@ -72,9 +87,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     public function crudC(): bool
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp; // TODO: remove dependency on global var
-
         // Prevent users to create (other) sessions in any case
         if ($this->tgtConcept->isSession()) {
             return false;
@@ -85,7 +97,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         }
 
         // Allow when there is at least an interface accesible for the user to create a new tgt
-        foreach ($ampersandApp->getAccessibleInterfaces() as $ifc) {
+        foreach ($this->app->getAccessibleInterfaces() as $ifc) {
             /** @var \Ampersand\Interfacing\Ifc $ifc */
             $ifcObj = $ifc->getIfcObject();
             if ($ifcObj->crudC() && $ifc->getTgtConcept() === $this->tgtConcept) {
@@ -98,9 +110,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     public function crudR(): bool
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp; // TODO: remove dependency on global var
-
         // Checks
         if ($this->tgtConcept->isSession()) {
             return false; // Prevent users to list (other) sessions in any case
@@ -108,7 +117,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         if (!$this->tgtConcept->isObject()) {
             return false; // Prevent listing of non-object (i.e. scalar) values
         }
-        if ($ampersandApp->isEditableConcept($this->tgtConcept)) {
+        if ($this->app->isEditableConcept($this->tgtConcept)) {
             return true;
         }
         return false;
@@ -142,12 +151,9 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
             throw new Exception("You do not have access for this call", 403);
         }
 
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp; // TODO: remove dependency on global var
-
         // Make sure that only the current session of the user can be selected
         if ($this->tgtConcept->isSession()) {
-            $selectTgt = $ampersandApp->getSession()->getSessionAtom()->getId();
+            $selectTgt = $this->app->getSession()->getSessionAtom()->getId();
         }
 
         if (isset($selectTgt)) {
@@ -190,14 +196,9 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
      */
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS): array
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp; // TODO: remove dependency on global var
-
-        $tgtConcept = $this->tgtConcept;
-
         $ifcs = array_filter(
-            $ampersandApp->getAccessibleInterfaces(),
-            function (Ifc $ifc) use ($tgtConcept) {
+            $this->app->getAccessibleInterfaces(),
+            function (Ifc $ifc) {
                 return $this->tgtConcept->hasGeneralization($ifc->getSrcConcept(), true);
             }
         );
@@ -214,9 +215,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp; // TODO: remove dependency on global var
-        
         foreach ($this->getSubinterfaces($options) as $ifcobj) {
             /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
             if ($ifcobj->getIfcId() === $ifcId) {
@@ -230,9 +228,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp; // TODO: remove dependency on global var
-        
         foreach ($this->getSubinterfaces($options) as $ifcobj) {
             /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
             if ($ifcobj->getIfcLabel() === $ifcLabel) {

@@ -8,19 +8,15 @@ use Ampersand\Transaction;
 use Ampersand\Plugs\StorageInterface;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Ampersand\Plugs\RelationPlugInterface;
-use Ampersand\Rule\Conjunct;
 use Ampersand\Session;
 use Ampersand\Core\Atom;
 use Exception;
 use Ampersand\Core\Concept;
-use Ampersand\Role;
 use Ampersand\Rule\RuleEngine;
 use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
 use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
-use Ampersand\Interfacing\View;
-use Ampersand\Rule\Rule;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
@@ -140,7 +136,7 @@ class AmpersandApp
     public function __construct(Model $model, Settings $settings, LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->userLogger = new UserLogger($logger);
+        $this->userLogger = new UserLogger($this, $logger);
         $this->model = $model;
         $this->settings = $settings;
 
@@ -185,18 +181,12 @@ class AmpersandApp
                 $storagePlug->init();
             }
 
-            // Instantiate object definitions from generated files
-            $genericsFolder = $this->model->getFolder() . '/';
-            Conjunct::setAllConjuncts($genericsFolder . 'conjuncts.json', Logger::getLogger('RULEENGINE'), $this, $this->defaultStorage, $this->conjunctCache);
-            View::setAllViews($genericsFolder . 'views.json', $this->defaultStorage);
-            Concept::setAllConcepts($genericsFolder . 'concepts.json', Logger::getLogger('CORE'), $this);
-            Relation::setAllRelations($genericsFolder . 'relations.json', Logger::getLogger('CORE'), $this);
-            Ifc::setAllInterfaces($genericsFolder . 'interfaces.json', $this->defaultStorage);
-            Rule::setAllRules($genericsFolder . 'rules.json', $this->defaultStorage, $this, Logger::getLogger('RULEENGINE'));
-            Role::setAllRoles($genericsFolder . 'roles.json');
+            // Initialize Ampersand model (i.e. load all defintions from generated json files)
+            $this->model->init($this);
 
             // Add concept plugs
-            foreach (Concept::getAllConcepts() as $cpt) {
+            foreach ($this->model->getAllConcepts() as $cpt) {
+                /** @var \Ampersand\Core\Concept $cpt */
                 if (array_key_exists($cpt->label, $this->customConceptPlugs)) {
                     foreach ($this->customConceptPlugs[$cpt->label] as $plug) {
                         $cpt->addPlug($plug);
@@ -207,7 +197,8 @@ class AmpersandApp
             }
 
             // Add relation plugs
-            foreach (Relation::getAllRelations() as $rel) {
+            foreach ($this->model->getRelations() as $rel) {
+                /** @var \Ampersand\Core\Relation $rel */
                 if (array_key_exists($rel->signature, $this->customRelationPlugs)) {
                     foreach ($this->customRelationPlugs[$rel->signature] as $plug) {
                         $rel->addPlug($plug);
@@ -265,6 +256,11 @@ class AmpersandApp
         $this->registerStorage($plug);
     }
 
+    public function getDefaultStorage(): MysqlDB
+    {
+        return $this->defaultStorage;
+    }
+
     /**
      * Set default storage.
      * For know we only support a MysqlDB as default storage.
@@ -277,6 +273,11 @@ class AmpersandApp
     {
         $this->defaultStorage = $storage;
         $this->registerStorage($storage);
+    }
+
+    public function getConjunctCache(): CacheItemPoolInterface
+    {
+        return $this->conjunctCache;
     }
 
     public function setConjunctCache(CacheItemPoolInterface $cache): void
@@ -308,13 +309,13 @@ class AmpersandApp
     protected function setInterfacesAndRules(): AmpersandApp
     {
         // Add public interfaces
-        $this->accessibleInterfaces = Ifc::getPublicInterfaces();
+        $this->accessibleInterfaces = $this->model->getPublicInterfaces();
 
         // Add interfaces and rules for all active session roles
         foreach ($this->getActiveRoles() as $roleAtom) {
             /** @var \Ampersand\Core\Atom $roleAtom */
             try {
-                $role = Role::getRoleByName($roleAtom->getId());
+                $role = $this->model->getRoleByName($roleAtom->getId());
                 $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $role->interfaces());
                 $this->rulesToMaintain = array_merge($this->rulesToMaintain, $role->maintains());
             } catch (Exception $e) {
@@ -486,7 +487,8 @@ class AmpersandApp
 
         // Clear caches
         $this->conjunctCache->clear(); // external cache item pool
-        foreach (Concept::getAllConcepts() as $cpt) {
+        foreach ($this->model->getAllConcepts() as $cpt) {
+            /** @var \Ampersand\Core\Concept $cpt */
             $cpt->clearAtomCache(); // local cache in Ampersand code
         }
 
@@ -508,7 +510,7 @@ class AmpersandApp
 
         // Evaluate all conjunct and save cache
         $this->logger->info("Initial evaluation of all conjuncts after application reinstallation");
-        foreach (Conjunct::getAllConjuncts() as $conj) {
+        foreach ($this->model->getAllConjuncts() as $conj) {
             /** @var \Ampersand\Rule\Conjunct $conj */
             $conj->evaluate()->persistCacheItem();
         }
@@ -529,7 +531,7 @@ class AmpersandApp
     {
         foreach ($roles as $role) {
             // Set sessionActiveRoles[SESSION*PF_Role]
-            $this->session->toggleActiveRole(Concept::getRoleConcept()->makeAtom($role->label), $role->active);
+            $this->session->toggleActiveRole($this->model->getRoleConcept()->makeAtom($role->label), $role->active);
         }
         
         // Commit transaction (exec-engine kicks also in)
@@ -680,8 +682,26 @@ class AmpersandApp
         $this->logger->debug("Checking process rules for active roles: " . implode(', ', $activeRoleIds));
         
         // Check rules and signal notifications for all violations
-        foreach (RuleEngine::getViolationsFromCache($this->rulesToMaintain) as $violation) {
+        foreach (RuleEngine::getViolationsFromCache($this->getConjunctCache(), $this->rulesToMaintain) as $violation) {
             $this->userLogger->signal($violation);
         }
+    }
+    
+    /**********************************************************************************************
+     * SHORT CUTS
+     **********************************************************************************************/
+    /**
+     * Return relation object
+     *
+     * @param string $relationSignature
+     * @param \Ampersand\Core\Concept|null $srcConcept
+     * @param \Ampersand\Core\Concept|null $tgtConcept
+     *
+     * @throws \Exception if relation is not defined
+     * @return \Ampersand\Core\Relation
+     */
+    public function getRelation($relationSignature, Concept $srcConcept = null, Concept $tgtConcept = null): Relation
+    {
+        return $this->model->getRelation($relationSignature, $srcConcept, $tgtConcept);
     }
 }

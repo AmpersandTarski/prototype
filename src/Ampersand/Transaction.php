@@ -142,7 +142,7 @@ class Transaction
         $execEngineRoleNames = $this->app->getSettings()->get('execengine.execEngineRoleNames');
         foreach ((array) $execEngineRoleNames as $roleName) {
             try {
-                $role = Role::getRoleByName($roleName);
+                $role = $this->app->getModel()->getRoleByName($roleName);
                 $this->execEngines[] = new ExecEngine($role, $this, $this->app, Logger::getLogger('EXECENGINE'));
             } catch (Exception $e) {
                 $this->logger->warning("ExecEngine role '{$roleName}' configured, but role is not used/defined in &-script");
@@ -168,7 +168,7 @@ class Transaction
         $runCounter = 0;
 
         // Rules to check
-        $rulesToCheck = $checkAllRules ? Rule::getAllRules() : $this->getAffectedRules();
+        $rulesToCheck = $checkAllRules ? $this->app->getModel()->getAllRules() : $this->getAffectedRules();
 
         // Do run exec engines while there is work to do
         do {
@@ -248,7 +248,7 @@ class Transaction
     protected function runService(string $serviceId): array
     {
         try {
-            $role = Role::getRoleByName($serviceId);
+            $role = $this->app->getModel()->getRoleByName($serviceId);
         } catch (Exception $e) {
             $this->logger->warning("Transaction::runService is called with role '{$serviceId}', but this role is not used/defined in &-script");
         }
@@ -484,7 +484,7 @@ class Transaction
         $affectedRuleNames = array_unique($affectedRuleNames);
 
         return array_map(function (string $ruleName): Rule {
-            return Rule::getRule($ruleName);
+            return $this->app->getModel()->getRule($ruleName);
         }, $affectedRuleNames);
     }
 
