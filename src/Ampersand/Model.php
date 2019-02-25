@@ -43,11 +43,11 @@ class Model
     private $logger;
 
     /**
-     * Specifies if Model is initialized (i.e. all definitions are loaded from the json files)
+     * Specifies which part(s) of the Model are initialized (i.e. when definitions are loaded from the json files)
      *
-     * @var bool
+     * @var string[]
      */
-    protected $initialized = false;
+    protected $initialized = [];
 
     /**
      * Directory where Ampersand model is generated in
@@ -164,15 +164,14 @@ class Model
 
     public function init(AmpersandApp $app): Model
     {
-        $this->loadConcepts(Logger::getLogger('CORE'), $app);
         $this->loadConjuncts(Logger::getLogger('RULEENGINE'), $app, $app->getDefaultStorage(), $app->getConjunctCache());
         $this->loadViews($app->getDefaultStorage());
+        $this->loadConcepts(Logger::getLogger('CORE'), $app);
         $this->loadRelations(Logger::getLogger('CORE'), $app);
         $this->loadInterfaces($app->getDefaultStorage());
         $this->loadRules($app->getDefaultStorage(), $app, Logger::getLogger('RULEENGINE'));
         $this->loadRoles();
 
-        $this->initialized = true;
         return $this;
     }
 
@@ -190,6 +189,8 @@ class Model
         foreach ($allConceptDefs as $conceptDef) {
             $this->concepts[$conceptDef['id']] = new Concept($conceptDef, $logger, $app);
         }
+
+        $this->initialized[] = 'concepts';
     }
 
     /**
@@ -208,6 +209,8 @@ class Model
         foreach ($allConjDefs as $conjDef) {
             $this->conjuncts[$conjDef['id']] = new Conjunct($conjDef, $app, $logger, $database, $cachePool);
         }
+
+        $this->initialized[] = 'conjuncts';
     }
 
     protected function loadRelations(LoggerInterface $logger, AmpersandApp $app): void
@@ -220,6 +223,8 @@ class Model
             $relation = new Relation($relationDef, $logger, $app);
             $this->relations[$relation->signature] = $relation;
         }
+
+        $this->initialized[] = 'relations';
     }
 
     /**
@@ -237,6 +242,8 @@ class Model
             $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['interfaceRoles'], $ifcDef['ifcObject'], $defaultPlug, $this);
             $this->interfaces[$ifc->getId()] = $ifc;
         }
+
+        $this->initialized[] = 'interfaces';
     }
 
     /**
@@ -252,6 +259,8 @@ class Model
         foreach ($allViewDefs as $viewDef) {
             $this->views[$viewDef['label']] = new View($viewDef, $defaultPlug);
         }
+
+        $this->initialized[] = 'views';
     }
 
     /**
@@ -279,6 +288,8 @@ class Model
             $rule = new Rule($ruleDef, $defaultPlug, 'invariant', $app, $logger);
             $this->rules[$rule->getId()] = $rule;
         }
+
+        $this->initialized[] = 'rules';
     }
 
     /**
@@ -293,6 +304,8 @@ class Model
         foreach ($allRoleDefs as $roleDef) {
             $this->roles[$roleDef['name']] = new Role($roleDef, $this);
         }
+
+        $this->initialized[] = 'roles';
     }
 
     /**********************************************************************************************
@@ -305,7 +318,7 @@ class Model
      */
     public function getAllConcepts(): array
     {
-        if (!$this->initialized) {
+        if (!in_array('concepts', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
         }
         
@@ -369,7 +382,7 @@ class Model
      */
     public function getRelations(): array
     {
-        if (!$this->initialized) {
+        if (!in_array('relations', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
         }
          
@@ -388,7 +401,7 @@ class Model
      */
     public function getRelation($relationSignature, Concept $srcConcept = null, Concept $tgtConcept = null): Relation
     {
-        if (!$this->initialized) {
+        if (!in_array('relations', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
         }
         
@@ -433,7 +446,7 @@ class Model
      */
     public function getAllInterfaces(): array
     {
-        if (!$this->initialized) {
+        if (!in_array('interfaces', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
         }
         
@@ -511,7 +524,7 @@ class Model
      */
     public function getAllViews()
     {
-        if (!$this->initialized) {
+        if (!in_array('views', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
         }
          
@@ -527,7 +540,7 @@ class Model
      */
     public function getView($viewLabel): View
     {
-        if (!$this->initialized) {
+        if (!in_array('views', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
         }
 
@@ -548,7 +561,7 @@ class Model
      */
     public function getAllRules(string $type = null): array
     {
-        if (!$this->initialized) {
+        if (!in_array('rules', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
         }
 
@@ -581,7 +594,7 @@ class Model
      */
     public function getRule($ruleName): Rule
     {
-        if (!$this->initialized) {
+        if (!in_array('rules', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
         }
 
@@ -602,7 +615,7 @@ class Model
      */
     public function getAllConjuncts(): array
     {
-        if (!$this->initialized) {
+        if (!in_array('conjuncts', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
         }
          
@@ -618,7 +631,7 @@ class Model
      */
     public function getConjunct($conjId): Conjunct
     {
-        if (!$this->initialized) {
+        if (!in_array('conjuncts', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
         }
 
@@ -639,7 +652,7 @@ class Model
      */
     public function getAllRoles()
     {
-        if (!$this->initialized) {
+        if (!in_array('roles', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
         }
          
