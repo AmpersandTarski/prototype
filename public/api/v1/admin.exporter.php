@@ -45,7 +45,7 @@ $api->group('/admin/exporter', function () {
         $ampersandApp = $this['ampersand_app'];
 
         // Process input
-        $body = $request->getParsedBody();
+        $body = $request->reparseBody()->getParsedBody();
         $model = $ampersandApp->getModel();
         
         $concepts = array_map(function (string $conceptLabel) use ($model) {

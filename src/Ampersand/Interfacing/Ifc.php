@@ -84,8 +84,8 @@ class Ifc
         $this->label = $label;
         $this->isAPI = $isAPI;
         $this->ifcRoleNames = $ifcRoleNames;
-        $this->ifcObject = $this->newExprObject($objectDef, $defaultPlug);
         $this->model = $model;
+        $this->ifcObject = $this->newExprObject($objectDef, $defaultPlug);
     }
 
     public function __toString(): string
