@@ -182,7 +182,7 @@ class Model
      * @param \Ampersand\AmpersandApp $app
      * @return void
      */
-    public function loadConcepts(LoggerInterface $logger, AmpersandApp $app): void
+    protected function loadConcepts(LoggerInterface $logger, AmpersandApp $app): void
     {
         $allConceptDefs = (array)json_decode(file_get_contents($this->modelFiles['concepts']), true);
     
@@ -202,7 +202,7 @@ class Model
      * @param \Psr\Cache\CacheItemPoolInterface $cachePool
      * @return void
      */
-    public function loadConjuncts(LoggerInterface $logger, AmpersandApp $app, MysqlDB $database, CacheItemPoolInterface $cachePool)
+    protected function loadConjuncts(LoggerInterface $logger, AmpersandApp $app, MysqlDB $database, CacheItemPoolInterface $cachePool)
     {
         $allConjDefs = (array)json_decode(file_get_contents($this->modelFiles['conjuncts']), true);
     
@@ -233,7 +233,7 @@ class Model
      * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
      * @return void
      */
-    public function loadInterfaces(IfcPlugInterface $defaultPlug)
+    protected function loadInterfaces(IfcPlugInterface $defaultPlug)
     {
         $allInterfaceDefs = (array)json_decode(file_get_contents($this->modelFiles['interfaces']), true);
         
@@ -252,7 +252,7 @@ class Model
      * @param \Ampersand\Plugs\ViewPlugInterface $defaultPlug
      * @return void
      */
-    public function loadViews(ViewPlugInterface $defaultPlug)
+    protected function loadViews(ViewPlugInterface $defaultPlug)
     {
         $allViewDefs = (array)json_decode(file_get_contents($this->modelFiles['views']), true);
         
@@ -271,7 +271,7 @@ class Model
      * @param \Psr\Log\LoggerInterface $logger
      * @return void
      */
-    public function loadRules(ViewPlugInterface $defaultPlug, AmpersandApp $app, LoggerInterface $logger)
+    protected function loadRules(ViewPlugInterface $defaultPlug, AmpersandApp $app, LoggerInterface $logger)
     {
         $this->rules = [];
 
@@ -297,7 +297,7 @@ class Model
      *
      * @return void
      */
-    public function loadRoles(): void
+    protected function loadRoles(): void
     {
         $allRoleDefs = (array) json_decode(file_get_contents($this->modelFiles['roles']), true);
         
