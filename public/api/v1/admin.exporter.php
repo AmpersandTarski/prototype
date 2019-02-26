@@ -1,6 +1,5 @@
 <?php
 
-use Exception;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Ampersand\IO\Exporter;
