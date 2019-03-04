@@ -401,7 +401,7 @@ ExecEngine::registerFunction('SetConceptCond', function ($conceptA, $conceptB, $
         return;
     }
     
-    ExecEngine::getFunction('InsPair')->call($this, $conceptA, $conceptB, $atom);
+    ExecEngine::getFunction('SetConcept')->call($this, $conceptA, $conceptB, $atom);
 });
 
 /**
