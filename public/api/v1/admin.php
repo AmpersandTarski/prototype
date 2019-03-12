@@ -2,7 +2,6 @@
 
 use Ampersand\Log\Logger;
 use Ampersand\Rule\RuleEngine;
-use Ampersand\IO\Importer;
 use Ampersand\IO\ExcelImporter;
 use Ampersand\Misc\Reporter;
 use Slim\Http\Request;
@@ -11,6 +10,7 @@ use Ampersand\Session;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
+use Ampersand\Core\Population;
 
 /**
  * @var \Slim\App $api
@@ -181,9 +181,10 @@ $api->group('/admin', function () {
         switch ($extension) {
             case 'json':
                 $decoder = new JsonDecode(false);
-                $population = $decoder->decode(file_get_contents($_FILES['file']['tmp_name']), JsonEncoder::FORMAT);
-                $importer = new Importer($ampersandApp, Logger::getLogger('IO'));
-                $importer->importPopulation($population);
+                $populationContent = $decoder->decode(file_get_contents($_FILES['file']['tmp_name']), JsonEncoder::FORMAT);
+                $population = new Population($ampersandApp->getModel(), Logger::getLogger('IO'));
+                $population->loadFromPopulationFile($populationContent);
+                $population->import();
                 break;
             case 'xls':
             case 'xlsx':
