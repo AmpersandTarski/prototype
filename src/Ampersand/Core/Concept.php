@@ -245,6 +245,11 @@ class Concept
         return $this->name;
     }
 
+    public function getLabel(): string
+    {
+        return $this->label;
+    }
+
     public function getApp(): AmpersandApp
     {
         return $this->app;
