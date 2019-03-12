@@ -494,11 +494,11 @@ class AmpersandApp
 
         $installer = new Installer($this, $this->logger);
 
-        // Meta population and navigation menus
+        // Navigation menus
         try {
-            $installer->reinstallMetaPopulation()->reinstallNavigationMenus();
+            $installer->reinstallNavigationMenus();
         } catch (Exception $e) {
-            throw new Exception("Error in installing meta population: {$e->getMessage()}", 500, $e);
+            throw new Exception("Error while installing navigation menu: {$e->getMessage()}", 500, $e);
         }
 
         // Initial population

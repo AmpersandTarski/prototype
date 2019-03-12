@@ -79,7 +79,7 @@ class Installer
 
         $transaction->runExecEngine()->close(false, false);
         if ($transaction->isRolledBack()) {
-            throw new Exception("Meta population does not satisfy invariant rules. See log files", 500);
+            throw new Exception("Nav menu population does not satisfy invariant rules. See log files", 500);
         }
         return $this;
     }
