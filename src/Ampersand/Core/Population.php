@@ -7,18 +7,18 @@
 
 namespace Ampersand\Core;
 
-use JsonSerializable;
 use Psr\Log\LoggerInterface;
 use Ampersand\Model;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Link;
+use Symfony\Component\Serializer\Encoder\EncoderInterface;
 
 /**
  *
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class Population implements JsonSerializable
+class Population
 {
     /**
      * Logger
@@ -75,6 +75,56 @@ class Population implements JsonSerializable
         }
 
         return $this;
+    }
+
+    /**
+     * Fill population object with atoms and links from provided concepts and relations
+     *
+     * @param \Ampersand\Core\Concept[] $concepts
+     * @param \Ampersand\Core\Relation[] $relations
+     * @return \Ampersand\Core\Population
+     */
+    public function loadExistingPopulation(array $concepts, array $relations): Population
+    {
+        foreach (array_unique($concepts) as $concept) {
+            /** @var \Ampersand\Core\Concept $concept */
+            $this->atoms = array_merge($this->atoms, $concept->getAllAtomObjects());
+        }
+        foreach (array_unique($relations) as $rel) {
+            /** @var \Ampersand\Core\Relation $rel */
+            $this->links = array_merge($this->links, $rel->getAllLinks());
+        }
+
+        return $this;
+    }
+
+    public function export(EncoderInterface $encoder, string $format)
+    {
+        $conceptPop = [];
+        foreach ($this->atoms as $atom) {
+            $conceptPop[$atom->concept->name]['atoms'][] = $atom->getId();
+        }
+        foreach ($conceptPop as $key => $value) {
+            $conceptPop[$key]['concept'] = $key;
+        }
+        
+        $relationPop = [];
+        foreach ($this->links as $link) {
+            $relationPop[$link->relation()->signature]['links'][] = [
+                'src' => $link->src()->getId(),
+                'tgt' => $link->tgt()->getId()
+            ];
+        }
+        foreach ($relationPop as $key => $value) {
+            $relationPop[$key]['relation'] = $key;
+        }
+        
+        return $encoder->encode(
+            [ 'atoms' => array_values($conceptPop),
+              'links' => array_values($relationPop)
+            ],
+            $format
+        );
     }
 
     public function import(): Population

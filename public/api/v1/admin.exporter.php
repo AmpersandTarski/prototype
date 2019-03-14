@@ -2,10 +2,10 @@
 
 use Slim\Http\Request;
 use Slim\Http\Response;
-use Ampersand\IO\Exporter;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Ampersand\Log\Logger;
 use Ampersand\IO\RDFGraph;
+use Ampersand\Core\Population;
 
 /**
  * @var \Slim\App $api
@@ -25,10 +25,12 @@ $api->group('/admin/exporter', function () {
     $this->get('/export/all', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
+        $model = $ampersandApp->getModel();
 
         // Export population to response body
-        $exporter = new Exporter(new JsonEncoder(), $response->getBody(), Logger::getLogger('IO'));
-        $exporter->exportPopulation($ampersandApp->getModel()->getAllConcepts(), $ampersandApp->getModel()->getRelations(), 'json');
+        $population = new Population($model, Logger::getLogger('IO'));
+        $population->loadExistingPopulation($model->getAllConcepts(), $model->getRelations());
+        $response->getBody()->write($population->export(new JsonEncoder(), 'json'));
 
         // Return response
         $filename = $ampersandApp->getName() . "_population_" . date('Y-m-d\TH-i-s') . ".json";
@@ -56,8 +58,9 @@ $api->group('/admin/exporter', function () {
         }, $body->relations);
 
         // Export population to response body
-        $exporter = new Exporter(new JsonEncoder(), $response->getBody(), Logger::getLogger('IO'));
-        $exporter->exportPopulation($concepts, $relations, 'json');
+        $population = new Population($model, Logger::getLogger('IO'));
+        $population->loadExistingPopulation($concepts, $relations);
+        $response->getBody()->write($population->export(new JsonEncoder(), 'json'));
 
         // Return response
         $filename = $ampersandApp->getName() . "_population-subset_" . date('Y-m-d\TH-i-s') . ".json";

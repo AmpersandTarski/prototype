@@ -1,1 +1,0 @@
-src\Ampersand\Core\Population.php:21 PhanClassContainsAbstractMethodInternal non-abstract class \Ampersand\Core\Population contains abstract internal method \JsonSerializable::jsonSerialize
