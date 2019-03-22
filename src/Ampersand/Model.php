@@ -25,6 +25,9 @@ use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Ampersand\AmpersandApp;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Interfacing\View;
+use Ampersand\Core\Population;
+use Ampersand\Core\Link;
+use Ampersand\Core\Atom;
 
 /**
  *
@@ -306,6 +309,48 @@ class Model
         }
 
         $this->initialized[] = 'roles';
+    }
+
+    public function getInitialPopulation(): Population
+    {
+        $population = new Population($this, $this->logger);
+        $population->loadFromPopulationFile($this->getFileContent('populations'));
+        return $population;
+    }
+
+    /**
+     * Return meta population for this Ampersand model
+     *
+     * Population is added to user population by SystemContext grinder in Ampersand compiler
+     * @return \Ampersand\Core\Population
+     */
+    public function getMetaPopulation(): Population
+    {
+        // Start with initial population
+        $population = $this->getInitialPopulation();
+
+        // Filter meta model atoms from initial population
+        $conceptLabels = [
+            'PF_Role',
+            'PF_Interface',
+            'PF_Label'
+        ];
+        $population = $population->filterAtoms(function (Atom $atom) use ($conceptLabels) {
+            return in_array($atom->concept->getLabel(), $conceptLabels, true);
+        });
+        
+        // Filter meta model links from initial population
+        $relationSignatures = [
+            'label[PF_Interface*PF_Label]',
+            'pf_ifcRoles[PF_Interface*PF_Role]',
+            'isPublic[PF_Interface*PF_Interface]',
+            'isAPI[PF_Interface*PF_Interface]'
+        ];
+        $population = $population->filterLinks(function (Link $link) use ($relationSignatures) {
+            return in_array($link->relation()->getSignature(), $relationSignatures, true);
+        });
+
+        return $population;
     }
 
     /**********************************************************************************************

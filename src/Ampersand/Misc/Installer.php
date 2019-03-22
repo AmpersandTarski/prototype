@@ -8,12 +8,9 @@
 namespace Ampersand\Misc;
 
 use Ampersand\AmpersandApp;
-use Ampersand\IO\Importer;
 use Ampersand\Model;
 use Exception;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Serializer\Encoder\JsonDecode;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
 
 /**
  *
@@ -59,7 +56,7 @@ class Installer
         $transaction = $this->ampersandApp->newTransaction();
 
         // TODO: add function to clear/delete current meta population
-        $this->addMetaPopulation();
+        $this->ampersandApp->getModel()->getMetaPopulation()->import();
 
         $transaction->runExecEngine()->close(false, false);
         if ($transaction->isRolledBack()) {
@@ -90,10 +87,7 @@ class Installer
 
         $transaction = $this->ampersandApp->newTransaction();
 
-        $decoder = new JsonDecode(false);
-        $population = $decoder->decode(file_get_contents($model->getFilePath('populations')), JsonEncoder::FORMAT);
-        $importer = new Importer($this->ampersandApp, $this->logger);
-        $importer->importPopulation($population);
+        $model->getInitialPopulation()->import();
 
         // Close transaction
         $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
@@ -102,37 +96,6 @@ class Installer
         }
 
         return $this;
-    }
-
-    /**
-     * Add model meta population (experimental functionality)
-     * TODO: replace by meatgrinder in Ampersand generator
-     *
-     * @return void
-     */
-    protected function addMetaPopulation(): void
-    {
-        $model = $this->ampersandApp->getModel();
-        // Add roles
-        foreach ($model->getAllRoles() as $role) {
-            $model->getRoleConcept()->makeAtom($role->getLabel())->add();
-        }
-
-        // Add interfaces
-        foreach ($model->getAllInterfaces() as $ifc) {
-            /** @var \Ampersand\Interfacing\Ifc $ifc */
-            $ifcAtom = $model->getConceptByLabel('PF_Interface')->makeAtom($ifc->getId())->add();
-            $ifcAtom->link($ifc->getLabel(), 'label[PF_Interface*PF_Label]')->add();
-            foreach ($ifc->getRoleNames() as $roleName) {
-                $ifcAtom->link($roleName, 'pf_ifcRoles[PF_Interface*PF_Role]')->add();
-            }
-            if ($ifc->isPublic()) {
-                $ifcAtom->link($ifcAtom, 'isPublic[PF_Interface*PF_Interface]')->add();
-            }
-            if ($ifc->isAPI()) {
-                $ifcAtom->link($ifcAtom, 'isAPI[PF_Interface*PF_Interface]')->add();
-            }
-        }
     }
 
     /**
