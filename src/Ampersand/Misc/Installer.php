@@ -56,7 +56,8 @@ class Installer
         $transaction = $this->ampersandApp->newTransaction();
 
         // TODO: add function to clear/delete current meta population
-        $this->ampersandApp->getModel()->getMetaPopulation()->import();
+        $this->addMetaPopulation(); // Temporary solution because of bugfix in meta-data population
+        // $this->ampersandApp->getModel()->getMetaPopulation()->import();
 
         $transaction->runExecEngine()->close(false, false);
         if ($transaction->isRolledBack()) {
@@ -96,6 +97,37 @@ class Installer
         }
 
         return $this;
+    }
+
+    /**
+     * Add model meta population (experimental functionality)
+     * TODO: replace by meatgrinder in Ampersand generator
+     *
+     * @return void
+     */
+    protected function addMetaPopulation(): void
+    {
+        $model = $this->ampersandApp->getModel();
+        // Add roles
+        foreach ($model->getAllRoles() as $role) {
+            $model->getRoleConcept()->makeAtom($role->getLabel())->add();
+        }
+
+        // Add interfaces
+        foreach ($model->getAllInterfaces() as $ifc) {
+            /** @var \Ampersand\Interfacing\Ifc $ifc */
+            $ifcAtom = $model->getConceptByLabel('PF_Interface')->makeAtom($ifc->getId())->add();
+            $ifcAtom->link($ifc->getLabel(), 'label[PF_Interface*PF_Label]')->add();
+            foreach ($ifc->getRoleNames() as $roleName) {
+                $ifcAtom->link($roleName, 'pf_ifcRoles[PF_Interface*PF_Role]')->add();
+            }
+            if ($ifc->isPublic()) {
+                $ifcAtom->link($ifcAtom, 'isPublic[PF_Interface*PF_Interface]')->add();
+            }
+            if ($ifc->isAPI()) {
+                $ifcAtom->link($ifcAtom, 'isAPI[PF_Interface*PF_Interface]')->add();
+            }
+        }
     }
 
     /**
