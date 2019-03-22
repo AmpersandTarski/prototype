@@ -79,10 +79,11 @@ $api->group('/admin/exporter', function () {
         $acceptHeader = $request->getParam('format') ?? $request->getHeaderLine('Accept');
         $easyRdf_Format = RDFGraph::getResponseFormat($acceptHeader);
 
-        $graph = new RDFGraph($ampersandApp);
+        $graph = new RDFGraph($ampersandApp->getModel(), $ampersandApp->getSettings());
 
         // Output
-        switch ($mimetype = $easyRdf_Format->getDefaultMimeType()) {
+        $mimetype = $easyRdf_Format->getDefaultMimeType();
+        switch ($mimetype) {
             case 'text/html':
                 return $response->withHeader('Content-Type', 'text/html')->write($graph->dump('html'));
             case 'text/plain':

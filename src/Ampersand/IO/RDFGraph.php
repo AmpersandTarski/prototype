@@ -7,10 +7,11 @@
 
 namespace Ampersand\IO;
 
-use Ampersand\AmpersandApp;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Misc\AcceptHeader;
+use Ampersand\Misc\Settings;
+use Ampersand\Model;
 use EasyRdf_Exception;
 use EasyRdf_Format;
 use EasyRdf_Graph;
@@ -20,17 +21,8 @@ use Exception;
 
 class RDFGraph extends EasyRdf_Graph
 {
-    /**
-     * Reference to AmpersandApp
-     *
-     * @var \Ampersand\AmpersandApp
-     */
-    protected $ampersandApp;
-
-    public function __construct(AmpersandApp $ampersandApp)
+    public function __construct(Model $model, Settings $settings)
     {
-        $this->ampersandApp = $ampersandApp;
-
         // TODO: add namespace of context here
         $graphURI = 'my-app';
 
@@ -40,20 +32,18 @@ class RDFGraph extends EasyRdf_Graph
         EasyRdf_Namespace::set('app', "{$graphURI}#");
 
         // Ampersand CONCEPT --> owl:Class
-        foreach ($this->ampersandApp->getModel()->getAllConcepts() as $concept) {
+        foreach ($model->getAllConcepts() as $concept) {
             $this->addConcept($concept);
         }
 
         // Ampersand RELATION --> owl:Property
-        foreach ($ampersandApp->getModel()->getRelations() as $relation) {
+        foreach ($model->getRelations() as $relation) {
             $this->addRelation($relation);
         }
     }
 
-    public function addOntology(): void
+    protected function addOntology(Settings $settings): void
     {
-        $settings = $this->ampersandApp->getSettings();
-
         /** @var \EasyRdf_Resource $ontology */
         $ontology = $this->resource('app:ontology', 'owl:Ontology');
         $ontology->set('dc:title', $settings->get('global.contextName'));
@@ -61,7 +51,7 @@ class RDFGraph extends EasyRdf_Graph
         $ontology->set('dc:description', "TODO");
     }
 
-    public function addConcept(Concept $concept): void
+    protected function addConcept(Concept $concept): void
     {
         // owl:Class
         if ($concept->isObject()) {
@@ -76,7 +66,7 @@ class RDFGraph extends EasyRdf_Graph
         // Scalar are not expressed as owl:Class, but are expressed as range of an owl:DatatypeProperty
     }
 
-    public function addRelation(Relation $relation): void
+    protected function addRelation(Relation $relation): void
     {
         if (!$relation->srcConcept->isObject()) {
             if (!$relation->tgtConcept->isObject()) {
