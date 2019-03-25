@@ -82,10 +82,15 @@ $api->group('/admin/installer', function () {
     /** @var \Ampersand\AmpersandApp $ampersandApp */
     $ampersandApp = $this['ampersand_app'];
 
-    // Access check
-    $allowedRoles = $ampersandApp->getSettings()->get('rbac.adminRoles');
-    if (!$ampersandApp->hasRole($allowedRoles)) {
-        throw new Exception("You do not have access to /admin/installer", 403);
+    /** @var \Slim\Route $route */
+    $route = $req->getAttribute('route');
+
+    // Access check (except for route 'applicationInstaller', because session may not be set yet)
+    if ($route->getName() !== 'applicationInstaller') {
+        $allowedRoles = $ampersandApp->getSettings()->get('rbac.adminRoles');
+        if (!$ampersandApp->hasRole($allowedRoles)) {
+            throw new Exception("You do not have access to /admin/installer", 403);
+        }
     }
 
     // Do stuff
