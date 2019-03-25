@@ -496,7 +496,7 @@ class AmpersandApp
 
         // Navigation menus
         try {
-            $installer->reinstallNavigationMenus();
+            $installer->reinstallMetaPopulation()->reinstallNavigationMenus();
         } catch (Exception $e) {
             throw new Exception("Error while installing navigation menu: {$e->getMessage()}", 500, $e);
         }
