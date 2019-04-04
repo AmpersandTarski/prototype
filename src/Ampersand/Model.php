@@ -707,15 +707,11 @@ class Model
     /**
      * Return role object
      *
-     * @param int $roleId
+     * @param string $roleId
      * @return \Ampersand\Role
      */
-    public function getRoleById(int $roleId): Role
+    public function getRoleById(string $roleId): Role
     {
-        if (!is_int($roleId)) {
-            throw new Exception("No valid role id provided. Role id must be an integer", 500);
-        }
-        
         foreach ($this->getAllRoles() as $role) {
             if ($role->getId() === $roleId) {
                 return $role;
