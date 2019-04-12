@@ -56,8 +56,8 @@ class Installer
         $transaction = $this->ampersandApp->newTransaction();
 
         // TODO: add function to clear/delete current meta population
-        $this->addMetaPopulation(); // Temporary solution because of bugfix in meta-data population
-        // $this->ampersandApp->getModel()->getMetaPopulation()->import();
+        // $this->addMetaPopulation(); // Temporary solution because of bugfix in meta-data population
+        $this->ampersandApp->getModel()->getMetaPopulation()->import();
 
         $transaction->runExecEngine()->close(false, false);
         if ($transaction->isRolledBack()) {

@@ -341,6 +341,7 @@ class Model
         
         // Filter meta model links from initial population
         $relationSignatures = [
+            'label[PF_Role*PF_Label]',
             'label[PF_Interface*PF_Label]',
             'pf_ifcRoles[PF_Interface*PF_Role]',
             'isPublic[PF_Interface*PF_Interface]',
