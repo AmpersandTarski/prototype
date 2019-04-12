@@ -70,7 +70,7 @@ class Role
         return $this->label;
     }
 
-    protected function setId(int $id): void
+    protected function setId(string $id): void
     {
         $this->id = $id;
     }
