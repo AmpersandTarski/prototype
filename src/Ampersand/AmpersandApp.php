@@ -315,7 +315,7 @@ class AmpersandApp
         foreach ($this->getActiveRoles() as $roleAtom) {
             /** @var \Ampersand\Core\Atom $roleAtom */
             try {
-                $role = $this->model->getRoleByName($roleAtom->getId());
+                $role = $this->model->getRoleById($roleAtom->getId());
                 $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $role->interfaces());
                 $this->rulesToMaintain = array_merge($this->rulesToMaintain, $role->maintains());
             } catch (Exception $e) {

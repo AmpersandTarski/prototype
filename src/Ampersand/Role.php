@@ -18,7 +18,7 @@ class Role
 {
     /**
      * Role identifier
-     * @var int
+     * @var string
      */
     protected $id;
     
@@ -75,7 +75,7 @@ class Role
         $this->id = $id;
     }
 
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }
