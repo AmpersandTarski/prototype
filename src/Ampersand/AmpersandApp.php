@@ -697,7 +697,7 @@ class AmpersandApp
      * @param \Ampersand\Core\Concept|null $srcConcept
      * @param \Ampersand\Core\Concept|null $tgtConcept
      *
-     * @throws \Exception if relation is not defined
+     * @throws \Ampersand\Exception\RelationNotDefined if relation is not defined
      * @return \Ampersand\Core\Relation
      */
     public function getRelation($relationSignature, Concept $srcConcept = null, Concept $tgtConcept = null): Relation

@@ -28,6 +28,7 @@ use Ampersand\Interfacing\View;
 use Ampersand\Core\Population;
 use Ampersand\Core\Link;
 use Ampersand\Core\Atom;
+use Ampersand\Exception\RelationNotDefined;
 
 /**
  *
@@ -442,7 +443,8 @@ class Model
      * @param \Ampersand\Core\Concept|null $srcConcept
      * @param \Ampersand\Core\Concept|null $tgtConcept
      *
-     * @throws \Exception if relation is not defined
+     * @throws \Ampersand\Exception\RelationNotDefined if relation is not defined
+     * @throws \Exception when something is wrong
      * @return \Ampersand\Core\Relation
      */
     public function getRelation($relationSignature, Concept $srcConcept = null, Concept $tgtConcept = null): Relation
@@ -479,7 +481,7 @@ class Model
         }
         
         // Else
-        throw new Exception("Relation '{$relationSignature}[{$srcConcept}*{$tgtConcept}]' is not defined", 500);
+        throw new RelationNotDefined("Relation '{$relationSignature}[{$srcConcept}*{$tgtConcept}]' is not defined", 500);
     }
 
     /**********************************************************************************************

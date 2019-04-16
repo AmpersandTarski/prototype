@@ -14,6 +14,7 @@ use Ampersand\Core\Link;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\AmpersandApp;
+use Ampersand\Exception\RelationNotDefined;
 
 /**
  * Class of session objects
@@ -215,7 +216,11 @@ class Session
             $this->logger->debug("No session account, because login functionality is not enabled");
             return false;
         } else {
-            $sessionAccounts = $this->sessionAtom->getLinks('sessionAccount[SESSION*Account]');
+            try {
+                $sessionAccounts = $this->sessionAtom->getLinks('sessionAccount[SESSION*Account]');
+            } catch (RelationNotDefined $e) {
+                throw new Exception("Relation sessionAccount[SESSION*Account] is not defined. You SHOULD include the SIAM module to use the login functionality.", 500, $e);
+            }
             
             // Relation sessionAccount is UNI
             if (empty($sessionAccounts)) {
@@ -237,18 +242,22 @@ class Session
      */
     public function setSessionAccount(Atom $accountAtom): Atom
     {
-        if (!$accountAtom->exists()) {
-            throw new Exception("Account does not exist", 500);
+        try {
+            if (!$accountAtom->exists()) {
+                throw new Exception("Account does not exist", 500);
+            }
+
+            $this->sessionAtom->link($accountAtom, 'sessionAccount[SESSION*Account]')->add();
+            
+            // Login timestamps
+            $ts = date(DATE_ISO8601);
+            $accountAtom->link($ts, 'accMostRecentLogin[Account*DateTime]')->add();
+            $accountAtom->link($ts, 'accLoginTimestamps[Account*DateTime]')->add();
+
+            return $accountAtom;
+        } catch (RelationNotDefined $e) {
+            throw new Exception("Relation sessionAccount[SESSION*Account], accMostRecentLogin[Account*DateTime] and/or accLoginTimestamps[Account*DateTime] are not defined. You SHOULD include the SIAM module to use the login functionality.", 500, $e);
         }
-
-        $this->sessionAtom->link($accountAtom, 'sessionAccount[SESSION*Account]')->add();
-        
-        // Login timestamps
-        $ts = date(DATE_ISO8601);
-        $accountAtom->link($ts, 'accMostRecentLogin[Account*DateTime]')->add();
-        $accountAtom->link($ts, 'accLoginTimestamps[Account*DateTime]')->add();
-
-        return $accountAtom;
     }
     
     /**
