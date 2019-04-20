@@ -530,7 +530,7 @@ class AmpersandApp
     public function setActiveRoles(array $roles): void
     {
         foreach ($roles as $role) {
-            // Set sessionActiveRoles[SESSION*PF_Role]
+            // Set sessionActiveRoles[SESSION*Role]
             $this->session->toggleActiveRole($this->model->getRoleConcept()->makeAtom($role->label), $role->active);
         }
         
