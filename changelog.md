@@ -13,6 +13,9 @@
 * Move initialization of all object definitions (Rule, Role, Concept, Relation, etc) to Model class
 * Add functionality to export subset of population
 
+## v1.1.1 (21 january 2019)
+* Hotfix: bug in delete query when removing multiple links at once
+
 ## v1.1.0 (18 january 2019)
 * **Major refactoring of backend implementation of prototype framework**
 * Minimum requirement of php version >= 7.1 (was >= 7.0)
