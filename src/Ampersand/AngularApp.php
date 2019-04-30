@@ -11,6 +11,8 @@ use Exception;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
 use Ampersand\Interfacing\Ifc;
+use Ampersand\Interfacing\ResourceList;
+use Ampersand\Interfacing\Options;
 
 /**
  *
@@ -38,13 +40,6 @@ class AngularApp
      * @var array
      */
     protected $extMenu = [];
-    
-    /**
-     * List of items for the refresh menu (in navbar)
-     *
-     * @var array
-     */
-    protected $refreshMenu = [];
     
     /**
      * List of items for the role menu (in navbar)
@@ -83,9 +78,6 @@ class AngularApp
             case 'ext':
                 $this->extMenu[] = ['url' => $itemUrl, 'function' => $function];
                 break;
-            case 'refresh':
-                $this->refreshMenu[] = ['url' => $itemUrl, 'function' => $function];
-                break;
             case 'role':
                 $this->roleMenu[] = ['url' => $itemUrl, 'function' => $function];
                 break;
@@ -103,12 +95,6 @@ class AngularApp
             // Items for extension menu
             case 'ext':
                 $result = array_filter($this->extMenu, function ($item) use ($ampersandApp) {
-                    return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
-                });
-                break;
-            // Items for refresh menu
-            case 'refresh':
-                $result = array_filter($this->refreshMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
                 break;
@@ -149,29 +135,16 @@ class AngularApp
                                                ];
                 }
                 break;
-            // Top level items in menu bar
-            case 'top':
-                $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (Ifc $ifc) {
-                    $ifcObj = $ifc->getIfcObject();
-                    if ($ifc->getSrcConcept()->isSession() && $ifcObj->crudR()) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                });
-
-                $result = array_map(function (Ifc $ifc) {
-                    return [ 'id' => $ifc->getId()
-                           , 'label' => $ifc->getLabel()
-                           , 'link' => '/' . $ifc->getId()
-                           ];
-                }, $interfaces);
-                break;
             default:
                 throw new Exception("Cannot get menu items. Unknown menu: '{$menu}'", 500);
         }
 
         return array_values($result); // Make sure that a true numeric array is returned
+    }
+
+    public function getNavMenuItems(): array
+    {
+        return ResourceList::makeFromInterface($this->ampersandApp->getSession()->getSessionAtom()->getId(), 'PF_MenuItems')->get(Options::INCLUDE_NOTHING);
     }
 
     public function getNavToResponse($case)

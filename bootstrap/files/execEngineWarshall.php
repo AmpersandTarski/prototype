@@ -11,12 +11,12 @@
    This leads to the following pattern:
 
    relation :: Concept*Concept
-   relationCopy :: Concept*Concept -- copied value of 'relation' allows for detecting modifcation events
-   relationStar :: Concept*Concept -- transitive closure of relation
+   relationCopy :: Concept*Concept -- copied value of 'relation' allows for detecting modification events
+   relationPlus :: Concept*Concept -- transitive closure, i.e.: the irreflexive transitive closure!
 
    ROLE ExecEngine MAINTAINS "relationCompTransitiveClosure"
    RULE "relationCompTransitiveClosure": relation = relationCopy
-   VIOLATION (TXT "{EX} TransitiveClosure;relation;Concept;relationCopy;relationStar")
+   VIOLATION (TXT "{EX} TransitiveClosure;relation;Concept;relationCopy;relationPlus")
 
    NOTES:
    1) The above example is made for ease of use. This is what you need to do:
@@ -28,8 +28,6 @@
    4) Rather than defining/computing rStar (for r*), you may use the expression (I \/ rPlus)
 */
 
-use Ampersand\Core\Concept;
-use Ampersand\Core\Relation;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Core\Link;
 
@@ -43,7 +41,7 @@ ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPl
 
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 4) {
-        throw new Exception("Wrong number of arguments supplied for function TransitiveClosure(): ".func_num_args()." arguments", 500);
+        throw new Exception("TransitiveClosure() expects 4 arguments, but you have provided ".func_num_args(), 500);
     }
     
     // Quit if a relation $r is already calculated in a specific exec-engine run
@@ -57,10 +55,10 @@ ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPl
     $runCount = $this->getRunCount();
 
     // Get concept and relation objects
-    $concept = Concept::getConceptByLabel($C);
-    $relationR = Relation::getRelation($r, $concept, $concept);
-    $relationRCopy = Relation::getRelation($rCopy, $concept, $concept);
-    $relationRPlus = Relation::getRelation($rPlus, $concept, $concept);
+    $concept = $this->getApp()->getModel()->getConceptByLabel($C);
+    $relationR = $this->getApp()->getRelation($r, $concept, $concept);
+    $relationRCopy = $this->getApp()->getRelation($rCopy, $concept, $concept);
+    $relationRPlus = $this->getApp()->getRelation($rPlus, $concept, $concept);
 
     // Empty rCopy and rPlus
     $relationRCopy->empty();

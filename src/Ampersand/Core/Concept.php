@@ -10,8 +10,6 @@ namespace Ampersand\Core;
 use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTable;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
-use Ampersand\Interfacing\View;
-use Ampersand\Rule\Conjunct;
 use Ampersand\Core\Atom;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
@@ -24,28 +22,21 @@ use Ampersand\AmpersandApp;
  */
 class Concept
 {
-    /**
-     * Contains all concept definitions
-     *
-     * @var \Ampersand\Core\Concept[]
-     */
-    private static $allConcepts;
-
     protected static $representTypes =
-        [ 'ALPHANUMERIC'        => ['datatype' => 'string']
-        , 'BIGALPHANUMERIC'     => ['datatype' => 'string']
-        , 'HUGEALPHANUMERIC'    => ['datatype' => 'string']
-        , 'PASSWORD'            => ['datatype' => 'string']
-        , 'BINARY'              => ['datatype' => 'binary']
-        , 'BIGBINARY'           => ['datatype' => 'binary']
-        , 'HUGEBINARY'          => ['datatype' => 'binary']
-        , 'DATE'                => ['datatype' => 'date']
-        , 'DATETIME'            => ['datatype' => 'datetime']
-        , 'BOOLEAN'             => ['datatype' => 'boolean']
-        , 'INTEGER'             => ['datatype' => 'integer']
-        , 'FLOAT'               => ['datatype' => 'float']
-        , 'OBJECT'              => ['datatype' => 'object']
-        , 'TYPEOFONE'           => ['datatype' => 'string']
+        [ 'ALPHANUMERIC'        => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'BIGALPHANUMERIC'     => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'HUGEALPHANUMERIC'    => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'PASSWORD'            => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'BINARY'              => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
+        , 'BIGBINARY'           => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
+        , 'HUGEBINARY'          => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
+        , 'DATE'                => ['datatype' => 'date',       'xml' => 'http://www.w3.org/2001/XMLSchema#data']
+        , 'DATETIME'            => ['datatype' => 'datetime',   'xml' => 'http://www.w3.org/2001/XMLSchema#dateType']
+        , 'BOOLEAN'             => ['datatype' => 'boolean',    'xml' => 'http://www.w3.org/2001/XMLSchema#boolean']
+        , 'INTEGER'             => ['datatype' => 'integer',    'xml' => 'http://www.w3.org/2001/XMLSchema#integer']
+        , 'FLOAT'               => ['datatype' => 'float',      'xml' => 'http://www.w3.org/2001/XMLSchema#float']
+        , 'OBJECT'              => ['datatype' => 'object',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
+        , 'TYPEOFONE'           => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
         ];
     
     /**
@@ -177,13 +168,12 @@ class Concept
     
     /**
      * Concept constructor
-     * Private function to prevent outside instantiation of concepts. Use Concept::getConcept($conceptName)
      *
      * @param array $conceptDef
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Ampersand\AmpersandApp $app
      */
-    private function __construct(array $conceptDef, LoggerInterface $logger, AmpersandApp $app)
+    public function __construct(array $conceptDef, LoggerInterface $logger, AmpersandApp $app)
     {
         $this->logger = $logger;
         $this->app = $app;
@@ -199,7 +189,7 @@ class Concept
         }
         
         foreach ((array)$conceptDef['affectedConjuncts'] as $conjId) {
-            $conj = Conjunct::getConjunct($conjId);
+            $conj = $app->getModel()->getConjunct($conjId);
             $this->relatedConjuncts[] = $conj;
         }
         
@@ -211,7 +201,7 @@ class Concept
         $this->largestConceptId = $conceptDef['largestConcept'];
         
         if (!is_null($conceptDef['defaultViewId'])) {
-            $this->defaultView = View::getView($conceptDef['defaultViewId']);
+            $this->defaultView = $app->getModel()->getView($conceptDef['defaultViewId']);
         }
         
         $this->mysqlConceptTable = new MysqlDBTable($conceptDef['conceptTable']['name']);
@@ -231,7 +221,7 @@ class Concept
      */
     public function setAllAtomsQuery(string $viewId, string $query)
     {
-        $this->defaultView = View::getView($viewId);
+        $this->defaultView = $this->app->getModel()->getView($viewId);
         $this->mysqlConceptTable->allAtomsQuery = $query;
     }
     
@@ -255,9 +245,25 @@ class Concept
         return $this->name;
     }
 
-    public function getDatatype(): string
+    public function getLabel(): string
     {
-        return self::$representTypes[$this->type]['datatype'];
+        return $this->label;
+    }
+
+    public function getApp(): AmpersandApp
+    {
+        return $this->app;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param string $serialization options are: 'datatype', 'xml'
+     * @return string
+     */
+    public function getDatatype($serialization = 'datatype'): string
+    {
+        return self::$representTypes[$this->type][$serialization];
     }
     
     /**
@@ -373,7 +379,7 @@ class Concept
         
         $returnArr = [];
         foreach ($specizalizations as $conceptName) {
-            $returnArr[$conceptName] = self::getConcept($conceptName);
+            $returnArr[$conceptName] = $this->app->getModel()->getConcept($conceptName);
         }
         return $returnArr;
     }
@@ -390,7 +396,7 @@ class Concept
 
         $returnArr = [];
         foreach ($generalizations as $conceptName) {
-            $returnArr[$conceptName] = self::getConcept($conceptName);
+            $returnArr[$conceptName] = $this->app->getModel()->getConcept($conceptName);
         }
         return $returnArr;
     }
@@ -426,7 +432,7 @@ class Concept
      */
     public function getLargestConcept()
     {
-        return Concept::getConcept($this->largestConceptId);
+        return $this->app->getModel()->getConcept($this->largestConceptId);
     }
     
     /**
@@ -600,6 +606,17 @@ class Concept
             return $this->defaultView->getViewData($atom);
         }
     }
+
+    /**
+     * Instantiate a new atom
+     *
+     * @param string $atomId
+     * @return \Ampersand\Core\Atom
+     */
+    public function makeAtom(string $atomId): Atom
+    {
+        return new Atom($atomId, $this);
+    }
     
     /**
      * Creating and adding a new atom to the plug
@@ -675,7 +692,7 @@ class Concept
             
             // Delete all links where $atom is used as src or tgt atom
             // from relations where $this concept (or any of its specializations) is used as src or tgt concept
-            Relation::deleteAllSpecializationLinks($atom);
+            $this->deleteAllSpecializationLinks($atom);
         } else {
             $this->logger->debug("Cannot remove atom {$atom} from {$this}, because atom does not exist");
         }
@@ -701,7 +718,7 @@ class Concept
             }
             
             // Delete all links where $atom is used as src or tgt atom
-            Relation::deleteAllLinksWithAtom($atom);
+            $this->deleteAllLinksWithAtom($atom);
         } else {
             $this->logger->debug("Cannot delete atom {$atom}, because it does not exist");
         }
@@ -753,7 +770,7 @@ class Concept
         }
 
         // Merge step 2: rename right atom by left atom in relation sets
-        foreach (Relation::getAllRelations() as $relation) {
+        foreach ($this->app->getModel()->getRelations() as $relation) {
             // Source
             if ($this->inSameClassificationTree($relation->srcConcept)) {
                 // Delete and add links where atom is the source
@@ -776,86 +793,43 @@ class Concept
         // Merge step 3: delete rightAtom
         $this->deleteAtom($rightAtom);
     }
-    
-    /**********************************************************************************************
-     *
-     * Static functions
-     *
-     *********************************************************************************************/
-    
-    /**
-     * Return concept object given a concept identifier
-     *
-     * @param string $conceptId Escaped concept name
-     * @throws \Exception if concept is not defined
-     * @return \Ampersand\Core\Concept
-     */
-    public static function getConcept(string $conceptId): Concept
-    {
-        if (!array_key_exists($conceptId, $concepts = self::getAllConcepts())) {
-            throw new Exception("Concept '{$conceptId}' is not defined", 500);
-        }
-         
-        return $concepts[$conceptId];
-    }
-    
-    /**
-     * Return concept object given a concept label
-     *
-     * @param string $conceptLabel Unescaped concept name
-     * @throws \Exception if concept is not defined
-     * @return \Ampersand\Core\Concept
-     */
-    public static function getConceptByLabel($conceptLabel): Concept
-    {
-        foreach (self::getAllConcepts() as $concept) {
-            if ($concept->label == $conceptLabel) {
-                return $concept;
-            }
-        }
-        
-        throw new Exception("Concept '{$conceptLabel}' is not defined", 500);
-    }
-    
-    public static function makeSessionAtom($atomId)
-    {
-        return new Atom($atomId, self::getConcept('SESSION'));
-    }
 
-    public static function makeRoleAtom($atomId)
-    {
-        return new Atom($atomId, self::getConcept('Role'));
-    }
-    
     /**
-     * Returns list with all concept objects
+     * Delete all links where $atom is used
      *
-     * @return \Ampersand\Core\Concept[]
-     */
-    public static function getAllConcepts(): array
-    {
-        if (!isset(self::$allConcepts)) {
-            throw new Exception("Concept definitions not loaded yet", 500);
-        }
-        
-        return self::$allConcepts;
-    }
-    
-    /**
-     * Import all concept definitions from json file and instantiate Concept objects
-     *
-     * @param string $fileName containing the Ampersand concept definitions
-     * @param \Psr\Log\LoggerInterface $logger
+     * @param \Ampersand\Core\Atom $atom
      * @return void
      */
-    public static function setAllConcepts(string $fileName, LoggerInterface $logger, AmpersandApp $app)
+    protected function deleteAllLinksWithAtom(Atom $atom): void
     {
-        self::$allConcepts = [];
-        
-        $allConceptDefs = (array)json_decode(file_get_contents($fileName), true);
+        foreach ($this->app->getModel()->getRelations() as $relation) {
+            /** @var \Ampersand\Core\Relation $relation */
+            if ($atom->concept->inSameClassificationTree($relation->srcConcept)) {
+                $relation->deleteAllLinks($atom, 'src');
+            }
+            if ($atom->concept->inSameClassificationTree($relation->tgtConcept)) {
+                $relation->deleteAllLinks($atom, 'tgt');
+            }
+        }
+    }
     
-        foreach ($allConceptDefs as $conceptDef) {
-            self::$allConcepts[$conceptDef['id']] = new Concept($conceptDef, $logger, $app);
+    /**
+     * Delete all links where $atom is used as src or tgt atom
+     * from relations where $atom's concept (or any of its specializations) is used as src or tgt concept
+     *
+     * @param \Ampersand\Core\Atom $atom
+     * @return void
+     */
+    protected function deleteAllSpecializationLinks(Atom $atom): void
+    {
+        foreach ($this->app->getModel()->getRelations() as $relation) {
+            /** @var \Ampersand\Core\Relation $relation */
+            if ($atom->concept->hasSpecialization($relation->srcConcept, true)) {
+                $relation->deleteAllLinks($atom, 'src');
+            }
+            if ($atom->concept->hasSpecialization($relation->tgtConcept, true)) {
+                $relation->deleteAllLinks($atom, 'tgt');
+            }
         }
     }
 }

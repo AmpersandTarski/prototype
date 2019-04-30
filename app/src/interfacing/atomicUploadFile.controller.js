@@ -12,7 +12,7 @@ angular.module('AmpersandApp')
     $scope.FileUploader.onSuccessItem = function(fileItem, response, status, headers){
         NotificationService.updateNotifications(response.notifications);
         
-        newResource = response.content;
+        let newResource = response.content;
         
         // Add new resource to ifc
         if(Array.isArray(fileItem.resource[fileItem.ifc])){ // non-uni = list

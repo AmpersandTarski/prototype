@@ -3,7 +3,6 @@
 namespace Ampersand\Extension\OAuthLogin;
 
 use Exception;
-use Ampersand\Core\Atom;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\Misc\ExtensionThreat;
 
@@ -196,7 +195,7 @@ class OAuthLoginController
         
         // Create new account
         if (empty($accounts)) {
-            $account = Atom::makeNewAtom('Account');
+            $account = $this->ampersandApp->getModel()->getConceptByLabel('Account')->createNewAtom();
             
             // Save email as accUserid
             $account->link($email, 'accUserid[Account*UserID]')->add();

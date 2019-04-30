@@ -234,7 +234,7 @@ class Atom implements JsonSerializable
     public function link($tgtAtom, $relation, $isFlipped = false)
     {
         if (!($relation instanceof Relation)) {
-            $relation = Relation::getRelation($relation);
+            $relation = $this->concept->getApp()->getRelation($relation);
         }
         if (!($tgtAtom instanceof Atom)) {
             $tgtAtom = $isFlipped ? new Atom($tgtAtom, $relation->srcConcept) : new Atom($tgtAtom, $relation->tgtConcept);
@@ -255,7 +255,7 @@ class Atom implements JsonSerializable
     public function getLinks($relation, $isFlipped = false)
     {
         if (!($relation instanceof Relation)) {
-            $relation = Relation::getRelation($relation);
+            $relation = $this->concept->getApp()->getRelation($relation);
         }
         
         if ($isFlipped) {
@@ -292,32 +292,5 @@ class Atom implements JsonSerializable
             $exists = array_key_exists($colName, (array) $this->queryData);
             return $this->queryData[$colName] ?? null;
         }
-    }
-
-    /**********************************************************************************************
-     * Static functions
-     *********************************************************************************************/
-    
-    /**
-     * Factory function for atom object
-     *
-     * @param string $id
-     * @param string $conceptId
-     * @return \Ampersand\Core\Atom
-     */
-    public static function makeAtom(string $id, string $conceptId): Atom
-    {
-        return new Atom($id, Concept::getConcept($conceptId));
-    }
-
-    /**
-     * Factory function for new atom object
-     *
-     * @param string $conceptId
-     * @return \Ampersand\Core\Atom
-     */
-    public static function makeNewAtom(string $conceptId): Atom
-    {
-        return Concept::getConcept($conceptId)->createNewAtom();
     }
 }

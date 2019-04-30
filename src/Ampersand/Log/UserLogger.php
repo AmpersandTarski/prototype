@@ -13,6 +13,7 @@ use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 use Psr\Log\LoggerInterface;
 use Ampersand\Interfacing\Ifc;
+use Ampersand\AmpersandApp;
 
 /**
  *
@@ -29,6 +30,13 @@ class UserLogger extends AbstractLogger
      */
     protected $logger;
 
+    /**
+     * Reference to Ampersand app for which this logger is defined
+     *
+     * @var \Ampersand\AmpersandApp
+     */
+    protected $app;
+
     protected $errors = [];
     protected $invariants = [];
     protected $warnings = [];
@@ -39,11 +47,13 @@ class UserLogger extends AbstractLogger
     /**
      * Constructor
      *
+     * @param \Ampersand\AmpersandApp $app
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(AmpersandApp $app, LoggerInterface $logger)
     {
         $this->logger = $logger;
+        $this->app = $app;
     }
 
     /**
@@ -151,9 +161,6 @@ class UserLogger extends AbstractLogger
      */
     public function signal(Violation $violation)
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp; // TODO: remove reference to global
-
         $rule = $violation->getRule();
         $ruleHash = hash('md5', $rule->getId());
         
@@ -169,7 +176,7 @@ class UserLogger extends AbstractLogger
                     'label' => $ifcobj->getIfcLabel(),
                     'link' => "#/{$ifcobj->getIfcId()}/{$violation->getSrc()->getId()}"
                     ];
-        }, $ampersandApp->getInterfacesToReadConcept($violation->getSrc()->concept));
+        }, $this->app->getInterfacesToReadConcept($violation->getSrc()->concept));
 
         // Add links for tgt atom (if not the same as src atom)
         if ($violation->getSrc()->concept !== $violation->getTgt()->concept || $violation->getSrc()->getId() !== $violation->getTgt()->getId()) {
@@ -182,7 +189,7 @@ class UserLogger extends AbstractLogger
                            , 'link' => "#/{$ifcobj->getIfcId()}/{$violation->getTgt()->getId()}"
                            ];
                 },
-                $ampersandApp->getInterfacesToReadConcept($violation->getTgt()->concept)
+                $this->app->getInterfacesToReadConcept($violation->getTgt()->concept)
             ));
         }
 

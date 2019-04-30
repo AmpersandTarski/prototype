@@ -8,14 +8,13 @@
 namespace Ampersand;
 
 use Exception;
-use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
 use Psr\Log\LoggerInterface;
 use Ampersand\Core\Link;
-use Ampersand\Core\Relation;
-use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\ResourceList;
+use Ampersand\AmpersandApp;
+use Ampersand\Exception\RelationNotDefined;
 
 /**
  * Class of session objects
@@ -99,7 +98,7 @@ class Session
     
     protected function initSessionAtom()
     {
-        $this->sessionAtom = Concept::makeSessionAtom($this->id);
+        $this->sessionAtom = $this->ampersandApp->getModel()->getSessionConcept()->makeAtom($this->id);
         
         // Create a new Ampersand session atom if not yet in SESSION table (i.e. new php session)
         if (!$this->sessionAtom->exists()) {
@@ -108,8 +107,7 @@ class Session
             // If login functionality is not enabled, add all defined roles as allowed roles
             // TODO: can be removed when meat-grinder populates this meta-relation by itself
             if (!$this->settings->get('session.loginEnabled')) {
-                foreach (Role::getAllRoles() as $role) {
-                    $roleAtom = Concept::makeRoleAtom($role->label);
+                foreach ($this->ampersandApp->getModel()->getRoleConcept()->getAllAtomObjects() as $roleAtom) {
                     $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*Role]')->add();
                     // Activate all allowed roles by default
                     $this->toggleActiveRole($roleAtom, true);
@@ -218,7 +216,11 @@ class Session
             $this->logger->debug("No session account, because login functionality is not enabled");
             return false;
         } else {
-            $sessionAccounts = $this->sessionAtom->getLinks('sessionAccount[SESSION*Account]');
+            try {
+                $sessionAccounts = $this->sessionAtom->getLinks('sessionAccount[SESSION*Account]');
+            } catch (RelationNotDefined $e) {
+                throw new Exception("Relation sessionAccount[SESSION*Account] is not defined. You SHOULD include the SIAM module to use the login functionality.", 500, $e);
+            }
             
             // Relation sessionAccount is UNI
             if (empty($sessionAccounts)) {
@@ -240,18 +242,22 @@ class Session
      */
     public function setSessionAccount(Atom $accountAtom): Atom
     {
-        if (!$accountAtom->exists()) {
-            throw new Exception("Account does not exist", 500);
+        try {
+            if (!$accountAtom->exists()) {
+                throw new Exception("Account does not exist", 500);
+            }
+
+            $this->sessionAtom->link($accountAtom, 'sessionAccount[SESSION*Account]')->add();
+            
+            // Login timestamps
+            $ts = date(DATE_ISO8601);
+            $accountAtom->link($ts, 'accMostRecentLogin[Account*DateTime]')->add();
+            $accountAtom->link($ts, 'accLoginTimestamps[Account*DateTime]')->add();
+
+            return $accountAtom;
+        } catch (RelationNotDefined $e) {
+            throw new Exception("Relation sessionAccount[SESSION*Account], accMostRecentLogin[Account*DateTime] and/or accLoginTimestamps[Account*DateTime] are not defined. You SHOULD include the SIAM module to use the login functionality.", 500, $e);
         }
-
-        $this->sessionAtom->link($accountAtom, 'sessionAccount[SESSION*Account]')->add();
-        
-        // Login timestamps
-        $ts = date(DATE_ISO8601);
-        $accountAtom->link($ts, 'accMostRecentLogin[Account*DateTime]')->add();
-        $accountAtom->link($ts, 'accLoginTimestamps[Account*DateTime]')->add();
-
-        return $accountAtom;
     }
     
     /**
@@ -275,7 +281,7 @@ class Session
      */
     public function getSessionVars()
     {
-        if (Ifc::interfaceExists('SessionVars')) {
+        if ($this->ampersandApp->getModel()->interfaceExists('SessionVars')) {
             try {
                 $this->logger->debug("Getting interface 'SessionVars' for {$this->sessionAtom}");
                 return ResourceList::makeFromInterface($this->id, 'SessionVars')->get(Options::INCLUDE_NOTHING);
@@ -288,20 +294,14 @@ class Session
         }
     }
     
-/**********************************************************************************************
- *
- * Static functions
- *
- *********************************************************************************************/
-     
-    public static function deleteExpiredSessions()
+    /**********************************************************************************************
+     * Static functions
+     *********************************************************************************************/
+    public static function deleteExpiredSessions(AmpersandApp $ampersandApp): void
     {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        global $ampersandApp;
-
         $experationTimeStamp = time() - $ampersandApp->getSettings()->get('session.expirationTime');
         
-        $links = Relation::getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
+        $links = $ampersandApp->getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
         foreach ($links as $link) {
             if (strtotime($link->tgt()->getLabel()) < $experationTimeStamp) {
                 $link->src()->delete();

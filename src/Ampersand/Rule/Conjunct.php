@@ -8,7 +8,6 @@
 namespace Ampersand\Rule;
 
 use Exception;
-use Generator;
 use Ampersand\AmpersandApp;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Psr\Cache\CacheItemPoolInterface;
@@ -21,21 +20,6 @@ use Psr\Log\LoggerInterface;
  */
 class Conjunct
 {
-    
-    /**
-     * List of all conjuncts
-     *
-     * @var \Ampersand\Rule\Conjunct[]
-     */
-    private static $allConjuncts;
-
-    /**
-     * Cache pool that contains conjunct violations
-     *
-     * @var \Psr\Cache\CacheItemPoolInterface
-     */
-    protected static $conjunctCache;
-    
     /**
      * Logger
      *
@@ -108,7 +92,6 @@ class Conjunct
     
     /**
      * Conjunct constructor
-     * Private function to prevent outside instantiation of conjuncts. Use Conjunct::getConjunct($conjId)
      *
      * @param array $conjDef
      * @param \Ampersand\AmpersandApp $app
@@ -116,7 +99,7 @@ class Conjunct
      * @param \Ampersand\Plugs\MysqlDB\MysqlDB $database
      * @param \Psr\Cache\CacheItemPoolInterface $cachePool
      */
-    private function __construct(array $conjDef, AmpersandApp $app, LoggerInterface $logger, MysqlDB $database, CacheItemPoolInterface $cachePool)
+    public function __construct(array $conjDef, AmpersandApp $app, LoggerInterface $logger, MysqlDB $database, CacheItemPoolInterface $cachePool)
     {
         $this->logger = $logger;
         $this->app = $app;
@@ -268,94 +251,5 @@ class Conjunct
                , 'invRules' => $this->invRuleNames
                , 'sigRules' => $this->sigRuleNames
                ];
-    }
-    
-    /**********************************************************************************************
-     *
-     * Static functions
-     *
-     *********************************************************************************************/
-    
-    /**
-     * Get conjunct violations (if possible from cache) for given set of conjuncts
-     *
-     * @param \Ampersand\Rule\Conjunct[] $conjuncts
-     * @return \Generator
-     */
-    public static function getConjunctViolations(array $conjuncts = []): Generator
-    {
-        // Foreach conjunct provided, check if there is a hit in cache (i.e. ->isHit())
-        $hits = $nonHits = [];
-        foreach ($conjuncts as $conjunct) {
-            /** @var \Ampersand\Rule\Conjunct $conjunct */
-            if ($conjunct->cacheItem->isHit()) {
-                $hits[] = $conjunct->id;
-            } else {
-                $nonHits[] = $conjunct;
-            }
-        }
-
-        // For all hits, use CachPoolInterface->getItems()
-        foreach (self::$conjunctCache->getItems($hits) as $cacheItem) {
-            /** @var \Psr\Cache\CacheItemInterface $cacheItem */
-            yield from $cacheItem->get();
-        }
-
-        // For all non-hits, get violations from Conjunct object
-        foreach ($nonHits as $conjunct) {
-            yield from $conjunct->getViolations();
-        }
-    }
-
-    /**
-     * Return conjunct object
-     *
-     * @param string $conjId
-     * @throws Exception if conjunct is not defined
-     * @return \Ampersand\Rule\Conjunct
-     */
-    public static function getConjunct($conjId): Conjunct
-    {
-        if (!array_key_exists($conjId, $conjuncts = self::getAllConjuncts())) {
-            throw new Exception("Conjunct '{$conjId}' is not defined", 500);
-        }
-    
-        return $conjuncts[$conjId];
-    }
-    
-    /**
-     * Returns array with all conjunct objects
-     *
-     * @return \Ampersand\Rule\Conjunct[]
-     */
-    public static function getAllConjuncts(): array
-    {
-        if (!isset(self::$allConjuncts)) {
-            throw new Exception("Conjunct definitions not loaded yet", 500);
-        }
-         
-        return self::$allConjuncts;
-    }
-    
-    /**
-     * Import all role definitions from json file and instantiate Conjunct objects
-     *
-     * @param string $fileName containing the Ampersand conjunct definitions
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Ampersand\AmpersandApp $app
-     * @param \Ampersand\Plugs\MysqlDB\MysqlDB $database
-     * @param \Psr\Cache\CacheItemPoolInterface $cachePool
-     * @return void
-     */
-    public static function setAllConjuncts(string $fileName, LoggerInterface $logger, AmpersandApp $app, MysqlDB $database, CacheItemPoolInterface $cachePool)
-    {
-        self::$allConjuncts = [];
-        self::$conjunctCache = $cachePool;
-        
-        $allConjDefs = (array)json_decode(file_get_contents($fileName), true);
-    
-        foreach ($allConjDefs as $conjDef) {
-            self::$allConjuncts[$conjDef['id']] = new Conjunct($conjDef, $app, $logger, $database, $cachePool);
-        }
     }
 }

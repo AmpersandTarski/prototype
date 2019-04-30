@@ -1,4 +1,4 @@
-app = angular.module('AmpersandApp')
+angular.module('AmpersandApp')
 .config(function($routeProvider) {
     $routeProvider
         // default start page
@@ -14,16 +14,13 @@ app = angular.module('AmpersandApp')
             templateUrl : 'app/ext/OAuthLogin/views/Login.html',
             interfaceLabel : 'Login'
         });
-});
-// Add Login module to dependency list
-app.requires[app.requires.length] = 'LoginModule'; // add LoginModule to dependencies
+}).requires.push('LoginModule'); // add LoginModule to dependency list
 
 // LoginModule declaration
 angular.module('LoginModule', ['ngRoute', 'restangular'])
 .controller('LoginExtLoginController', function($scope, Restangular, NotificationService, LoginService){
     Restangular.one('oauthlogin/login').get().then(
         function(data){ // on success
-            data = data.plain();
             $scope.idps = data.identityProviders;
             NotificationService.updateNotifications(data.notifications);
         }
@@ -32,7 +29,6 @@ angular.module('LoginModule', ['ngRoute', 'restangular'])
     $scope.logout = function(){
         Restangular.one('oauthlogin/logout').get().then(
             function(data){ // success
-                data = data.plain();
                 NotificationService.updateNotifications(data.notifications);
                 NavigationBarService.refreshNavBar();
                 $location.path('/'); // goto home

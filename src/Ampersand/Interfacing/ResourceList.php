@@ -77,6 +77,9 @@ class ResourceList
         if (!empty($tgts)) {
             // Resource found
             return $this->makeResource(current($tgts));
+        // Temporary fix for #884. TODO: remove this elseif clause when solution is implemented
+        } elseif ($this->ifcObject->crudC() && !$this->tgtIdInPath()) {
+            return $this->create($tgtId);
         } else {
             // When not found
             throw new Exception("Resource '{$tgtId}' not found", 404);
@@ -104,7 +107,7 @@ class ResourceList
      */
     public function walkPath(array $pathList)
     {
-        if (empty($pathList)) {
+        if (empty($pathList) && $this->tgtIdInPath()) {
             return $this;
         }
 
@@ -252,13 +255,15 @@ class ResourceList
      * Instantiate resource list with given src atom and interface
      *
      * @param string $srcAtomId
-     * @param string $ifcId
+     * @param string $ifcIdOrLabel
      * @return \Ampersand\Interfacing\ResourceList
      */
-    public static function makeFromInterface(string $srcAtomId, string $ifcId): ResourceList
+    public static function makeFromInterface(string $srcAtomId, string $ifcIdOrLabel): ResourceList
     {
-        $ifc = Ifc::getInterface($ifcId);
-        $srcAtom = new Atom($srcAtomId, $ifc->getSrcConcept());
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
+        $ifc = $ampersandApp->getModel()->getInterface($ifcIdOrLabel, true);
+        $srcAtom = $ifc->getSrcConcept()->makeAtom($srcAtomId);
 
         // Same as in InterfaceNullObject::buildResourcePath()
         if ($srcAtom->concept->isSession()) {
@@ -273,12 +278,15 @@ class ResourceList
     /**
      * Instantiate resource list for a given resource type (i.e. concept)
      *
-     * @param string $conceptId
+     * @param \Ampersand\Core\Concept $concept
      * @return \Ampersand\Interfacing\ResourceList
      */
-    public static function makeWithoutInterface(string $conceptId): ResourceList
+    public static function makeWithoutInterface(Concept $concept): ResourceList
     {
-        $one = new Atom('ONE', Concept::getConcept('ONE'));
-        return new ResourceList($one, InterfaceObjectFactory::getNullObject($conceptId), '');
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        global $ampersandApp; // TODO: remove dependency on global var
+
+        $one = $ampersandApp->getModel()->getConcept('ONE')->makeAtom('ONE');
+        return new ResourceList($one, Ifc::getNullObject($concept, $ampersandApp), '');
     }
 }

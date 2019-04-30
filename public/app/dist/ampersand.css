@@ -203,8 +203,12 @@ fieldset {
     width: 400px;
 }
 
-input .ng-invalid .ng-dirty {
-    border: 2px solid red;
+input.ng-invalid {
+    border: 1px solid indianred;
+}
+
+textarea.ng-invalid {
+    border: 1px solid indianred;
 }
 
 .pointer {
@@ -359,9 +363,13 @@ input .ng-invalid .ng-dirty {
 }
 
 /* dropdown submenu's */
+.dropdown-menu {
+    font-size: inherit;
+}
 
 .dropdown-submenu {
     position: relative;
+    font-size: inherit;
 }
 
 .dropdown-submenu>.dropdown-menu {

@@ -19,13 +19,6 @@ use Ampersand\Plugs\ViewPlugInterface;
  */
 class View
 {
-    
-    /**
-     * Contains all view definitions
-     * @var \Ampersand\Interfacing\View[]
-     */
-    private static $allViews;
-    
     /**
      * Dependency injection of an ViewPlug implementation
      * @var \Ampersand\Plugs\ViewPlugInterface
@@ -56,15 +49,13 @@ class View
      */
     protected $segments = [];
     
-    
     /**
      * View constructor
-     * Private function to prevent outside instantiation of views. Use View::getView($viewLabel)
      *
      * @param array $viewDef
      * @param \Ampersand\Plugs\ViewPlugInterface $plug
      */
-    private function __construct($viewDef, ViewPlugInterface $plug)
+    public function __construct($viewDef, ViewPlugInterface $plug)
     {
         $this->plug = $plug;
         
@@ -114,57 +105,5 @@ class View
             }
         }
         throw new Exception("View segment '{$this->label}:{$label}' not found", 500);
-    }
-    
-    /**********************************************************************************************
-     *
-     * Static functions
-     *
-     *********************************************************************************************/
-    
-    /**
-     * Return view object
-     * @param string $viewLabel
-     * @throws Exception if view is not defined
-     * @return View
-     */
-    public static function getView($viewLabel)
-    {
-        if (!array_key_exists($viewLabel, $views = self::getAllViews())) {
-            throw new Exception("View '{$viewLabel}' is not defined", 500);
-        }
-    
-        return $views[$viewLabel];
-    }
-    
-    /**
-     * Returns array with all view objects
-     * @return View[]
-     */
-    public static function getAllViews()
-    {
-        if (!isset(self::$allViews)) {
-            throw new Exception("View definitions not loaded yet", 500);
-        }
-         
-        return self::$allViews;
-    }
-    
-    /**
-     * Import all view definitions from json file and instantiate View objects
-     *
-     * @param string $fileName containing the Ampersand view definitions
-     * @param \Ampersand\Plugs\ViewPlugInterface $defaultPlug
-     * @return void
-     */
-    public static function setAllViews(string $fileName, ViewPlugInterface $defaultPlug)
-    {
-        self::$allViews = [];
-        
-        $allViewDefs = (array)json_decode(file_get_contents($fileName), true);
-        
-        foreach ($allViewDefs as $viewDef) {
-            self::$allViews[$viewDef['label']] = new View($viewDef, $defaultPlug);
-        }
     }
 }

@@ -1,11 +1,7 @@
 <?php
 
 use Ampersand\Log\Logger;
-use Ampersand\Rule\Conjunct;
-use Ampersand\Rule\Rule;
 use Ampersand\Rule\RuleEngine;
-use Ampersand\IO\Exporter;
-use Ampersand\IO\Importer;
 use Ampersand\IO\ExcelImporter;
 use Ampersand\Misc\Reporter;
 use Slim\Http\Request;
@@ -14,8 +10,7 @@ use Ampersand\Session;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
-use Ampersand\Core\Concept;
-use Ampersand\Core\Atom;
+use Ampersand\Core\Population;
 
 /**
  * @var \Slim\App $api
@@ -48,7 +43,7 @@ $api->group('/admin', function () {
             throw new Exception("No account identifier 'accountId' provided", 400);
         }
 
-        $account = Atom::makeAtom($args['accountId'], 'Account');
+        $account = $ampersandApp->getModel()->getConceptByLabel('Account')->makeAtom($args['accountId']);
 
         $ampersandApp->login($account);
     });
@@ -66,7 +61,7 @@ $api->group('/admin', function () {
         
         $transaction = $ampersandApp->newTransaction();
 
-        Session::deleteExpiredSessions();
+        Session::deleteExpiredSessions($ampersandApp);
 
         $transaction->runExecEngine()->close();
     });
@@ -83,7 +78,7 @@ $api->group('/admin', function () {
         }
         $resourceType = $args['resourceType'];
 
-        if (!Concept::getConcept($resourceType)->isObject()) {
+        if (!$ampersandApp->getModel()->getConcept($resourceType)->isObject()) {
             throw new Exception("Resource type not found", 404);
         }
         
@@ -95,60 +90,13 @@ $api->group('/admin', function () {
         $transaction = $ampersandApp->newTransaction();
 
         foreach ($list as $item) {
-            $atom = Atom::makeAtom($item->oldId, $resourceType);
+            $atom = $ampersandApp->getModel()->getConceptByLabel($resourceType)->makeAtom($item->oldId);
             $atom->rename($item->newId);
         }
         
         $transaction->runExecEngine()->close();
 
         return $response->withJson($list, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    });
-
-    /**
-     * @phan-closure-scope \Slim\Container
-     */
-    $this->get('/installer', function (Request $request, Response $response, $args = []) {
-        /** @var \Slim\Container $this */
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['ampersand_app'];
-
-        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
-            throw new Exception("Reinstallation of application not allowed in production environment", 403);
-        }
-        
-        $defaultPop = filter_var($request->getQueryParam('defaultPop'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
-        $ignoreInvariantRules = filter_var($request->getQueryParam('ignoreInvariantRules'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
-
-        $ampersandApp
-            ->reinstall($defaultPop, $ignoreInvariantRules) // reinstall and initialize application
-            ->setSession();
-
-        $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
-
-        $content = $ampersandApp->userLog()->getAll(); // Return all notifications
-
-        return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    })->setName('applicationInstaller');
-
-    /**
-     * @phan-closure-scope \Slim\Container
-     */
-    $this->get('/installer/checksum/update', function (Request $request, Response $response, $args = []) {
-        /** @var \Slim\Container $this */
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['ampersand_app'];
-
-        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
-            throw new Exception("Checksum update is not allowed in production environment", 403);
-        }
-
-        $ampersandApp->getModel()->writeChecksumFile();
-        
-        $ampersandApp->userLog()->info('New checksum calculated for generated Ampersand model files');
-
-        $content = $ampersandApp->userLog()->getAll(); // Return all notifications
-
-        return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
     /**
@@ -190,40 +138,19 @@ $api->group('/admin', function () {
             throw new Exception("You do not have access to evaluate all rules", 403);
         }
 
-        foreach (Conjunct::getAllConjuncts() as $conj) {
+        foreach ($ampersandApp->getModel()->getAllConjuncts() as $conj) {
             /** @var \Ampersand\Rule\Conjunct $conj */
             $conj->evaluate()->persistCacheItem();
         }
         
-        foreach (RuleEngine::getViolations(Rule::getAllInvRules()) as $violation) {
+        foreach (RuleEngine::getViolations($ampersandApp->getModel()->getAllRules('invariant')) as $violation) {
             $ampersandApp->userLog()->invariant($violation);
         }
-        foreach (RuleEngine::getViolations(Rule::getAllSigRules()) as $violation) {
+        foreach (RuleEngine::getViolations($ampersandApp->getModel()->getAllRules('signal')) as $violation) {
             $ampersandApp->userLog()->signal($violation);
         }
         
         return $response->withJson($ampersandApp->userLog()->getAll(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    });
-
-    /**
-     * @phan-closure-scope \Slim\Container
-     */
-    $this->get('/export/all', function (Request $request, Response $response, $args = []) {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['ampersand_app'];
-
-        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
-            throw new Exception("Export not allowed in production environment", 403);
-        }
-        
-        // Export population to response body
-        $exporter = new Exporter(new JsonEncoder(), $response->getBody(), Logger::getLogger('IO'));
-        $exporter->exportAllPopulation('json');
-
-        // Return response
-        $filename = $ampersandApp->getName() . "_population_" . date('Y-m-d\TH-i-s') . ".json";
-        return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
-                        ->withHeader('Content-Type', 'application/json;charset=utf-8');
     });
 
     /**
@@ -254,9 +181,10 @@ $api->group('/admin', function () {
         switch ($extension) {
             case 'json':
                 $decoder = new JsonDecode(false);
-                $population = $decoder->decode(file_get_contents($_FILES['file']['tmp_name']), JsonEncoder::FORMAT);
-                $importer = new Importer(Logger::getLogger('IO'));
-                $importer->importPopulation($population);
+                $populationContent = $decoder->decode(file_get_contents($_FILES['file']['tmp_name']), JsonEncoder::FORMAT);
+                $population = new Population($ampersandApp->getModel(), Logger::getLogger('IO'));
+                $population->loadFromPopulationFile($populationContent);
+                $population->import();
                 break;
             case 'xls':
             case 'xlsx':
@@ -302,9 +230,12 @@ $api->group('/admin/report', function () {
      * @phan-closure-scope \Slim\Container
      */
     $this->get('/relations', function (Request $request, Response $response, $args = []) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get report
         $reporter = new Reporter(new JsonEncoder(), $response->getBody());
-        $reporter->reportRelationDefinitions('json');
+        $reporter->reportRelationDefinitions($ampersandApp->getModel()->getRelations(), 'json');
 
         // Return reponse
         return $response->withHeader('Content-Type', 'application/json;charset=utf-8');
@@ -314,9 +245,12 @@ $api->group('/admin/report', function () {
      * @phan-closure-scope \Slim\Container
      */
     $this->get('/conjuncts/usage', function (Request $request, Response $response, $args = []) {
+        /** @var \Ampersand\AmpersandApp $ampersandApp */
+        $ampersandApp = $this['ampersand_app'];
+
         // Get report
         $reporter = new Reporter(new JsonEncoder(), $response->getBody());
-        $reporter->reportConjunctUsage('json');
+        $reporter->reportConjunctUsage($ampersandApp->getModel()->getAllConjuncts(), 'json');
 
         // Return reponse
         return $response->withHeader('Content-Type', 'application/json;charset=utf-8');
@@ -331,7 +265,7 @@ $api->group('/admin/report', function () {
 
         // Get report
         $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
-        $reporter->reportConjunctPerformance('csv', Conjunct::getAllConjuncts());
+        $reporter->reportConjunctPerformance('csv', $ampersandApp->getModel()->getAllConjuncts());
         
         // Set response headers
         $filename = $ampersandApp->getName() . "_conjunct-performance_" . date('Y-m-d\TH-i-s') . ".csv";
@@ -346,9 +280,16 @@ $api->group('/admin/report', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
+        // Input
+        $details = $request->getQueryParam('details', false);
+
         // Get report
         $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
-        $reporter->reportInterfaceDefinitions('csv');
+        if ($details) {
+            $reporter->reportInterfaceObjectDefinitions($ampersandApp->getModel()->getAllInterfaces(), 'csv');
+        } else {
+            $reporter->reportInterfaceDefinitions($ampersandApp->getModel()->getAllInterfaces(), 'csv');
+        }
 
         // Set response headers
         $filename = $ampersandApp->getName() . "_interface-definitions_" . date('Y-m-d\TH-i-s') . ".csv";
@@ -365,7 +306,7 @@ $api->group('/admin/report', function () {
 
         // Get report
         $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
-        $reporter->reportInterfaceIssues('csv');
+        $reporter->reportInterfaceIssues($ampersandApp->getModel()->getAllInterfaces(), 'csv');
 
         // Set response headers
         $filename = $ampersandApp->getName() . "_interface-issues_" . date('Y-m-d\TH-i-s') . ".csv";

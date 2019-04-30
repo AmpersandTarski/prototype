@@ -11,19 +11,40 @@ angular.module('AmpersandApp')
          * @param {Object} resource
          * @param {string} ifc
          * @param {Object} callingObj will be used for loading indicator
+         * @param {string} tgtId get a specific target resource
          * @returns {Promise}
          */
-        getResource : function(resource, ifc, callingObj){
-            promise = Restangular
-            .one(resource._path_ + '/' + ifc)
+        getResource : function(resource, ifc, callingObj, tgtId) {
+            // Url to GET resource
+            let url = resource._path_ + '/' + ifc;
+
+            // Append tgtId if specified
+            if (tgtId !== undefined) {
+                url += '/' + tgtId;
+            }
+
+            let promise = Restangular
+            .one(url)
             .get()
             .then(function(data){
-                try {
-                    data = data.plain();
-                }catch(error){}
-                if($.isEmptyObject(data)) NotificationService.addInfo('No results found');
-                else if(resource[ifc] === null || Array.isArray(resource[ifc])) resource[ifc] = data;
-                else angular.extend(resource[ifc], data);
+                // No results
+                if ($.isEmptyObject(data)) {
+                    NotificationService.addInfo('No results found');
+                // No specific target was requested
+                } else if (tgtId === undefined) {
+                    if (resource[ifc] === null || Array.isArray(resource[ifc])) {
+                        resource[ifc] = data;
+                    } else {
+                        angular.extend(resource[ifc], data);
+                    }
+                // Specific target was requested
+                } else {
+                    if (Array.isArray(resource[ifc])) {
+                        resource[ifc].push(data);
+                    } else {
+                        resource[ifc] = data;
+                    }
+                }
                 
                 ResourceService.initResourceMetaData(resource);
 
@@ -49,12 +70,10 @@ angular.module('AmpersandApp')
 
             // Save if autoSave is enabled
             if($localStorage.autoSave || forceSave) {
-                promise = Restangular
+                let promise = Restangular
                 .one(resource._path_)
                 .patch(resource._patchesCache_, {})
                 .then(function(data) {
-                    data = data.plain();
-                    
                     // Update visual feedback (notifications and buttons)
                     ResourceService.processResponse(resource, data);
 
@@ -85,11 +104,10 @@ angular.module('AmpersandApp')
          * @returns {Promise}
          */
         cancelResource : function(resource){
-            promise = Restangular
+            let promise = Restangular
             .one(resource._path_)
             .get()
             .then(function(data){
-                data = data.plain();
                 if($.isEmptyObject(data)) NotificationService.addInfo('No results found');
                 else angular.extend(resource, data);
                 
@@ -114,12 +132,11 @@ angular.module('AmpersandApp')
          * @returns {Promise}
          */
         createResource : function(resource, ifc, patchResource, insertAtIndex){
-            promise = Restangular
+            let promise = Restangular
             .one(resource._path_).all(ifc)
             .post({}, {})
             .then(function(data){
-                data = data.plain();
-                newResource = data.content;
+                let newResource = data.content;
 
                 // Update visual feedback (notifications and buttons)
                 ResourceService.processResponse(newResource, data);
@@ -185,11 +202,10 @@ angular.module('AmpersandApp')
          */
         deleteResource : function(parent, ifc, resource){
             if(confirm('Are you sure?')){
-                promise = Restangular
+                let promise = Restangular
                 .one(resource._path_)
                 .remove({})
                 .then(function(data){
-                    data = data.plain();
                     // Update visual feedback (notifications and buttons)
                     NotificationService.updateNotifications(data.notifications);
                     
@@ -214,6 +230,8 @@ angular.module('AmpersandApp')
          * @returns {Promise}
          */
         saveItem : function(resource, ifc, patchResource){
+            let value;
+
             // Construct patch(es)
             if(typeof resource[ifc] === 'undefined' || resource[ifc] === '') {
                 value = null;
@@ -271,7 +289,7 @@ angular.module('AmpersandApp')
          */
         removeItem : function(resource, ifc, index, patchResource){
             // Construct patch(es)
-            value = resource[ifc][index];
+            let value = resource[ifc][index];
             ResourceService.addPatch('remove', resource, patchResource, ifc, value);
             
             // Adapt js model
@@ -301,13 +319,19 @@ angular.module('AmpersandApp')
                 patchResource = patchResource._delegatePatchesTo_;
             }
 
-            pathLength = patchResource._path_.length;
+            let pathLength = patchResource._path_.length;
             
-            path = resource._path_.substring(pathLength);
-            if(typeof ifc !== 'undefined') path = path + '/' + ifc;
+            let path = resource._path_.substring(pathLength);
+            if (typeof ifc !== 'undefined') {
+                path = path + '/' + ifc;
+            }
             
-            if(typeof value === 'undefined') patch = { op : operation, path : path};
-            else patch = { op : operation, path : path, value : value};
+            let patch;
+            if (typeof value === 'undefined') {
+                patch = { op : operation, path : path};
+            } else {
+                patch = { op : operation, path : path, value : value};
+            }
 
             // Add new patch to patchResource
             if(!Array.isArray(patchResource._patchesCache_)) patchResource._patchesCache_ = [];
