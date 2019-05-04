@@ -531,7 +531,7 @@ class AmpersandApp
     {
         foreach ($roles as $role) {
             // Set sessionActiveRoles[SESSION*Role]
-            $this->session->toggleActiveRole($this->model->getRoleConcept()->makeAtom($role->label), $role->active);
+            $this->session->toggleActiveRole($this->model->getRoleConcept()->makeAtom($role->id), $role->active);
         }
         
         // Commit transaction (exec-engine kicks also in)
