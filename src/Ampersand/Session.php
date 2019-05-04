@@ -303,7 +303,7 @@ class Session
         
         $links = $ampersandApp->getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
         foreach ($links as $link) {
-            if (strtotime($link->tgt()->getLabel()) < $experationTimeStamp) {
+            if (strtotime($link->tgt()->getId()) < $experationTimeStamp) {
                 $link->src()->delete();
             }
         }
