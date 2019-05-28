@@ -219,6 +219,18 @@ class Relation
             $this->primaryPlug = $plug;
         }
     }
+
+    /**
+     * Instantiate new Link object for this relation
+     *
+     * @param string $srcId
+     * @param string $tgtId
+     * @return \Ampersand\Core\Link
+     */
+    public function makeLink(string $srcId, string $tgtId): Link
+    {
+        return new Link($this, new Atom($srcId, $this->srcConcept), new Atom($tgtId, $this->tgtConcept));
+    }
     
     /**
      * Check if link (tuple of src and tgt atom) exists in this relation
