@@ -713,7 +713,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function create(Atom $src, $tgtId = null): Atom
     {
         // If expression is ident, create is not needed, return src atom immediately
-        if ($this->isIdent()) {
+        if ($this->isIdent() && $src->exists()) {
             return $src;
         }
 
