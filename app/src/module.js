@@ -76,6 +76,9 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
             if (response.data.navTo != null) {
                 $location.url(response.data.navTo);
             }
+        // network error
+        } else if (response.status === -1) {
+            NotificationService.addError('Connection error. Please check your internet connection and try again', null, false);
         }else{
             message = response.status + ' ' + response.statusText;
             details = response.data; // html content is excepted
