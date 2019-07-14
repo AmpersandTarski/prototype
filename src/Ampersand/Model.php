@@ -555,18 +555,6 @@ class Model
         throw new Exception("Interface with label '{$ifcLabel}' is not defined", 500);
     }
 
-    /**
-     * Returns all interfaces that are public (i.e. not assigned to a role)
-     *
-     * @return \Ampersand\Interfacing\Ifc[]
-     */
-    public function getPublicInterfaces(): array
-    {
-        return array_values(array_filter($this->getAllInterfaces(), function (Ifc $ifc) {
-            return $ifc->isPublic();
-        }));
-    }
-
     /**********************************************************************************************
      * VIEWS
     **********************************************************************************************/

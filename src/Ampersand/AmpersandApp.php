@@ -308,15 +308,19 @@ class AmpersandApp
 
     protected function setInterfacesAndRules(): AmpersandApp
     {
-        // Add public interfaces
-        $this->accessibleInterfaces = $this->model->getPublicInterfaces();
-
         // Add interfaces and rules for all active session roles
         foreach ($this->getActiveRoles() as $roleAtom) {
             /** @var \Ampersand\Core\Atom $roleAtom */
+            
+            // Set accessible interfaces
+            $ifcs = array_map(function (Atom $ifcAtom) {
+                return $this->getModel()->getInterface($ifcAtom->getId());
+            }, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true));
+            $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $ifcs);
+
+            // Set rules to maintain
             try {
                 $role = $this->model->getRoleById($roleAtom->getId());
-                $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $role->interfaces());
                 $this->rulesToMaintain = array_merge($this->rulesToMaintain, $role->maintains());
             } catch (Exception $e) {
                 $this->logger->debug("Actived role '{$roleAtom}', but role is not used/defined in &-script.");
