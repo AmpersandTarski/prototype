@@ -38,6 +38,10 @@ settings:
   # null implies that everyone has access, use empty list [] to disable for all, or specify a list with allowed roles
   rbac.importerRoles: null
   rbac.adminRoles: null
+  # Identifier of interface that provides the accessible interfaces
+  # Signature of the root expression must be [SESSION*PF_Interface]
+  # If null, the RELATION pf_ifcRoles[PF_Interface*Role] is queried for every role in RELATION sessionActiveRoles[SESSION*Role]
+  rbac.accessibleInterfacesIfcId: null
 
   ### Session
   session.expirationTime: 3600 # expiration time in seconds

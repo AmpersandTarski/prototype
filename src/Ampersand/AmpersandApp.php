@@ -22,6 +22,7 @@ use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Ampersand\Misc\Installer;
+use Ampersand\Interfacing\ResourceList;
 
 class AmpersandApp
 {
@@ -311,12 +312,6 @@ class AmpersandApp
         // Add interfaces and rules for all active session roles
         foreach ($this->getActiveRoles() as $roleAtom) {
             /** @var \Ampersand\Core\Atom $roleAtom */
-            
-            // Set accessible interfaces
-            $ifcs = array_map(function (Atom $ifcAtom) {
-                return $this->getModel()->getInterface($ifcAtom->getId());
-            }, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true));
-            $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $ifcs);
 
             // Set rules to maintain
             try {
@@ -326,10 +321,49 @@ class AmpersandApp
                 $this->logger->debug("Actived role '{$roleAtom}', but role is not used/defined in &-script.");
             }
         }
-
+        
         // Remove duplicates
-        $this->accessibleInterfaces = array_unique($this->accessibleInterfaces);
         $this->rulesToMaintain = array_unique($this->rulesToMaintain);
+
+        // Reset
+        $this->accessibleInterfaces = [];
+
+        $settingKey = 'rbac.accessibleInterfacesIfcId';
+        $rbacIfcId = $this->getSettings()->get($settingKey);
+        // Get accessible interfaces using defined INTERFACE
+        if (!is_null($rbacIfcId)) {
+            if (!$this->model->interfaceExists($rbacIfcId)) {
+                throw new Exception("Specified interface '{$rbacIfcId}' in setting '{$settingKey}' does not exist", 500);
+            }
+            
+            $rbacIfc = $this->model->getInterface($rbacIfcId);
+
+            // Check for the right SRC and TGT concepts
+            if ($rbacIfc->getSrcConcept() !== $this->model->getSessionConcept()) {
+                throw new Exception("Src concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getSessionConcept()->getId()}", 500);
+            }
+            if ($rbacIfc->getTgtConcept() !== $this->model->getInterfaceConcept()) {
+                throw new Exception("Tgt concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getInterfaceConcept()->getId()}", 500);
+            }
+
+            $this->accessibleInterfaces = array_map(function (Atom $ifcAtom) {
+                return $this->model->getInterface($ifcAtom->getId());
+            }, ResourceList::makeFromInterface($this->session->getId(), $rbacIfc->getId())->getResources());
+        // Else query the RELATION pf_ifcRoles[PF_Interface*Role] for every active role
+        } else {
+            foreach ($this->getActiveRoles() as $roleAtom) {
+                /** @var \Ampersand\Core\Atom $roleAtom */
+                
+                // Set accessible interfaces
+                $ifcs = array_map(function (Atom $ifcAtom) {
+                    return $this->model->getInterface($ifcAtom->getId());
+                }, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true));
+                $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $ifcs);
+            }
+            
+            // Remove duplicates
+            $this->accessibleInterfaces = array_unique($this->accessibleInterfaces);
+        }
 
         return $this;
     }
