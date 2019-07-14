@@ -11,6 +11,7 @@ use Exception;
 use DateTime;
 use DateTimeZone;
 use JsonSerializable;
+use Ampersand\Core\Link;
 
 /**
  *
@@ -270,6 +271,20 @@ class Atom implements JsonSerializable
         } else {
             return $relation->getAllLinks($this, null);
         }
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param string|\Ampersand\Core\Relation $relation when provided as string, use relation signature
+     * @param boolean $flip specifies if relation must be flipped
+     * @return \Ampersand\Core\Atom[]
+     */
+    public function getTargetAtoms($relation, $flip = false)
+    {
+        return array_map(function (Link $link) use ($flip) {
+            return $flip ? $link->tgt() : $link->src();
+        }, $this->getLinks($relation, $flip));
     }
     
     /**
