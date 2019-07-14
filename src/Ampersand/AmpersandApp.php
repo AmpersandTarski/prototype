@@ -296,7 +296,7 @@ class AmpersandApp
         $this->getCurrentTransaction()->runExecEngine()->close();
 
         // Set accessible interfaces and rules to maintain
-        $this->setInterfacesAndRules();
+        $this->setAccessibleInterfaces()->setRulesToMaintain();
 
         // Log performance
         $executionTime = round(microtime(true) - $scriptStartTime, 2);
@@ -307,9 +307,12 @@ class AmpersandApp
         return $this;
     }
 
-    protected function setInterfacesAndRules(): AmpersandApp
+    protected function setRulesToMaintain(): AmpersandApp
     {
-        // Add interfaces and rules for all active session roles
+        // Reset
+        $this->rulesToMaintain = [];
+
+        // Add rules for all active session roles
         foreach ($this->getActiveRoles() as $roleAtom) {
             /** @var \Ampersand\Core\Atom $roleAtom */
 
@@ -325,11 +328,17 @@ class AmpersandApp
         // Remove duplicates
         $this->rulesToMaintain = array_unique($this->rulesToMaintain);
 
+        return $this;
+    }
+
+    protected function setAccessibleInterfaces(): AmpersandApp
+    {
         // Reset
         $this->accessibleInterfaces = [];
 
         $settingKey = 'rbac.accessibleInterfacesIfcId';
         $rbacIfcId = $this->getSettings()->get($settingKey);
+        
         // Get accessible interfaces using defined INTERFACE
         if (!is_null($rbacIfcId)) {
             if (!$this->model->interfaceExists($rbacIfcId)) {
@@ -349,6 +358,7 @@ class AmpersandApp
             $this->accessibleInterfaces = array_map(function (Atom $ifcAtom) {
                 return $this->model->getInterface($ifcAtom->getId());
             }, ResourceList::makeFromInterface($this->session->getId(), $rbacIfc->getId())->getResources());
+        
         // Else query the RELATION pf_ifcRoles[PF_Interface*Role] for every active role
         } else {
             foreach ($this->getActiveRoles() as $roleAtom) {
@@ -480,7 +490,7 @@ class AmpersandApp
         $transaction->runExecEngine()->close();
 
         // Set (new) interfaces and rules
-        $this->setInterfacesAndRules();
+        $this->setAccessibleInterfaces()->setRulesToMaintain();
     }
 
     /**
@@ -496,7 +506,7 @@ class AmpersandApp
         // Run exec engine and close transaction
         $this->getCurrentTransaction()->runExecEngine()->close();
 
-        $this->setInterfacesAndRules();
+        $this->setAccessibleInterfaces()->setRulesToMaintain();
     }
 
     /**
@@ -575,7 +585,7 @@ class AmpersandApp
         // Commit transaction (exec-engine kicks also in)
         $this->getCurrentTransaction()->runExecEngine()->close();
 
-        $this->setInterfacesAndRules();
+        $this->setAccessibleInterfaces()->setRulesToMaintain();
     }
 
     /**
@@ -690,7 +700,7 @@ class AmpersandApp
      */
     public function isEditableConcept(Concept $concept): bool
     {
-        return array_reduce($this->accessibleInterfaces, function ($carry, Ifc $ifc) use ($concept) {
+        return array_reduce($this->accessibleInterfaces, function (bool $carry, Ifc $ifc) use ($concept) {
             $ifcObj = $ifc->getIfcObject();
             return ($carry || in_array($concept, $ifcObj->getEditableConcepts()));
         }, false);
