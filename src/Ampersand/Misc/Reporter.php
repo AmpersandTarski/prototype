@@ -113,8 +113,8 @@ class Reporter
                 , 'update' => $ifc->getIfcObject()->crudU()
                 , 'delete' => $ifc->getIfcObject()->crudD()
                 ];
-            foreach ($ifc->getRoleNames() as $roleName) {
-                $ifcDetails[$roleName] = true;
+            foreach ($ifc->getRoleNames() as $roleAtom) {
+                $ifcDetails[$roleAtom->getId()] = true;
             }
             return $ifcDetails;
         }, $interfaces);
