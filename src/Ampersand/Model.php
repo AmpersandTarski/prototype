@@ -243,7 +243,7 @@ class Model
         
         $this->interfaces = [];
         foreach ($allInterfaceDefs as $ifcDef) {
-            $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['interfaceRoles'], $ifcDef['ifcObject'], $defaultPlug, $this);
+            $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['ifcObject'], $defaultPlug, $this);
             $this->interfaces[$ifc->getId()] = $ifc;
         }
 
@@ -415,6 +415,11 @@ class Model
     public function getRoleConcept(): Concept
     {
         return $this->getConceptByLabel('Role');
+    }
+
+    public function getInterfaceConcept(): Concept
+    {
+        return $this->getConceptByLabel('PF_Interface');
     }
 
     /**********************************************************************************************
