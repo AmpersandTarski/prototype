@@ -2,6 +2,7 @@
 
 ## Unreleased changes
 * Bugfix error message in case of network/connection error
+* Implement dynamic RBAC. Accessible interfaces for a given role are now queries from database instead of generated json files
 
 ## v1.2.0 (30 april 2019)
 * [Issue 787](https://github.com/AmpersandTarski/Ampersand/issues/787) Remove header in interface templates ROWS, HROWS, ROWSNL, HROWSNL. Delete templates ROWSNH (no header)
