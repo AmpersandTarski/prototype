@@ -2,6 +2,7 @@
 
 ## Unreleased changes
 * Bugfix error message in case of network/connection error
+* Many bugfixes (see commit history)
 * Implement dynamic RBAC. Accessible interfaces for a given role are now queries from database instead of generated json files
 
 ## v1.2.0 (30 april 2019)
