@@ -11,6 +11,7 @@ use Exception;
 use DateTime;
 use DateTimeZone;
 use JsonSerializable;
+use Ampersand\Core\Link;
 
 /**
  *
@@ -66,12 +67,19 @@ class Atom implements JsonSerializable
 
     /**
      * Return label of atom to be displayed in user interfaces
-     * for Atoms this is the same as the Atom identifier
+     * When no default view is defined for its Concept, the Atom identifier is returned
+     *
      * @return string
      */
-    public function getLabel()
+    public function getLabel(): string
     {
-        return $this->id;
+        $viewData = $this->concept->getViewData($this);
+
+        if (empty($viewData)) {
+            return $this->id;
+        } else {
+            return implode("", $viewData);
+        }
     }
 
     protected function setId($atomId)
@@ -263,6 +271,20 @@ class Atom implements JsonSerializable
         } else {
             return $relation->getAllLinks($this, null);
         }
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param string|\Ampersand\Core\Relation $relation when provided as string, use relation signature
+     * @param boolean $flip specifies if relation must be flipped
+     * @return \Ampersand\Core\Atom[]
+     */
+    public function getTargetAtoms($relation, $flip = false)
+    {
+        return array_map(function (Link $link) use ($flip) {
+            return $flip ? $link->tgt() : $link->src();
+        }, $this->getLinks($relation, $flip));
     }
     
     /**

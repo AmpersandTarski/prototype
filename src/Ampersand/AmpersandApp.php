@@ -22,6 +22,7 @@ use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Ampersand\Misc\Installer;
+use Ampersand\Interfacing\ResourceList;
 
 class AmpersandApp
 {
@@ -295,7 +296,7 @@ class AmpersandApp
         $this->getCurrentTransaction()->runExecEngine()->close();
 
         // Set accessible interfaces and rules to maintain
-        $this->setInterfacesAndRules();
+        $this->setAccessibleInterfaces()->setRulesToMaintain();
 
         // Log performance
         $executionTime = round(microtime(true) - $scriptStartTime, 2);
@@ -306,26 +307,75 @@ class AmpersandApp
         return $this;
     }
 
-    protected function setInterfacesAndRules(): AmpersandApp
+    protected function setRulesToMaintain(): AmpersandApp
     {
-        // Add public interfaces
-        $this->accessibleInterfaces = $this->model->getPublicInterfaces();
+        // Reset
+        $this->rulesToMaintain = [];
 
-        // Add interfaces and rules for all active session roles
+        // Add rules for all active session roles
         foreach ($this->getActiveRoles() as $roleAtom) {
             /** @var \Ampersand\Core\Atom $roleAtom */
+
+            // Set rules to maintain
             try {
                 $role = $this->model->getRoleById($roleAtom->getId());
-                $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $role->interfaces());
                 $this->rulesToMaintain = array_merge($this->rulesToMaintain, $role->maintains());
             } catch (Exception $e) {
                 $this->logger->debug("Actived role '{$roleAtom}', but role is not used/defined in &-script.");
             }
         }
-
+        
         // Remove duplicates
-        $this->accessibleInterfaces = array_unique($this->accessibleInterfaces);
         $this->rulesToMaintain = array_unique($this->rulesToMaintain);
+
+        return $this;
+    }
+
+    protected function setAccessibleInterfaces(): AmpersandApp
+    {
+        // Reset
+        $this->accessibleInterfaces = [];
+
+        $settingKey = 'rbac.accessibleInterfacesIfcId';
+        $rbacIfcId = $this->getSettings()->get($settingKey);
+        
+        // Get accessible interfaces using defined INTERFACE
+        if (!is_null($rbacIfcId)) {
+            if (!$this->model->interfaceExists($rbacIfcId)) {
+                throw new Exception("Specified interface '{$rbacIfcId}' in setting '{$settingKey}' does not exist", 500);
+            }
+            
+            $rbacIfc = $this->model->getInterface($rbacIfcId);
+
+            // Check for the right SRC and TGT concepts
+            if ($rbacIfc->getSrcConcept() !== $this->model->getSessionConcept()) {
+                throw new Exception("Src concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getSessionConcept()->getId()}", 500);
+            }
+            if ($rbacIfc->getTgtConcept() !== $this->model->getInterfaceConcept()) {
+                throw new Exception("Tgt concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getInterfaceConcept()->getId()}", 500);
+            }
+
+            $this->logger->debug("Getting accessible interfaces using INTERFACE {$rbacIfc->getId()}");
+            
+            $this->accessibleInterfaces = array_map(function (Atom $ifcAtom) {
+                return $this->model->getInterface($ifcAtom->getId());
+            }, ResourceList::makeFromInterface($this->session->getId(), $rbacIfc->getId())->getResources());
+        
+        // Else query the RELATION pf_ifcRoles[PF_Interface*Role] for every active role
+        } else {
+            foreach ($this->getActiveRoles() as $roleAtom) {
+                /** @var \Ampersand\Core\Atom $roleAtom */
+                
+                // Set accessible interfaces
+                $ifcs = array_map(function (Atom $ifcAtom) {
+                    return $this->model->getInterface($ifcAtom->getId());
+                }, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true));
+                $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $ifcs);
+            }
+            
+            // Remove duplicates
+            $this->accessibleInterfaces = array_unique($this->accessibleInterfaces);
+        }
 
         return $this;
     }
@@ -442,7 +492,7 @@ class AmpersandApp
         $transaction->runExecEngine()->close();
 
         // Set (new) interfaces and rules
-        $this->setInterfacesAndRules();
+        $this->setAccessibleInterfaces()->setRulesToMaintain();
     }
 
     /**
@@ -458,7 +508,7 @@ class AmpersandApp
         // Run exec engine and close transaction
         $this->getCurrentTransaction()->runExecEngine()->close();
 
-        $this->setInterfacesAndRules();
+        $this->setAccessibleInterfaces()->setRulesToMaintain();
     }
 
     /**
@@ -531,13 +581,13 @@ class AmpersandApp
     {
         foreach ($roles as $role) {
             // Set sessionActiveRoles[SESSION*Role]
-            $this->session->toggleActiveRole($this->model->getRoleConcept()->makeAtom($role->label), $role->active);
+            $this->session->toggleActiveRole($this->model->getRoleConcept()->makeAtom($role->id), $role->active);
         }
         
         // Commit transaction (exec-engine kicks also in)
         $this->getCurrentTransaction()->runExecEngine()->close();
 
-        $this->setInterfacesAndRules();
+        $this->setAccessibleInterfaces()->setRulesToMaintain();
     }
 
     /**
@@ -652,7 +702,7 @@ class AmpersandApp
      */
     public function isEditableConcept(Concept $concept): bool
     {
-        return array_reduce($this->accessibleInterfaces, function ($carry, Ifc $ifc) use ($concept) {
+        return array_reduce($this->accessibleInterfaces, function (bool $carry, Ifc $ifc) use ($concept) {
             $ifcObj = $ifc->getIfcObject();
             return ($carry || in_array($concept, $ifcObj->getEditableConcepts()));
         }, false);

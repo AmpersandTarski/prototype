@@ -3,7 +3,7 @@ $if(verbose)$<!-- Box-COLSNL.html "$label$" : $expAdl$ :: $source$ * $target$ $i
 $endif$$if(crudR)$<div class="box box-cols" ng-controller="BoxController" ng-init="parent = resource">
     <table class="table table-striped table-hover table-condensed">
         <tbody>
-            <tr $if(exprIsUni)$ng-repeat="resource in (resource['$name$'] === null ? [] : [resource['$name$']])"$else$ng-repeat="resource in resource['$name$']"$endif$ ng-class="resource._status_"$if(isRoot)$ ng-init="patchResource = resource;"$endif$>$subObjects:{subObj|
+            <tr ng-repeat="resource in requireArray(resource['$name$'])" ng-class="resource._status_"$if(isRoot)$ ng-init="patchResource = resource;"$endif$>$subObjects:{subObj|
                 $if(verbose)$<!-- $subObj.subObjLabel$ -->
                 $endif$<td class="row-content">
                     $subObj.subObjContents$

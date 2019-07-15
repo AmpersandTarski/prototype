@@ -19,4 +19,21 @@ angular.module('AmpersandApp')
     
     // Function (reference) to check if there are pending promises for a resource
     $scope.pendingPromises = ResourceService.pendingPromises;
+
+    /*
+     * Transforms the given variable into an array.
+     * To be used in ng-repeat directive for Ampersand UNI and non-UNI expressions
+     * If variable is already an array, the array is returned
+     * If variable is null, an empty array is returned
+     * Otherwise the variable is the first and single item in the array
+    */
+    $scope.requireArray = function (variable) {
+        if (Array.isArray(variable)) {
+            return variable;
+        } else if (variable === null) {
+            return [];
+        } else {
+            return [variable];
+        }
+    };
 });

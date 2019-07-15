@@ -2,6 +2,11 @@
 
 ## Unreleased changes
 
+## v1.3.0 (15 july 2019)
+* Bugfix error message in case of network/connection error
+* Many bugfixes (see commit history)
+* Implement dynamic RBAC. Accessible interfaces for a given role are now queries from database instead of generated json files
+
 ## v1.2.0 (30 april 2019)
 * [Issue 787](https://github.com/AmpersandTarski/Ampersand/issues/787) Remove header in interface templates ROWS, HROWS, ROWSNL, HROWSNL. Delete templates ROWSNH (no header)
 * [Issue 487](https://github.com/AmpersandTarski/Ampersand/issues/487) Allow application meta-model export in OWL language (first partial implementation)

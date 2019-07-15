@@ -243,7 +243,7 @@ class Model
         
         $this->interfaces = [];
         foreach ($allInterfaceDefs as $ifcDef) {
-            $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['interfaceRoles'], $ifcDef['ifcObject'], $defaultPlug, $this);
+            $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['ifcObject'], $defaultPlug, $this);
             $this->interfaces[$ifc->getId()] = $ifc;
         }
 
@@ -417,6 +417,11 @@ class Model
         return $this->getConceptByLabel('Role');
     }
 
+    public function getInterfaceConcept(): Concept
+    {
+        return $this->getConceptByLabel('PF_Interface');
+    }
+
     /**********************************************************************************************
      * RELATIONS
     **********************************************************************************************/
@@ -548,18 +553,6 @@ class Model
         }
         
         throw new Exception("Interface with label '{$ifcLabel}' is not defined", 500);
-    }
-
-    /**
-     * Returns all interfaces that are public (i.e. not assigned to a role)
-     *
-     * @return \Ampersand\Interfacing\Ifc[]
-     */
-    public function getPublicInterfaces(): array
-    {
-        return array_values(array_filter($this->getAllInterfaces(), function (Ifc $ifc) {
-            return $ifc->isPublic();
-        }));
     }
 
     /**********************************************************************************************
