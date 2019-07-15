@@ -4,7 +4,7 @@ var concat = require('gulp-concat')
 var sourcemaps = require('gulp-sourcemaps')
 var uglify = require('gulp-uglify-es').default
 var ngAnnotate = require('gulp-ng-annotate')
-var minifycss = require('gulp-minify-css')
+var cleanCSS = require('gulp-clean-css')
 var rename = require('gulp-rename')
 var filter = require('gulp-filter')
 var templateCache = require('gulp-angular-templatecache')
@@ -55,7 +55,7 @@ gulp.task('build-lib', function (done) {
         // library css
         .pipe(filterCSS)
         .pipe(concat('lib.min.css'))
-        .pipe(minifycss())
+        .pipe(cleanCSS())
         .pipe(gulp.dest('public/app/dist'))
         .pipe(filterCSS.restore)
         // library fonts
@@ -92,7 +92,7 @@ gulp.task('build-ampersand', function (done) {
         .pipe(concat('ampersand.css'))
         .pipe(gulp.dest('public/app/dist'))
         .pipe(rename({ suffix: '.min' }))
-        .pipe(minifycss())
+        .pipe(cleanCSS())
         .pipe(gulp.dest('public/app/dist'))
     done()
 })
@@ -106,7 +106,7 @@ gulp.task('build-project', function (done) {
         .pipe(concat('project.css'))
         .pipe(gulp.dest('app/dist'))
         .pipe(rename({ suffix: '.min' }))
-        .pipe(minifycss())
+        .pipe(cleanCSS())
         .pipe(gulp.dest('public/app/dist'))
     // js
     gulp.src(['public/app/project/**/*.js', 'public/app/ext/**/*.js', '!public/app/ext/**/lib/**/*'])
