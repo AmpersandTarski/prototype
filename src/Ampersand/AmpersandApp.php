@@ -355,6 +355,8 @@ class AmpersandApp
                 throw new Exception("Tgt concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getInterfaceConcept()->getId()}", 500);
             }
 
+            $this->logger->debug("Getting accessible interfaces using INTERFACE {$rbacIfc->getId()}");
+            
             $this->accessibleInterfaces = array_map(function (Atom $ifcAtom) {
                 return $this->model->getInterface($ifcAtom->getId());
             }, ResourceList::makeFromInterface($this->session->getId(), $rbacIfc->getId())->getResources());
