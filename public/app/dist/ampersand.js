@@ -75,7 +75,10 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
 
       if (response.data.navTo != null) {
         $location.url(response.data.navTo);
-      }
+      } // network error
+
+    } else if (response.status === -1) {
+      NotificationService.addError('Connection error. Please check your internet connection and try again', null, false);
     } else {
       message = response.status + ' ' + response.statusText;
       details = response.data; // html content is excepted
@@ -157,7 +160,7 @@ angular.module('uiSwitch', []).directive('switch', function () {
       html += attrs.ngModel && !attrs.ngClick ? ' ng-click="' + attrs.ngModel + '=!' + attrs.ngModel + '"' : '';
       html += '>';
       html += '<span';
-      html += ' class="switch' + (attrs.class ? ' ' + attrs.class : '') + '"';
+      html += ' class="switch' + (attrs["class"] ? ' ' + attrs["class"] : '') + '"';
       html += ' ng-class="{ checked:' + attrs.ngModel + ' }"';
       html += '>';
       html += '<small></small>';
@@ -224,7 +227,7 @@ angular.module('AmpersandApp').controller('AtomicController', ["$scope", "Resour
 
   $scope.remove = ResourceService.removeResource; // function(parent, ifc, resource, patchResource)
 
-  $scope.delete = ResourceService.deleteResource; // function(parent, ifc, resource)
+  $scope["delete"] = ResourceService.deleteResource; // function(parent, ifc, resource)
 }]);
 angular.module('AmpersandApp').controller('AtomicDateController', ["$scope", "ResourceService", function ($scope, ResourceService) {
   $scope.isOpen = false; // Function is here because ng-model needs to be a Date object.
@@ -404,7 +407,7 @@ angular.module('AmpersandApp').controller('BoxController', ["$scope", "ResourceS
   $scope.remove = ResourceService.removeResource; // function(ifc, resource, patchResource)
   // Function to delete a resource
 
-  $scope.delete = ResourceService.deleteResource; // function(ifc, resource)
+  $scope["delete"] = ResourceService.deleteResource; // function(ifc, resource)
 }]);
 angular.module('AmpersandApp').controller('InterfaceController', ["$scope", "$location", "ResourceService", function ($scope, $location, ResourceService) {
   /*
@@ -422,6 +425,23 @@ angular.module('AmpersandApp').controller('InterfaceController', ["$scope", "$lo
   }); // Function (reference) to check if there are pending promises for a resource
 
   $scope.pendingPromises = ResourceService.pendingPromises;
+  /*
+   * Transforms the given variable into an array.
+   * To be used in ng-repeat directive for Ampersand UNI and non-UNI expressions
+   * If variable is already an array, the array is returned
+   * If variable is null, an empty array is returned
+   * Otherwise the variable is the first and single item in the array
+  */
+
+  $scope.requireArray = function (variable) {
+    if (Array.isArray(variable)) {
+      return variable;
+    } else if (variable === null) {
+      return [];
+    } else {
+      return [variable];
+    }
+  };
 }]);
 angular.module('AmpersandApp').directive('myBluronenter', function () {
   return function (scope, element, attrs) {
@@ -886,7 +906,7 @@ angular.module('AmpersandApp').service('ResourceService', ["$localStorage", "$ti
       resource._loading_.push(promise);
 
       resource._isLoading_ = true;
-      return promise.finally(function () {
+      return promise["finally"](function () {
         if (!ResourceService.pendingPromises(resource)) {
           resource._isLoading_ = false;
           resource._loading_ = [];
@@ -1025,7 +1045,7 @@ angular.module('AmpersandApp').service('NavigationBarService', ["Restangular", "
     home: null,
     // home/start page, can be set in project.yaml (default: '#/prototype/welcome')
     top: [],
-    new: [],
+    "new": [],
     role: [],
     ext: []
   };
@@ -1051,7 +1071,7 @@ angular.module('AmpersandApp').service('NavigationBarService', ["Restangular", "
 
   function getNavbarPromise() {
     if (pendingNavbarPromise === null) {
-      pendingNavbarPromise = Restangular.one('app/navbar').get().finally(function () {
+      pendingNavbarPromise = Restangular.one('app/navbar').get()["finally"](function () {
         pendingNavbarPromise = null;
       });
     }
@@ -1093,7 +1113,7 @@ angular.module('AmpersandApp').service('NavigationBarService', ["Restangular", "
           return menu.id === 'MainMenu';
         });
         navbar.top = mainMenu === undefined ? [] : mainMenu.children;
-        navbar.new = data.new;
+        navbar["new"] = data["new"];
         navbar.role = data.role;
         navbar.ext = data.ext; // Content for session storage
 
@@ -1108,7 +1128,7 @@ angular.module('AmpersandApp').service('NavigationBarService', ["Restangular", "
         notifyObservers();
       }, function (error) {
         service.initializeSettings();
-      }).catch(function (error) {
+      })["catch"](function (error) {
         console.error(error);
       });
     },
@@ -1395,7 +1415,7 @@ angular.module('AmpersandApp').run(['$templateCache', function ($templateCache) 
   $templateCache.put('app/src/shared/404.html', '<!-- 404 page -->\r\n<div class="container-fluid" id="Interface">\r\n    <div class="row">\r\n        <div class="col-md-4">\r\n            <h1>404 Page not found</h1>\r\n            <p>The requested page does not exist.</p>\r\n            <p><a class="btn btn-primary btn-lg" href="#/" role="button">Goto startpage</a></p>\r\n        </div>\r\n        <div>\r\n            <img src="app/images/404-image.png">\r\n        </div>\r\n    </div>\r\n</div>');
   $templateCache.put('app/src/shared/header.html', '<!-- by default no header -->');
   $templateCache.put('app/src/shared/welcome.html', '<!-- Home screen -->\r\n<div class="container-fluid" id="Interface">\r\n    <div class="jumbotron">\r\n        <h1>Hello, world!</h1>\r\n        <p>You\'ve successfully generated your Ampersand prototype.</p>\r\n        <p><a class="btn btn-primary btn-lg" href="https://ampersandtarski.gitbooks.io/documentation" target="_blank" role="button">See our documentation &raquo;</a></p>\r\n    </div>\r\n</div>\r\n');
-  $templateCache.put('app/src/shared/myNavTo/myNavToInterfaces.html', '<div ng-if="resource._ifcs_.length > 1" style="position:relative; display:inline-block;">\r\n    <a class="dropdown-toggle" data-toggle="dropdown"><ng-transclude></ng-transclude></a>\r\n    <ul class="dropdown-menu" role="menu">\r\n        <li ng-repeat="ifc in resource._ifcs_">\r\n            <a ng-href="#/{{ifc.id}}/{{resource._id_}}" target="{{target}}">{{ifc.label}}</a>\r\n        </li>\r\n    </ul>\r\n</div>\r\n<a ng-if="resource._ifcs_.length == 1" ng-href="#/{{resource._ifcs_[0].id}}/{{resource._id_}}" target="{{target}}"><ng-transclude></ng-transclude></a>\r\n<span ng-if="resource._ifcs_.length == 0 || resource._ifcs_ == undefined"><ng-transclude></ng-transclude></span>');
+  $templateCache.put('app/src/shared/myNavTo/myNavToInterfaces.html', '<div ng-if="resource._ifcs_.length > 1" style="position:relative; display:inline-block; cursor: pointer;">\r\n    <a class="dropdown-toggle" data-toggle="dropdown"><ng-transclude></ng-transclude></a>\r\n    <ul class="dropdown-menu" role="menu">\r\n        <li ng-repeat="ifc in resource._ifcs_">\r\n            <a ng-href="#/{{ifc.id}}/{{resource._id_}}" target="{{target}}">{{ifc.label}}</a>\r\n        </li>\r\n    </ul>\r\n</div>\r\n<a ng-if="resource._ifcs_.length == 1" ng-href="#/{{resource._ifcs_[0].id}}/{{resource._id_}}" target="{{target}}"><ng-transclude></ng-transclude></a>\r\n<span ng-if="resource._ifcs_.length == 0 || resource._ifcs_ == undefined"><ng-transclude></ng-transclude></span>');
   $templateCache.put('app/src/shared/myNavTo/myNavToOtherInterfaces.html', '<!-- This menu includes the interface where the user currently is -->\r\n<div ng-if="resource._ifcs_.length" style="position:relative; display: inline-block;">\r\n    <button type="button" class="btn btn-xs dropdown-toggle" data-toggle="dropdown">\r\n        <span class="glyphicon glyphicon-menu-hamburger"></span>\r\n    </button>\r\n    <ul class="dropdown-menu dropdown-menu-right" role="menu">\r\n        <li ng-repeat="ifc in resource._ifcs_">\r\n            <a ng-href="#/{{ifc.id}}/{{resource._id_}}" target="{{target}}">{{ifc.label}}</a>\r\n        </li>\r\n    </ul>\r\n</div>');
 }]);
 //# sourceMappingURL=ampersand.js.map
