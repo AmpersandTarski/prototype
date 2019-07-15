@@ -8,6 +8,7 @@
 namespace Ampersand;
 
 use Ampersand\Model;
+use Ampersand\Core\Atom;
 
 /**
  *
@@ -38,7 +39,14 @@ class Role
      * List of all interfaces that are accessible by this role
      * @var \Ampersand\Interfacing\Ifc[]
      */
-    protected $interfaces = [];
+    protected $interfaces = null;
+
+    /**
+     * Reference to Ampersand model
+     *
+     * @var \Ampersand\Model
+     */
+    protected $model;
     
     /**
      * Constructor of role
@@ -48,15 +56,13 @@ class Role
      */
     public function __construct($roleDef, Model $model)
     {
+        $this->model = $model;
+
         $this->setId($roleDef['id']);
         $this->label = $roleDef['name'];
         
         foreach ((array)$roleDef['maintains'] as $ruleName) {
             $this->maintains[] = $model->getRule($ruleName);
-        }
-        
-        foreach ($roleDef['interfaces'] as $ifcId) {
-            $this->interfaces[] = $model->getInterface($ifcId);
         }
     }
     
@@ -102,6 +108,17 @@ class Role
      */
     public function interfaces(): array
     {
+        // If not yet instantiated
+        if (is_null($this->interfaces)) {
+            // Make role Atom
+            $roleAtom = $this->model->getRoleConcept()->makeAtom($this->id);
+
+            // Set interfaces
+            $this->interfaces = array_map(function (Atom $ifcAtom) {
+                return $this->model->getInterface($ifcAtom->getId());
+            }, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true));
+        }
+
         return $this->interfaces;
     }
 }

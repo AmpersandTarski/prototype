@@ -16,6 +16,7 @@ use Ampersand\Interfacing\InterfaceNullObject;
 use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Interfacing\InterfaceTxtObject;
 use Ampersand\AmpersandApp;
+use Ampersand\Core\Atom;
 
 /**
  *
@@ -46,14 +47,6 @@ class Ifc
     protected $isAPI;
 
     /**
-     * Roles that have access to this interface.
-     * Empty list implies public interface (i.e. for everyone)
-     *
-     * @var string[]
-     */
-    protected $ifcRoleNames = [];
-
-    /**
      * Root interface object (must be a InterfaceExprObject)
      *
      * @var \Ampersand\Interfacing\InterfaceExprObject
@@ -73,17 +66,15 @@ class Ifc
      * @param string $id
      * @param string $label
      * @param bool $isAPI
-     * @param array $ifcRoleNames
      * @param array $objectDef
      * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
      * @param \Ampersand\Model $model
      */
-    public function __construct(string $id, string $label, bool $isAPI, array $ifcRoleNames, array $objectDef, IfcPlugInterface $defaultPlug, Model $model)
+    public function __construct(string $id, string $label, bool $isAPI, array $objectDef, IfcPlugInterface $defaultPlug, Model $model)
     {
         $this->id = $id;
         $this->label = $label;
         $this->isAPI = $isAPI;
-        $this->ifcRoleNames = $ifcRoleNames;
         $this->model = $model;
         $this->ifcObject = $this->newExprObject($objectDef, $defaultPlug);
     }
@@ -108,9 +99,19 @@ class Ifc
         return $this->label;
     }
 
+    /**
+     * Atom representation of this interface object
+     *
+     * @return \Ampersand\Core\Atom
+     */
+    public function getIfcAtom(): Atom
+    {
+        return $this->model->getInterfaceConcept()->makeAtom($this->id);
+    }
+
     public function isPublic(): bool
     {
-        return empty($this->ifcRoleNames);
+        return !empty($this->getIfcAtom()->getTargetAtoms('isPublic[PF_Interface*PF_Interface]', false));
     }
 
     public function isAPI(): bool
@@ -134,25 +135,13 @@ class Ifc
     }
 
     /**
-     * List of rules names that have access to this interface
+     * List of roles that have access to this interface
      *
-     * @return string[]
+     * @return \Ampersand\Core\Atom[]
      */
-    public function getRoleNames(): array
+    public function getRoleNames()
     {
-        return $this->ifcRoleNames;
-    }
-
-    /**
-     * Set/overwrite the roles for which this interface is accessible
-     * Empty list means public (i.e. accessible for everyone)
-     *
-     * @param string[] $ifcRoleNames
-     * @return void
-     */
-    public function setRoleNames(array $ifcRoleNames): void
-    {
-        $this->ifcRoleNames = $ifcRoleNames;
+        return $this->getIfcAtom()->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', false);
     }
 
     public function getModel(): Model
