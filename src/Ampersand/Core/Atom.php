@@ -283,7 +283,7 @@ class Atom implements JsonSerializable
     public function getTargetAtoms($relation, $flip = false)
     {
         return array_map(function (Link $link) use ($flip) {
-            return $flip ? $link->tgt() : $link->src();
+            return $flip ? $link->src() : $link->tgt();
         }, $this->getLinks($relation, $flip));
     }
     
