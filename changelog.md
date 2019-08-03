@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* Bugfix issue with API interfaces shown in UI to solve signal violations. Caused by wrongly placed parentheses.
 
 ## v1.3.0 (15 july 2019)
 * Bugfix error message in case of network/connection error
