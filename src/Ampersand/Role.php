@@ -113,10 +113,18 @@ class Role
             // Make role Atom
             $roleAtom = $this->model->getRoleConcept()->makeAtom($this->id);
 
+            // Query and filter (un)defined interfaces
+            $ifcAtoms = array_filter(
+                $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true),
+                function (Atom $ifcAtom) {
+                    return $this->model->interfaceExists($ifcAtom->getId());
+                }
+            );
+
             // Set interfaces
             $this->interfaces = array_map(function (Atom $ifcAtom) {
                 return $this->model->getInterface($ifcAtom->getId());
-            }, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true));
+            }, $ifcAtoms);
         }
 
         return $this->interfaces;

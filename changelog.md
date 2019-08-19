@@ -3,6 +3,7 @@
 ## Unreleased changes
 * Bugfix issue with API interfaces shown in UI to solve signal violations. Caused by wrongly placed parentheses.
 * Add sort values for all BOX templates that start with the char 'S' (for SORT). Instead of only for the SCOLS, SHCOLS and SPCOLS templates.
+* [Issue 1005](https://github.com/AmpersandTarski/Ampersand/issues/1005) Bugfix deadlock due to un-defined interfaces
 
 ## v1.3.0 (15 july 2019)
 * Bugfix error message in case of network/connection error

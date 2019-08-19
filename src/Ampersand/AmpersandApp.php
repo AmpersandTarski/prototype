@@ -335,6 +335,7 @@ class AmpersandApp
     {
         // Reset
         $this->accessibleInterfaces = [];
+        $ifcAtoms = [];
 
         $settingKey = 'rbac.accessibleInterfacesIfcId';
         $rbacIfcId = $this->getSettings()->get($settingKey);
@@ -357,25 +358,38 @@ class AmpersandApp
 
             $this->logger->debug("Getting accessible interfaces using INTERFACE {$rbacIfc->getId()}");
             
-            $this->accessibleInterfaces = array_map(function (Atom $ifcAtom) {
-                return $this->model->getInterface($ifcAtom->getId());
-            }, ResourceList::makeFromInterface($this->session->getId(), $rbacIfc->getId())->getResources());
+            $ifcAtoms = ResourceList::makeFromInterface($this->session->getId(), $rbacIfc->getId())->getResources();
         
         // Else query the RELATION pf_ifcRoles[PF_Interface*Role] for every active role
         } else {
             foreach ($this->getActiveRoles() as $roleAtom) {
                 /** @var \Ampersand\Core\Atom $roleAtom */
                 
-                // Set accessible interfaces
-                $ifcs = array_map(function (Atom $ifcAtom) {
-                    return $this->model->getInterface($ifcAtom->getId());
-                }, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true));
-                $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $ifcs);
+                // Query accessible interfaces
+                $ifcAtoms = array_merge($ifcAtoms, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true));
             }
-            
-            // Remove duplicates
-            $this->accessibleInterfaces = array_unique($this->accessibleInterfaces);
         }
+
+        // Filter (un)defined interfaces
+        $ifcAtoms = array_filter(
+            $ifcAtoms,
+            function (Atom $ifcAtom) {
+                if ($this->model->interfaceExists($ifcAtom->getId())) {
+                    return true;
+                } else {
+                    $this->logger->warning("Interface id '{$ifcAtom->getId()}' specified as accessible interface, but this interface is not defined");
+                    return false;
+                }
+            }
+        );
+
+        // Map ifcAtoms to Ifc objects
+        $this->accessibleInterfaces = array_map(function (Atom $ifcAtom) {
+            return $this->model->getInterface($ifcAtom->getId());
+        }, $ifcAtoms);
+
+        // Remove duplicates
+        $this->accessibleInterfaces = array_unique($this->accessibleInterfaces);
 
         return $this;
     }
