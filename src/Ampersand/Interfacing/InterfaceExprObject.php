@@ -655,8 +655,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             return $tgt->getId();
         }
 
-        // Determine if sorting values must be added
-        $addSortValues = in_array($this->boxClass, ['SCOLS', 'SHCOLS', 'SPCOLS']) && ($options & Options::INCLUDE_SORT_DATA);
+        // Determine if sorting values must be added. If first letter is a 'S' (for SORT)
+        $addSortValues = (strtoupper(substr($this->boxClass, 0, 1)) === 'S') && ($options & Options::INCLUDE_SORT_DATA);
 
         // Get data of subinterfaces if depth is not provided or max depth not yet reached
         if (is_null($depth) || $depth > 0) {
