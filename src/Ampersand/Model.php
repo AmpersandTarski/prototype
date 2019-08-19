@@ -29,6 +29,7 @@ use Ampersand\Core\Population;
 use Ampersand\Core\Link;
 use Ampersand\Core\Atom;
 use Ampersand\Exception\RelationNotDefined;
+use Ampersand\Exception\InterfaceNotDefined;
 
 /**
  *
@@ -520,7 +521,7 @@ class Model
      * Returns toplevel interface object
      * @param string $ifcId
      * @param bool $fallbackOnLabel if set to true, the param $ifcId may also contain an interface label (i.e. name as defined in &-script)
-     * @throws \Exception when interface does not exist
+     * @throws \Ampersand\Exception\InterfaceNotDefined when interface does not exist
      * @return \Ampersand\Interfacing\Ifc
      */
     public function getInterface(string $ifcId, $fallbackOnLabel = false): Ifc
@@ -529,7 +530,7 @@ class Model
             if ($fallbackOnLabel) {
                 return $this->getInterfaceByLabel($ifcId);
             } else {
-                throw new Exception("Interface '{$ifcId}' is not defined", 500);
+                throw new InterfaceNotDefined("Interface '{$ifcId}' is not defined", 500);
             }
         }
 
@@ -540,7 +541,7 @@ class Model
      * Undocumented function
      *
      * @param string $ifcLabel
-     * @throws \Exception when interface does not exist
+     * @throws \Ampersand\Exception\InterfaceNotDefined when interface does not exist
      * @return \Ampersand\Interfacing\Ifc
      */
     public function getInterfaceByLabel(string $ifcLabel): Ifc
@@ -552,7 +553,7 @@ class Model
             }
         }
         
-        throw new Exception("Interface with label '{$ifcLabel}' is not defined", 500);
+        throw new InterfaceNotDefined("Interface with label '{$ifcLabel}' is not defined", 500);
     }
 
     /**********************************************************************************************
