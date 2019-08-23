@@ -814,7 +814,12 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $srcAtomId = $this->getDBRepresentation($srcAtom);
         $viewSQL = $view->getQuery();
         
-        $query = "SELECT DISTINCT \"tgt\" FROM ({$viewSQL}) AS \"results\" WHERE \"src\" = '{$srcAtomId}' AND \"tgt\" IS NOT NULL";
+        if (strpos($viewSQL, '_SRCATOM') !== false) {
+            $query = str_replace('_SRCATOM', $srcAtomId, $viewSQL);
+        } else {
+            $query = "SELECT DISTINCT \"tgt\" FROM ({$viewSQL}) AS \"results\" WHERE \"src\" = '{$srcAtomId}' AND \"tgt\" IS NOT NULL";
+        }
+        
         return array_column((array) $this->execute($query), 'tgt');
     }
     
