@@ -274,6 +274,17 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         }
         return $arr;
     }
+
+    public function prepare(string $query): \mysqli_stmt
+    {
+        $statement = $this->dbLink->prepare($query);
+
+        if ($statement === false) {
+            throw new Exception("Incorrect prepared statement in query: {$query}", 500);
+        }
+
+        return $statement;
+    }
     
     /**
      * Execute query on database.
