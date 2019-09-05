@@ -265,7 +265,7 @@ $api->group('/admin/report', function () {
 
         // Get report
         $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
-        $reporter->reportConjunctPerformance('csv', $ampersandApp->getModel()->getAllConjuncts());
+        $reporter->reportConjunctPerformance($ampersandApp->getModel()->getAllConjuncts(), 'csv');
         
         // Set response headers
         $filename = $ampersandApp->getName() . "_conjunct-performance_" . date('Y-m-d\TH-i-s') . ".csv";

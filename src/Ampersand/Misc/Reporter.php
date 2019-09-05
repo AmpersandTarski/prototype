@@ -207,11 +207,11 @@ class Reporter
     /**
      * Write conjunct performance report
      *
-     * @param string $format
      * @param \Ampersand\Rule\Conjunct[] $conjuncts
+     * @param string $format
      * @return \Ampersand\Misc\Reporter
      */
-    public function reportConjunctPerformance(string $format, array $conjuncts): Reporter
+    public function reportConjunctPerformance(array $conjuncts, string $format): Reporter
     {
         $content = [];
         
@@ -223,12 +223,12 @@ class Reporter
             $endTimeStamp = microtime(true);
             set_time_limit((int) ini_get('max_execution_time')); // reset time limit counter
             
-            $content = [ 'id' => $conjunct->getId()
-                       , 'start' => round($startTimeStamp, 6)
-                       , 'end' => round($endTimeStamp, 6)
-                       , 'duration' => round($endTimeStamp - $startTimeStamp, 6)
-                       , 'rules' => implode(';', $conjunct->getRuleNames())
-                       ];
+            $content[] = [ 'id' => $conjunct->getId()
+                         , 'start' => round($startTimeStamp, 6)
+                         , 'end' => round($endTimeStamp, 6)
+                         , 'duration' => round($endTimeStamp - $startTimeStamp, 6)
+                         , 'rules' => implode(';', $conjunct->getRuleNames())
+                         ];
         }
         
         usort($content, function ($a, $b) {
