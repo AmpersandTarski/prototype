@@ -242,6 +242,11 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     /**********************************************************************************************
      * CRUD METHODS
      *********************************************************************************************/
+    public function getViewData(Atom $tgtAtom): array
+    {
+        return $tgtAtom->concept->getViewData($tgtAtom); // default concept view
+    }
+    
     public function create(Atom $src, $tgtId = null): Atom
     {
         if (!$this->crudC()) {
@@ -276,7 +281,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
             // Basic UI data of a resource
             if ($options & Options::INCLUDE_UI_DATA) {
                 $resource = [];
-                $viewData = $tgt->concept->getViewData($tgt); // default concept view
+                $viewData = $this->getViewData($tgt);
 
                 // Add Ampersand atom attributes
                 $resource['_id_'] = $tgt->getId();

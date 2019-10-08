@@ -71,6 +71,8 @@ interface InterfaceObjectInterface
     /**********************************************************************************************
      * CRUD METHODS
      *********************************************************************************************/
+    public function getViewData(Atom $tgtAtom): array;
+
     public function create(Atom $src, $tgtId = null): Atom;
     public function read(Atom $src, string $pathToSrc, string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
     public function set(Atom $src, $value = null): ?Atom;

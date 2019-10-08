@@ -541,7 +541,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      * @param \Ampersand\Core\Atom $tgtAtom the atom for which to get view data
      * @return array
      */
-    protected function getViewData(Atom $tgtAtom): array
+    public function getViewData(Atom $tgtAtom): array
     {
         if (is_null($this->view)) {
             return $this->tgtConcept->getViewData($tgtAtom);

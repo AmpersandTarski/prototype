@@ -72,6 +72,11 @@ class Resource extends Atom implements ArrayAccess
         return (string) parent::jsonSerialize();
     }
 
+    public function getLabel(): string
+    {
+        return implode('', $this->ifc->getViewData($this));
+    }
+
     /**
      * Return interface for this resource
      *
