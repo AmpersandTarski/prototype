@@ -8,7 +8,6 @@
 namespace Ampersand\Interfacing;
 
 use Ampersand\Core\Atom;
-use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
 
