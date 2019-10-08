@@ -349,6 +349,6 @@ class Resource extends Atom implements ArrayAccess
 
     public function remove(): void
     {
-        $this->parentList->remove($this);
+        $this->parentList->remove($this->id);
     }
 }
