@@ -22,7 +22,7 @@ loggers:
   FRONTEND:
     handlers: [error_log, debug_log]
   PERFORMANCE:
-    handlers: [performance_log]
+    handlers: [error_log, debug_log]
 formatters:
 handlers:
   debug_log:
@@ -49,12 +49,6 @@ handlers:
     level: DEBUG
     maxFiles: 0
     filename: ./log/execengine.log
-  performance_log:
-    class: Ampersand\Log\RotatingFileHandler
-    level: DEBUG
-    maxFiles: 0
-    filename: ./log/performance.log
-    processors: [request_id_processor, web_processor]
 processors:
   web_processor:
     class: Monolog\Processor\WebProcessor
