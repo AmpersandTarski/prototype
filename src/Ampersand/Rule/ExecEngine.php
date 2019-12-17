@@ -194,13 +194,12 @@ class ExecEngine extends RuleEngine
             
             // Fix violations
             $total = count($violations);
-            $this->info("{++ ExecEngine fixing {$total} violations for rule '{$rule}'");
+            $this->info("ExecEngine fixing {$total} violations for rule '{$rule}'");
             foreach ($violations as $key => $violation) {
                 /** @var \Ampersand\Rule\Violation $violation */
                 $num = $key + 1;
-                $this->info("{+++ Fixing violation {$num}/{$total}: ({$violation})");
+                $this->info("Fixing violation {$num}/{$total}: ({$violation})");
                 $this->fixViolation($violation);
-                $this->info("+++}");
                 
                 // Abort loop when exec engine is terminated
                 if ($this->isTerminated) {
@@ -209,7 +208,7 @@ class ExecEngine extends RuleEngine
                 }
             }
             $rulesFixed[] = $rule;
-            $this->info("++} ExecEngine fixed {$total} violations for rule '{$rule}'");
+            $this->notice("ExecEngine fixed {$total} violations for rule '{$rule}'");
         }
 
         return $rulesFixed;
