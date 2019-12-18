@@ -80,7 +80,8 @@ $mysqlDB = new MysqlDB(
     $settings->get('mysql.dbPass'),
     $settings->get('mysql.dbName'),
     Logger::getLogger('DATABASE'),
-    $settings->get('global.debugMode')
+    $settings->get('global.debugMode'),
+    $settings->get('global.productionEnv')
 );
 $ampersandApp->setDefaultStorage($mysqlDB);
 $ampersandApp->setConjunctCache(new MysqlConjunctCache($mysqlDB));
