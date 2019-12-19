@@ -32,19 +32,19 @@ handlers:
   stderr:
     class: Monolog\Handler\StreamHandler
     level: WARNING
-    processors: [request_id_processor, web_processor]
+    processors: [request_id_processor]
     stream: php://stderr
   stdout:
     class: Monolog\Handler\StreamHandler
     level: DEBUG
-    processors: [request_id_processor, web_processor]
+    processors: [request_id_processor]
     stream: php://stdout
   error_log_file:
     class: Ampersand\Log\RotatingFileHandler
     level: DEBUG
     maxFiles: 5
     filename: ./log/error.log
-    processors: [request_id_processor, web_processor]
+    processors: [request_id_processor]
   error_log:
     class: Monolog\Handler\FingersCrossedHandler
     handler: error_log_file
