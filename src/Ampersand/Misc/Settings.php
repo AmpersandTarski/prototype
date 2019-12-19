@@ -86,14 +86,19 @@ class Settings
      * @param bool $overwriteAllowed specifies if already set settings may be overwritten
      * @return \Ampersand\Misc\Settings $this
      */
-    public function loadSettingsYamlFile(string $filePath, bool $overwriteAllowed = true): Settings
+    public function loadSettingsYamlFile(string $filePath, bool $overwriteAllowed = true, bool $fileMustExist = true): Settings
     {
-        $this->logger->info("Loading settings from {$filePath}");
-
         $fileSystem = new Filesystem;
         if (!$fileSystem->exists($filePath)) {
-            throw new Exception("Cannot load settings file. Specified path does not exist: '{$filePath}'", 500);
+            if ($fileMustExist) {
+                throw new Exception("Cannot load settings file. Specified path does not exist: '{$filePath}'", 500);
+            } else {
+                $this->logger->debug("Specified configuration file does not exist: '{$filePath}'");
+                return $this;
+            }
         }
+
+        $this->logger->info("Loading settings from {$filePath}");
 
         $encoder = new YamlEncoder();
         $file = $encoder->decode(file_get_contents($filePath), YamlEncoder::FORMAT);
