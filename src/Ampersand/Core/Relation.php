@@ -272,6 +272,7 @@ class Relation
         foreach ($this->getPlugs() as $plug) {
             $plug->addLink($link);
         }
+        $this->logger->info("Link added to relation: {$link}");
     }
     
     /**
@@ -287,6 +288,7 @@ class Relation
         foreach ($this->getPlugs() as $plug) {
             $plug->deleteLink($link);
         }
+        $this->logger->info("Link deleted: {$link}");
     }
     
     /**
@@ -312,6 +314,7 @@ class Relation
         foreach ($this->getPlugs() as $plug) {
             $plug->deleteAllLinks($this, $atom, $srcOrTgt);
         }
+        $this->logger->info("Deleted all links in relation '{$this}' where atom '{$atom}' is used as '{$srcOrTgt}'");
     }
 
     /**
@@ -329,5 +332,6 @@ class Relation
         foreach ($this->getPlugs() as $plug) {
             $plug->emptyRelation($this);
         }
+        $this->logger->info("Deleted all links in relation: {$this}");
     }
 }
