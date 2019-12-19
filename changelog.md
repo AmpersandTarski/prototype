@@ -5,6 +5,10 @@
 * Add sort values for all BOX templates that start with the char 'S' (for SORT). Instead of only for the SCOLS, SHCOLS and SPCOLS templates.
 * [Issue 1005](https://github.com/AmpersandTarski/Ampersand/issues/1005) Bugfix deadlock due to un-defined interfaces
 * [Issue 426](https://github.com/AmpersandTarski/Ampersand/issues/426) Add support for optimized VIEW expression queries using injection of _SRCATOM
+* Add Dockerfile to build Ampersand prototype framework image that can be used by containerized prototype apps
+* Improve configuration of prototype for different environments (dev/prod/...). See [readme](./config/README.md)
+* Simplify logging. Log to stdout and stderr to work with containerized prototype apps
+* Add logs for add/rm/del atom and add/del links
 
 ## v1.3.0 (15 july 2019)
 * Bugfix error message in case of network/connection error
