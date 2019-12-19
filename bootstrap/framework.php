@@ -20,7 +20,7 @@ register_shutdown_function(function () {
         header("{$protocol} 500 Internal server error");
         print json_encode(['error' => 500
                           ,'msg' => "An error occurred"
-                          ,'html' => $debugMode ? $error['message'] : "See php.log for more information"
+                          ,'html' => $debugMode ? $error['message'] : "See log for more information"
                           ]);
         exit;
     }
@@ -48,7 +48,6 @@ require_once(__DIR__ . '/../lib/autoload.php');
 ini_set('error_reporting', E_ALL & ~E_NOTICE); // @phan-suppress-current-line PhanTypeMismatchArgumentInternal
 ini_set("display_errors", '0');
 ini_set("log_errors", '1');
-ini_set("error_log", dirname(__FILE__, 2) . '/log/php.log');
 
 // Application log
 Cascade::fileConfig(dirname(__FILE__, 2) . '/config/logging.yaml'); // loads logging configuration
