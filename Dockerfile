@@ -27,7 +27,7 @@ ENV APACHE_DOCUMENT_ROOT /var/www/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-COPY . /var/www
+COPY composer.json composer.lock /var/www/
 
 WORKDIR /var/www
 
@@ -36,3 +36,5 @@ RUN composer install --prefer-dist --no-dev --profile
 # Copy Ampersand compiler
 COPY --from=compiler /root/.local/bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
+
+COPY . /var/www
