@@ -1,5 +1,5 @@
 {
-    "name" : "ampersandTarski/prototype",
+    "name" : "ampersandtarski/prototype",
     "description": "Package for the backend application of an Ampersand prototype",
     "config": {
         "vendor-dir" : "lib"

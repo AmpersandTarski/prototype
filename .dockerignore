@@ -1,0 +1,17 @@
+**
+!app/
+!bootstrap/
+!config/
+!data/
+!extensions/
+!generics/
+!log/
+!public/
+!src/
+!templates/
+!changelog.md
+!composer.json
+!composer.lock
+!gulpfile.js
+!package-lock.json
+!package.json
