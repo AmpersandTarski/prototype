@@ -70,6 +70,7 @@ $settings = new Settings($logger); // includes default framework settings
 $settings->set('global.absolutePath', dirname(__FILE__, 2));
 $settings->loadSettingsJsonFile($model->getFilePath('settings')); // load model settings from Ampersand generator
 $settings->loadSettingsYamlFile(dirname(__FILE__, 2) . '/config/project.yaml'); // load project specific settings
+$settings->loadSettingsYamlFile(dirname(__FILE__, 2) . "/config/env/{$environmentName}/project.yaml", true, false); // load environment specific settings
 $debugMode = $settings->get('global.debugMode');
 
 set_time_limit($settings->get('global.scriptTimeout'));
