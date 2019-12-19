@@ -62,7 +62,7 @@ class Settings
      */
     public function loadSettingsJsonFile(string $filePath, bool $overwriteAllowed = true): Settings
     {
-        $this->logger->info("Loading settings from {$filePath}");
+        $this->logger->info("Loading configuration from {$filePath}");
 
         $fileSystem = new Filesystem;
         if (!$fileSystem->exists($filePath)) {
@@ -98,7 +98,7 @@ class Settings
             }
         }
 
-        $this->logger->info("Loading settings from {$filePath}");
+        $this->logger->info("Loading configuration from {$filePath}");
 
         $encoder = new YamlEncoder();
         $file = $encoder->decode(file_get_contents($filePath), YamlEncoder::FORMAT);
