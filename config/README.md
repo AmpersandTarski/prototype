@@ -15,9 +15,10 @@ The prototype framework automatically loads the following configuration files, i
 This order allows to have different environments with the same base project configuration
 Configuration values overwrite each other, when specified in multiple files
 
-1. `src/Ampersand/Misc/defaultSettings.yaml`
-2. `config/project.yaml` contains project
-3. `config/env/[env-name]/project.yaml`
+1. `src/Ampersand/Misc/defaultSettings.yaml` -> framework default settings
+2. `generics/settings.json` -> project specific settings from Ampersand compiler
+3. `config/project.yaml` -> project specific framework settings
+4. `config/env/[env-name]/project.yaml` -> environment specific framework settings
 
 The configuration file has the following components:
 * settings: a key/value pair list of config settings
