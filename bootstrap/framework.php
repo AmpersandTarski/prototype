@@ -37,6 +37,14 @@ if ($_SERVER['HTTPS'] ?? false) {
 session_start();
 
 /**************************************************************************************************
+ * ENVIRONMENT (environment determines which config is loaded)
+ *************************************************************************************************/
+$environmentName = getenv('AMP_PROTO_ENV_NAME', true);
+if ($environmentName === false) {
+    $environmentName = 'default';
+}
+
+/**************************************************************************************************
  * COMPOSER AUTOLOADER
  *************************************************************************************************/
 require_once(__DIR__ . '/../lib/autoload.php');
@@ -50,7 +58,7 @@ ini_set("display_errors", '0');
 ini_set("log_errors", '1');
 
 // Application log
-Cascade::fileConfig(dirname(__FILE__, 2) . '/config/logging.yaml'); // loads logging configuration
+Cascade::fileConfig(dirname(__FILE__, 2) . "/config/env/{$environmentName}/logging.yaml"); // loads logging configuration
 
 /**************************************************************************************************
  * AMPERSAND APPLICATION
