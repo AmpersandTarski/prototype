@@ -93,7 +93,7 @@ class Settings
             if ($fileMustExist) {
                 throw new Exception("Cannot load settings file. Specified path does not exist: '{$filePath}'", 500);
             } else {
-                $this->logger->debug("Specified configuration file does not exist: '{$filePath}'");
+                $this->logger->info("Configuration file does not exist: '{$filePath}'");
                 return $this;
             }
         }
