@@ -9,6 +9,7 @@
 * Improve configuration of prototype for different environments (dev/prod/...). See [readme](./config/README.md)
 * Simplify logging. Log to stdout and stderr to work with containerized prototype apps
 * Add logs for add/rm/del atom and add/del links
+* [Issue 940](https://github.com/AmpersandTarski/Ampersand/issues/940) Remove company logos from footer
 
 ## v1.3.0 (15 july 2019)
 * Bugfix error message in case of network/connection error
