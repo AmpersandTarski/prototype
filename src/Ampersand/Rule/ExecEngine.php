@@ -113,6 +113,11 @@ class ExecEngine extends RuleEngine
         return $this->ampersandApp;
     }
 
+    public function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     /**
      * Logs with an arbitrary level.
      *
