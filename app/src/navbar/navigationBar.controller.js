@@ -30,6 +30,7 @@ angular.module('AmpersandApp')
             RoleService.setActiveRoles()
             .then(function(data){
                 NavigationBarService.refreshNavBar();
+                $route.reload();
             })
         );
     };

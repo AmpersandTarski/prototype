@@ -10,6 +10,7 @@
 * Simplify logging. Log to stdout and stderr to work with containerized prototype apps
 * Add logs for add/rm/del atom and add/del links
 * [Issue 940](https://github.com/AmpersandTarski/Ampersand/issues/940) Remove company logos from footer
+* [Issue 951](https://github.com/AmpersandTarski/Ampersand/issues/951) Refresh page after role (de)select
 
 ## v1.3.0 (15 july 2019)
 * Bugfix error message in case of network/connection error
