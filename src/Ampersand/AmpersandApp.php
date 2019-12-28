@@ -536,6 +536,12 @@ class AmpersandApp
     {
         $this->logger->info("Start application reinstall");
 
+        // Increase timeout to at least 5 min
+        if ($this->getSettings()->get('global.scriptTimeout') < 300) {
+            set_time_limit(300);
+            $this->logger->debug('PHP script timeout increased to 300 seconds');
+        }
+
         // Clear notifications
         $this->userLogger->clearAll();
 
