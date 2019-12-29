@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "de5770c73df136f1693033cabcbaa5d7",
+    "content-hash": "879b66b75a14ab0a9c7f10796c776485",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -1312,16 +1312,16 @@
         },
         {
             "name": "phan/phan",
-            "version": "2.4.5",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phan/phan.git",
-                "reference": "12f64e878084244ca92d1ac83e58a668640f6f1d"
+                "reference": "0e454a35a3c3403a81c4f78b151afd65fc128fa7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phan/phan/zipball/12f64e878084244ca92d1ac83e58a668640f6f1d",
-                "reference": "12f64e878084244ca92d1ac83e58a668640f6f1d",
+                "url": "https://api.github.com/repos/phan/phan/zipball/0e454a35a3c3403a81c4f78b151afd65fc128fa7",
+                "reference": "0e454a35a3c3403a81c4f78b151afd65fc128fa7",
                 "shasum": ""
             },
             "require": {
@@ -1381,7 +1381,7 @@
                 "php",
                 "static"
             ],
-            "time": "2019-12-11T01:03:28+00:00"
+            "time": "2019-12-27T18:52:04+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -1945,9 +1945,9 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "stability-flags": [],
-    "prefer-stable": false,
+    "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": ">=7.1"
