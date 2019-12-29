@@ -36,7 +36,7 @@ class Installer
     }
 
     /**
-     * Undocumented function
+     * Add/import meta population
      *
      * @param \Ampersand\Model $model
      * @return \Ampersand\Misc\Installer
@@ -52,7 +52,7 @@ class Installer
     }
 
     /**
-     * Undocumented function
+     * Add/import initial population as defined in generated Ampersand model file
      *
      * @param \Ampersand\Model $model
      * @return \Ampersand\Misc\Installer
@@ -69,7 +69,8 @@ class Installer
     /**
      * Add menu items for navigation menus
      *
-     * @return Installer
+     * @param \Ampersand\Model $model
+     * @return \Ampersand\Misc\Installer
      */
     public function reinstallNavigationMenus(Model $model): Installer
     {
