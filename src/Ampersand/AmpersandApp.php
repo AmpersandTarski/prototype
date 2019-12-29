@@ -563,7 +563,7 @@ class AmpersandApp
         }
 
         $transaction = $this->newTransaction();
-        $installer = new Installer($this, $this->logger);
+        $installer = new Installer($this->logger);
 
         // Metapopulation and navigation menus
         try {

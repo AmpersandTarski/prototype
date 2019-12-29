@@ -7,7 +7,6 @@
 
 namespace Ampersand\Misc;
 
-use Ampersand\AmpersandApp;
 use Ampersand\Model;
 use Exception;
 use Psr\Log\LoggerInterface;
@@ -27,21 +26,13 @@ class Installer
     protected $logger;
 
     /**
-     * Reference to app
-     *
-     * @var \Ampersand\AmpersandApp
-     */
-    protected $ampersandApp;
-
-    /**
      * Constructor
      *
-     * @param \Ampersand\AmpersandApp $ampersandApp
+     * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(AmpersandApp $ampersandApp, LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->ampersandApp = $ampersandApp;
     }
 
     /**
