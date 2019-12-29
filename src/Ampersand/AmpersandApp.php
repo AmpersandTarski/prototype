@@ -572,7 +572,7 @@ class AmpersandApp
                 $this->logger->warning("Invariant rules do not hold for meta population");
             }
 
-            $installer->reinstallNavigationMenus();
+            $installer->reinstallNavigationMenus($this->getModel());
             if (!$transaction->runExecEngine()->checkInvariantRules()) {
                 $this->logger->warning("Invariant rules do not hold for meta population and/or navigation menu");
             }

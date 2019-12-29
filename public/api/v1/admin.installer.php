@@ -68,7 +68,7 @@ $api->group('/admin/installer', function () {
         $transaction = $ampersandApp->newTransaction();
 
         $installer = new Installer($ampersandApp, Logger::getLogger('APPLICATION'));
-        $installer->reinstallNavigationMenus();
+        $installer->reinstallNavigationMenus($ampersandApp->getModel());
 
         $transaction->runExecEngine()->close(false, false);
         if ($transaction->isRolledBack()) {

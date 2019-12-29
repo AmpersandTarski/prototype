@@ -80,13 +80,11 @@ class Installer
      *
      * @return Installer
      */
-    public function reinstallNavigationMenus(): Installer
+    public function reinstallNavigationMenus(Model $model): Installer
     {
         $this->logger->info("(Re)install default navigation menus");
 
         // TODO: add function to clear/delete current nav menu population
-        
-        $model = $this->ampersandApp->getModel();
 
         // MainMenu (i.e. all UI interfaces with SESSION as src concept)
         $mainMenu = $model->getConceptByLabel('PF_NavMenu')->makeAtom('MainMenu')->add();
