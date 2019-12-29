@@ -60,16 +60,6 @@ class Installer
         return $this;
     }
 
-    public function reinstallNavigationMenus(): Installer
-    {
-        $this->logger->info("(Re)install default navigation menus");
-
-        // TODO: add function to clear/delete current nav menu population
-        $this->addNavMenuItems();
-
-        return $this;
-    }
-
     /**
      * Undocumented function
      *
@@ -88,10 +78,14 @@ class Installer
     /**
      * Add menu items for navigation menus
      *
-     * @return void
+     * @return Installer
      */
-    protected function addNavMenuItems(): void
+    public function reinstallNavigationMenus(): Installer
     {
+        $this->logger->info("(Re)install default navigation menus");
+
+        // TODO: add function to clear/delete current nav menu population
+        
         $model = $this->ampersandApp->getModel();
 
         // MainMenu (i.e. all UI interfaces with SESSION as src concept)
@@ -117,5 +111,7 @@ class Installer
                 $menuItem->link($mainMenu, 'isSubItemOf[PF_NavMenuItem*PF_NavMenuItem]')->add();
             }
         }
+
+        return $this;
     }
 }
