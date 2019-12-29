@@ -6,6 +6,7 @@
     },
     "require": {
         "php": ">=7.1",
+        "ext-mysqli": "*",
         "slim/slim": "^3.0",
         "monolog/monolog": "^1.18",
         "wikimedia/composer-merge-plugin": "^1.3",
