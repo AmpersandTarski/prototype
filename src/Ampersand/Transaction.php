@@ -494,7 +494,7 @@ class Transaction
      *
      * @return bool
      */
-    protected function checkInvariantRules(): bool
+    public function checkInvariantRules(): bool
     {
         $this->logger->info("Checking invariant rules");
         

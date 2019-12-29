@@ -53,15 +53,9 @@ class Installer
     {
         $this->logger->info("(Re)install meta population");
 
-        $transaction = $this->ampersandApp->newTransaction();
-
         // TODO: add function to clear/delete current meta population
         $this->ampersandApp->getModel()->getMetaPopulation()->import();
 
-        $transaction->runExecEngine()->close(false, false);
-        if ($transaction->isRolledBack()) {
-            throw new Exception("Meta population does not satisfy invariant rules. See log files", 500);
-        }
         return $this;
     }
 
@@ -69,31 +63,17 @@ class Installer
     {
         $this->logger->info("(Re)install default navigation menus");
 
-        $transaction = $this->ampersandApp->newTransaction();
-
         // TODO: add function to clear/delete current nav menu population
         $this->addNavMenuItems();
 
-        $transaction->runExecEngine()->close(false, false);
-        if ($transaction->isRolledBack()) {
-            throw new Exception("Nav menu population does not satisfy invariant rules. See log files", 500);
-        }
         return $this;
     }
 
-    public function addInitialPopulation(Model $model, bool $ignoreInvariantRules = false): Installer
+    public function addInitialPopulation(Model $model): Installer
     {
         $this->logger->info("Add initial population");
 
-        $transaction = $this->ampersandApp->newTransaction();
-
         $model->getInitialPopulation()->import();
-
-        // Close transaction
-        $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
-        if ($transaction->isRolledBack()) {
-            throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
-        }
 
         return $this;
     }

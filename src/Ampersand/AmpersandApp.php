@@ -562,20 +562,35 @@ class AmpersandApp
             $cpt->clearAtomCache(); // local cache in Ampersand code
         }
 
+        $transaction = $this->newTransaction();
         $installer = new Installer($this, $this->logger);
 
-        // Navigation menus
+        // Metapopulation and navigation menus
         try {
-            $installer->reinstallMetaPopulation()->reinstallNavigationMenus();
+            $installer->reinstallMetaPopulation();
+            if (!$transaction->runExecEngine()->checkInvariantRules()) {
+                $this->logger->warning("Invariant rules do not hold for meta population");
+            }
+
+            $installer->reinstallNavigationMenus();
+            if (!$transaction->runExecEngine()->checkInvariantRules()) {
+                $this->logger->warning("Invariant rules do not hold for meta population and/or navigation menu");
+            }
         } catch (Exception $e) {
-            throw new Exception("Error while installing navigation menu: {$e->getMessage()}", 500, $e);
+            throw new Exception("Error while installing metapopulation and navigation menus: {$e->getMessage()}", 500, $e);
         }
 
         // Initial population
         if ($installDefaultPop) {
-            $installer->addInitialPopulation($this->model, $ignoreInvariantRules);
+            $installer->addInitialPopulation($this->model);
         } else {
             $this->logger->info("Skip initial population");
+        }
+
+        // Close transaction
+        $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
+        if ($transaction->isRolledBack()) {
+            throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
         }
 
         // Evaluate all conjunct and save cache
