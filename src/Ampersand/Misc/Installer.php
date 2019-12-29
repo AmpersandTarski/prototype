@@ -8,7 +8,6 @@
 namespace Ampersand\Misc;
 
 use Ampersand\Model;
-use Exception;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -97,7 +96,7 @@ class Installer
                 $menuItem->link($ifc->getLabel(), 'label[PF_NavMenuItem*PF_Label]')->add();
                 $menuItem->link($menuItem, 'isVisible[PF_NavMenuItem*PF_NavMenuItem]')->add(); // make visible by default
                 $menuItem->link($ifc->getId(), 'ifc[PF_NavMenuItem*PF_Interface]')->add();
-                $menuItem->link($i, 'seqNr[PF_NavMenuItem*PF_SeqNr]')->add();
+                $menuItem->link((string) $i, 'seqNr[PF_NavMenuItem*PF_SeqNr]')->add();
                 $menuItem->link($mainMenu, 'isSubItemOf[PF_NavMenuItem*PF_NavMenuItem]')->add();
             }
         }
