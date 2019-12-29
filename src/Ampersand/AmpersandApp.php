@@ -567,7 +567,7 @@ class AmpersandApp
 
         // Metapopulation and navigation menus
         try {
-            $installer->reinstallMetaPopulation();
+            $installer->reinstallMetaPopulation($this->getModel());
             if (!$transaction->runExecEngine()->checkInvariantRules()) {
                 $this->logger->warning("Invariant rules do not hold for meta population");
             }
@@ -582,7 +582,7 @@ class AmpersandApp
 
         // Initial population
         if ($installDefaultPop) {
-            $installer->addInitialPopulation($this->model);
+            $installer->addInitialPopulation($this->getModel());
         } else {
             $this->logger->info("Skip initial population");
         }

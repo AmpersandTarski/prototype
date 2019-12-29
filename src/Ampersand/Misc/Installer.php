@@ -47,14 +47,15 @@ class Installer
     /**
      * Undocumented function
      *
+     * @param \Ampersand\Model $model
      * @return \Ampersand\Misc\Installer
      */
-    public function reinstallMetaPopulation(): Installer
+    public function reinstallMetaPopulation(Model $model): Installer
     {
         $this->logger->info("(Re)install meta population");
 
         // TODO: add function to clear/delete current meta population
-        $this->ampersandApp->getModel()->getMetaPopulation()->import();
+        $model->getMetaPopulation()->import();
 
         return $this;
     }
@@ -69,6 +70,12 @@ class Installer
         return $this;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param \Ampersand\Model $model
+     * @return \Ampersand\Misc\Installer
+     */
     public function addInitialPopulation(Model $model): Installer
     {
         $this->logger->info("Add initial population");
