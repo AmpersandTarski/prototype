@@ -46,8 +46,15 @@ $api->group('/admin/installer', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        $installer = new Installer($ampersandApp, Logger::getLogger('APPLICATION'));
-        $installer->reinstallMetaPopulation();
+        $transaction = $ampersandApp->newTransaction();
+
+        $installer = new Installer(Logger::getLogger('APPLICATION'));
+        $installer->reinstallMetaPopulation($ampersandApp->getModel());
+        
+        $transaction->runExecEngine()->close(false, false);
+        if ($transaction->isRolledBack()) {
+            throw new Exception("Meta population does not satisfy invariant rules. See log files", 500);
+        }
     });
 
     /**
@@ -58,8 +65,15 @@ $api->group('/admin/installer', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        $installer = new Installer($ampersandApp, Logger::getLogger('APPLICATION'));
-        $installer->reinstallNavigationMenus();
+        $transaction = $ampersandApp->newTransaction();
+
+        $installer = new Installer(Logger::getLogger('APPLICATION'));
+        $installer->reinstallNavigationMenus($ampersandApp->getModel());
+
+        $transaction->runExecEngine()->close(false, false);
+        if ($transaction->isRolledBack()) {
+            throw new Exception("Nav menu population does not satisfy invariant rules. See log files", 500);
+        }
     });
 
     /**

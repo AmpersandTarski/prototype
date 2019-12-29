@@ -7,9 +7,7 @@
 
 namespace Ampersand\Misc;
 
-use Ampersand\AmpersandApp;
 use Ampersand\Model;
-use Exception;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -27,73 +25,42 @@ class Installer
     protected $logger;
 
     /**
-     * Reference to app
-     *
-     * @var \Ampersand\AmpersandApp
-     */
-    protected $ampersandApp;
-
-    /**
      * Constructor
      *
-     * @param \Ampersand\AmpersandApp $ampersandApp
+     * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(AmpersandApp $ampersandApp, LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->ampersandApp = $ampersandApp;
     }
 
     /**
-     * Undocumented function
+     * Add/import meta population
      *
+     * @param \Ampersand\Model $model
      * @return \Ampersand\Misc\Installer
      */
-    public function reinstallMetaPopulation(): Installer
+    public function reinstallMetaPopulation(Model $model): Installer
     {
         $this->logger->info("(Re)install meta population");
 
-        $transaction = $this->ampersandApp->newTransaction();
-
         // TODO: add function to clear/delete current meta population
-        $this->ampersandApp->getModel()->getMetaPopulation()->import();
+        $model->getMetaPopulation()->import();
 
-        $transaction->runExecEngine()->close(false, false);
-        if ($transaction->isRolledBack()) {
-            throw new Exception("Meta population does not satisfy invariant rules. See log files", 500);
-        }
         return $this;
     }
 
-    public function reinstallNavigationMenus(): Installer
-    {
-        $this->logger->info("(Re)install default navigation menus");
-
-        $transaction = $this->ampersandApp->newTransaction();
-
-        // TODO: add function to clear/delete current nav menu population
-        $this->addNavMenuItems();
-
-        $transaction->runExecEngine()->close(false, false);
-        if ($transaction->isRolledBack()) {
-            throw new Exception("Nav menu population does not satisfy invariant rules. See log files", 500);
-        }
-        return $this;
-    }
-
-    public function addInitialPopulation(Model $model, bool $ignoreInvariantRules = false): Installer
+    /**
+     * Add/import initial population as defined in generated Ampersand model file
+     *
+     * @param \Ampersand\Model $model
+     * @return \Ampersand\Misc\Installer
+     */
+    public function addInitialPopulation(Model $model): Installer
     {
         $this->logger->info("Add initial population");
 
-        $transaction = $this->ampersandApp->newTransaction();
-
         $model->getInitialPopulation()->import();
-
-        // Close transaction
-        $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
-        if ($transaction->isRolledBack()) {
-            throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
-        }
 
         return $this;
     }
@@ -101,11 +68,14 @@ class Installer
     /**
      * Add menu items for navigation menus
      *
-     * @return void
+     * @param \Ampersand\Model $model
+     * @return \Ampersand\Misc\Installer
      */
-    protected function addNavMenuItems(): void
+    public function reinstallNavigationMenus(Model $model): Installer
     {
-        $model = $this->ampersandApp->getModel();
+        $this->logger->info("(Re)install default navigation menus");
+
+        // TODO: add function to clear/delete current nav menu population
 
         // MainMenu (i.e. all UI interfaces with SESSION as src concept)
         $mainMenu = $model->getConceptByLabel('PF_NavMenu')->makeAtom('MainMenu')->add();
@@ -126,9 +96,11 @@ class Installer
                 $menuItem->link($ifc->getLabel(), 'label[PF_NavMenuItem*PF_Label]')->add();
                 $menuItem->link($menuItem, 'isVisible[PF_NavMenuItem*PF_NavMenuItem]')->add(); // make visible by default
                 $menuItem->link($ifc->getId(), 'ifc[PF_NavMenuItem*PF_Interface]')->add();
-                $menuItem->link($i, 'seqNr[PF_NavMenuItem*PF_SeqNr]')->add();
+                $menuItem->link((string) $i, 'seqNr[PF_NavMenuItem*PF_SeqNr]')->add();
                 $menuItem->link($mainMenu, 'isSubItemOf[PF_NavMenuItem*PF_NavMenuItem]')->add();
             }
         }
+
+        return $this;
     }
 }

@@ -12,6 +12,7 @@
 * [Issue 940](https://github.com/AmpersandTarski/Ampersand/issues/940) Remove company logos from footer
 * [Issue 951](https://github.com/AmpersandTarski/Ampersand/issues/951) Refresh page after role (de)select
 * [Issue 983](https://github.com/AmpersandTarski/Ampersand/issues/983) Increase default timeout for installing the application to 5 min
+* [Issue 1016](https://github.com/AmpersandTarski/Ampersand/issues/1016) Fix for invariant violation in metapopulation that will be resolved by initial population. Installing application is now in a single transaction
 
 ## v1.3.0 (15 july 2019)
 * Bugfix error message in case of network/connection error
