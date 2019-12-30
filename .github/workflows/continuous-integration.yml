@@ -60,7 +60,7 @@ jobs:
         docker run --init -i --rm -v $(pwd):/project -w /project php-test-suite composer install
     - name: Phan static analysis
       run: |
-        docker run --init -i --rm -v $(pwd):/project -w /project php-test-suite phan .
+        docker run --init -i --rm -v $(pwd):/project -w /project php-test-suite phan
 
   release:
     name: Release
