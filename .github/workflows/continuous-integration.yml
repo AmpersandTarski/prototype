@@ -55,6 +55,9 @@ jobs:
         docker login docker.pkg.github.com -u ${GITHUB_ACTOR} -p ${{secrets.GITHUB_TOKEN}}
         docker pull docker.pkg.github.com/ampersandtarski/prototype/php-test-suite:latest
         docker tag docker.pkg.github.com/ampersandtarski/prototype/php-test-suite:latest php-test-suite
+    - name: Composer install
+      run: |
+        docker run --init -i --rm -v $(pwd):/project -w /project php-test-suite composer install
     - name: Phan static analysis
       run: |
         docker run --init -i --rm -v $(pwd):/project -w /project php-test-suite phan .
