@@ -52,6 +52,7 @@ jobs:
     - uses: actions/checkout@master
     - name: Pull php-test-suite
       run: |
+        docker login docker.pkg.github.com -u ${GITHUB_ACTOR} -p ${{secrets.GITHUB_TOKEN}}
         docker pull docker.pkg.github.com/ampersandtarski/prototype/php-test-suite:latest
         docker tag docker.pkg.github.com/ampersandtarski/prototype/php-test-suite:latest php-test-suite
     - name: Phan static analysis
