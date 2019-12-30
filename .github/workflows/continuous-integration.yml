@@ -1,0 +1,71 @@
+name: Continuous Integration
+on:
+  push:
+    branches: # empty list to only trigger on branches (i.e. not tags, ..)
+
+env:
+  DOCKER_AMPERSAND_IMAGE: docker.pkg.github.com/ampersandtarski/prototype/prototype-framework
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    # env:
+    
+    # See: https://help.github.com/en/actions/automating-your-workflow-with-github-actions/using-environment-variables
+    # Because steps run in their own process, changes to environment variables are not preserved between steps
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@master # this step reuses a default Github action; see: https://github.com/actions
+    
+    - name: Prepare for docker
+      run: |
+        echo Running on branch ${GITHUB_REF##*/}
+        docker version
+        docker login docker.pkg.github.com -u ${GITHUB_ACTOR} -p ${{secrets.GITHUB_TOKEN}}
+    
+    - name: Build
+      run: |
+        docker build . --tag ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/}
+    
+    - name: Push
+      run: docker push ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/}
+
+    - name: Latest
+      if: github.ref == 'refs/heads/development'
+      run: |
+        docker tag ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/} ${DOCKER_AMPERSAND_IMAGE}:latest
+        docker push ${DOCKER_AMPERSAND_IMAGE}:latest
+    
+    - name: Stable
+      if: github.ref == 'refs/heads/master'
+      run: |
+        docker tag ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/} ${DOCKER_AMPERSAND_IMAGE}:stable
+        docker push ${DOCKER_AMPERSAND_IMAGE}:stable
+  
+  # https://hub.docker.com/r/jakzal/phpqa/ docker-image with a lot of php tools
+  static-analyzer:
+    name: PHP static analyzer
+    needs: []
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Pull php-test-suite
+      run: |
+        docker login docker.pkg.github.com -u ${GITHUB_ACTOR} -p ${{secrets.GITHUB_TOKEN}}
+        docker pull docker.pkg.github.com/ampersandtarski/prototype/php-test-suite:latest
+        docker tag docker.pkg.github.com/ampersandtarski/prototype/php-test-suite:latest php-test-suite
+    - name: Composer install
+      run: |
+        docker run --init -i --rm -v $(pwd):/project -w /project php-test-suite composer install
+    - name: Phan static analysis
+      run: |
+        docker run --init -i --rm -v $(pwd):/project -w /project php-test-suite phan
+
+  release:
+    name: Release
+    if: github.ref == 'refs/heads/master'
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo This is only a test
