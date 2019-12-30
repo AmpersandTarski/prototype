@@ -10,6 +10,7 @@
 * Improve configuration of prototype for different environments (dev/prod/...). See [readme](./config/README.md)
 * Simplify logging. Log to stdout and stderr to work with containerized prototype apps
 * Add logs for add/rm/del atom and add/del links
+* Add CI using Github Actions to build docker image and perform php static analysis using phan
 * [Issue 940](https://github.com/AmpersandTarski/Ampersand/issues/940) Remove company logos from footer
 * [Issue 951](https://github.com/AmpersandTarski/Ampersand/issues/951) Refresh page after role (de)select
 * [Issue 983](https://github.com/AmpersandTarski/Ampersand/issues/983) Increase default timeout for installing the application to 5 min
