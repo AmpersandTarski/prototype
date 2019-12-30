@@ -50,10 +50,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
+    - name: Pull php-test-suite
+      run: |
+        docker pull docker.pkg.github.com/ampersandtarski/prototype/php-test-suite:latest
+        docker tag docker.pkg.github.com/ampersandtarski/prototype/php-test-suite:latest php-test-suite
     - name: Phan static analysis
-      uses: docker://jakzal/phpqa:php7.4-alpine
-      with:
-        args: phan
+      run: |
+        docker run --init -it --rm -v $(pwd):/project -w /project php-test-suite phan .
 
   release:
     name: Release
