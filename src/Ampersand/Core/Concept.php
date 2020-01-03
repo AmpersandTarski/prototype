@@ -639,6 +639,8 @@ class Concept
                     $plug->addAtom($atom); // Add to plug
                 }
                 $this->atomCache[] = $atom->getId(); // Add to cache
+
+                $this->logger->info("Atom added to concept: {$atom}");
             }
             return $atom;
         // Adding atom[A] to another concept [B] ($this)
@@ -689,6 +691,8 @@ class Concept
             if (($key = array_search($atom->getId(), $this->atomCache)) !== false) {
                 unset($this->atomCache[$key]); // Delete from cache
             }
+
+            $this->logger->info("Atom removed from concept: {$atom}");
             
             // Delete all links where $atom is used as src or tgt atom
             // from relations where $this concept (or any of its specializations) is used as src or tgt concept
@@ -716,6 +720,8 @@ class Concept
             if (($key = array_search($atom->getId(), $this->atomCache)) !== false) {
                 unset($this->atomCache[$key]); // Delete from cache
             }
+
+            $this->logger->info("Atom deleted: {$atom}");
             
             // Delete all links where $atom is used as src or tgt atom
             $this->deleteAllLinksWithAtom($atom);
@@ -735,7 +741,7 @@ class Concept
      */
     public function mergeAtoms(Atom $leftAtom, Atom $rightAtom)
     {
-        $this->logger->debug("Request to merge '{$rightAtom}' into '{$leftAtom}'");
+        $this->logger->info("Request to merge '{$rightAtom}' into '{$leftAtom}'");
 
         if ($leftAtom->concept != $this) {
             throw new Exception("Cannot merge atom '{$leftAtom}', because it does not match concept '{$this}'", 500);

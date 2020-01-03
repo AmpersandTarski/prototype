@@ -69,7 +69,7 @@ class Link implements JsonSerializable
      */
     public function __toString(): string
     {
-        return "({$this->src},{$this->tgt})[{$this->rel}]";
+        return "({$this->src},{$this->tgt}) {$this->rel}";
     }
     
     /**

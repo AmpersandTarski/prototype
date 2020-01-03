@@ -173,7 +173,7 @@ class Transaction
         // Do run exec engines while there is work to do
         do {
             $runCounter++;
-            $logger->info("{+ Run #{{$runCounter}} (auto rerun: " . var_export($autoRerun, true) . ")");
+            $logger->info("ExecEngine run #{$this->id}-{$runCounter} (auto rerun: " . var_export($autoRerun, true) . ")");
             
             // Run all exec engines
             $rulesFixed = [];
@@ -200,7 +200,7 @@ class Transaction
                 $this->app->userLog()->error("Maximum reruns exceeded for ExecEngine", ['Rules fixed in last run' => $rulesFixed]);
                 $doRun = false;
             }
-            $logger->info("+} Exec engine run finished");
+            $logger->debug("Exec engine run finished");
             $rulesToCheck = $this->getAffectedRules(); // next run only affected rules need to be checked
         } while ($doRun && $autoRerun);
 
@@ -494,7 +494,7 @@ class Transaction
      *
      * @return bool
      */
-    protected function checkInvariantRules(): bool
+    public function checkInvariantRules(): bool
     {
         $this->logger->info("Checking invariant rules");
         

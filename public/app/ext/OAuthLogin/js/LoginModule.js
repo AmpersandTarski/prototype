@@ -18,7 +18,14 @@ angular.module('AmpersandApp')
 
 // LoginModule declaration
 angular.module('LoginModule', ['ngRoute', 'restangular'])
-.controller('LoginExtLoginController', function($scope, Restangular, NotificationService, LoginService){
+.controller('LoginExtLoginController', function($scope, Restangular, $location, NotificationService, LoginService){
+    // When already logged in, navigate to home
+    $scope.$watch(LoginService.sessionIsLoggedIn(), function() {
+        if (LoginService.sessionIsLoggedIn()) {
+            $location.path('/'); // goto home
+        }
+    });
+
     Restangular.one('oauthlogin/login').get().then(
         function(data){ // on success
             $scope.idps = data.identityProviders;

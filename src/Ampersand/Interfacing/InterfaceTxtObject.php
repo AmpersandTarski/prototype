@@ -196,6 +196,11 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     /**********************************************************************************************
      * CRUD METHODS
      *********************************************************************************************/
+    public function getViewData(Atom $tgtAtom): array
+    {
+        return [$this->txt];
+    }
+
     public function create(Atom $src, $tgtId = null): Atom
     {
         throw new Exception("Create operation not implemented for TXT interface object", 501);

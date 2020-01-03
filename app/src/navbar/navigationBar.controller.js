@@ -1,12 +1,22 @@
 angular.module('AmpersandApp')
-.controller('NavigationBarController', function ($scope, $route, Restangular, $localStorage, $sessionStorage, $location, NotificationService, RoleService, NavigationBarService) {
-    
+.controller('NavigationBarController', function ($scope, $route, Restangular, $localStorage, $sessionStorage, $location, NotificationService, RoleService, NavigationBarService, LoginService) {
     $scope.localStorage = $localStorage;
-    $scope.sessionStorage = $sessionStorage;
     $scope.loadingNavBar = [];
     $scope.navbar = NavigationBarService.navbar;
     $scope.resetSettingsToDefault = NavigationBarService.resetSettingsToDefault;
     
+    $scope.loggedIn = function () {
+        return LoginService.sessionIsLoggedIn();
+    };
+
+    $scope.getSessionRoles = function () {
+        return $sessionStorage.sessionRoles;
+    };
+
+    $scope.getSessionVars = function () {
+        return $sessionStorage.sessionVars;
+    };
+
     $scope.reload = function(){
         $scope.loadingNavBar = [];
         $scope.loadingNavBar.push(NavigationBarService.refreshNavBar());
@@ -20,6 +30,7 @@ angular.module('AmpersandApp')
             RoleService.setActiveRoles()
             .then(function(data){
                 NavigationBarService.refreshNavBar();
+                $route.reload();
             })
         );
     };

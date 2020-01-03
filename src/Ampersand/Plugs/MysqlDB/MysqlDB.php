@@ -82,12 +82,18 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     protected $dbTransactionActive = false;
 
     /**
-     * Specifies is this object is in debug mode
-     * Affects the database exception-/error messages that are returned by this object
+     * Specifies if this object is in debug mode
+     * Affects the database exception-/error messages that are returned for errors in queries
      *
      * @var bool
      */
     protected $debugMode = false;
+
+    /**
+     * Specifies if this object is in production mode
+     * Affects the database exception-/error messages that are returned for errors in schema constructs (database, tables, columns, etc)
+     */
+    protected $productionMode = false;
 
     /**
      * Contains the last executed query
@@ -117,7 +123,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      * @param string $dbName
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(string $dbHost, string $dbUser, string $dbPass, string $dbName, LoggerInterface $logger, bool $debugMode = false)
+    public function __construct(string $dbHost, string $dbUser, string $dbPass, string $dbName, LoggerInterface $logger, bool $debugMode = false, bool $productionMode = false)
     {
         $this->logger = $logger;
 
@@ -127,6 +133,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $this->dbName = $dbName;
 
         $this->debugMode = $debugMode;
+        $this->productionMode = $productionMode;
         
         try {
             // Enable mysqli errors to be thrown as Exceptions
@@ -143,7 +150,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             $this->dbLink->query("SET SESSION sql_mode = 'ANSI,TRADITIONAL'");
         } catch (Exception $e) {
             // Convert mysqli_sql_exceptions into 500 errors
-            throw new Exception("Cannot connect to database", 500);
+            throw new Exception("Cannot connect to the database", 500);
         }
     }
 
@@ -157,7 +164,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         try {
             $this->dbLink->select_db($this->dbName);
         } catch (Exception $e) {
-            if ($this->debugMode) {
+            if (!$this->productionMode) {
                 switch ($e->getCode()) {
                     case 1049: // Error: 1049 SQLSTATE: 42000 (ER_BAD_DB_ERROR) --> Database ($this->dbName) does not (yet) exist
                         throw new NotInstalledException("Database {$this->dbName} does not exist");
@@ -165,7 +172,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                         throw $e;
                 }
             } else {
-                throw $e;
+                throw new Exception("Cannot connect to the databse", 500);
             }
         }
     }
@@ -274,6 +281,17 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         }
         return $arr;
     }
+
+    public function prepare(string $query): \mysqli_stmt
+    {
+        $statement = $this->dbLink->prepare($query);
+
+        if ($statement === false) {
+            throw new Exception("Incorrect prepared statement in query: {$query}", 500);
+        }
+
+        return $statement;
+    }
     
     /**
      * Execute query on database.
@@ -319,7 +337,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             }
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
-            if ($this->debugMode) {
+            if (!$this->productionMode) {
                 // Convert mysqli_sql_exceptions into 500 errors
                 switch ($e->getCode()) {
                     case 1146: // Error: 1146 SQLSTATE: 42S02 (ER_NO_SUCH_TABLE)
@@ -814,7 +832,12 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $srcAtomId = $this->getDBRepresentation($srcAtom);
         $viewSQL = $view->getQuery();
         
-        $query = "SELECT DISTINCT \"tgt\" FROM ({$viewSQL}) AS \"results\" WHERE \"src\" = '{$srcAtomId}' AND \"tgt\" IS NOT NULL";
+        if (strpos($viewSQL, '_SRCATOM') !== false) {
+            $query = str_replace('_SRCATOM', $srcAtomId, $viewSQL);
+        } else {
+            $query = "SELECT DISTINCT \"tgt\" FROM ({$viewSQL}) AS \"results\" WHERE \"src\" = '{$srcAtomId}' AND \"tgt\" IS NOT NULL";
+        }
+        
         return array_column((array) $this->execute($query), 'tgt');
     }
     

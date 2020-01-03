@@ -23,6 +23,10 @@ angular.module('AmpersandApp')
 
         setSessionIsLoggedIn : function (bool) {
             $sessionStorage.session.loggedIn = bool;
+        },
+
+        getSessionVars : function () {
+            return $sessionStorage.sessionVars;
         }
     };
 

@@ -48,11 +48,6 @@ body {
     height: 30px;
 }
 
-#ampersand-footer-logos img {
-    height: 20px;
-    margin: 2px;
-}
-
 /* Original Bootstrap's CSS depends on empty href attributes to style cursors 
 for several components (pagination, tabs etc.). But in AngularJS adding empty 
 href attributes to link tags will cause unwanted route changes. This is why we 

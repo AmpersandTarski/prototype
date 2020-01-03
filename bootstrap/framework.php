@@ -20,7 +20,7 @@ register_shutdown_function(function () {
         header("{$protocol} 500 Internal server error");
         print json_encode(['error' => 500
                           ,'msg' => "An error occurred"
-                          ,'html' => $debugMode ? $error['message'] : "See php.log for more information"
+                          ,'html' => $debugMode ? $error['message'] : "See log for more information"
                           ]);
         exit;
     }
@@ -37,6 +37,14 @@ if ($_SERVER['HTTPS'] ?? false) {
 session_start();
 
 /**************************************************************************************************
+ * ENVIRONMENT (environment determines which config is loaded)
+ *************************************************************************************************/
+$environmentName = getenv('AMP_PROTO_ENV_NAME', true);
+if ($environmentName === false) {
+    $environmentName = 'default';
+}
+
+/**************************************************************************************************
  * COMPOSER AUTOLOADER
  *************************************************************************************************/
 require_once(__DIR__ . '/../lib/autoload.php');
@@ -48,10 +56,9 @@ require_once(__DIR__ . '/../lib/autoload.php');
 ini_set('error_reporting', E_ALL & ~E_NOTICE); // @phan-suppress-current-line PhanTypeMismatchArgumentInternal
 ini_set("display_errors", '0');
 ini_set("log_errors", '1');
-ini_set("error_log", dirname(__FILE__, 2) . '/log/php.log');
 
 // Application log
-Cascade::fileConfig(dirname(__FILE__, 2) . '/config/logging.yaml'); // loads logging configuration
+Cascade::fileConfig(dirname(__FILE__, 2) . "/config/env/{$environmentName}/logging.yaml"); // loads logging configuration
 
 /**************************************************************************************************
  * AMPERSAND APPLICATION
@@ -63,6 +70,7 @@ $settings = new Settings($logger); // includes default framework settings
 $settings->set('global.absolutePath', dirname(__FILE__, 2));
 $settings->loadSettingsJsonFile($model->getFilePath('settings')); // load model settings from Ampersand generator
 $settings->loadSettingsYamlFile(dirname(__FILE__, 2) . '/config/project.yaml'); // load project specific settings
+$settings->loadSettingsYamlFile(dirname(__FILE__, 2) . "/config/env/{$environmentName}/project.yaml", true, false); // load environment specific settings
 $debugMode = $settings->get('global.debugMode');
 
 set_time_limit($settings->get('global.scriptTimeout'));
@@ -80,7 +88,8 @@ $mysqlDB = new MysqlDB(
     $settings->get('mysql.dbPass'),
     $settings->get('mysql.dbName'),
     Logger::getLogger('DATABASE'),
-    $settings->get('global.debugMode')
+    $settings->get('global.debugMode'),
+    $settings->get('global.productionEnv')
 );
 $ampersandApp->setDefaultStorage($mysqlDB);
 $ampersandApp->setConjunctCache(new MysqlConjunctCache($mysqlDB));

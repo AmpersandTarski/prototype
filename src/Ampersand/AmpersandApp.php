@@ -335,6 +335,7 @@ class AmpersandApp
     {
         // Reset
         $this->accessibleInterfaces = [];
+        $ifcAtoms = [];
 
         $settingKey = 'rbac.accessibleInterfacesIfcId';
         $rbacIfcId = $this->getSettings()->get($settingKey);
@@ -357,25 +358,38 @@ class AmpersandApp
 
             $this->logger->debug("Getting accessible interfaces using INTERFACE {$rbacIfc->getId()}");
             
-            $this->accessibleInterfaces = array_map(function (Atom $ifcAtom) {
-                return $this->model->getInterface($ifcAtom->getId());
-            }, ResourceList::makeFromInterface($this->session->getId(), $rbacIfc->getId())->getResources());
+            $ifcAtoms = ResourceList::makeFromInterface($this->session->getId(), $rbacIfc->getId())->getResources();
         
         // Else query the RELATION pf_ifcRoles[PF_Interface*Role] for every active role
         } else {
             foreach ($this->getActiveRoles() as $roleAtom) {
                 /** @var \Ampersand\Core\Atom $roleAtom */
                 
-                // Set accessible interfaces
-                $ifcs = array_map(function (Atom $ifcAtom) {
-                    return $this->model->getInterface($ifcAtom->getId());
-                }, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true));
-                $this->accessibleInterfaces = array_merge($this->accessibleInterfaces, $ifcs);
+                // Query accessible interfaces
+                $ifcAtoms = array_merge($ifcAtoms, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true));
             }
-            
-            // Remove duplicates
-            $this->accessibleInterfaces = array_unique($this->accessibleInterfaces);
         }
+
+        // Filter (un)defined interfaces
+        $ifcAtoms = array_filter(
+            $ifcAtoms,
+            function (Atom $ifcAtom) {
+                if ($this->model->interfaceExists($ifcAtom->getId())) {
+                    return true;
+                } else {
+                    $this->logger->warning("Interface id '{$ifcAtom->getId()}' specified as accessible interface, but this interface is not defined");
+                    return false;
+                }
+            }
+        );
+
+        // Map ifcAtoms to Ifc objects
+        $this->accessibleInterfaces = array_map(function (Atom $ifcAtom) {
+            return $this->model->getInterface($ifcAtom->getId());
+        }, $ifcAtoms);
+
+        // Remove duplicates
+        $this->accessibleInterfaces = array_unique($this->accessibleInterfaces);
 
         return $this;
     }
@@ -522,6 +536,12 @@ class AmpersandApp
     {
         $this->logger->info("Start application reinstall");
 
+        // Increase timeout to at least 5 min
+        if ($this->getSettings()->get('global.scriptTimeout') < 300) {
+            set_time_limit(300);
+            $this->logger->debug('PHP script timeout increased to 300 seconds');
+        }
+
         // Clear notifications
         $this->userLogger->clearAll();
 
@@ -542,20 +562,35 @@ class AmpersandApp
             $cpt->clearAtomCache(); // local cache in Ampersand code
         }
 
-        $installer = new Installer($this, $this->logger);
+        $transaction = $this->newTransaction();
+        $installer = new Installer($this->logger);
 
-        // Navigation menus
+        // Metapopulation and navigation menus
         try {
-            $installer->reinstallMetaPopulation()->reinstallNavigationMenus();
+            $installer->reinstallMetaPopulation($this->getModel());
+            if (!$transaction->runExecEngine()->checkInvariantRules()) {
+                $this->logger->warning("Invariant rules do not hold for meta population");
+            }
+
+            $installer->reinstallNavigationMenus($this->getModel());
+            if (!$transaction->runExecEngine()->checkInvariantRules()) {
+                $this->logger->warning("Invariant rules do not hold for meta population and/or navigation menu");
+            }
         } catch (Exception $e) {
-            throw new Exception("Error while installing navigation menu: {$e->getMessage()}", 500, $e);
+            throw new Exception("Error while installing metapopulation and navigation menus: {$e->getMessage()}", 500, $e);
         }
 
         // Initial population
         if ($installDefaultPop) {
-            $installer->addInitialPopulation($this->model, $ignoreInvariantRules);
+            $installer->addInitialPopulation($this->getModel());
         } else {
             $this->logger->info("Skip initial population");
+        }
+
+        // Close transaction
+        $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
+        if ($transaction->isRolledBack()) {
+            throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
         }
 
         // Evaluate all conjunct and save cache
@@ -690,8 +725,8 @@ class AmpersandApp
             $ifcObj = $ifc->getIfcObject();
             return $ifc->getSrcConcept()->hasSpecialization($cpt, true)
                     && $ifcObj->crudR()
-                    && (!$ifcObj->crudC() or ($ifcObj->crudU() or $ifcObj->crudD()) // exclude CRud pattern
-                    && !$ifc->isAPI()); // don't include API interfaces
+                    && (!$ifcObj->crudC() or ($ifcObj->crudU() or $ifcObj->crudD())) // exclude CRud pattern
+                    && !$ifc->isAPI(); // don't include API interfaces
         });
     }
 
