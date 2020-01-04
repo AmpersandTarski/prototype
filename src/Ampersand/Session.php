@@ -105,7 +105,6 @@ class Session
             $this->sessionAtom->add();
 
             // If login functionality is not enabled, add all defined roles as allowed roles
-            // TODO: can be removed when meat-grinder populates this meta-relation by itself
             if (!$this->settings->get('session.loginEnabled')) {
                 foreach ($this->ampersandApp->getModel()->getRoleConcept()->getAllAtomObjects() as $roleAtom) {
                     $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*Role]')->add();
