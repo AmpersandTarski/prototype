@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* [Issue 1009](https://github.com/AmpersandTarski/Ampersand/issues/1009) Fix 404 session not found when session is expired
 
 ## v1.4.0 (3 january 2020)
 * Bugfix issue with API interfaces shown in UI to solve signal violations. Caused by wrongly placed parentheses.
