@@ -233,8 +233,15 @@ $api->add(function (Request $req, Response $res, callable $next) {
         $logger->debug("PHASE-1 CONFIG: Memory in use: {$memoryUsage} Mb");
         $logger->debug("PHASE-1 CONFIG: Execution time  : {$executionTime} Sec");
 
-        // PHASE-2
+        // PHASE-2 INITIALIZATION OF AMPERSAND APP
+        $scriptStartTime = microtime(true);
+
         $ampersandApp->init(); // initialize Ampersand application
+
+        $executionTime = round(microtime(true) - $scriptStartTime, 2);
+        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
+        $logger->debug("PHASE-2 INIT: Memory in use: {$memoryUsage} Mb");
+        $logger->debug("PHASE-2 INIT: Execution time  : {$executionTime} Sec");
         
         // PHASE-3 SESSION INITIALIZATION
         $scriptStartTime = microtime(true);

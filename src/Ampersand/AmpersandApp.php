@@ -158,8 +158,6 @@ class AmpersandApp
     public function init(): AmpersandApp
     {
         try {
-            $scriptStartTime = microtime(true);
-
             $this->logger->info('Initialize Ampersand application');
 
             // Check checksum
@@ -213,12 +211,6 @@ class AmpersandApp
             foreach ($this->initClosures as $closure) {
                 $closure->call($this);
             }
-
-            // Log performance
-            $executionTime = round(microtime(true) - $scriptStartTime, 2);
-            $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
-            Logger::getLogger('PERFORMANCE')->debug("PHASE-2 INIT: Memory in use: {$memoryUsage} Mb");
-            Logger::getLogger('PERFORMANCE')->debug("PHASE-2 INIT: Execution time  : {$executionTime} Sec");
 
             return $this;
         } catch (\Ampersand\Exception\NotInstalledException $e) {
