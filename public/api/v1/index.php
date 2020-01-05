@@ -66,15 +66,11 @@ $apiContainer['errorHandler'] = function ($c) {
                     $code = $debugMode ? 500 : 404;
                     $message = $exception->getMessage();
                     break;
-                case 500:
-                    $logger->error($exception->getMessage());
-                    $code = 500;
-                    $message = $debugMode ? $exception->getMessage() : "An error occured (debug information in server log files)";
-                    break;
                 default:
                     $logger->error($exception->getMessage());
                     $code = $exception->getCode();
-                    $message = $exception->getMessage();
+                    // Only show exception message when application is in debug mode
+                    $message = $debugMode ? $exception->getMessage() : "An error occured (debug information in server log files)";
                     break;
             }
 
