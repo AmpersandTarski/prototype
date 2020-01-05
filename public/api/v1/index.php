@@ -1,5 +1,6 @@
 <?php
 
+use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Log\Logger;
 use Slim\App;
 use Slim\Http\Request;
@@ -302,6 +303,17 @@ $api->add(function (Request $req, Response $res, callable $next) {
         } else {
             throw $e;
         }
+    }
+})
+// Add middleware to transform Ampersand exceptions
+/**
+ * @phan-closure-scope \Slim\Container
+ */
+->add(function (Request $req, Response $res, callable $next) {
+    try {
+        return $next($req, $res);
+    } catch (AccessDeniedException $e) {
+        throw new Exception($e->getMessage(), 403, $e); // Map to HTTP 403 - Forbidden
     }
 })->run();
 

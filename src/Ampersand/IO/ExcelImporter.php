@@ -13,6 +13,7 @@ use Psr\Log\LoggerInterface;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\AmpersandApp;
+use Ampersand\Exception\AccessDeniedException;
 
 class ExcelImporter
 {
@@ -91,7 +92,7 @@ class ExcelImporter
         }
 
         if (!$this->ampersandApp->isAccessibleIfc($ifc)) {
-            throw new Exception("You do not have access to import using interface '{$ifc->getLabel()}' as specified in sheet {$worksheet->getTitle()}", 403);
+            throw new AccessDeniedException("You do not have access to import using interface '{$ifc->getLabel()}' as specified in sheet {$worksheet->getTitle()}");
         }
 
         // Determine $leftConcept from cell A1
