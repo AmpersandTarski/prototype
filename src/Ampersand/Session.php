@@ -15,6 +15,7 @@ use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\RelationNotDefined;
+use Ampersand\Exception\SessionExpiredException;
 
 /**
  * Class of session objects
@@ -102,13 +103,11 @@ class Session
                     $this->toggleActiveRole($roleAtom, true);
                 }
             }
-        } else {
-            if (isset($_SESSION['lastAccess']) && (time() - $_SESSION['lastAccess'] > $this->settings->get('session.expirationTime'))) {
-                $this->logger->debug("Session expired");
-                $this->ampersandApp->userLog()->warning("Your session has expired");
-                $this->reset();
-                return;
-            }
+        // When session atom already exists) check if session is expired
+        } elseif (isset($_SESSION['lastAccess']) && (time() - $_SESSION['lastAccess'] > $this->settings->get('session.expirationTime'))) {
+            $this->logger->debug("Session expired");
+            // $this->deleteSessionAtom();
+            throw new SessionExpiredException("Your session has expired");
         }
         
         // Update session variable. This is needed because windows platform doesn't seem to update the read time of the session file
