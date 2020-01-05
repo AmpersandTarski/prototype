@@ -7,6 +7,7 @@ use Slim\Http\Response;
 use Slim\Container;
 use function Ampersand\Misc\stackTrace;
 use Ampersand\Exception\NotInstalledException;
+use Ampersand\Exception\SessionExpiredException;
 
 $scriptStartTime = microtime(true);
 
@@ -227,6 +228,8 @@ $api->add(function (Request $req, Response $res, callable $next) {
     /** @var \Slim\App $this */
     /** @var \Ampersand\AmpersandApp $ampersandApp */
     $ampersandApp = $this['ampersand_app'];
+
+    $sessionIsResetFlag = false;
     
     try {
         $logger = Logger::getLogger('PERFORMANCE');
@@ -283,9 +286,23 @@ $api->add(function (Request $req, Response $res, callable $next) {
         } else {
             throw $e; // let error handler do the response.
         }
+    } catch (SessionExpiredException $e) {
+        // Automatically reset session and continue the application
+        // This is more user-friendly then directly throwing a "Your session has expired" error to the user
+        $ampersandApp->resetSession();
+        $sessionIsResetFlag = true; // raise flag, which is used below
     }
 
-    return $next($req, $res);
+    try {
+        return $next($req, $res);
+    } catch (Exception $e) {
+        // If an exception is thrown in the application after the session is automatically reset, it is probably caused by this session reset (e.g. logout)
+        if ($sessionIsResetFlag) {
+            throw new Exception("Your session has expired", 401, $e); // map SessionExpiredException to HTTP 401 Unauthorized (not)
+        } else {
+            throw $e;
+        }
+    }
 })->run();
 
 $executionTime = round(microtime(true) - $scriptStartTime, 2);
