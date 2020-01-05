@@ -51,7 +51,7 @@ $apiContainer['errorHandler'] = function ($c) {
             switch ($exception->getCode()) {
                 case 401: // Unauthorized
                 case 403: // Forbidden
-                    $logger->warning($exception->getMessage());
+                    $logger->notice($exception->getMessage());
                     if ($ampersandApp->getSettings()->get('session.loginEnabled') && !$ampersandApp->getSession()->sessionUserLoggedIn()) {
                         $code = 401;
                         $message = "Please login to access this page";
@@ -62,8 +62,8 @@ $apiContainer['errorHandler'] = function ($c) {
                     }
                     break;
                 case 404: // Not found
-                    $logger->warning($exception->getMessage());
-                    $code = $debugMode ? 500 : 404;
+                    $logger->notice($exception->getMessage());
+                    $code = 404;
                     $message = $exception->getMessage();
                     break;
                 default:
