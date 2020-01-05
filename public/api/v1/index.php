@@ -208,12 +208,12 @@ foreach ($ampersandApp->getSettings()->getExtensions() as $ext) {
  * @phan-closure-scope \Slim\Container
  */
 $api->add(function (Request $req, Response $res, callable $next) {
-    $scriptStartTime = microtime(true);
+    $phase4StartTime = microtime(true);
 
     $response = $next($req, $res);
 
     // Report performance until here (i.e. REQUEST phase)
-    $executionTime = round(microtime(true) - $scriptStartTime, 2);
+    $executionTime = round(microtime(true) - $phase4StartTime, 2);
     $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
     Logger::getLogger('PERFORMANCE')->debug("PHASE-4 REQUEST: Memory in use: {$memoryUsage} Mb");
     Logger::getLogger('PERFORMANCE')->debug("PHASE-4 REQUEST: Execution time  : {$executionTime} Sec");
@@ -242,21 +242,21 @@ $api->add(function (Request $req, Response $res, callable $next) {
         $logger->debug("PHASE-1 CONFIG: Execution time  : {$executionTime} Sec");
 
         // PHASE-2 INITIALIZATION OF AMPERSAND APP
-        $scriptStartTime = microtime(true);
+        $phase2StartTime = microtime(true);
 
         $ampersandApp->init(); // initialize Ampersand application
 
-        $executionTime = round(microtime(true) - $scriptStartTime, 2);
+        $executionTime = round(microtime(true) - $phase2StartTime, 2);
         $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
         $logger->debug("PHASE-2 INIT: Memory in use: {$memoryUsage} Mb");
         $logger->debug("PHASE-2 INIT: Execution time  : {$executionTime} Sec");
         
         // PHASE-3 SESSION INITIALIZATION
-        $scriptStartTime = microtime(true);
+        $phase3StartTime = microtime(true);
         
         $ampersandApp->setSession(); // initialize session
         
-        $executionTime = round(microtime(true) - $scriptStartTime, 2);
+        $executionTime = round(microtime(true) - $phase3StartTime, 2);
         $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
         $logger->debug("PHASE-3 SESSION: Memory in use: {$memoryUsage} Mb");
         $logger->debug("PHASE-3 SESSION: Execution time  : {$executionTime} Sec");
