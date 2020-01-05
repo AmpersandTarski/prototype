@@ -213,7 +213,8 @@ class OAuthLoginController
         } elseif (count($accounts) == 1) {
             $account = current($accounts);
         } else {
-            throw new Exception("Multiple users registered with email $email", 401);
+            // This SHOULD NOT happen
+            throw new Exception("Multiple users registered with email $email", 500);
         }
         
         // Login account
