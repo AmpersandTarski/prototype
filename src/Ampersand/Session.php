@@ -60,9 +60,8 @@ class Session
      *
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Ampersand\AmpersandApp $app
-     * @param \Ampersand\Core\Atom $accountAtom
      */
-    public function __construct(LoggerInterface $logger, AmpersandApp $app, Atom $accountAtom = null)
+    public function __construct(LoggerInterface $logger, AmpersandApp $app)
     {
         $this->logger = $logger;
         $this->ampersandApp = $app;
@@ -70,9 +69,6 @@ class Session
        
         $this->setId();
         $this->initSessionAtom();
-        if (isset($accountAtom)) {
-            $this->setSessionAccount($accountAtom);
-        }
     }
 
     /**
@@ -244,7 +240,7 @@ class Session
      * @param \Ampersand\Core\Atom $accountAtom
      * @return \Ampersand\Core\Atom
      */
-    protected function setSessionAccount(Atom $accountAtom): Atom
+    public function setSessionAccount(Atom $accountAtom): Atom
     {
         try {
             if (!$accountAtom->exists()) {

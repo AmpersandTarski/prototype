@@ -280,8 +280,11 @@ class AmpersandApp
 
     public function setSession(Atom $sessionAccount = null): AmpersandApp
     {
-        $this->session = new Session($this->logger, $this, $sessionAccount);
-
+        $this->session = new Session($this->logger, $this);
+        if (isset($sessionAccount)) {
+            $this->session->setSessionAccount($sessionAccount);
+        }
+        
         // Run exec engine and close transaction
         $this->getCurrentTransaction()->runExecEngine()->close();
 
