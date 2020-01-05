@@ -60,8 +60,9 @@ class Session
      *
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Ampersand\AmpersandApp $app
+     * @param \Ampersand\Core\Atom $accountAtom
      */
-    public function __construct(LoggerInterface $logger, AmpersandApp $app)
+    public function __construct(LoggerInterface $logger, AmpersandApp $app, Atom $accountAtom = null)
     {
         $this->logger = $logger;
         $this->ampersandApp = $app;
@@ -69,6 +70,9 @@ class Session
        
         $this->setId();
         $this->initSessionAtom();
+        if (isset($accountAtom)) {
+            $this->setSessionAccount($accountAtom);
+        }
     }
 
     /**
@@ -85,15 +89,6 @@ class Session
     {
         $this->id = session_id();
         $this->logger->debug("Session id set to: {$this->id}");
-    }
-
-    public function reset()
-    {
-        $this->logger->debug("Reset session {$this->id}");
-        $this->sessionAtom->delete(); // Delete Ampersand representation of session
-        session_regenerate_id(); // Create new php session identifier
-        $this->setId();
-        $this->initSessionAtom();
     }
     
     protected function initSessionAtom()
@@ -239,7 +234,7 @@ class Session
      * @param \Ampersand\Core\Atom $accountAtom
      * @return \Ampersand\Core\Atom
      */
-    public function setSessionAccount(Atom $accountAtom): Atom
+    protected function setSessionAccount(Atom $accountAtom): Atom
     {
         try {
             if (!$accountAtom->exists()) {
@@ -296,6 +291,11 @@ class Session
     /**********************************************************************************************
      * Static functions
      *********************************************************************************************/
+    public static function resetPhpSessionId(): void
+    {
+        session_regenerate_id(true);
+    }
+    
     public static function deleteExpiredSessions(AmpersandApp $ampersandApp): void
     {
         $experationTimeStamp = time() - $ampersandApp->getSettings()->get('session.expirationTime');

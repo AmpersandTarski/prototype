@@ -286,11 +286,11 @@ class AmpersandApp
         $this->conjunctCache = $cache;
     }
 
-    public function setSession(): AmpersandApp
+    public function setSession(Atom $sessionAccount = null): AmpersandApp
     {
         $scriptStartTime = microtime(true);
 
-        $this->session = new Session($this->logger, $this);
+        $this->session = new Session($this->logger, $this, $sessionAccount);
 
         // Run exec engine and close transaction
         $this->getCurrentTransaction()->runExecEngine()->close();
@@ -305,6 +305,14 @@ class AmpersandApp
         Logger::getLogger('PERFORMANCE')->debug("PHASE-3 SESSION: Execution time  : {$executionTime} Sec");
 
         return $this;
+    }
+
+    public function resetSession(Atom $sessionAccount = null)
+    {
+        $this->logger->debug("Resetting session");
+        $this->session->delete(); // Delete Ampersand representation of session
+        Session::resetPhpSessionId();
+        $this->setSession($sessionAccount);
     }
 
     protected function setRulesToMaintain(): AmpersandApp
@@ -489,10 +497,7 @@ class AmpersandApp
     public function login(Atom $account): void
     {
         // Renew session. See topic 'Renew the Session ID After Any Privilege Level Change' in OWASP session management cheat sheet
-        $this->session->reset();
-
-        // Set sessionAccount
-        $this->session->setSessionAccount($account);
+        $this->resetSession($account);
 
         // Run ExecEngine to populate session related relations (e.g. sessionAllowedRoles)
         $transaction = $this->getCurrentTransaction()->runExecEngine();
@@ -517,7 +522,7 @@ class AmpersandApp
     public function logout(): void
     {
         // Renew session. See OWASP session management cheat sheet
-        $this->session->reset();
+        $this->resetSession();
 
         // Run exec engine and close transaction
         $this->getCurrentTransaction()->runExecEngine()->close();
