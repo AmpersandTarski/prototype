@@ -135,6 +135,16 @@ class Session
     }
 
     /**
+     * Delete Ampersand representation of session
+     *
+     * @return void
+     */
+    public function deleteSessionAtom(): void
+    {
+        $this->sessionAtom->delete();
+    }
+
+    /**
      * (De)activate a session role
      *
      * This function to (de)activate roles depends on the invariant as defined in SystemContext.adl

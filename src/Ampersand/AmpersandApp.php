@@ -310,7 +310,7 @@ class AmpersandApp
     public function resetSession(Atom $sessionAccount = null)
     {
         $this->logger->debug("Resetting session");
-        $this->session->delete(); // Delete Ampersand representation of session
+        $this->session->deleteSessionAtom(); // delete Ampersand representation of session
         Session::resetPhpSessionId();
         $this->setSession($sessionAccount);
     }
