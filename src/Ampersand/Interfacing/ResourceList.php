@@ -12,6 +12,7 @@ use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Concept;
+use Ampersand\Exception\AtomNotFoundException;
 use Exception;
 use stdClass;
 use function Ampersand\Misc\getSafeFileName;
@@ -82,7 +83,7 @@ class ResourceList
             return $this->create($tgtId);
         } else {
             // When not found
-            throw new Exception("Resource '{$tgtId}' not found", 404);
+            throw new AtomNotFoundException("Resource '{$tgtId}' not found");
         }
     }
 

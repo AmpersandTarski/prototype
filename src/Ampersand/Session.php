@@ -15,6 +15,7 @@ use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\RelationNotDefined;
+use Ampersand\Exception\SessionExpiredException;
 
 /**
  * Class of session objects
@@ -68,7 +69,6 @@ class Session
         $this->settings = $app->getSettings(); // shortcut to settings object
        
         $this->setId();
-        $this->initSessionAtom();
     }
 
     /**
@@ -86,17 +86,8 @@ class Session
         $this->id = session_id();
         $this->logger->debug("Session id set to: {$this->id}");
     }
-
-    public function reset()
-    {
-        $this->logger->debug("Reset session {$this->id}");
-        $this->sessionAtom->delete(); // Delete Ampersand representation of session
-        session_regenerate_id(); // Create new php session identifier
-        $this->setId();
-        $this->initSessionAtom();
-    }
     
-    protected function initSessionAtom()
+    public function initSessionAtom()
     {
         $this->sessionAtom = $this->ampersandApp->getModel()->getSessionConcept()->makeAtom($this->id);
         
@@ -105,7 +96,6 @@ class Session
             $this->sessionAtom->add();
 
             // If login functionality is not enabled, add all defined roles as allowed roles
-            // TODO: can be removed when meat-grinder populates this meta-relation by itself
             if (!$this->settings->get('session.loginEnabled')) {
                 foreach ($this->ampersandApp->getModel()->getRoleConcept()->getAllAtomObjects() as $roleAtom) {
                     $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*Role]')->add();
@@ -113,13 +103,11 @@ class Session
                     $this->toggleActiveRole($roleAtom, true);
                 }
             }
-        } else {
-            if (isset($_SESSION['lastAccess']) && (time() - $_SESSION['lastAccess'] > $this->settings->get('session.expirationTime'))) {
-                $this->logger->debug("Session expired");
-                $this->ampersandApp->userLog()->warning("Your session has expired");
-                $this->reset();
-                return;
-            }
+        // When session atom already exists) check if session is expired
+        } elseif (isset($_SESSION['lastAccess']) && (time() - $_SESSION['lastAccess'] > $this->settings->get('session.expirationTime'))) {
+            $this->logger->debug("Session expired");
+            // $this->deleteSessionAtom();
+            throw new SessionExpiredException("Your session has expired");
         }
         
         // Update session variable. This is needed because windows platform doesn't seem to update the read time of the session file
@@ -138,6 +126,16 @@ class Session
     public function getSessionAtom(): Atom
     {
         return $this->sessionAtom;
+    }
+
+    /**
+     * Delete Ampersand representation of session
+     *
+     * @return void
+     */
+    public function deleteSessionAtom(): void
+    {
+        $this->sessionAtom->delete();
     }
 
     /**
@@ -297,6 +295,11 @@ class Session
     /**********************************************************************************************
      * Static functions
      *********************************************************************************************/
+    public static function resetPhpSessionId(): void
+    {
+        session_regenerate_id(true);
+    }
+    
     public static function deleteExpiredSessions(AmpersandApp $ampersandApp): void
     {
         $experationTimeStamp = time() - $ampersandApp->getSettings()->get('session.expirationTime');

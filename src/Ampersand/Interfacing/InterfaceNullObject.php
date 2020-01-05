@@ -16,6 +16,7 @@ use Ampersand\Core\Atom;
 use Ampersand\Interfacing\AbstractIfcObject;
 use Ampersand\Core\Concept;
 use Ampersand\AmpersandApp;
+use Ampersand\Exception\AccessDeniedException;
 
 /**
  *
@@ -148,7 +149,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         // Skip access when selectTgt is provided, because we don't know the interface that is requested (yet)
         // This is checked later when reading or walking the path further.
         if (is_null($selectTgt) && !$this->crudR()) {
-            throw new Exception("You do not have access for this call", 403);
+            throw new AccessDeniedException("Access denied to read with InterfaceNullObject");
         }
 
         // Make sure that only the current session of the user can be selected
@@ -223,7 +224,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         }
 
         // Not found
-        throw new Exception("Unauthorized to access or interface does not exist '{$ifcId}'", 403);
+        throw new AccessDeniedException("Unauthorized to access or interface does not exist '{$ifcId}'");
     }
 
     public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
@@ -236,7 +237,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         }
 
         // Not found
-        throw new Exception("Unauthorized to access or interface does not exist '{$ifcLabel}'", 403);
+        throw new AccessDeniedException("Unauthorized to access or interface does not exist '{$ifcLabel}'");
     }
 
     /**********************************************************************************************
@@ -250,7 +251,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     public function create(Atom $src, $tgtId = null): Atom
     {
         if (!$this->crudC()) {
-            throw new Exception("You do not have access for this call", 403);
+            throw new AccessDeniedException("Access denied to create with InterfaceNullObject");
         }
 
         // Make new resource
@@ -270,7 +271,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     public function read(Atom $src, string $pathToSrc, string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
     {
         if (!$this->crudR()) {
-            throw new Exception("You do not have access for this call", 403);
+            throw new AccessDeniedException("Access denied to read with InterfaceNullObject");
         }
 
         // Init result array

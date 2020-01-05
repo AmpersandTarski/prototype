@@ -126,7 +126,7 @@ class OAuthLoginController
     public function authenticate(string $code, string $idp, $api_url): bool
     {
         if (empty($code)) {
-            throw new Exception("Oops. Someting went wrong during login. Please try again", 401);
+            throw new Exception("No authentication code provided. Please try again", 400);
         }
 
         // request token
@@ -213,7 +213,8 @@ class OAuthLoginController
         } elseif (count($accounts) == 1) {
             $account = current($accounts);
         } else {
-            throw new Exception("Multiple users registered with email $email", 401);
+            // This SHOULD NOT happen
+            throw new Exception("Multiple users registered with email $email", 500);
         }
         
         // Login account
