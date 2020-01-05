@@ -281,6 +281,7 @@ class AmpersandApp
     public function setSession(Atom $sessionAccount = null): AmpersandApp
     {
         $this->session = new Session($this->logger, $this);
+        $this->session->initSessionAtom();
         if (isset($sessionAccount)) {
             $this->session->setSessionAccount($sessionAccount);
         }

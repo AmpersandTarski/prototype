@@ -68,7 +68,6 @@ class Session
         $this->settings = $app->getSettings(); // shortcut to settings object
        
         $this->setId();
-        $this->initSessionAtom();
     }
 
     /**
@@ -87,7 +86,7 @@ class Session
         $this->logger->debug("Session id set to: {$this->id}");
     }
     
-    protected function initSessionAtom()
+    public function initSessionAtom()
     {
         $this->sessionAtom = $this->ampersandApp->getModel()->getSessionConcept()->makeAtom($this->id);
         
