@@ -224,16 +224,27 @@ $api->add(function (Request $req, Response $res, callable $next) {
     $ampersandApp = $this['ampersand_app'];
     
     try {
-        // Report performance until here (i.e. CONFIG phase)
+        $logger = Logger::getLogger('PERFORMANCE');
+        
+        // Report performance until here (i.e. PHASE-1 CONFIG)
         global $scriptStartTime;
         $executionTime = round(microtime(true) - $scriptStartTime, 2);
         $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
-        Logger::getLogger('PERFORMANCE')->debug("PHASE-1 CONFIG: Memory in use: {$memoryUsage} Mb");
-        Logger::getLogger('PERFORMANCE')->debug("PHASE-1 CONFIG: Execution time  : {$executionTime} Sec");
+        $logger->debug("PHASE-1 CONFIG: Memory in use: {$memoryUsage} Mb");
+        $logger->debug("PHASE-1 CONFIG: Execution time  : {$executionTime} Sec");
 
-        $ampersandApp
-            ->init() // initialize Ampersand application
-            ->setSession(); // initialize session
+        // PHASE-2
+        $ampersandApp->init(); // initialize Ampersand application
+        
+        // PHASE-3 SESSION INITIALIZATION
+        $scriptStartTime = microtime(true);
+        
+        $ampersandApp->setSession(); // initialize session
+        
+        $executionTime = round(microtime(true) - $scriptStartTime, 2);
+        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
+        $logger->debug("PHASE-3 SESSION: Memory in use: {$memoryUsage} Mb");
+        $logger->debug("PHASE-3 SESSION: Execution time  : {$executionTime} Sec");
     } catch (NotInstalledException $e) {
         // Make sure to close any open transaction
         $ampersandApp->getCurrentTransaction()->cancel();

@@ -288,8 +288,6 @@ class AmpersandApp
 
     public function setSession(Atom $sessionAccount = null): AmpersandApp
     {
-        $scriptStartTime = microtime(true);
-
         $this->session = new Session($this->logger, $this, $sessionAccount);
 
         // Run exec engine and close transaction
@@ -297,12 +295,6 @@ class AmpersandApp
 
         // Set accessible interfaces and rules to maintain
         $this->setAccessibleInterfaces()->setRulesToMaintain();
-
-        // Log performance
-        $executionTime = round(microtime(true) - $scriptStartTime, 2);
-        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
-        Logger::getLogger('PERFORMANCE')->debug("PHASE-3 SESSION: Memory in use: {$memoryUsage} Mb");
-        Logger::getLogger('PERFORMANCE')->debug("PHASE-3 SESSION: Execution time  : {$executionTime} Sec");
 
         return $this;
     }
