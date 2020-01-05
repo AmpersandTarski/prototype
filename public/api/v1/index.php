@@ -50,12 +50,21 @@ $apiContainer['errorHandler'] = function ($c) {
 
             switch ($exception->getCode()) {
                 case 401: // Unauthorized
+                    $logger->notice($exception->getMessage());
+                    $code = 401;
+                    $message = $exception->getMessage();
+                    if ($ampersandApp->getSettings()->get('session.loginEnabled')) {
+                        $data['loginPage'] = $ampersandApp->getSettings()->get('session.loginPage'); // picked up by frontend to nav to login page
+                    }
+                    break;
                 case 403: // Forbidden
                     $logger->notice($exception->getMessage());
+                    // If not yet authenticated, return 401 Unauthorized
                     if ($ampersandApp->getSettings()->get('session.loginEnabled') && !$ampersandApp->getSession()->sessionUserLoggedIn()) {
                         $code = 401;
                         $message = "Please login to access this page";
                         $data['loginPage'] = $ampersandApp->getSettings()->get('session.loginPage');
+                    // Else, return 403 Forbidden
                     } else {
                         $code = 403;
                         $message = "You do not have access to this page";
