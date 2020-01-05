@@ -1,6 +1,7 @@
 <?php
 
 use Ampersand\Exception\AccessDeniedException;
+use Ampersand\Exception\AtomNotFoundException;
 use Ampersand\Log\Logger;
 use Slim\App;
 use Slim\Http\Request;
@@ -314,6 +315,8 @@ $api->add(function (Request $req, Response $res, callable $next) {
         return $next($req, $res);
     } catch (AccessDeniedException $e) {
         throw new Exception($e->getMessage(), 403, $e); // Map to HTTP 403 - Forbidden
+    } catch (AtomNotFoundException $e) {
+        throw new Exception($e->getMessage(), 404, $e); // Map to HTTP 404 - Resource not found
     }
 })->run();
 
