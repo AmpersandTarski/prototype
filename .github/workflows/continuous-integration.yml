@@ -28,8 +28,8 @@ jobs:
       run: |
         docker build . --tag ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/}
     
-    - name: Push
-      run: docker push ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/}
+    # - name: Push branch
+    #   run: docker push ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/}
 
     - name: Latest
       if: github.ref == 'refs/heads/development'
