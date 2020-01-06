@@ -242,7 +242,7 @@ class ExcelImporter
 
             // Header line 1 specifies relation names
             if ($i === 1) {
-                foreach ($row->getCellIterator() as $cell) {
+                foreach ($row->getCellIterator() as $cell) { // @phan-suppress-current-line PhanTypeNoAccessiblePropertiesForeach
                     /** @var \PHPExcel_Cell $cell */
                     // No leading/trailing spaces allowed
                     $line1[$cell->getColumn()] = trim((string) $cell->getCalculatedValue()); // @phan-suppress-current-line PhanDeprecatedFunction
@@ -251,7 +251,7 @@ class ExcelImporter
             } elseif ($i === 2) {
                 $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue()); // @phan-suppress-current-line PhanDeprecatedFunction
 
-                foreach ($row->getCellIterator() as $cell) {
+                foreach ($row->getCellIterator() as $cell) { // @phan-suppress-current-line PhanTypeNoAccessiblePropertiesForeach
                     /** @var \PHPExcel_Cell $cell */
                     
                     $col = $cell->getColumn();
@@ -262,21 +262,21 @@ class ExcelImporter
                     if ($col === 'A') {
                         $header[$col] = ['concept' => $leftConcept, 'relation' => null, 'flipped' => null];
                     } else {
-                        if ($line1[$col] === '' || $line2[$col] === '') {
+                        if ($line1[$col] === '' || $line2[$col] === '') { // @phan-suppress-current-line PhanTypeInvalidDimOffset
                             // Skipping column
                             $this->logger->notice("Skipping column {$col} in sheet {$worksheet->getTitle()}, because header is not complete");
                         // Relation is flipped when last character is a tilde (~)
-                        } elseif (substr($line1[$col], -1) === '~') {
+                        } elseif (substr($line1[$col], -1) === '~') { // @phan-suppress-current-line PhanTypeInvalidDimOffset
                             $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
                             
                             $header[$col] = ['concept' => $rightConcept
-                                            ,'relation' => $this->ampersandApp->getRelation(substr($line1[$col], 0, -1), $rightConcept, $leftConcept)
+                                            ,'relation' => $this->ampersandApp->getRelation(substr($line1[$col], 0, -1), $rightConcept, $leftConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
                                             ,'flipped' => true
                                             ];
                         } else {
                             $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
                             $header[$col] = ['concept' => $rightConcept
-                                            ,'relation' => $this->ampersandApp->getRelation($line1[$col], $leftConcept, $rightConcept)
+                                            ,'relation' => $this->ampersandApp->getRelation($line1[$col], $leftConcept, $rightConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
                                             ,'flipped' => false
                                             ];
                         }

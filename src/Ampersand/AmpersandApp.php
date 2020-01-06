@@ -81,13 +81,13 @@ class AmpersandApp
 
     /**
      * List of custom plugs for concepts
-     * @var array[string]\Ampersand\Plugs\ConceptPlugInterface[]
+     * @var array<string,ConceptPlugInterface[]>
      */
     protected $customConceptPlugs = [];
 
     /**
      * List of custom plugs for relations
-     * @var array[string]\Ampersand\Plugs\RelationPlugInterface[]
+     * @var array<string,RelationPlugInterface[]>
      */
     protected $customRelationPlugs = [];
 
