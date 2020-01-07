@@ -4,6 +4,7 @@
 * [Issue 1009](https://github.com/AmpersandTarski/Ampersand/issues/1009) Fix 404 session not found when session is expired
 * Bugfix issue due to not taking into account [php's short circuit evaluation](https://stackoverflow.com/questions/5694733/does-php-have-short-circuit-evaluation)
 * Bugfix uncaught AccessDeniedException for patches on top-level interface atoms
+* Improve stack trace. Now also showing trace of previous errors/exceptions
 
 ## v1.4.0 (3 january 2020)
 * Bugfix issue with API interfaces shown in UI to solve signal violations. Caused by wrongly placed parentheses.

@@ -62,7 +62,8 @@ function getSafeFileName(string $absolutePath): string
 
 function stackTrace(Throwable $throwable): string
 {
-    $html = sprintf('<div><strong>Type:</strong> %s</div>', get_class($throwable));
+    $html = '<h4>Error/Exception</h4>';
+    $html .= sprintf('<div><strong>Type:</strong> %s</div>', get_class($throwable));
     
     if (($code = $throwable->getCode())) {
         $html .= sprintf('<div><strong>Code:</strong> %s</div>', $code);
@@ -81,8 +82,15 @@ function stackTrace(Throwable $throwable): string
     }
 
     if (($trace = $throwable->getTraceAsString())) {
-        $html .= '<h2>Trace</h2>';
+        $html .= '<div><strong>Trace:</strong>';
         $html .= sprintf('<pre>%s</pre>', htmlentities($trace));
     }
+
+    // Print stackTrace of previous throwable
+    $previous = $throwable->getPrevious();
+    if (!is_null($previous)) {
+        $html .= stackTrace($previous);
+    }
+
     return $html;
 }
