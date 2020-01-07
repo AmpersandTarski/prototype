@@ -11,6 +11,8 @@ use Exception;
 use Ampersand\Core\Relation;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
+use Ampersand\Exception\AccessDeniedException;
+
 use function Ampersand\Misc\isSequential;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Interfacing\Options;
@@ -534,9 +536,15 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
-        $refIfc = $this->getRefToIfc();
         $ifcs = [];
-        if ($this->isLinkTo && $ampersandApp->isAccessibleIfc($refIfc)) {
+        if ($this->isLinkTo) {
+            $refIfc = $this->getRefToIfc();
+
+            // Check if referenced interface is accessible for current session
+            if ($ampersandApp->isAccessibleIfc($refIfc)) {
+                throw new AccessDeniedException("Specified interface '{$this->getPath()}' is not accessible");
+            }
+            
             $ifcs[] = $refIfc;
         } else {
             $ifcs = $ampersandApp->getInterfacesToReadConcept($this->tgtConcept);
