@@ -541,8 +541,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             $refIfc = $this->getRefToIfc();
 
             // Check if referenced interface is accessible for current session
-            if ($ampersandApp->isAccessibleIfc($refIfc)) {
-                throw new AccessDeniedException("Specified interface '{$this->getPath()}' is not accessible");
+            if (!$ampersandApp->isAccessibleIfc($refIfc)) {
+                throw new AccessDeniedException("Specified interface '{$this->getPath()}/{$refIfc->getLabel()}' is not accessible");
             }
             
             $ifcs[] = $refIfc;
