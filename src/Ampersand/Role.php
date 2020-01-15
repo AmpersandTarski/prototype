@@ -115,7 +115,7 @@ class Role
 
             // Query and filter (un)defined interfaces
             $ifcAtoms = array_filter(
-                $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true),
+                $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*PF_Role]', true),
                 function (Atom $ifcAtom) {
                     return $this->model->interfaceExists($ifcAtom->getId());
                 }

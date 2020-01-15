@@ -45,7 +45,7 @@ settings:
   rbac.adminRoles: null
   # Identifier of interface that provides the accessible interfaces
   # Signature of the root expression must be [SESSION*PF_Interface]
-  # If null, the RELATION pf_ifcRoles[PF_Interface*Role] is queried for every role in RELATION sessionActiveRoles[SESSION*Role]
+  # If null, the RELATION pf_ifcRoles[PF_Interface*PF_Role] is queried for every role in RELATION sessionActiveRoles[SESSION*PF_Role]
   rbac.accessibleInterfacesIfcId: null
 
   ### Session

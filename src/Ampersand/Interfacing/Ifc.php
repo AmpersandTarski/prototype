@@ -141,7 +141,7 @@ class Ifc
      */
     public function getRoleNames()
     {
-        return $this->getIfcAtom()->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', false);
+        return $this->getIfcAtom()->getTargetAtoms('pf_ifcRoles[PF_Interface*PF_Role]', false);
     }
 
     public function getModel(): Model

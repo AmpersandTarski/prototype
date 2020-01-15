@@ -369,13 +369,13 @@ class AmpersandApp
             
             $ifcAtoms = ResourceList::makeFromInterface($this->session->getId(), $rbacIfc->getId())->getResources();
         
-        // Else query the RELATION pf_ifcRoles[PF_Interface*Role] for every active role
+        // Else query the RELATION pf_ifcRoles[PF_Interface*PF_Role] for every active role
         } else {
             foreach ($this->getActiveRoles() as $roleAtom) {
                 /** @var \Ampersand\Core\Atom $roleAtom */
                 
                 // Query accessible interfaces
-                $ifcAtoms = array_merge($ifcAtoms, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true));
+                $ifcAtoms = array_merge($ifcAtoms, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*PF_Role]', true));
             }
         }
 
@@ -624,7 +624,7 @@ class AmpersandApp
     public function setActiveRoles(array $roles): void
     {
         foreach ($roles as $role) {
-            // Set sessionActiveRoles[SESSION*Role]
+            // Set sessionActiveRoles[SESSION*PF_Role]
             $this->session->toggleActiveRole($this->model->getRoleConcept()->makeAtom($role->id), $role->active);
         }
         

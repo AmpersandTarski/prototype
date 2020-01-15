@@ -333,7 +333,7 @@ class Model
 
         // Filter meta model atoms from initial population
         $conceptLabels = [
-            'Role',
+            'PF_Role',
             'PF_Interface',
             'PF_Label'
         ];
@@ -343,9 +343,9 @@ class Model
         
         // Filter meta model links from initial population
         $relationSignatures = [
-            'label[Role*PF_Label]',
+            'label[PF_Role*PF_Label]',
             'label[PF_Interface*PF_Label]',
-            'pf_ifcRoles[PF_Interface*Role]',
+            'pf_ifcRoles[PF_Interface*PF_Role]',
             'isPublic[PF_Interface*PF_Interface]',
             'isAPI[PF_Interface*PF_Interface]'
         ];
@@ -415,7 +415,7 @@ class Model
 
     public function getRoleConcept(): Concept
     {
-        return $this->getConceptByLabel('Role');
+        return $this->getConceptByLabel('PF_Role');
     }
 
     public function getInterfaceConcept(): Concept
