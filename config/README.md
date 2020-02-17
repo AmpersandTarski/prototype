@@ -24,3 +24,9 @@ The configuration file has the following components:
 * settings: a key/value pair list of config settings
 * config: list of other config files that must be imported
 * extensions: named list of extensions to be included, its bootstrapping and config files
+
+## Environment variables
+Finally certain settings can be set using environment variables.
+These are loaded last and overwrite previous set settings.
+* AMPERSAND_DEBUG_MODE -> global.debugMode
+* AMPERSAND_DBHOST -> mysql.dbHost

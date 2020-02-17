@@ -23,6 +23,21 @@ use Psr\Log\LoggerInterface;
 class Settings
 {
     /**
+     * Mapping from environment variables to configuration settings
+     * If specified as bool, the environment var string is transformed into a boolean value
+     */
+    const ENV_VAR_CONFIG_MAP = [
+        'AMPERSAND_DEBUG_MODE' => [
+            'key' => 'global.debugMode',
+            'bool' => true
+        ],
+        'AMPERSAND_DBHOST' => [
+            'key' => 'mysql.dbHost',
+            'bool' => false
+        ]
+    ];
+
+    /**
      * Logger
      *
      * @var \Psr\Log\LoggerInterface
@@ -31,7 +46,7 @@ class Settings
 
     /**
      * Array of all settings
-     * Setting keys (e.g. global.debugmode) are case insensitive
+     * Setting keys (e.g. global.debugMode) are case insensitive
      *
      * @var array
      */
@@ -144,6 +159,22 @@ class Settings
         return $this;
     }
 
+    public function loadSettingsFromEnv()
+    {
+        $this->logger->info("Loading env settings");
+
+        foreach (self::ENV_VAR_CONFIG_MAP as $env => $config) {
+            $value = getenv($env, true);
+            if ($value !== false) {
+                // convert to boolean value if needed
+                if ($config['bool']) {
+                    $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                }
+                $this->set($config['key'], $value);
+            }
+        }
+    }
+
     /**
      * Get a specific setting
      *
@@ -179,6 +210,7 @@ class Settings
         }
 
         $this->settings[$setting] = $value;
+        $this->logger->debug("Setting '{$setting}' to '{$value}'");
     }
 
     /**
