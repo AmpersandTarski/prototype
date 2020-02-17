@@ -37,14 +37,6 @@ if ($_SERVER['HTTPS'] ?? false) {
 session_start();
 
 /**************************************************************************************************
- * ENVIRONMENT (environment determines which config is loaded)
- *************************************************************************************************/
-$environmentName = getenv('AMP_PROTO_ENV_NAME', true);
-if ($environmentName === false) {
-    $environmentName = 'default';
-}
-
-/**************************************************************************************************
  * COMPOSER AUTOLOADER
  *************************************************************************************************/
 require_once(__DIR__ . '/../lib/autoload.php');
@@ -58,7 +50,11 @@ ini_set("display_errors", '0');
 ini_set("log_errors", '1');
 
 // Application log
-Cascade::fileConfig(dirname(__FILE__, 2) . "/config/env/{$environmentName}/logging.yaml"); // loads logging configuration
+$logConfigFile = getenv('AMPERSAND_LOG_CONFIG', true);
+if ($logConfigFile === false) {
+    $logConfigFile = 'logging.yaml';
+}
+Cascade::fileConfig(dirname(__FILE__, 2) . "/config/{$logConfigFile}"); // loads logging configuration
 
 /**************************************************************************************************
  * AMPERSAND APPLICATION
@@ -70,7 +66,6 @@ $settings = new Settings($logger); // includes default framework settings
 $settings->set('global.absolutePath', dirname(__FILE__, 2));
 $settings->loadSettingsJsonFile($model->getFilePath('settings')); // load model settings from Ampersand generator
 $settings->loadSettingsYamlFile(dirname(__FILE__, 2) . '/config/project.yaml'); // load project specific settings
-$settings->loadSettingsYamlFile(dirname(__FILE__, 2) . "/config/env/{$environmentName}/project.yaml", true, false); // load environment specific settings
 $settings->loadSettingsFromEnv();
 $debugMode = $settings->get('global.debugMode');
 
