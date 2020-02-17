@@ -5,6 +5,7 @@
 * Bugfix issue due to not taking into account [php's short circuit evaluation](https://stackoverflow.com/questions/5694733/does-php-have-short-circuit-evaluation)
 * Bugfix uncaught AccessDeniedException for patches on top-level interface atoms
 * Improve stack trace. Now also showing trace of previous errors/exceptions
+* Add config for setting data dir (needed for containerizing Ampersand backend application). Uploads folder is now fixed relative to data folder
 
 ## v1.4.0 (3 january 2020)
 * Bugfix issue with API interfaces shown in UI to solve signal violations. Caused by wrongly placed parentheses.

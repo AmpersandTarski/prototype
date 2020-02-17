@@ -178,10 +178,10 @@ class ResourceList
                 $tmp_name = $_FILES['file']['tmp_name'];
                 $originalFileName = $_FILES['file']['name'];
 
-                $appAbsolutePath = $ampersandApp->getSettings()->get('global.absolutePath');
-                $uploadFolder = $ampersandApp->getSettings()->get('global.uploadDir');
-                $dest = getSafeFileName("{$appAbsolutePath}/data/{$uploadFolder}/{$originalFileName}");
-                $relativePath = $uploadFolder . '/' . pathinfo($dest, PATHINFO_BASENAME); # relative to '/data' folder
+                $dataFolder = $ampersandApp->getSettings()->get('global.absolutePath') . '/' . $ampersandApp->getSettings()->get('global.dataPath');
+                $uploads = 'uploads';
+                $dest = getSafeFileName("{$dataFolder}/{$uploads}/{$originalFileName}");
+                $relativePath = $uploads . '/' . pathinfo($dest, PATHINFO_BASENAME); # relative to '/data' folder
                 
                 $result = move_uploaded_file($tmp_name, $dest);
                 

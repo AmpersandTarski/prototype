@@ -30,8 +30,8 @@ $api->group('/file', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        $appAbsolutePath = $ampersandApp->getSettings()->get('global.absolutePath');
-        $filePath = "{$appAbsolutePath}/data/{$args['filePath']}";
+        $dataFolder = $ampersandApp->getSettings()->get('global.absolutePath') . '/' . $ampersandApp->getSettings()->get('global.dataPath');
+        $filePath = "{$dataFolder}/{$args['filePath']}";
         $fs = new Filesystem;
         
         // Check if filePath exists (includes directories)
