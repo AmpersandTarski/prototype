@@ -6,7 +6,7 @@
 * Bugfix uncaught AccessDeniedException for patches on top-level interface atoms
 * Improve stack trace. Now also showing trace of previous errors/exceptions
 * Add config for setting data dir (needed for containerizing Ampersand backend application). Uploads folder is now fixed relative to data folder
-* Add option to set certain configurations via environment variables. Starting with AMPERSAND_DEBUG_MODE and AMPERSAND_DBHOST
+* Add option to set certain configurations via environment variables. Starting with AMPERSAND_DEBUG_MODE and AMPERSAND_DBHOST, AMPERSAND_SERVER_URL
 * Simplify ways to specify configurations. Removed recent option of environment folder structure (was introduced in v1.4.0)
 * OAuthLogin extension: allow to specify urls in config file relative to global.serverURL
 

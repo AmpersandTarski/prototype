@@ -25,6 +25,7 @@ class Settings
     /**
      * Mapping from environment variables to configuration settings
      * If specified as bool, the environment var string is transformed into a boolean value
+     * !!! NOTE: update README.md in config folder when adding new environment variables
      */
     const ENV_VAR_CONFIG_MAP = [
         'AMPERSAND_DEBUG_MODE' => [
@@ -33,6 +34,10 @@ class Settings
         ],
         'AMPERSAND_DBHOST' => [
             'key' => 'mysql.dbHost',
+            'bool' => false
+        ],
+        'AMPERSAND_SERVER_URL' => [
+            'key' => 'global.serverURL',
             'bool' => false
         ]
     ];

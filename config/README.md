@@ -26,3 +26,4 @@ Finally certain settings can be set using environment variables.
 These are loaded last and overwrite previous set settings.
 * AMPERSAND_DEBUG_MODE -> global.debugMode
 * AMPERSAND_DBHOST -> mysql.dbHost
+* AMPERSAND_SERVER_URL -> global.serverURL
