@@ -8,6 +8,7 @@
 * Add config for setting data dir (needed for containerizing Ampersand backend application). Uploads folder is now fixed relative to data folder
 * Add option to set certain configurations via environment variables. Starting with AMPERSAND_DEBUG_MODE and AMPERSAND_DBHOST
 * Simplify ways to specify configurations. Removed recent option of environment folder structure (was introduced in v1.4.0)
+* OAuthLogin extension: allow to specify urls in config file relative to global.serverURL
 
 ## v1.4.0 (3 january 2020)
 * Bugfix issue with API interfaces shown in UI to solve signal violations. Caused by wrongly placed parentheses.

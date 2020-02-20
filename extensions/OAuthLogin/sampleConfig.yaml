@@ -1,14 +1,14 @@
 settings:
   # path 'redirect-after-login' triggers frontend to route back to page where status 401 was raised.
-  oauthlogin.redirectAfterLogin: https://[server]/#/redirect-after-login
-  oauthlogin.redirectAfterLoginFailure: https://[server]/#/
+  oauthlogin.redirectAfterLogin: \#/redirect-after-login # can be relative to global.serverURL or absolute starting with http(s)://
+  oauthlogin.redirectAfterLoginFailure: \#/ # can be relative to global.serverURL or absolute starting with http(s)://
 
   oauthlogin.identityProviders:
     linkedin:
       name: LinkedIn
       logoUrl: app/ext/OAuthLogin/images/logo-linkedin.png
       authBase: https://www.linkedin.com/uas/oauth2/authorization
-      redirectUrl: https://[server]/api/v1/oauthlogin/callback/linkedin
+      redirectUrl: api/v1/oauthlogin/callback/linkedin # can be relative to global.serverURL or absolute starting with http(s)://
       clientId: <string>
       clientSecret: <string>
       tokenUrl: https://www.linkedin.com/uas/oauth2/accessToken
@@ -19,7 +19,7 @@ settings:
       name: Google
       logoUrl: app/ext/OAuthLogin/images/logo-google.png
       authBase: https://accounts.google.com/o/oauth2/auth
-      redirectUrl: https://[server]/api/v1/oauthlogin/callback/google
+      redirectUrl: api/v1/oauthlogin/callback/google # can be relative to global.serverURL or absolute starting with http(s)://
       clientId: <string>
       clientSecret: <string>
       tokenUrl: https://accounts.google.com/o/oauth2/token
@@ -30,7 +30,7 @@ settings:
       name: GitHub
       logoUrl: app/ext/OAuthLogin/images/logo-github.png
       authBase: https://github.com/login/oauth/authorize
-      redirectUrl: https://[server]/api/v1/oauthlogin/callback/github
+      redirectUrl: api/v1/oauthlogin/callback/github # can be relative to global.serverURL or absolute starting with http(s)://
       clientId: <string>
       clientSecret: <string>
       tokenUrl: https://github.com/login/oauth/access_token

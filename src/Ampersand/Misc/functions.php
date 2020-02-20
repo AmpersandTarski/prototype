@@ -2,6 +2,7 @@
 
 namespace Ampersand\Misc;
 
+use Exception;
 use Throwable;
 
 /**
@@ -93,4 +94,28 @@ function stackTrace(Throwable $throwable): string
     }
 
     return $html;
+}
+
+/**
+ * Function returns a full URL (protocol + host + ..., e.g. https://example.com/test)
+ * The $baseUrl is prepended if the $url is not yet a valid URL
+ *
+ * @param string $url
+ * @param string|null $baseUrl
+ * @return string
+ * @throws Exception when resulting url is not valid
+ */
+function makeValidURL(string $url, string $baseUrl = null): string
+{
+    if (filter_var($url, FILTER_VALIDATE_URL) === true) {
+        return $url;
+    } else {
+        $newUrl = $baseUrl . '/' . $url;
+
+        if (filter_var($newUrl, FILTER_VALIDATE_URL) === false) {
+            throw new Exception("Not an valid URL: '{$newUrl}'");
+        }
+
+        return $newUrl;
+    }
 }
