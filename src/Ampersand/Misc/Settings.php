@@ -32,6 +32,10 @@ class Settings
             'key' => 'global.debugMode',
             'bool' => true
         ],
+        'AMPERSAND_PRODUCTION_MODE' => [
+            'key' => 'global.productionEnv',
+            'bool' => true
+        ],
         'AMPERSAND_DBHOST' => [
             'key' => 'mysql.dbHost',
             'bool' => false

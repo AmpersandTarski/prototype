@@ -25,5 +25,6 @@ The configuration file has the following components:
 Finally certain settings can be set using environment variables.
 These are loaded last and overwrite previous set settings.
 * AMPERSAND_DEBUG_MODE -> global.debugMode
+* AMPERSAND_PRODUCTION_MODE -> global.productionEnv
 * AMPERSAND_DBHOST -> mysql.dbHost
 * AMPERSAND_SERVER_URL -> global.serverURL
