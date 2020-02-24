@@ -231,4 +231,35 @@ class Settings
     {
         return $this->extensions;
     }
+
+    /**********************************************************************************************
+     * TYPED GETTERS FOR CERTAIN SETTINGS
+     *********************************************************************************************/
+    
+    public function getDataDirectory(): string
+    {
+        $configValue = $this->get('global.dataPath');
+        $appDir = $this->get('global.absolutePath');
+
+        // Defaults to [global.absolutePath]/data
+        if (is_null($configValue)) {
+            return $appDir . '/data';
+        }
+
+        // If specified as absolute path -> return it
+        // Otherwise append to default application path
+        $fs = new Filesystem();
+        if ($fs->isAbsolutePath($configValue)) {
+            $path = $configValue;
+        } else {
+            $path = "{$appDir}/data/{$configValue}";
+        }
+
+        // Check that path is really a directory and exists
+        if (!is_dir($path)) {
+            throw new Exception("Specified data directory '{$path}' is not a directory, does not exist or is not accessible", 500);
+        }
+
+        return $path;
+    }
 }

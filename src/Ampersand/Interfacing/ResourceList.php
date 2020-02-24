@@ -178,7 +178,7 @@ class ResourceList
                 $tmp_name = $_FILES['file']['tmp_name'];
                 $originalFileName = $_FILES['file']['name'];
 
-                $dataFolder = $ampersandApp->getSettings()->get('global.absolutePath') . '/' . $ampersandApp->getSettings()->get('global.dataPath');
+                $dataFolder = $ampersandApp->getSettings()->getDataDirectory();
                 $uploads = 'uploads';
                 $dest = getSafeFileName("{$dataFolder}/{$uploads}/{$originalFileName}");
                 $relativePath = $uploads . '/' . pathinfo($dest, PATHINFO_BASENAME); # relative to '/data' folder

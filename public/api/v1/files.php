@@ -30,7 +30,7 @@ $api->group('/file', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        $dataFolder = $ampersandApp->getSettings()->get('global.absolutePath') . '/' . $ampersandApp->getSettings()->get('global.dataPath');
+        $dataFolder = $ampersandApp->getSettings()->getDataDirectory();
         $filePath = "{$dataFolder}/{$args['filePath']}";
         $fs = new Filesystem;
         
