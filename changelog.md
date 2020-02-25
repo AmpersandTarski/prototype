@@ -9,6 +9,7 @@
 * Add option to set certain configurations via environment variables. Starting with AMPERSAND_DEBUG_MODE, AMPERSAND_PRODUCTION_MODE, AMPERSAND_DBHOST and AMPERSAND_SERVER_URL
 * Simplify ways to specify configurations. Removed recent option of environment folder structure (was introduced in v1.4.0)
 * OAuthLogin extension: allow to specify urls in config file relative to global.serverURL
+* Bugfix. When loading configuration files, first load extensions and after that additional config files
 
 ## v1.4.0 (3 january 2020)
 * Bugfix issue with API interfaces shown in UI to solve signal violations. Caused by wrongly placed parentheses.

@@ -127,22 +127,12 @@ class Settings
         $encoder = new YamlEncoder();
         $file = $encoder->decode(file_get_contents($filePath), YamlEncoder::FORMAT);
 
+        // Process specified settings
         foreach ((array)$file['settings'] as $setting => $value) {
             $this->set($setting, $value, $overwriteAllowed);
         }
 
-        // Process additional config files
-        if (isset($file['config'])) {
-            if (!is_array($file['config'])) {
-                throw new Exception("Unable to process additional config files in {$filePath}. List expected, non-list provided.", 500);
-            }
-
-            foreach ($file['config'] as $path) {
-                $configFile = $this->get('global.absolutePath') . "/" . $path;
-                $this->loadSettingsYamlFile($configFile, true);
-            }
-        }
-
+        // Process specified extensions
         foreach ((array)$file['extensions'] as $extName => $data) {
             $bootstrapFile = isset($data['bootstrap']) ? $this->get('global.absolutePath') . "/" . $data['bootstrap'] : null;
             
@@ -163,6 +153,18 @@ class Settings
             }
 
             $this->extensions[] = new Extension($extName, $bootstrapFile);
+        }
+
+        // Process additional config files
+        if (isset($file['config'])) {
+            if (!is_array($file['config'])) {
+                throw new Exception("Unable to process additional config files in {$filePath}. List expected, non-list provided.", 500);
+            }
+
+            foreach ($file['config'] as $path) {
+                $configFile = $this->get('global.absolutePath') . "/" . $path;
+                $this->loadSettingsYamlFile($configFile, true);
+            }
         }
 
         return $this;
