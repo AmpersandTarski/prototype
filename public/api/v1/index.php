@@ -73,9 +73,10 @@ $apiContainer['errorHandler'] = function ($c) {
                         $message = "You do not have access to this page";
                     }
                     break;
+                case 400: // Bad request
                 case 404: // Not found
                     $logger->notice($exception->getMessage());
-                    $code = 404;
+                    $code = $exception->getCode();
                     $message = $exception->getMessage();
                     break;
                 default:
