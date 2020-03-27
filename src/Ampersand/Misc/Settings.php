@@ -40,6 +40,10 @@ class Settings
             'key' => 'mysql.dbHost',
             'bool' => false
         ],
+        'AMPERSAND_DBNAME' => [
+            'key' => 'mysql.dbName',
+            'bool' => false
+        ],
         'AMPERSAND_SERVER_URL' => [
             'key' => 'global.serverURL',
             'bool' => false

@@ -28,3 +28,4 @@ These are loaded last and overwrite previous set settings.
 * AMPERSAND_PRODUCTION_MODE -> global.productionEnv
 * AMPERSAND_DBHOST -> mysql.dbHost
 * AMPERSAND_SERVER_URL -> global.serverURL
+* AMPERSAND_DBNAME -> mysql.dbName
