@@ -9,6 +9,13 @@ use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Cascade\Cascade;
 
+// Please be aware that this only captures uncaught exceptions that would otherwise terminate your application. 
+// It does not run for every exception that is raised in the application if they are caught. 
+// This is unlike the error handler which will execute for every triggered error (but errors aren't caught).
+set_exception_handler(function(Throwable $exception){
+    Logger::getLogger('APPLICATION')->critical("Uncaught exception/error: '{$exception->getMessage()}' Stacktrace: {$exception->getTraceAsString()}");
+});
+
 register_shutdown_function(function () {
     /** @var array|null $error */
     $error = error_get_last();
@@ -22,6 +29,8 @@ register_shutdown_function(function () {
                           ,'msg' => "An error occurred"
                           ,'html' => $debugMode ? $error['message'] : "See log for more information"
                           ]);
+        
+        Logger::getLogger('APPLICATION')->critical($error['message']);
         exit;
     }
 });
