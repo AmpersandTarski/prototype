@@ -88,22 +88,22 @@ class Hook
         // Callable passed by its name as string
         if (is_string($this->callable)) {
             return trim((string) $this->callable);
-        } // Callable passed as array containing object/class and mathed
-        elseif (is_array($this->callable)) {
+        // Callable passed as array containing object/class and mathed
+        } elseif (is_array($this->callable)) {
             $arr = (array) $this->callable; // explicit cast to array prevents static analyzer to signal 'suspicious array access'
             
             // Callable is $object->method(), return Class::method
             if (is_object($arr[0])) {
                 return sprintf("%s::%s", get_class($arr[0]), trim($arr[1]));
-            } // Callable is static method Class::method
-            else {
+            // Callable is static method Class::method
+            } else {
                 return sprintf("%s::%s", trim($arr[0]), trim($arr[1]));
             }
-        } // Callable passed as Closure (aka anonymous function)
-        elseif ($this->callable instanceof \Closure) {
+        // Callable passed as Closure (aka anonymous function)
+        } elseif ($this->callable instanceof \Closure) {
             return 'Anonymous function';
-        } // Unknown
-        else {
+        // Unknown
+        } else {
             return 'unknown callable type';
         }
     }
@@ -146,8 +146,8 @@ class Hook
                     } else {
                         throw new Exception("Variable '{$varName}' required for hook '{$hook}', but not provided by calling scope of hookpoint '{$hookpoint}'", 500);
                     }
-                } // Non-variable (e.g. string, int, null, etc)
-                else {
+                // Non-variable (e.g. string, int, null, etc)
+                } else {
                     $params[] = $param;
                 }
             }

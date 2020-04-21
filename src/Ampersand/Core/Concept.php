@@ -204,9 +204,13 @@ class Concept
             $this->defaultView = $app->getModel()->getView($conceptDef['defaultViewId']);
         }
         
-        $this->mysqlConceptTable = new MysqlDBTable($conceptDef['conceptTable']['name']);
-        foreach ($conceptDef['conceptTable']['cols'] as $colName) {
-            $this->mysqlConceptTable->addCol(new MysqlDBTableCol($colName));
+        if (!is_null($conceptDef['conceptTable'])) {
+            $this->mysqlConceptTable = new MysqlDBTable($conceptDef['conceptTable']['name']);
+            foreach ($conceptDef['conceptTable']['cols'] as $colName) {
+                $this->mysqlConceptTable->addCol(new MysqlDBTableCol($colName));
+            }
+        } else {
+            throw new Exception("Concept table information not defined for concept {$this->label}", 500);
         }
     }
 

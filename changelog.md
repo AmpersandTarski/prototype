@@ -2,6 +2,19 @@
 
 ## Unreleased changes
 
+## v1.5.0 (21 april 2020)
+* [Issue 1009](https://github.com/AmpersandTarski/Ampersand/issues/1009) Fix 404 session not found when session is expired
+* Bugfix issue due to not taking into account [php's short circuit evaluation](https://stackoverflow.com/questions/5694733/does-php-have-short-circuit-evaluation)
+* Bugfix uncaught AccessDeniedException for patches on top-level interface atoms
+* Improve stack trace. Now also showing trace of previous errors/exceptions
+* Add config for setting data dir (needed for containerizing Ampersand backend application). Uploads folder is now fixed relative to data folder
+* Add option to set certain configurations via environment variables. Starting with AMPERSAND_DEBUG_MODE, AMPERSAND_PRODUCTION_MODE, AMPERSAND_DBHOST and AMPERSAND_SERVER_URL, AMPERSAND_DBNAME
+* Simplify ways to specify configurations. Removed recent option of environment folder structure (was introduced in v1.4.0)
+* OAuthLogin extension: allow to specify urls in config file relative to global.serverURL
+* Bugfix. When loading configuration files, first load extensions and after that additional config files
+* Add devcontainer configuration to repository
+* Don't use php's $_SESSION records anymore. This doesn't fit with containerized design priciples like process disposability principle
+
 ## v1.4.0 (3 january 2020)
 * Bugfix issue with API interfaces shown in UI to solve signal violations. Caused by wrongly placed parentheses.
 * Add sort values for all BOX templates that start with the char 'S' (for SORT). Instead of only for the SCOLS, SHCOLS and SPCOLS templates.

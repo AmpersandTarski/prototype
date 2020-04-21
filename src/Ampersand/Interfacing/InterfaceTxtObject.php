@@ -91,7 +91,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     
     /**
      * Array with all editable concepts for this interface and all sub interfaces
-     * @var \Ampersand\Core\Concept[]
+     * @return \Ampersand\Core\Concept[]
      */
     public function getEditableConcepts()
     {

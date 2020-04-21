@@ -81,13 +81,13 @@ class AmpersandApp
 
     /**
      * List of custom plugs for concepts
-     * @var array[string]\Ampersand\Plugs\ConceptPlugInterface[]
+     * @var array<string,ConceptPlugInterface[]>
      */
     protected $customConceptPlugs = [];
 
     /**
      * List of custom plugs for relations
-     * @var array[string]\Ampersand\Plugs\RelationPlugInterface[]
+     * @var array<string,RelationPlugInterface[]>
      */
     protected $customRelationPlugs = [];
 
@@ -158,8 +158,6 @@ class AmpersandApp
     public function init(): AmpersandApp
     {
         try {
-            $scriptStartTime = microtime(true);
-
             $this->logger->info('Initialize Ampersand application');
 
             // Check checksum
@@ -213,12 +211,6 @@ class AmpersandApp
             foreach ($this->initClosures as $closure) {
                 $closure->call($this);
             }
-
-            // Log performance
-            $executionTime = round(microtime(true) - $scriptStartTime, 2);
-            $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
-            Logger::getLogger('PERFORMANCE')->debug("PHASE-2 INIT: Memory in use: {$memoryUsage} Mb");
-            Logger::getLogger('PERFORMANCE')->debug("PHASE-2 INIT: Execution time  : {$executionTime} Sec");
 
             return $this;
         } catch (\Ampersand\Exception\NotInstalledException $e) {
@@ -286,25 +278,29 @@ class AmpersandApp
         $this->conjunctCache = $cache;
     }
 
-    public function setSession(): AmpersandApp
+    public function setSession(Atom $sessionAccount = null): AmpersandApp
     {
-        $scriptStartTime = microtime(true);
-
         $this->session = new Session($this->logger, $this);
-
+        $this->session->initSessionAtom();
+        if (isset($sessionAccount)) {
+            $this->session->setSessionAccount($sessionAccount);
+        }
+        
         // Run exec engine and close transaction
         $this->getCurrentTransaction()->runExecEngine()->close();
 
         // Set accessible interfaces and rules to maintain
         $this->setAccessibleInterfaces()->setRulesToMaintain();
 
-        // Log performance
-        $executionTime = round(microtime(true) - $scriptStartTime, 2);
-        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
-        Logger::getLogger('PERFORMANCE')->debug("PHASE-3 SESSION: Memory in use: {$memoryUsage} Mb");
-        Logger::getLogger('PERFORMANCE')->debug("PHASE-3 SESSION: Execution time  : {$executionTime} Sec");
-
         return $this;
+    }
+
+    public function resetSession(Atom $sessionAccount = null)
+    {
+        $this->logger->debug("Resetting session");
+        $this->session->deleteSessionAtom(); // delete Ampersand representation of session
+        Session::resetPhpSessionId();
+        $this->setSession($sessionAccount);
     }
 
     protected function setRulesToMaintain(): AmpersandApp
@@ -489,10 +485,7 @@ class AmpersandApp
     public function login(Atom $account): void
     {
         // Renew session. See topic 'Renew the Session ID After Any Privilege Level Change' in OWASP session management cheat sheet
-        $this->session->reset();
-
-        // Set sessionAccount
-        $this->session->setSessionAccount($account);
+        $this->resetSession($account);
 
         // Run ExecEngine to populate session related relations (e.g. sessionAllowedRoles)
         $transaction = $this->getCurrentTransaction()->runExecEngine();
@@ -517,7 +510,7 @@ class AmpersandApp
     public function logout(): void
     {
         // Renew session. See OWASP session management cheat sheet
-        $this->session->reset();
+        $this->resetSession();
 
         // Run exec engine and close transaction
         $this->getCurrentTransaction()->runExecEngine()->close();

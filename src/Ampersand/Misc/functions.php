@@ -2,6 +2,7 @@
 
 namespace Ampersand\Misc;
 
+use Exception;
 use Throwable;
 
 /**
@@ -62,7 +63,8 @@ function getSafeFileName(string $absolutePath): string
 
 function stackTrace(Throwable $throwable): string
 {
-    $html = sprintf('<div><strong>Type:</strong> %s</div>', get_class($throwable));
+    $html = '<h4>Error/Exception</h4>';
+    $html .= sprintf('<div><strong>Type:</strong> %s</div>', get_class($throwable));
     
     if (($code = $throwable->getCode())) {
         $html .= sprintf('<div><strong>Code:</strong> %s</div>', $code);
@@ -81,8 +83,39 @@ function stackTrace(Throwable $throwable): string
     }
 
     if (($trace = $throwable->getTraceAsString())) {
-        $html .= '<h2>Trace</h2>';
+        $html .= '<div><strong>Trace:</strong>';
         $html .= sprintf('<pre>%s</pre>', htmlentities($trace));
     }
+
+    // Print stackTrace of previous throwable
+    $previous = $throwable->getPrevious();
+    if (!is_null($previous)) {
+        $html .= stackTrace($previous);
+    }
+
     return $html;
+}
+
+/**
+ * Function returns a full URL (protocol + host + ..., e.g. https://example.com/test)
+ * The $baseUrl is prepended if the $url is not yet a valid URL
+ *
+ * @param string $url
+ * @param string|null $baseUrl
+ * @return string
+ * @throws Exception when resulting url is not valid
+ */
+function makeValidURL(string $url, string $baseUrl = null): string
+{
+    if (filter_var($url, FILTER_VALIDATE_URL) === true) {
+        return $url;
+    } else {
+        $newUrl = $baseUrl . '/' . $url;
+
+        if (filter_var($newUrl, FILTER_VALIDATE_URL) === false) {
+            throw new Exception("Not an valid URL: '{$newUrl}'");
+        }
+
+        return $newUrl;
+    }
 }

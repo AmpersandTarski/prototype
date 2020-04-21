@@ -11,6 +11,8 @@ use Exception;
 use Ampersand\Core\Relation;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
+use Ampersand\Exception\AccessDeniedException;
+
 use function Ampersand\Misc\isSequential;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Interfacing\Options;
@@ -52,25 +54,25 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      *
-     * @var boolean
+     * @var bool|null
      */
     protected $crudC;
     
     /**
      *
-     * @var boolean
+     * @var bool|null
      */
     protected $crudR;
     
     /**
      *
-     * @var boolean
+     * @var bool|null
      */
     protected $crudU;
     
     /**
      *
-     * @var boolean
+     * @var bool|null
      */
     protected $crudD;
     
@@ -198,12 +200,16 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $this->relationIsFlipped = $ifcDef['relationIsFlipped'];
         
         // Interface expression information
-        $this->srcConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['srcConceptId']);
-        $this->tgtConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['tgtConceptId']);
-        $this->isUni = $ifcDef['expr']['isUni'];
-        $this->isTot = $ifcDef['expr']['isTot'];
-        $this->isIdent = $ifcDef['expr']['isIdent'];
-        $this->query = $ifcDef['expr']['query'];
+        if (!is_null($ifcDef['expr'])) {
+            $this->srcConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['srcConceptId']);
+            $this->tgtConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['tgtConceptId']);
+            $this->isUni = $ifcDef['expr']['isUni'];
+            $this->isTot = $ifcDef['expr']['isTot'];
+            $this->isIdent = $ifcDef['expr']['isIdent'];
+            $this->query = $ifcDef['expr']['query'];
+        } else {
+            throw new Exception("Expression information not defined for interface object {$this->path}", 500);
+        }
 
         $this->queryContainsSubData = strpos($this->query, 'ifc_') !== false;
         
@@ -234,10 +240,17 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
         
         // CRUD rights
-        $this->crudC = $this->isRef() ? null : $ifcDef['crud']['create'];
-        $this->crudR = $this->isRef() ? null : $ifcDef['crud']['read'];
-        $this->crudU = $this->isRef() ? null : $ifcDef['crud']['update'];
-        $this->crudD = $this->isRef() ? null : $ifcDef['crud']['delete'];
+        if ($this->isRef()) {
+            // TODO: refactor so that nullable crud rights are not necessary
+            $this->crudC = $this->crudR = $this->crudU = $this->crudD = null;
+        } elseif (!is_null($ifcDef['crud'])) {
+            $this->crudC = $ifcDef['crud']['create'];
+            $this->crudR = $ifcDef['crud']['read'];
+            $this->crudU = $ifcDef['crud']['update'];
+            $this->crudD = $ifcDef['crud']['delete'];
+        } else {
+            throw new Exception("Cannot determine crud rights for interface object {$this->path}", 500);
+        }
     }
     
     /**
@@ -294,7 +307,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Array with all editable concepts for this interface and all sub interfaces
-     * @var Concept[]
+     * @return \Ampersand\Core\Concept[]
      */
     public function getEditableConcepts()
     {
@@ -524,7 +537,14 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
         $ifcs = [];
-        if ($this->isLinkTo && $ampersandApp->isAccessibleIfc($refIfc = $this->getRefToIfc())) {
+        if ($this->isLinkTo) {
+            $refIfc = $this->getRefToIfc();
+
+            // Check if referenced interface is accessible for current session
+            if (!$ampersandApp->isAccessibleIfc($refIfc)) {
+                throw new AccessDeniedException("Specified interface '{$this->getPath()}/{$refIfc->getLabel()}' is not accessible");
+            }
+            
             $ifcs[] = $refIfc;
         } else {
             $ifcs = $ampersandApp->getInterfacesToReadConcept($this->tgtConcept);

@@ -1,5 +1,6 @@
 <?php
 
+use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Interfacing\Options;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -147,9 +148,10 @@ $api->group('/resource', function () {
         // Get content to return
         try {
             $content = $resource->get($options, $depth);
+        } catch (AccessDeniedException $e) { // Access denied (e.g. PATCH on root node there is no interface specified)
+            $content = $request->getMethod() === 'PATCH' ? null : $body;
         } catch (Exception $e) {
             switch ($e->getCode()) {
-                case 403: // Access denied (e.g. PATCH on root node there is no interface specified)
                 case 405: // Method not allowed (e.g. when read is not allowed)
                     $content = $request->getMethod() === 'PATCH' ? null : $body;
                     break;

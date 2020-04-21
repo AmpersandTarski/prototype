@@ -23,6 +23,34 @@ use Psr\Log\LoggerInterface;
 class Settings
 {
     /**
+     * Mapping from environment variables to configuration settings
+     * If specified as bool, the environment var string is transformed into a boolean value
+     * !!! NOTE: update README.md in config folder when adding new environment variables
+     */
+    const ENV_VAR_CONFIG_MAP = [
+        'AMPERSAND_DEBUG_MODE' => [
+            'key' => 'global.debugMode',
+            'bool' => true
+        ],
+        'AMPERSAND_PRODUCTION_MODE' => [
+            'key' => 'global.productionEnv',
+            'bool' => true
+        ],
+        'AMPERSAND_DBHOST' => [
+            'key' => 'mysql.dbHost',
+            'bool' => false
+        ],
+        'AMPERSAND_DBNAME' => [
+            'key' => 'mysql.dbName',
+            'bool' => false
+        ],
+        'AMPERSAND_SERVER_URL' => [
+            'key' => 'global.serverURL',
+            'bool' => false
+        ]
+    ];
+
+    /**
      * Logger
      *
      * @var \Psr\Log\LoggerInterface
@@ -31,7 +59,7 @@ class Settings
 
     /**
      * Array of all settings
-     * Setting keys (e.g. global.debugmode) are case insensitive
+     * Setting keys (e.g. global.debugMode) are case insensitive
      *
      * @var array
      */
@@ -103,22 +131,12 @@ class Settings
         $encoder = new YamlEncoder();
         $file = $encoder->decode(file_get_contents($filePath), YamlEncoder::FORMAT);
 
+        // Process specified settings
         foreach ((array)$file['settings'] as $setting => $value) {
             $this->set($setting, $value, $overwriteAllowed);
         }
 
-        // Process additional config files
-        if (isset($file['config'])) {
-            if (!is_array($file['config'])) {
-                throw new Exception("Unable to process additional config files in {$filePath}. List expected, non-list provided.", 500);
-            }
-
-            foreach ($file['config'] as $path) {
-                $configFile = $this->get('global.absolutePath') . "/" . $path;
-                $this->loadSettingsYamlFile($configFile, true);
-            }
-        }
-
+        // Process specified extensions
         foreach ((array)$file['extensions'] as $extName => $data) {
             $bootstrapFile = isset($data['bootstrap']) ? $this->get('global.absolutePath') . "/" . $data['bootstrap'] : null;
             
@@ -141,7 +159,35 @@ class Settings
             $this->extensions[] = new Extension($extName, $bootstrapFile);
         }
 
+        // Process additional config files
+        if (isset($file['config'])) {
+            if (!is_array($file['config'])) {
+                throw new Exception("Unable to process additional config files in {$filePath}. List expected, non-list provided.", 500);
+            }
+
+            foreach ($file['config'] as $path) {
+                $configFile = $this->get('global.absolutePath') . "/" . $path;
+                $this->loadSettingsYamlFile($configFile, true);
+            }
+        }
+
         return $this;
+    }
+
+    public function loadSettingsFromEnv()
+    {
+        $this->logger->info("Loading env settings");
+
+        foreach (self::ENV_VAR_CONFIG_MAP as $env => $config) {
+            $value = getenv($env, true);
+            if ($value !== false) {
+                // convert to boolean value if needed
+                if ($config['bool']) {
+                    $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                }
+                $this->set($config['key'], $value);
+            }
+        }
     }
 
     /**
@@ -179,6 +225,7 @@ class Settings
         }
 
         $this->settings[$setting] = $value;
+        $this->logger->debug("Setting '{$setting}' to '{$value}'");
     }
 
     /**
@@ -189,5 +236,36 @@ class Settings
     public function getExtensions()
     {
         return $this->extensions;
+    }
+
+    /**********************************************************************************************
+     * TYPED GETTERS FOR CERTAIN SETTINGS
+     *********************************************************************************************/
+    
+    public function getDataDirectory(): string
+    {
+        $configValue = $this->get('global.dataPath');
+        $appDir = $this->get('global.absolutePath');
+
+        // Defaults to [global.absolutePath]/data
+        if (is_null($configValue)) {
+            return $appDir . '/data';
+        }
+
+        // If specified as absolute path -> return it
+        // Otherwise append to default application path
+        $fs = new Filesystem();
+        if ($fs->isAbsolutePath($configValue)) {
+            $path = $configValue;
+        } else {
+            $path = "{$appDir}/data/{$configValue}";
+        }
+
+        // Check that path is really a directory and exists
+        if (!is_dir($path)) {
+            throw new Exception("Specified data directory '{$path}' is not a directory, does not exist or is not accessible", 500);
+        }
+
+        return $path;
     }
 }

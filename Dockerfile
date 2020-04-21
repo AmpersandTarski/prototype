@@ -5,7 +5,7 @@ FROM docker.pkg.github.com/ampersandtarski/ampersand/ampersand:${AMPERSAND_IMAGE
 FROM php:7.3-apache
 
 RUN apt-get update \
- && apt-get install -y libzip-dev zlib1g-dev
+ && apt-get install -y libzip-dev zlib1g-dev vim
 
 # Install additional php/apache extensions
 # enable ZipArchive for importing .xlsx files on runtime

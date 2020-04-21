@@ -4,6 +4,8 @@ use Ampersand\Extension\OAuthLogin\OAuthLoginController;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
+use function Ampersand\Misc\makeValidURL;
+
 /**
  * @var \Slim\App $api
  */
@@ -38,7 +40,7 @@ $api->group('/oauthlogin', function () {
             $auth_url = [ 'auth_base' => $idpSettings['authBase']
                         , 'arguments' => [ 'client_id' => $idpSettings['clientId']
                                          , 'response_type' => 'code'
-                                         , 'redirect_uri' => $idpSettings['redirectUrl']
+                                         , 'redirect_uri' => makeValidUrl($idpSettings['redirectUrl'], $ampersandApp->getSettings()->get('global.serverURL'))
                                          , 'scope' => $idpSettings['scope']
                                          , 'state' => $idpSettings['state']
                                          ]
@@ -72,11 +74,12 @@ $api->group('/oauthlogin', function () {
     $this->get('/callback/{idp}', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
+        $settings = $ampersandApp->getSettings();
         
         $code = $request->getQueryParam('code');
         $idp = $args['idp'];
 
-        $identityProviders = $ampersandApp->getSettings()->get('oauthlogin.identityProviders');
+        $identityProviders = $settings->get('oauthlogin.identityProviders');
         if (!isset($identityProviders[$idp])) {
             throw new Exception("Unsupported identity provider", 400);
         }
@@ -85,7 +88,7 @@ $api->group('/oauthlogin', function () {
         $authController = new OAuthLoginController(
             $identityProviders[$idp]['clientId'],
             $identityProviders[$idp]['clientSecret'],
-            $identityProviders[$idp]['redirectUrl'],
+            makeValidUrl($identityProviders[$idp]['redirectUrl'], $settings->get('global.serverURL')),
             $identityProviders[$idp]['tokenUrl']
         );
         $authController->setAmpersandApp($ampersandApp);
@@ -93,11 +96,9 @@ $api->group('/oauthlogin', function () {
         $api_url = $identityProviders[$idp]['apiUrl'];
         $isLoggedIn = $authController->authenticate($code, $idp, $api_url);
         
-        if ($isLoggedIn) {
-            $url = $ampersandApp->getSettings()->get('oauthlogin.redirectAfterLogin');
-        } else {
-            $url = $ampersandApp->getSettings()->get('oauthlogin.redirectAfterLoginFailure');
-        }
+        $url = $isLoggedIn ? $settings->get('oauthlogin.redirectAfterLogin') : $settings->get('oauthlogin.redirectAfterLoginFailure');
+        $url = makeValidURL($url, $settings->get('global.serverURL')); // add serverUrl if url is specified as relative path
+
         return $response->withRedirect($url);
     });
 });

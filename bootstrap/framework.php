@@ -9,6 +9,13 @@ use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Cascade\Cascade;
 
+// Please be aware that this only captures uncaught exceptions that would otherwise terminate your application.
+// It does not run for every exception that is raised in the application if they are caught.
+// This is unlike the error handler which will execute for every triggered error (but errors aren't caught).
+set_exception_handler(function (Throwable $exception) {
+    Logger::getLogger('APPLICATION')->critical("Uncaught exception/error: '{$exception->getMessage()}' Stacktrace: {$exception->getTraceAsString()}");
+});
+
 register_shutdown_function(function () {
     /** @var array|null $error */
     $error = error_get_last();
@@ -22,6 +29,8 @@ register_shutdown_function(function () {
                           ,'msg' => "An error occurred"
                           ,'html' => $debugMode ? $error['message'] : "See log for more information"
                           ]);
+        
+        Logger::getLogger('APPLICATION')->critical($error['message']);
         exit;
     }
 });
@@ -29,20 +38,15 @@ register_shutdown_function(function () {
 /**************************************************************************************************
  * PHP SESSION (Start a new, or resume the existing, PHP session)
  *************************************************************************************************/
-ini_set("session.use_strict_mode", '1'); // prevents a session ID that is never generated
+// Allow a session ID that is never generated. This is needed because when deploying multiple containers
+// for the same application, the user isn't redirected to the same container for subsequent requests.
+// For more info: see comments in file src/Ampersand/Session.php
+ini_set("session.use_strict_mode", '0');
 ini_set("session.cookie_httponly", '1'); // ensures the cookie won't be accessible by scripting languages, such as JavaScript
 if ($_SERVER['HTTPS'] ?? false) {
     ini_set("session.cookie_secure", '1'); // specifies whether cookies should only be sent over secure connections
 }
 session_start();
-
-/**************************************************************************************************
- * ENVIRONMENT (environment determines which config is loaded)
- *************************************************************************************************/
-$environmentName = getenv('AMP_PROTO_ENV_NAME', true);
-if ($environmentName === false) {
-    $environmentName = 'default';
-}
 
 /**************************************************************************************************
  * COMPOSER AUTOLOADER
@@ -58,7 +62,11 @@ ini_set("display_errors", '0');
 ini_set("log_errors", '1');
 
 // Application log
-Cascade::fileConfig(dirname(__FILE__, 2) . "/config/env/{$environmentName}/logging.yaml"); // loads logging configuration
+$logConfigFile = getenv('AMPERSAND_LOG_CONFIG', true);
+if ($logConfigFile === false) {
+    $logConfigFile = 'logging.yaml';
+}
+Cascade::fileConfig(dirname(__FILE__, 2) . "/config/{$logConfigFile}"); // loads logging configuration
 
 /**************************************************************************************************
  * AMPERSAND APPLICATION
@@ -70,7 +78,7 @@ $settings = new Settings($logger); // includes default framework settings
 $settings->set('global.absolutePath', dirname(__FILE__, 2));
 $settings->loadSettingsJsonFile($model->getFilePath('settings')); // load model settings from Ampersand generator
 $settings->loadSettingsYamlFile(dirname(__FILE__, 2) . '/config/project.yaml'); // load project specific settings
-$settings->loadSettingsYamlFile(dirname(__FILE__, 2) . "/config/env/{$environmentName}/project.yaml", true, false); // load environment specific settings
+$settings->loadSettingsFromEnv();
 $debugMode = $settings->get('global.debugMode');
 
 set_time_limit($settings->get('global.scriptTimeout'));

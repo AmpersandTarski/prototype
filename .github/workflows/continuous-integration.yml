@@ -28,8 +28,8 @@ jobs:
       run: |
         docker build . --tag ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/}
     
-    - name: Push
-      run: docker push ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/}
+    # - name: Push branch
+    #   run: docker push ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/}
 
     - name: Latest
       if: github.ref == 'refs/heads/development'
@@ -42,6 +42,10 @@ jobs:
       run: |
         docker tag ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/} ${DOCKER_AMPERSAND_IMAGE}:stable
         docker push ${DOCKER_AMPERSAND_IMAGE}:stable
+    
+    - name: Tag
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: docker push ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/}
   
   # https://hub.docker.com/r/jakzal/phpqa/ docker-image with a lot of php tools
   static-analyzer:
@@ -50,17 +54,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - name: Pull php-test-suite
+    # - name: Pull php-test-suite
+    #   run: |
+    #     docker login docker.pkg.github.com -u ${GITHUB_ACTOR} -p ${{secrets.GITHUB_TOKEN}}
+    #     docker pull docker.pkg.github.com/ampersandtarski/prototype/php-test-suite:latest
+    #     docker tag docker.pkg.github.com/ampersandtarski/prototype/php-test-suite:latest php-test-suite
+    - name: Build php-test-suite
       run: |
-        docker login docker.pkg.github.com -u ${GITHUB_ACTOR} -p ${{secrets.GITHUB_TOKEN}}
-        docker pull docker.pkg.github.com/ampersandtarski/prototype/php-test-suite:latest
-        docker tag docker.pkg.github.com/ampersandtarski/prototype/php-test-suite:latest php-test-suite
+        docker build -t php-test-suite tests
     - name: Composer install
       run: |
         docker run --init -i --rm -v $(pwd):/project -w /project php-test-suite composer install
     - name: Phan static analysis
       run: |
-        docker run --init -i --rm -v $(pwd):/project -w /project php-test-suite phan
+        docker run --init -i --rm -v $(pwd):/project -w /project php-test-suite ./lib/bin/phan
 
   release:
     name: Release

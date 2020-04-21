@@ -1,5 +1,7 @@
 <?php
 
+use Ampersand\Exception\AccessDeniedException;
+use Ampersand\Exception\AtomNotFoundException;
 use Ampersand\Log\Logger;
 use Slim\App;
 use Slim\Http\Request;
@@ -7,6 +9,7 @@ use Slim\Http\Response;
 use Slim\Container;
 use function Ampersand\Misc\stackTrace;
 use Ampersand\Exception\NotInstalledException;
+use Ampersand\Exception\SessionExpiredException;
 
 $scriptStartTime = microtime(true);
 
@@ -50,31 +53,37 @@ $apiContainer['errorHandler'] = function ($c) {
 
             switch ($exception->getCode()) {
                 case 401: // Unauthorized
+                    $logger->notice($exception->getMessage());
+                    $code = 401;
+                    $message = $exception->getMessage();
+                    if ($ampersandApp->getSettings()->get('session.loginEnabled')) {
+                        $data['loginPage'] = $ampersandApp->getSettings()->get('session.loginPage'); // picked up by frontend to nav to login page
+                    }
+                    break;
                 case 403: // Forbidden
-                    $logger->warning($exception->getMessage());
+                    $logger->notice($exception->getMessage());
+                    // If not yet authenticated, return 401 Unauthorized
                     if ($ampersandApp->getSettings()->get('session.loginEnabled') && !$ampersandApp->getSession()->sessionUserLoggedIn()) {
                         $code = 401;
                         $message = "Please login to access this page";
                         $data['loginPage'] = $ampersandApp->getSettings()->get('session.loginPage');
+                    // Else, return 403 Forbidden
                     } else {
                         $code = 403;
                         $message = "You do not have access to this page";
                     }
                     break;
+                case 400: // Bad request
                 case 404: // Not found
-                    $logger->warning($exception->getMessage());
-                    $code = $debugMode ? 500 : 404;
+                    $logger->notice($exception->getMessage());
+                    $code = $exception->getCode();
                     $message = $exception->getMessage();
-                    break;
-                case 500:
-                    $logger->error($exception->getMessage());
-                    $code = 500;
-                    $message = $debugMode ? $exception->getMessage() : "An error occured (debug information in server log files)";
                     break;
                 default:
                     $logger->error($exception->getMessage());
                     $code = $exception->getCode();
-                    $message = $exception->getMessage();
+                    // Only show exception message when application is in debug mode
+                    $message = $debugMode ? $exception->getMessage() : "An error occured (debug information in server log files)";
                     break;
             }
 
@@ -202,12 +211,12 @@ foreach ($ampersandApp->getSettings()->getExtensions() as $ext) {
  * @phan-closure-scope \Slim\Container
  */
 $api->add(function (Request $req, Response $res, callable $next) {
-    $scriptStartTime = microtime(true);
+    $phase4StartTime = microtime(true);
 
     $response = $next($req, $res);
 
     // Report performance until here (i.e. REQUEST phase)
-    $executionTime = round(microtime(true) - $scriptStartTime, 2);
+    $executionTime = round(microtime(true) - $phase4StartTime, 2);
     $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
     Logger::getLogger('PERFORMANCE')->debug("PHASE-4 REQUEST: Memory in use: {$memoryUsage} Mb");
     Logger::getLogger('PERFORMANCE')->debug("PHASE-4 REQUEST: Execution time  : {$executionTime} Sec");
@@ -222,18 +231,38 @@ $api->add(function (Request $req, Response $res, callable $next) {
     /** @var \Slim\App $this */
     /** @var \Ampersand\AmpersandApp $ampersandApp */
     $ampersandApp = $this['ampersand_app'];
+
+    $sessionIsResetFlag = false;
     
     try {
-        // Report performance until here (i.e. CONFIG phase)
+        $logger = Logger::getLogger('PERFORMANCE');
+        
+        // Report performance until here (i.e. PHASE-1 CONFIG)
         global $scriptStartTime;
         $executionTime = round(microtime(true) - $scriptStartTime, 2);
         $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
-        Logger::getLogger('PERFORMANCE')->debug("PHASE-1 CONFIG: Memory in use: {$memoryUsage} Mb");
-        Logger::getLogger('PERFORMANCE')->debug("PHASE-1 CONFIG: Execution time  : {$executionTime} Sec");
+        $logger->debug("PHASE-1 CONFIG: Memory in use: {$memoryUsage} Mb");
+        $logger->debug("PHASE-1 CONFIG: Execution time  : {$executionTime} Sec");
 
-        $ampersandApp
-            ->init() // initialize Ampersand application
-            ->setSession(); // initialize session
+        // PHASE-2 INITIALIZATION OF AMPERSAND APP
+        $phase2StartTime = microtime(true);
+
+        $ampersandApp->init(); // initialize Ampersand application
+
+        $executionTime = round(microtime(true) - $phase2StartTime, 2);
+        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
+        $logger->debug("PHASE-2 INIT: Memory in use: {$memoryUsage} Mb");
+        $logger->debug("PHASE-2 INIT: Execution time  : {$executionTime} Sec");
+        
+        // PHASE-3 SESSION INITIALIZATION
+        $phase3StartTime = microtime(true);
+        
+        $ampersandApp->setSession(); // initialize session
+        
+        $executionTime = round(microtime(true) - $phase3StartTime, 2);
+        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
+        $logger->debug("PHASE-3 SESSION: Memory in use: {$memoryUsage} Mb");
+        $logger->debug("PHASE-3 SESSION: Execution time  : {$executionTime} Sec");
     } catch (NotInstalledException $e) {
         // Make sure to close any open transaction
         $ampersandApp->getCurrentTransaction()->cancel();
@@ -260,9 +289,36 @@ $api->add(function (Request $req, Response $res, callable $next) {
         } else {
             throw $e; // let error handler do the response.
         }
+    } catch (SessionExpiredException $e) {
+        // Automatically reset session and continue the application
+        // This is more user-friendly then directly throwing a "Your session has expired" error to the user
+        $ampersandApp->resetSession();
+        $sessionIsResetFlag = true; // raise flag, which is used below
     }
 
-    return $next($req, $res);
+    try {
+        return $next($req, $res);
+    } catch (Exception $e) {
+        // If an exception is thrown in the application after the session is automatically reset, it is probably caused by this session reset (e.g. logout)
+        if ($sessionIsResetFlag) {
+            throw new Exception("Your session has expired", 401, $e); // map SessionExpiredException to HTTP 401 Unauthorized (not)
+        } else {
+            throw $e;
+        }
+    }
+})
+// Add middleware to transform Ampersand exceptions
+/**
+ * @phan-closure-scope \Slim\Container
+ */
+->add(function (Request $req, Response $res, callable $next) {
+    try {
+        return $next($req, $res);
+    } catch (AccessDeniedException $e) {
+        throw new Exception($e->getMessage(), 403, $e); // Map to HTTP 403 - Forbidden
+    } catch (AtomNotFoundException $e) {
+        throw new Exception($e->getMessage(), 404, $e); // Map to HTTP 404 - Resource not found
+    }
 })->run();
 
 $executionTime = round(microtime(true) - $scriptStartTime, 2);
