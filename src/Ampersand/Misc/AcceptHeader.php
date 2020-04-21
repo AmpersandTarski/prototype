@@ -35,8 +35,8 @@ class AcceptHeader extends \ArrayObject
      */
     public function __construct($header)
     {
-        $acceptedTypes = $this->_parse($header);
-        usort($acceptedTypes, array($this, '_compare'));
+        $acceptedTypes = $this->parse($header);
+        usort($acceptedTypes, array($this, 'compare'));
         parent::__construct($acceptedTypes);
     }
 
@@ -47,7 +47,7 @@ class AcceptHeader extends \ArrayObject
      * @param string $data Value of the Accept header
      * @return array
      */
-    private function _parse(string $data)
+    private function parse(string $data)
     {
         $array = array();
         $items = explode(',', $data);
@@ -77,7 +77,7 @@ class AcceptHeader extends \ArrayObject
      * @param array $b The second media type and its parameters
      * @return int
      */
-    private function _compare($a, $b): int
+    private function compare($a, $b): int
     {
         $a_q = isset($a['params']['q']) ? floatval($a['params']['q']) : 1.0;
         $b_q = isset($b['params']['q']) ? floatval($b['params']['q']) : 1.0;
@@ -85,10 +85,10 @@ class AcceptHeader extends \ArrayObject
             $a_count = count($a['params']);
             $b_count = count($b['params']);
             if ($a_count === $b_count) {
-                if ($r = $this->_compareSubType($a['subtype'], $b['subtype'])) {
+                if ($r = $this->compareSubType($a['subtype'], $b['subtype'])) {
                     return $r;
                 } else {
-                    return $this->_compareSubType($a['type'], $b['type']);
+                    return $this->compareSubType($a['type'], $b['type']);
                 }
             } else {
                 return $a_count <=> $b_count;
@@ -105,7 +105,7 @@ class AcceptHeader extends \ArrayObject
      * @param string $b Second subtype to compare
      * @return int
      */
-    private function _compareSubType($a, $b): int
+    private function compareSubType($a, $b): int
     {
         if ($a === '*' && $b !== '*') {
             return 1;
