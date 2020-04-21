@@ -42,6 +42,13 @@ RUN apt-get update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
+# Install composer (php's package manager)
+RUN php  -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+ && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
+ && php -r "unlink('composer-setup.php');" \
+ && rm -rf /var/lib/apt/lists/*
+ENV COMPOSER_HOME /usr/local/bin/
+
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
 
