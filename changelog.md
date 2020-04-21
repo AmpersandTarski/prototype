@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.5.0 (21 april 2020)
 * [Issue 1009](https://github.com/AmpersandTarski/Ampersand/issues/1009) Fix 404 session not found when session is expired
 * Bugfix issue due to not taking into account [php's short circuit evaluation](https://stackoverflow.com/questions/5694733/does-php-have-short-circuit-evaluation)
 * Bugfix uncaught AccessDeniedException for patches on top-level interface atoms
