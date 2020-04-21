@@ -38,7 +38,10 @@ register_shutdown_function(function () {
 /**************************************************************************************************
  * PHP SESSION (Start a new, or resume the existing, PHP session)
  *************************************************************************************************/
-ini_set("session.use_strict_mode", '1'); // prevents a session ID that is never generated
+// Allow a session ID that is never generated. This is needed because when deploying multiple containers
+// for the same application, the user isn't redirected to the same container for subsequent requests.
+// For more info: see comments in file src/Ampersand/Session.php
+ini_set("session.use_strict_mode", '0');
 ini_set("session.cookie_httponly", '1'); // ensures the cookie won't be accessible by scripting languages, such as JavaScript
 if ($_SERVER['HTTPS'] ?? false) {
     ini_set("session.cookie_secure", '1'); // specifies whether cookies should only be sent over secure connections

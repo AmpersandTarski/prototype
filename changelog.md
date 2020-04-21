@@ -11,6 +11,7 @@
 * OAuthLogin extension: allow to specify urls in config file relative to global.serverURL
 * Bugfix. When loading configuration files, first load extensions and after that additional config files
 * Add devcontainer configuration to repository
+* Don't use php's $_SESSION records anymore. This doesn't fit with containerized design priciples like process disposability principle
 
 ## v1.4.0 (3 january 2020)
 * Bugfix issue with API interfaces shown in UI to solve signal violations. Caused by wrongly placed parentheses.

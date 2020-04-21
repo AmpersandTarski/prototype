@@ -90,6 +90,7 @@ class Session
     public function initSessionAtom()
     {
         $this->sessionAtom = $this->ampersandApp->getModel()->getSessionConcept()->makeAtom($this->id);
+        $now = time();
         
         // Create a new Ampersand session atom if not yet in SESSION table (i.e. new php session)
         if (!$this->sessionAtom->exists()) {
@@ -103,19 +104,38 @@ class Session
                     $this->toggleActiveRole($roleAtom, true);
                 }
             }
-        // When session atom already exists) check if session is expired
-        } elseif (isset($_SESSION['lastAccess']) && (time() - $_SESSION['lastAccess'] > $this->settings->get('session.expirationTime'))) {
-            $this->logger->debug("Session expired");
-            // $this->deleteSessionAtom();
-            throw new SessionExpiredException("Your session has expired");
+        // When session atom already exists check if session is expired
+        } else {
+            $experationTimeStamp = $now - $this->settings->get('session.expirationTime');
+            
+            $links = $this->sessionAtom->getLinks('lastAccess[SESSION*DateTime]');
+            foreach ($links as $link) {
+                if (strtotime($link->tgt()->getId()) < $experationTimeStamp) {
+                    $this->logger->debug("Session expired");
+                    // $this->deleteSessionAtom();
+                    throw new SessionExpiredException("Your session has expired");
+                }
+            }
         }
         
-        // Update session variable. This is needed because windows platform doesn't seem to update the read time of the session file
-        // which will cause a php session timeout after the default timeout of (24min), regardless of user activity. By updating the
-        // session file (updating 'lastAccess' variable) we ensure the the session file timestamps are updated on every request.
-        $_SESSION['lastAccess'] = time();
+        /**
+         * We use the database to lookup last access timestamp of a session. This is because in a containerized application
+         * landscape, the user isn't redirected to the same container for every request. Php session records are stored locally,
+         * so we cannot use these (anymore).
+         * Further more, a container restart would "logout" every user by removing the session records, which is unwanted behaviour.
+         *
+         * NOTE! Comment below is not applicable anymore because we've changed the 'session.use_strict_mode' to 0.
+         * That means, if a user provides a php session id which is uninitialized for this php server, it is assigned that session id anyway.
+         *
+         * OLD COMMENT:
+         * Update session variable. This is needed because windows platform doesn't seem to update the read time of the session file
+         * which will cause a php session timeout after the default timeout of (24min), regardless of user activity. By updating the
+         * session file (updating 'lastAccess' variable) we ensure the the session file timestamps are updated on every request.
+         */
+        // $_SESSION['lastAccess'] = $now;
+        
         // Update lastAccess time also in plug/database to allow to use this aspect in Ampersand models
-        $this->sessionAtom->link(date(DATE_ATOM, $_SESSION['lastAccess']), 'lastAccess[SESSION*DateTime]', false)->add();
+        $this->sessionAtom->link(date(DATE_ATOM, $now), 'lastAccess[SESSION*DateTime]', false)->add();
     }
 
     /**
