@@ -107,7 +107,7 @@ class ExcelImporter
         $dataColumns = [];
         foreach ($worksheet->getColumnIterator('B') as $column) {
             $columnLetter = $column->getColumnIndex();
-            $cellvalue = (string)$worksheet->getCell($columnLetter . '1')->getCalculatedValue(); // @phan-suppress-current-line PhanDeprecatedFunction
+            $cellvalue = (string)$worksheet->getCell($columnLetter . '1')->getCalculatedValue();
             
             if ($cellvalue !== '') {
                 try {
@@ -127,7 +127,7 @@ class ExcelImporter
             $cell = $worksheet->getCell('A'.$rowNr);
 
             try {
-                $firstCol = (string)$cell->getCalculatedValue(); // @phan-suppress-current-line PhanDeprecatedFunction
+                $firstCol = (string)$cell->getCalculatedValue();
 
                 // If cell Ax is empty, skip complete row
                 if ($firstCol === '') {
@@ -155,7 +155,7 @@ class ExcelImporter
                 $cell = $worksheet->getCell($columnLetter . $rowNr);
                 
                 try {
-                    $cellvalue = (string)$cell->getCalculatedValue(); // @phan-suppress-current-line PhanDeprecatedFunction
+                    $cellvalue = (string)$cell->getCalculatedValue();
                     
                     if ($cellvalue === '') {
                         continue; // skip if not value provided
@@ -199,7 +199,7 @@ class ExcelImporter
         $blockStartRowNrs = [];
         foreach ($worksheet->getRowIterator() as $row) {
             $rowNr = $row->getRowIndex();
-            $cellvalue = $worksheet->getCell('A'. $rowNr)->getCalculatedValue(); // @phan-suppress-current-line PhanDeprecatedFunction
+            $cellvalue = $worksheet->getCell('A'. $rowNr)->getCalculatedValue();
 
             // Import block is indicated by '[]' brackets in cell Ax
             if (substr(trim($cellvalue), 0, 1) === '[') {
@@ -234,17 +234,16 @@ class ExcelImporter
 
             // Header line 1 specifies relation names
             if ($i === 1) {
-                foreach ($row->getCellIterator() as $cell) { // @phan-suppress-current-line PhanTypeNoAccessiblePropertiesForeach
+                foreach ($row->getCellIterator() as $cell) {
                     // No leading/trailing spaces allowed
-                    $line1[$cell->getColumn()] = trim((string) $cell->getCalculatedValue()); // @phan-suppress-current-line PhanDeprecatedFunction
+                    $line1[$cell->getColumn()] = trim((string) $cell->getCalculatedValue());
                 }
             // Header line 2 specifies concept names
             } elseif ($i === 2) {
-                $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue()); // @phan-suppress-current-line PhanDeprecatedFunction
+                $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue());
 
-                foreach ($row->getCellIterator() as $cell) { // @phan-suppress-current-line PhanTypeNoAccessiblePropertiesForeach
+                foreach ($row->getCellIterator() as $cell) {
                     $col = $cell->getColumn();
-                    // @phan-suppress-next-line PhanDeprecatedFunction
                     $line2[$col] = trim((string) $cell->getCalculatedValue()); // no leading/trailing spaces allowed
                 
                     // Import header can be determined now using line 1 and line 2
@@ -303,7 +302,7 @@ class ExcelImporter
      */
     protected function processDataRow(Atom $leftAtom, Row $row, array $headerInfo)
     {
-        foreach ($row->getCellIterator('B') as $cell) { // @phan-suppress-current-line PhanTypeNoAccessiblePropertiesForeach
+        foreach ($row->getCellIterator('B') as $cell) {
             $col = $cell->getColumn();
 
             // Skip cell if column must not be imported
@@ -328,7 +327,6 @@ class ExcelImporter
 
     protected function getCalculatedValueAsAtomId(Cell $cell): string
     {
-        // @phan-suppress-next-line PhanDeprecatedFunction
         $cellvalue = (string) $cell->getCalculatedValue(); // !Do NOT trim this cellvalue, because atoms may have leading/trailing whitespace
 
         // Overwrite $cellvalue in case of datetime
