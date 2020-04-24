@@ -4,16 +4,16 @@ namespace Ampersand\IO;
 
 use Exception;
 use Ampersand\Core\Atom;
-use PHPExcel_Cell;
-use PHPExcel_Shared_Date;
-use PHPExcel_IOFactory;
-use PHPExcel_Worksheet;
-use PHPExcel_Worksheet_Row;
 use Psr\Log\LoggerInterface;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\AccessDeniedException;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Worksheet\Row;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ExcelImporter
 {
@@ -49,13 +49,12 @@ class ExcelImporter
      */
     public function parseFile($filename)
     {
-        $file = PHPExcel_IOFactory::load($filename);
+        $file = IOFactory::load($filename);
 
         $this->logger->info("Excel import started: parsing file {$filename}");
         
         // Loop over all worksheets
         foreach ($file->getWorksheetIterator() as $worksheet) {
-            /** @var \PHPExcel_Worksheet $worksheet */
             try {
                 // First check if there is an interface with the same id as the worksheet
                 $ifc = $this->ampersandApp->getModel()->getInterfaceByLabel($worksheet->getTitle());
@@ -73,7 +72,7 @@ class ExcelImporter
     /**
      * Parse worksheet according to an Ampersand interface definition.
      *
-     * @param \PHPExcel_Worksheet $worksheet
+     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $worksheet
      * @param \Ampersand\Interfacing\Ifc $ifc
      * @return void
      *
@@ -84,7 +83,7 @@ class ExcelImporter
      * Row 3    | <Atom a2>       | <tgtAtom b2>    | <tgtAtom c2>    | etc
      * etc
      */
-    protected function parseWorksheetWithIfc(PHPExcel_Worksheet $worksheet, Ifc $ifc)
+    protected function parseWorksheetWithIfc(Worksheet $worksheet, Ifc $ifc)
     {
         // Source concept of interface MUST be SESSION
         if (!$ifc->getSrcConcept()->isSession()) {
@@ -107,10 +106,8 @@ class ExcelImporter
         // Parse other columns of first row
         $dataColumns = [];
         foreach ($worksheet->getColumnIterator('B') as $column) {
-            /** @var \PHPExcel_Worksheet_Column $column */
-
             $columnLetter = $column->getColumnIndex();
-            $cellvalue = (string)$worksheet->getCell($columnLetter . '1')->getCalculatedValue(); // @phan-suppress-current-line PhanDeprecatedFunction
+            $cellvalue = (string)$worksheet->getCell($columnLetter . '1')->getCalculatedValue();
             
             if ($cellvalue !== '') {
                 try {
@@ -126,13 +123,11 @@ class ExcelImporter
         
         // Parse other rows
         foreach ($worksheet->getRowIterator(2) as $row) {
-            /** @var \PHPExcel_Worksheet_Row $row */
-
             $rowNr = $row->getRowIndex();
             $cell = $worksheet->getCell('A'.$rowNr);
 
             try {
-                $firstCol = (string)$cell->getCalculatedValue(); // @phan-suppress-current-line PhanDeprecatedFunction
+                $firstCol = (string)$cell->getCalculatedValue();
 
                 // If cell Ax is empty, skip complete row
                 if ($firstCol === '') {
@@ -160,7 +155,7 @@ class ExcelImporter
                 $cell = $worksheet->getCell($columnLetter . $rowNr);
                 
                 try {
-                    $cellvalue = (string)$cell->getCalculatedValue(); // @phan-suppress-current-line PhanDeprecatedFunction
+                    $cellvalue = (string)$cell->getCalculatedValue();
                     
                     if ($cellvalue === '') {
                         continue; // skip if not value provided
@@ -168,8 +163,8 @@ class ExcelImporter
                     
                     // Overwrite $cellvalue in case of datetime
                     // The @ is a php indicator for a unix timestamp (http://php.net/manual/en/datetime.formats.compound.php), later used for typeConversion
-                    if (PHPExcel_Shared_Date::isDateTime($cell) && !empty($cellvalue)) {
-                        $cellvalue = '@'.(string)PHPExcel_Shared_Date::ExcelToPHP((int)$cellvalue);
+                    if (Date::isDateTime($cell) && !empty($cellvalue)) {
+                        $cellvalue = '@' . (string) Date::excelToTimestamp((int) $cellvalue);
                     }
 
                     $subIfcObj->add($leftResource, $cellvalue);
@@ -186,7 +181,7 @@ class ExcelImporter
      * Multiple block of imports can be specified on a single sheet.
      * The parser looks for the brackets '[ ]' to start a new block
      *
-     * @param \PHPExcel_Worksheet $worksheet
+     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $worksheet
      * @return void
      *
      * Format of sheet:
@@ -198,14 +193,13 @@ class ExcelImporter
      * etc
      *
      */
-    protected function parseWorksheet(PHPExcel_Worksheet $worksheet)
+    protected function parseWorksheet(Worksheet $worksheet)
     {
         // Find import blocks
         $blockStartRowNrs = [];
         foreach ($worksheet->getRowIterator() as $row) {
-            /** @var \PHPExcel_Worksheet_Row $row */
             $rowNr = $row->getRowIndex();
-            $cellvalue = $worksheet->getCell('A'. $rowNr)->getCalculatedValue(); // @phan-suppress-current-line PhanDeprecatedFunction
+            $cellvalue = $worksheet->getCell('A'. $rowNr)->getCalculatedValue();
 
             // Import block is indicated by '[]' brackets in cell Ax
             if (substr(trim($cellvalue), 0, 1) === '[') {
@@ -223,12 +217,12 @@ class ExcelImporter
     /**
      * Undocumented function
      *
-     * @param PHPExcel_Worksheet $worksheet
+     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $worksheet
      * @param int $startRowNr
      * @param int|null $endRowNr
      * @return void
      */
-    protected function parseBlock(PHPExcel_Worksheet $worksheet, int $startRowNr, int $endRowNr = null)
+    protected function parseBlock(Worksheet $worksheet, int $startRowNr, int $endRowNr = null)
     {
         $line1 = [];
         $line2 = [];
@@ -236,26 +230,20 @@ class ExcelImporter
 
         $i = 0; // row counter
         foreach ($worksheet->getRowIterator($startRowNr, $endRowNr) as $row) {
-            /** @var \PHPExcel_Worksheet_Row $row */
-
             $i++; // increment row counter
 
             // Header line 1 specifies relation names
             if ($i === 1) {
-                foreach ($row->getCellIterator() as $cell) { // @phan-suppress-current-line PhanTypeNoAccessiblePropertiesForeach
-                    /** @var \PHPExcel_Cell $cell */
+                foreach ($row->getCellIterator() as $cell) {
                     // No leading/trailing spaces allowed
-                    $line1[$cell->getColumn()] = trim((string) $cell->getCalculatedValue()); // @phan-suppress-current-line PhanDeprecatedFunction
+                    $line1[$cell->getColumn()] = trim((string) $cell->getCalculatedValue());
                 }
             // Header line 2 specifies concept names
             } elseif ($i === 2) {
-                $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue()); // @phan-suppress-current-line PhanDeprecatedFunction
+                $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue());
 
-                foreach ($row->getCellIterator() as $cell) { // @phan-suppress-current-line PhanTypeNoAccessiblePropertiesForeach
-                    /** @var \PHPExcel_Cell $cell */
-                    
+                foreach ($row->getCellIterator() as $cell) {
                     $col = $cell->getColumn();
-                    // @phan-suppress-next-line PhanDeprecatedFunction
                     $line2[$col] = trim((string) $cell->getCalculatedValue()); // no leading/trailing spaces allowed
                 
                     // Import header can be determined now using line 1 and line 2
@@ -308,15 +296,13 @@ class ExcelImporter
      * Undocumented function
      *
      * @param \Ampersand\Core\Atom $leftAtom
-     * @param \PHPExcel_Worksheet_Row $row
+     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Row $row
      * @param array $headerInfo
      * @return void
      */
-    protected function processDataRow(Atom $leftAtom, PHPExcel_Worksheet_Row $row, array $headerInfo)
+    protected function processDataRow(Atom $leftAtom, Row $row, array $headerInfo)
     {
-        foreach ($row->getCellIterator('B') as $cell) { // @phan-suppress-current-line PhanTypeNoAccessiblePropertiesForeach
-            /** @var \PHPExcel_Cell $cell */
-
+        foreach ($row->getCellIterator('B') as $cell) {
             $col = $cell->getColumn();
 
             // Skip cell if column must not be imported
@@ -339,15 +325,14 @@ class ExcelImporter
         }
     }
 
-    protected function getCalculatedValueAsAtomId(PHPExcel_Cell $cell): string
+    protected function getCalculatedValueAsAtomId(Cell $cell): string
     {
-        // @phan-suppress-next-line PhanDeprecatedFunction
         $cellvalue = (string) $cell->getCalculatedValue(); // !Do NOT trim this cellvalue, because atoms may have leading/trailing whitespace
 
         // Overwrite $cellvalue in case of datetime
         // the @ is a php indicator for a unix timestamp (http://php.net/manual/en/datetime.formats.compound.php), later used for typeConversion
-        if (PHPExcel_Shared_Date::isDateTime($cell) && !empty($cellvalue)) {
-            $cellvalue = '@'.(string)PHPExcel_Shared_Date::ExcelToPHP((int)$cellvalue);
+        if (Date::isDateTime($cell) && !empty($cellvalue)) {
+            $cellvalue = '@'.(string)Date::excelToTimestamp((int)$cellvalue);
         }
 
         return $cellvalue;

@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* Upgrade unmaintained phpexcel package to newer library phpoffice/phpspreadsheet
 
 ## v1.5.0 (21 april 2020)
 * [Issue 1009](https://github.com/AmpersandTarski/Ampersand/issues/1009) Fix 404 session not found when session is expired
