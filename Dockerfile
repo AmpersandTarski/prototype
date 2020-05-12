@@ -5,11 +5,19 @@ FROM docker.pkg.github.com/ampersandtarski/ampersand/ampersand:${AMPERSAND_IMAGE
 FROM php:7.3-apache
 
 RUN apt-get update \
- && apt-get install -y libzip-dev zlib1g-dev vim
+ && apt-get install -y \
+  # libzip and zlin needed for php-ext zip below
+  libzip-dev \
+  zlib1g-dev \
+  # lubcurl needed for php-ext curl below
+  libcurl4-gnutls-dev \
+  # libpng needed for php-ext gd below
+  libpng-dev \
+  # vim for easy editing files in container
+  vim
 
-# Install additional php/apache extensions
-# enable ZipArchive for importing .xlsx files on runtime
-RUN docker-php-ext-install mysqli zip\
+# Install additional php and apache extensions (see composer.json file)
+RUN docker-php-ext-install mysqli curl gd fileinfo zip \
  && a2enmod rewrite
 
 # Install composer (php's package manager)
@@ -20,8 +28,7 @@ RUN php  -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 ENV COMPOSER_HOME /usr/local/bin/
 
 # Install NodeJs with NPM
-RUN apt-get install -y curl \
-  && curl -sL https://deb.nodesource.com/setup_12.x  | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_12.x  | bash - \
   && apt-get install -y nodejs \
   && node -v \
   && npm -v

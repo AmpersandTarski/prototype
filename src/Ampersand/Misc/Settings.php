@@ -44,6 +44,14 @@ class Settings
             'key' => 'mysql.dbName',
             'bool' => false
         ],
+        'AMPERSAND_DBUSER' => [
+            'key' => 'mysql.dbUser',
+            'bool' => false
+        ],
+        'AMPERSAND_DBPASS' => [
+            'key' => 'mysql.dbPass',
+            'bool' => false
+        ],
         'AMPERSAND_SERVER_URL' => [
             'key' => 'global.serverURL',
             'bool' => false
