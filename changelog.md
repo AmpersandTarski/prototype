@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.5.1 (12 may 2020)
 * Upgrade unmaintained phpexcel package to newer library phpoffice/phpspreadsheet
 * Allow to configure database username and password using environment variables
 
