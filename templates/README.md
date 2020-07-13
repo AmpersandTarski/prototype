@@ -2,6 +2,21 @@
 
 ## BOX templates
 
+### RAW
+Interface template without any additional styling and without (editing) functionality. Just plain html `<div>` elements
+This template replaces former templates: `DIV`, `CDIV` and `RDIV`
+
+Usage: `BOX <RAW attributes*>`
+
+Examples:
+- `BOX <RAW>`
+- `BOX <RAW table>`
+
+Possible attributes are:
+| attribute | value | description |
+| --------- | ----- | ----------- |
+| table     | n.a.  | uses simple table structure to display data. Similar to `TABLE` template (see below), but without any functionality, header and styling
+
 ### TABLE
 Interface template for table structures. The target atoms of the interface make up the records / rows. The sub interfaces are used as columns.
 This templates replaces former templates: `COLS`, `SCOLS`, `HCOLS`, `SHCOLS` and `COLSNL`
