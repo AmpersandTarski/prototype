@@ -381,6 +381,11 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     {
         return empty($this->getSubinterfaces($options));
     }
+
+    protected function isBox(): bool
+    {
+        return isset($this->boxHeader);
+    }
     
     /**
      * Returns if the interface expression isIdent
@@ -689,8 +694,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             return $tgt->getId();
         }
 
-        // Determine if sorting values must be added. If first letter is a 'S' (for SORT)
-        $addSortValues = !$this->isLeaf && $this->boxHeader->isSortable() && ($options & Options::INCLUDE_SORT_DATA);
+        // Determine if sorting values must be added
+        $addSortValues = $this->isBox() && $this->boxHeader->isSortable() && ($options & Options::INCLUDE_SORT_DATA);
 
         // Get data of subinterfaces if depth is not provided or max depth not yet reached
         if (is_null($depth) || $depth > 0) {
