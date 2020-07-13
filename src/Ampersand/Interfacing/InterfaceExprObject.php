@@ -139,12 +139,10 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     protected $view;
 
     /**
-     * Specifies the class of the BOX (in case of BOX interface)
-     * e.g. in ADL script: INTERFACE "test" : expr BOX <SCOLS> []
-     * the boxClass is 'SCOLS'
-     * @var string
+     *
+     * @var \Ampersand\Interfacing\BoxHeader|null
      */
-    protected $boxClass = null;
+    protected $boxHeader = null;
     
     /**
      *
@@ -230,7 +228,14 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
              */
             $this->refInterfaceId = $ifcDef['subinterfaces']['refSubInterfaceId'];
             $this->isLinkTo = $ifcDef['subinterfaces']['refIsLinkTo'];
-            $this->boxClass = $ifcDef['subinterfaces']['boxClass'];
+            
+            // Process boxheader information
+            $boxHeader = $ifcDef['subinterfaces']['boxHeader'];
+            $list = [];
+            foreach ($boxHeader['keyVals'] as $keyVal) {
+                $list[$keyVal['key']] = $keyVal['value']; // Unpack keyVals list
+            }
+            $this->boxHeader = new BoxHeader($boxHeader['type'], $list);
             
             // Inline subinterface definitions
             foreach ((array)$ifcDef['subinterfaces']['ifcObjects'] as $subIfcDef) {
@@ -676,7 +681,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
 
         // Determine if sorting values must be added. If first letter is a 'S' (for SORT)
-        $addSortValues = (strtoupper(substr($this->boxClass, 0, 1)) === 'S') && ($options & Options::INCLUDE_SORT_DATA);
+        $addSortValues = !$this->isLeaf && $this->boxHeader->isSortable() && ($options & Options::INCLUDE_SORT_DATA);
 
         // Get data of subinterfaces if depth is not provided or max depth not yet reached
         if (is_null($depth) || $depth > 0) {
