@@ -212,35 +212,44 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $this->queryContainsSubData = strpos($this->query, 'ifc_') !== false;
         
         // Subinterfacing
-        if (!is_null($ifcDef['subinterfaces'])) {
+        if (!is_null($subIfcsDef = $ifcDef['subinterfaces'])) {
             // Subinterfacing is not supported/possible for tgt concepts with a scalar representation type (i.e. non-objects)
             if (!$this->tgtConcept->isObject()) {
                 throw new Exception("Subinterfacing is not supported for concepts with a scalar representation type (i.e. non-objects). (Sub)Interface '{$this->path}' with target {$this->tgtConcept} (type:{$this->tgtConcept->type}) has subinterfaces specified", 501);
             }
-            
-            /* Reference to top level interface
-             * e.g.:
-             * INTERFACE "A" : expr1 INTERFACE "B"
-             * INTERFACE "B" : expr2 BOX ["label" : expr3]
-             *
-             * is interpreted as:
-             * INTERFACE "A" : expr1;epxr2 BOX ["label" : expr3]
+
+            /* Subinterfaces can be one of:
+             * 1) reference to other interface
+             * 2) BOX with subinterfaces
              */
-            $this->refInterfaceId = $ifcDef['subinterfaces']['refSubInterfaceId'];
-            $this->isLinkTo = $ifcDef['subinterfaces']['refIsLinkTo'];
+            // Case 1: reference to other interface
+            if (isset($subIfcsDef['refSubInterfaceId'])) {
+                /* Reference to other interface
+                * e.g.:
+                * INTERFACE "A" : expr1 INTERFACE "B"
+                * INTERFACE "B" : expr2 BOX ["label" : expr3]
+                *
+                * is interpreted as:
+                * INTERFACE "A" : expr1;epxr2 BOX ["label" : expr3]
+                */
+                $this->refInterfaceId = $subIfcsDef['refSubInterfaceId'];
+                $this->isLinkTo = $subIfcsDef['refIsLinkTo'];
             
-            // Process boxheader information
-            $boxHeader = $ifcDef['subinterfaces']['boxHeader'];
-            $list = [];
-            foreach ($boxHeader['keyVals'] as $keyVal) {
-                $list[$keyVal['key']] = $keyVal['value']; // Unpack keyVals list
-            }
-            $this->boxHeader = new BoxHeader($boxHeader['type'], $list);
-            
-            // Inline subinterface definitions
-            foreach ((array)$ifcDef['subinterfaces']['ifcObjects'] as $subIfcDef) {
-                $subifc = $rootIfc->newObject($subIfcDef, $this->plug, $this);
-                $this->subInterfaces[$subifc->getIfcId()] = $subifc;
+            // Case 2: BOX with subinterface
+            } else {
+                // Process boxheader information
+                $boxHeader = $subIfcsDef['boxHeader'];
+                $list = [];
+                foreach ($boxHeader['keyVals'] as $keyVal) {
+                    $list[$keyVal['key']] = $keyVal['value']; // Unpack keyVals list
+                }
+                $this->boxHeader = new BoxHeader($boxHeader['type'], $list);
+                
+                // Inline subinterface definitions
+                foreach ($subIfcsDef['ifcObjects'] as $subIfcDef) {
+                    $subifc = $rootIfc->newObject($subIfcDef, $this->plug, $this);
+                    $this->subInterfaces[$subifc->getIfcId()] = $subifc;
+                }
             }
         }
         
