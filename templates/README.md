@@ -77,13 +77,18 @@ This template is used best in combination with univalent interface expressions (
 
 Usage `BOX <TABS attributes*>`
 
+For root interface boxes automatically a title is added which equals the interface name. To hide this title use `noTitle` attribute.
+
 Example:
 - `BOX <TABS>`
+- `BOX <TABS title="Tabs with title">`
+- `BOX <TABS noTitle>`
 
 Possible attributes are:
 | attributes | value | description |
 | ---------- | ----- | ----------- |
-| *currently there are no attributes for this template*
+| title      | string | title / description for the table. Title is shown above tabs structure |
+| noTitle    | n.a. | hides title; usefull for root interface boxes where a title is automatically is added |
 
 ### RAW
 Interface template without any additional styling and without (editing) functionality. Just plain html `<div>` elements

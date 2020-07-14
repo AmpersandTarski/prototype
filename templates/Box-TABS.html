@@ -1,5 +1,6 @@
 $if(verbose)$<!-- Box-TABS.html "$label$" $expAdl$ :: $source$ * $target$ $if(exprIsUni)$[UNI]$endif$$if(exprIsTot)$[TOT]$endif$  ($if(crudC)$C$else$c$endif$$if(crudR)$R$else$r$endif$$if(crudU)$U$else$u$endif$$if(crudD)$D$else$d$endif$, $if(!isRoot)$non-$endif$root box) -->
-$endif$$if(crudR)$<div class="box box-tabs" ng-controller="BoxController" ng-init="parent = resource">$if(crudC)$
+$endif$$if(crudR)$<div class="box box-tabs" ng-controller="BoxController" ng-init="parent = resource">
+    $if(!noTitle)$$if(title)$<h4>$title$</h4>$else$$if(isRoot)$<h4>$label$</h4>$endif$$endif$$endif$$if(crudC)$
     <div class="row" ng-if="$if(exprIsUni)$!resource['$name$']$else$!resource['$name$'].length$endif$">
         <div class="col-xs-12">
             <button type="button" class="btn btn-sm btn-success" ng-click="createResource(parent, '$name$', patchResource)">New $target$</button>
