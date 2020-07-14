@@ -26,14 +26,14 @@ Usage: `BOX <TABLE attributes*>`
 Examples:
 - `BOX <TABLE>`
 - `BOX <TABLE noHeader>`
-- `BOX <TABLE hideEmptyTable>`
+- `BOX <TABLE hideNoRecords>`
 - `BOX <TABLE title="Title of your table">`
-- `BOX <TABLE noHeader hideEmptyTable title="Table with title">`
+- `BOX <TABLE noHeader hideNoRecords title="Table with title">`
 
 Possible attributes are:
 | attribute | value | description |
 | --------- | ----- | ----------- |
-| hideEmptyTable | n.a. | when attribute is set, the complete table is hidden in the interface when there are no records |
+| hideNoRecords | n.a. | when attribute is set, the complete table is hidden in the interface when there are no records |
 | noHeader | n.a. | when attribute is set, no table header is used |
 | title | string | title / description for the table. Title is shown above table |
 | sortable | n.a. | makes table headers clickable to support sorting on some property of the data. Only applies to univalent fields |
