@@ -212,7 +212,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $this->queryContainsSubData = strpos($this->query, 'ifc_') !== false;
         
         // Subinterfacing
-        if (!is_null($subIfcsDef = $ifcDef['subinterfaces'])) {
+        $subIfcsDef = $ifcDef['subinterfaces'];
+        if (!is_null($subIfcsDef)) {
             // Subinterfacing is not supported/possible for tgt concepts with a scalar representation type (i.e. non-objects)
             if (!$this->tgtConcept->isObject()) {
                 throw new Exception("Subinterfacing is not supported for concepts with a scalar representation type (i.e. non-objects). (Sub)Interface '{$this->path}' with target {$this->tgtConcept} (type:{$this->tgtConcept->type}) has subinterfaces specified", 501);
