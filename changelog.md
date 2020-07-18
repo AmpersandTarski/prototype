@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased changes
+* Introduction of BOX attributes functionality
+  * See [readme about templates](./templates/README.md)
+  * Template `FORM` replaces `ROWS`, `ROWSNL`, `HROWS`, `HROWSNL`
+  * Template `TABLE` replaces `COLS`, `SCOLS`, `COLSNL`, `HCOLS` and `SHCOLS`
+  * Template `RAW` replaces `DIV`, `CDIV`, `RDIV`
 
 ## v1.5.1 (12 may 2020)
 * Upgrade unmaintained phpexcel package to newer library phpoffice/phpspreadsheet
