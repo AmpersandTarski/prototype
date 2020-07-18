@@ -139,12 +139,10 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     protected $view;
 
     /**
-     * Specifies the class of the BOX (in case of BOX interface)
-     * e.g. in ADL script: INTERFACE "test" : expr BOX <SCOLS> []
-     * the boxClass is 'SCOLS'
-     * @var string
+     *
+     * @var \Ampersand\Interfacing\BoxHeader|null
      */
-    protected $boxClass = null;
+    protected $boxHeader = null;
     
     /**
      *
@@ -214,28 +212,45 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $this->queryContainsSubData = strpos($this->query, 'ifc_') !== false;
         
         // Subinterfacing
-        if (!is_null($ifcDef['subinterfaces'])) {
+        $subIfcsDef = $ifcDef['subinterfaces'];
+        if (!is_null($subIfcsDef)) {
             // Subinterfacing is not supported/possible for tgt concepts with a scalar representation type (i.e. non-objects)
             if (!$this->tgtConcept->isObject()) {
                 throw new Exception("Subinterfacing is not supported for concepts with a scalar representation type (i.e. non-objects). (Sub)Interface '{$this->path}' with target {$this->tgtConcept} (type:{$this->tgtConcept->type}) has subinterfaces specified", 501);
             }
-            
-            /* Reference to top level interface
-             * e.g.:
-             * INTERFACE "A" : expr1 INTERFACE "B"
-             * INTERFACE "B" : expr2 BOX ["label" : expr3]
-             *
-             * is interpreted as:
-             * INTERFACE "A" : expr1;epxr2 BOX ["label" : expr3]
+
+            /* Subinterfaces can be one of:
+             * 1) reference to other interface
+             * 2) BOX with subinterfaces
              */
-            $this->refInterfaceId = $ifcDef['subinterfaces']['refSubInterfaceId'];
-            $this->isLinkTo = $ifcDef['subinterfaces']['refIsLinkTo'];
-            $this->boxClass = $ifcDef['subinterfaces']['boxClass'];
+            // Case 1: reference to other interface
+            if (isset($subIfcsDef['refSubInterfaceId'])) {
+                /* Reference to other interface
+                * e.g.:
+                * INTERFACE "A" : expr1 INTERFACE "B"
+                * INTERFACE "B" : expr2 BOX ["label" : expr3]
+                *
+                * is interpreted as:
+                * INTERFACE "A" : expr1;epxr2 BOX ["label" : expr3]
+                */
+                $this->refInterfaceId = $subIfcsDef['refSubInterfaceId'];
+                $this->isLinkTo = $subIfcsDef['refIsLinkTo'];
             
-            // Inline subinterface definitions
-            foreach ((array)$ifcDef['subinterfaces']['ifcObjects'] as $subIfcDef) {
-                $subifc = $rootIfc->newObject($subIfcDef, $this->plug, $this);
-                $this->subInterfaces[$subifc->getIfcId()] = $subifc;
+            // Case 2: BOX with subinterface
+            } else {
+                // Process boxheader information
+                $boxHeader = $subIfcsDef['boxHeader'];
+                $list = [];
+                foreach ($boxHeader['keyVals'] as $keyVal) {
+                    $list[$keyVal['key']] = $keyVal['value']; // Unpack keyVals list
+                }
+                $this->boxHeader = new BoxHeader($boxHeader['type'], $list);
+                
+                // Inline subinterface definitions
+                foreach ($subIfcsDef['ifcObjects'] as $subIfcDef) {
+                    $subifc = $rootIfc->newObject($subIfcDef, $this->plug, $this);
+                    $this->subInterfaces[$subifc->getIfcId()] = $subifc;
+                }
             }
         }
         
@@ -366,6 +381,11 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     protected function isLeaf(int $options = Options::DEFAULT_OPTIONS): bool
     {
         return empty($this->getSubinterfaces($options));
+    }
+
+    protected function isBox(): bool
+    {
+        return isset($this->boxHeader);
     }
     
     /**
@@ -675,8 +695,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             return $tgt->getId();
         }
 
-        // Determine if sorting values must be added. If first letter is a 'S' (for SORT)
-        $addSortValues = (strtoupper(substr($this->boxClass, 0, 1)) === 'S') && ($options & Options::INCLUDE_SORT_DATA);
+        // Determine if sorting values must be added
+        $addSortValues = $this->isBox() && $this->boxHeader->isSortable() && ($options & Options::INCLUDE_SORT_DATA);
 
         // Get data of subinterfaces if depth is not provided or max depth not yet reached
         if (is_null($depth) || $depth > 0) {

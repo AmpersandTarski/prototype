@@ -1,5 +1,0 @@
-$if(verbose)$<!-- Box-DIV.html "$label$" : $expAdl$ :: $source$ * $target$ $if(exprIsUni)$[UNI]$endif$$if(exprIsTot)$[TOT]$endif$  ($if(crudC)$C$else$c$endif$$if(crudR)$R$else$r$endif$$if(crudU)$U$else$u$endif$$if(crudD)$D$else$d$endif$, $if(!isRoot)$non-$endif$root box) -->
-$endif$$if(crudR)$<div ng-repeat="resource in requireArray(resource['$name$'])">$subObjects:{subObj|$if(verbose)$
-    <!-- $subObj.subObjLabel$ -->$endif$
-    $subObj.subObjContents$}$
-</div>$else$<span><i>not readable</i></span>$endif$
