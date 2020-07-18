@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.6.0 (18 july 2020)
 * Introduction of BOX attributes functionality
   * See [readme about templates](./templates/README.md)
   * Template `FORM` replaces `ROWS`, `ROWSNL`, `HROWS`, `HROWSNL`
