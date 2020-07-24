@@ -1,5 +1,5 @@
-ARG AMPERSAND_IMAGE_VERSION=latest
-FROM docker.pkg.github.com/ampersandtarski/ampersand/ampersand:${AMPERSAND_IMAGE_VERSION} as compiler
+# TODO pick a specific release of Ampersand. Can be done after next release of Ampersand, when a v4.y.z. tag is available on Docker Hub
+FROM ampersandtarski/ampersand:development as compiler
 
 # To run generated prototypes we require a apache webserver with php
 FROM php:7.4-apache
