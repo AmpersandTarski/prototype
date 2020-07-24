@@ -27,4 +27,4 @@ Step 4 (optional): Test the OAuth protocol on your local machine:
     - replace 'https://[server]' in config yaml with example.com
 
 ## Notes
-* The OAuthLogin extension uses [curl](http://php.net/manual/en/book.curl.php) to get/request data from the identity providers. To verify the peer curl needs a file with root certificates, which is provided in the cacerp.pem file in this folder. Goto https://curl.haxx.se/docs/caextract.html to update the cacert.pem once in a while.
+* The OAuthLogin extension uses [curl](http://php.net/manual/en/book.curl.php) to get/request data from the identity providers. To verify the peer curl needs a file with root certificates, which is provided in the cacerp.pem file in this folder. Goto https://curl.haxx.se/docs/caextract.html to update the cacert.pem once in a while. During Docker build the latest version of cacert.pem is downloaded automatically.
