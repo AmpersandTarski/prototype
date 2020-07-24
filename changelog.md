@@ -2,6 +2,7 @@
 
 ## Unreleased changes
 * Issue [Issue 1067](https://github.com/AmpersandTarski/Ampersand/issues/1067) Update CI scripts. Add script to build-push to Docker Hub instead of Github package repository
+* Update to PHP version 7.4
 
 ## v1.6.0 (18 july 2020)
 * Introduction of BOX attributes functionality

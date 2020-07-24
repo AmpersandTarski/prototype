@@ -2,7 +2,7 @@ ARG AMPERSAND_IMAGE_VERSION=latest
 FROM docker.pkg.github.com/ampersandtarski/ampersand/ampersand:${AMPERSAND_IMAGE_VERSION} as compiler
 
 # To run generated prototypes we require a apache webserver with php
-FROM php:7.3-apache
+FROM php:7.4-apache
 
 RUN apt-get update \
  && apt-get install -y \
