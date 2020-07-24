@@ -1,8 +1,8 @@
-ARG AMPERSAND_IMAGE_VERSION=latest
-FROM docker.pkg.github.com/ampersandtarski/ampersand/ampersand:${AMPERSAND_IMAGE_VERSION} as compiler
+# TODO pick a specific release of Ampersand. Can be done after next release of Ampersand, when a v4.y.z. tag is available on Docker Hub
+FROM ampersandtarski/ampersand:development as compiler
 
 # To run generated prototypes we require a apache webserver with php
-FROM php:7.3-apache
+FROM php:7.4-apache
 
 RUN apt-get update \
  && apt-get install -y \
@@ -70,3 +70,5 @@ COPY . /var/www
 # Build ampersand frontend application
 WORKDIR /var/www
 RUN gulp build-ampersand
+
+ADD https://curl.haxx.se/ca/cacert.pem /var/www/extensions/OAuthLogin/cacert.pem

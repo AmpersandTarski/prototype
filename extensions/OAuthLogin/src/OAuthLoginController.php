@@ -48,7 +48,7 @@ class OAuthLoginController
                                  , CURLOPT_POST => 1
                                  , CURLOPT_POSTFIELDS => http_build_query($token_request['arguments'])
                                  , CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded', 'Accept: application/json']
-                                 , CURLOPT_CAINFO => __DIR__ . '/cacert.pem'
+                                 , CURLOPT_CAINFO => __DIR__ . '/../cacert.pem'
                                  ]);
 
         // Send the request & save response to $resp

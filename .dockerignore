@@ -1,17 +1,14 @@
-**
-!app/
-!bootstrap/
-!config/
-!data/
-!extensions/
-!generics/
-!log/
-!public/
-!src/
-!templates/
-!changelog.md
-!composer.json
-!composer.lock
-!gulpfile.js
-!package-lock.json
-!package.json
+# developer files
+.devcontainer/
+.github/
+.vscode
+tests/
+.bowerrc
+.jshintrc
+bower.json
+phpcs.xml
+
+# content of .gitignore
+lib/
+app/lib/
+node_modules/

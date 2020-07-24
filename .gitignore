@@ -1,8 +1,4 @@
-/lib
-/app/lib
+# note! also update .dockerignore
+lib/
+app/lib/
 node_modules/
-
-# Editor related #
-##################
-*.epp
-~$*
