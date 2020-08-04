@@ -51,7 +51,11 @@ session_start();
 /**************************************************************************************************
  * COMPOSER AUTOLOADER
  *************************************************************************************************/
-require_once(__DIR__ . '/../lib/autoload.php');
+$composerAutoloaderFile = __DIR__ . '/../lib/autoload.php';
+if (!file_exists($composerAutoloaderFile)) {
+    throw new Exception("Cannot find autoloader for libraries at '{$composerAutoloaderFile}'. Try running 'composer install'");
+}
+require_once($composerAutoloaderFile);
 
 /**************************************************************************************************
  * LOGGING
