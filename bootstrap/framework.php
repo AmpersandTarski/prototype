@@ -80,7 +80,7 @@ $model = new Model(dirname(__FILE__, 2) . '/generics', $logger);
 
 $settings = new Settings($logger); // includes default framework settings
 $settings->set('global.absolutePath', dirname(__FILE__, 2));
-$settings->loadSettingsJsonFile($model->getFilePath('settings')); // load model settings from Ampersand generator
+$settings->loadSettingsFromCompiler($model); // load model settings from Ampersand compiler
 $settings->loadSettingsYamlFile(dirname(__FILE__, 2) . '/config/project.yaml'); // load project specific settings
 $settings->loadSettingsFromEnv();
 $debugMode = $settings->get('global.debugMode');
