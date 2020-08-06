@@ -632,7 +632,7 @@ class Concept
     public function addAtom(Atom $atom): Atom
     {
         // Adding atom[A] to [A] ($this)
-        if ($atom->concept == $this) {
+        if ($atom->concept === $this) {
             if ($atom->exists()) {
                 $this->logger->debug("Atom {$atom} already exists in concept");
             } else {
