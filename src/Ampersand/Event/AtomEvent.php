@@ -7,7 +7,7 @@ use Ampersand\Event\AbstractEvent;
 
 class AtomEvent extends AbstractEvent
 {
-    public const 
+    public const
         ADDED = 'ampersand.core.atom.added',
         DELETED = 'ampersand.core.atom.deleted';
 
