@@ -14,6 +14,7 @@ use Ampersand\Core\Atom;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
+use Ampersand\Event\AtomEvent;
 
 /**
  *
@@ -644,6 +645,7 @@ class Concept
                 }
                 $this->atomCache[] = $atom->getId(); // Add to cache
 
+                $this->app->eventDispatcher()->dispatch(new AtomEvent($atom), AtomEvent::ADDED);
                 $this->logger->info("Atom added to concept: {$atom}");
             }
             return $atom;
@@ -725,6 +727,7 @@ class Concept
                 unset($this->atomCache[$key]); // Delete from cache
             }
 
+            $this->app->eventDispatcher()->dispatch(new AtomEvent($atom), AtomEvent::DELETED);
             $this->logger->info("Atom deleted: {$atom}");
             
             // Delete all links where $atom is used as src or tgt atom
