@@ -98,7 +98,7 @@ $mysqlDB = new MysqlDB(
     $settings->get('mysql.dbHost'),
     $settings->get('mysql.dbUser'),
     $settings->get('mysql.dbPass'),
-    $settings->get('mysql.dbName'),
+    $settings->get('mysql.dbName', $settings->get('global.contextName')),
     Logger::getLogger('DATABASE'),
     $settings->get('global.debugMode'),
     $settings->get('global.productionEnv')

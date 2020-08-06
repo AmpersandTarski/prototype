@@ -35,7 +35,7 @@ settings:
 
   ### Mysql settings
   mysql.dbHost: localhost
-  # mysql.dbName: ampersand_myapplication
+  mysql.dbName: null # when not configured, the 'global.contextName' config is used
   mysql.dbUser: ampersand
   mysql.dbPass: ampersand
 
