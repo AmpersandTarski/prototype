@@ -14,6 +14,7 @@ use Ampersand\Core\Concept;
 use Ampersand\Plugs\RelationPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
+use Ampersand\Event\LinkEvent;
 
 /**
  *
@@ -272,6 +273,8 @@ class Relation
         foreach ($this->getPlugs() as $plug) {
             $plug->addLink($link);
         }
+
+        $this->app->eventDispatcher()->dispatch(new LinkEvent($link), LinkEvent::ADDED);
         $this->logger->info("Link added to relation: {$link}");
     }
     
@@ -288,6 +291,8 @@ class Relation
         foreach ($this->getPlugs() as $plug) {
             $plug->deleteLink($link);
         }
+
+        $this->app->eventDispatcher()->dispatch(new LinkEvent($link), LinkEvent::DELETED);
         $this->logger->info("Link deleted: {$link}");
     }
     
