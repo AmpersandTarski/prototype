@@ -17,6 +17,7 @@ use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
 use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
+use Ampersand\Event\TransactionEvent;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
@@ -456,7 +457,10 @@ class AmpersandApp
      */
     public function newTransaction(): Transaction
     {
-        return $this->transactions[] = new Transaction($this, Logger::getLogger('TRANSACTION'));
+        $transaction = new Transaction($this, Logger::getLogger('TRANSACTION'));
+        $this->eventDispatcher()->dispatch(new TransactionEvent($transaction), TransactionEvent::STARTED);
+        $this->transactions[] = $transaction;
+        return $transaction;
     }
     
     /**

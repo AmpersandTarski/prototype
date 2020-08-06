@@ -15,6 +15,7 @@ use Ampersand\Rule\RuleEngine;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Rule\Rule;
 use Ampersand\AmpersandApp;
+use Ampersand\Event\TransactionEvent;
 use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
 
@@ -356,6 +357,8 @@ class Transaction
         }
 
         $this->isCommitted = true;
+
+        $this->app->eventDispatcher()->dispatch(new TransactionEvent($this), TransactionEvent::COMMITTED);
     }
 
     /**
@@ -376,6 +379,8 @@ class Transaction
         }
 
         $this->isCommitted = false;
+
+        $this->app->eventDispatcher()->dispatch(new TransactionEvent($this), TransactionEvent::ROLLEDBACK);
     }
     
     /**
