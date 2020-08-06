@@ -19,6 +19,7 @@ use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Ampersand\Misc\Installer;
@@ -39,6 +40,11 @@ class AmpersandApp
      * @var \Ampersand\Log\UserLogger
      */
     protected $userLogger;
+
+    /**
+     * @var \Psr\EventDispatcher\EventDispatcherInterface
+     */
+    protected $eventDispatcher;
 
     /**
      * Ampersand application name (i.e. CONTEXT of ADL entry script)
@@ -134,12 +140,13 @@ class AmpersandApp
      * @param \Ampersand\Misc\Settings $settings
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Model $model, Settings $settings, LoggerInterface $logger)
+    public function __construct(Model $model, Settings $settings, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher)
     {
         $this->logger = $logger;
         $this->userLogger = new UserLogger($this, $logger);
         $this->model = $model;
         $this->settings = $settings;
+        $this->eventDispatcher = $eventDispatcher;
 
         // Set app name
         $this->name = $this->settings->get('global.contextName');
@@ -153,6 +160,11 @@ class AmpersandApp
     public function userLog(): UserLogger
     {
         return $this->userLogger;
+    }
+
+    public function eventDispatcher(): EventDispatcherInterface
+    {
+        return $this->eventDispatcher;
     }
 
     public function init(): AmpersandApp
