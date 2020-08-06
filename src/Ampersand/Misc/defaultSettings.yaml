@@ -33,11 +33,11 @@ settings:
   # compiler.version: null
   # compiler.env: null
 
-  ### Mysql settings (provided by compiler)
-  # mysql.dbHost: localhost
+  ### Mysql settings
+  mysql.dbHost: localhost
   # mysql.dbName: ampersand_myapplication
-  # mysql.dbUser: ampersand
-  # mysql.dbPass: ampersand
+  mysql.dbUser: ampersand
+  mysql.dbPass: ampersand
 
   ### RBAC (Role Based Access Control)
   # null implies that everyone has access, use empty list [] to disable for all, or specify a list with allowed roles
