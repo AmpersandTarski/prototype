@@ -19,11 +19,11 @@ use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Ampersand\Misc\Installer;
 use Ampersand\Interfacing\ResourceList;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class AmpersandApp
 {
@@ -42,7 +42,7 @@ class AmpersandApp
     protected $userLogger;
 
     /**
-     * @var \Psr\EventDispatcher\EventDispatcherInterface
+     * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
      */
     protected $eventDispatcher;
 
