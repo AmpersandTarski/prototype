@@ -3,6 +3,7 @@
 ## Unreleased changes
 * [Issue 1096](https://github.com/AmpersandTarski/Ampersand/issues/1096) Show more usefull error message when composer autoloader file can not be found
 * [Issue 1098](https://github.com/AmpersandTarski/Ampersand/issues/1098) Implementation of event dispatcher. Started with add/del atom and link and transaction related events
+* Removed Hook class implementation. Replaced by event dispatcher
 
 ## v1.6.1 (24 july 2020)
 * [Issue 1067](https://github.com/AmpersandTarski/Ampersand/issues/1067) Update CI scripts. Add script to build-push to Docker Hub instead of Github package repository
