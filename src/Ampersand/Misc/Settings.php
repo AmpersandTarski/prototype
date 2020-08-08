@@ -9,6 +9,7 @@ namespace Ampersand\Misc;
 
 use Exception;
 use Ampersand\Misc\Extension;
+use Ampersand\Model;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Encoder\YamlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -58,6 +59,13 @@ class Settings
         ]
     ];
 
+    const COMPILER_VAR_CONFIG_MAP = [
+        'compiler.env' => 'compiler.env',
+        'compiler.modelHash' => 'compiler.modelHash',
+        'compiler.version' => 'compiler.version',
+        'global.contextName' => 'global.contextName'
+    ];
+
     /**
      * Logger
      *
@@ -92,13 +100,15 @@ class Settings
     /**
      * Load settings file
      *
-     * @param string $filePath
+     * @param \Ampersand\Model $model
      * @param bool $overwriteAllowed specifies if already set settings may be overwritten
      * @return \Ampersand\Misc\Settings $this
      */
-    public function loadSettingsJsonFile(string $filePath, bool $overwriteAllowed = true): Settings
+    public function loadSettingsFromCompiler(Model $model, bool $overwriteAllowed = true): Settings
     {
-        $this->logger->info("Loading configuration from {$filePath}");
+        $filePath = $model->getFilePath('settings');
+
+        $this->logger->info("Loading settings from Ampersand compiler");
 
         $fileSystem = new Filesystem;
         if (!$fileSystem->exists($filePath)) {
@@ -106,10 +116,11 @@ class Settings
         }
 
         $decoder = new JsonDecode(false);
-        $settings = $decoder->decode(file_get_contents($filePath), JsonEncoder::FORMAT);
+        $compilerSettings = $decoder->decode(file_get_contents($filePath), JsonEncoder::FORMAT);
 
-        foreach ($settings as $setting => $value) {
-            $this->set($setting, $value, $overwriteAllowed);
+        // Only the variables mapped in the COMPILER_VAR_CONFIG_MAP are used
+        foreach (self::COMPILER_VAR_CONFIG_MAP as $var => $config) {
+            $this->set($config, $compilerSettings[$var], $overwriteAllowed);
         }
         
         return $this;

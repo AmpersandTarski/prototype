@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* [Issue 1070](https://github.com/AmpersandTarski/Ampersand/issues/1070) Don't pick up database configurations from Ampersand compiler anymore
 * [Issue 1096](https://github.com/AmpersandTarski/Ampersand/issues/1096) Show more usefull error message when composer autoloader file can not be found
 
 ## v1.6.1 (24 july 2020)
