@@ -17,12 +17,14 @@ use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
 use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
+use Ampersand\Event\TransactionEvent;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Ampersand\Misc\Installer;
 use Ampersand\Interfacing\ResourceList;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class AmpersandApp
 {
@@ -39,6 +41,11 @@ class AmpersandApp
      * @var \Ampersand\Log\UserLogger
      */
     protected $userLogger;
+
+    /**
+     * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+     */
+    protected $eventDispatcher;
 
     /**
      * Ampersand application name (i.e. CONTEXT of ADL entry script)
@@ -134,12 +141,13 @@ class AmpersandApp
      * @param \Ampersand\Misc\Settings $settings
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Model $model, Settings $settings, LoggerInterface $logger)
+    public function __construct(Model $model, Settings $settings, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher)
     {
         $this->logger = $logger;
         $this->userLogger = new UserLogger($this, $logger);
         $this->model = $model;
         $this->settings = $settings;
+        $this->eventDispatcher = $eventDispatcher;
 
         // Set app name
         $this->name = $this->settings->get('global.contextName');
@@ -153,6 +161,11 @@ class AmpersandApp
     public function userLog(): UserLogger
     {
         return $this->userLogger;
+    }
+
+    public function eventDispatcher(): EventDispatcherInterface
+    {
+        return $this->eventDispatcher;
     }
 
     public function init(): AmpersandApp
@@ -444,7 +457,10 @@ class AmpersandApp
      */
     public function newTransaction(): Transaction
     {
-        return $this->transactions[] = new Transaction($this, Logger::getLogger('TRANSACTION'));
+        $transaction = new Transaction($this, Logger::getLogger('TRANSACTION'));
+        $this->eventDispatcher()->dispatch(new TransactionEvent($transaction), TransactionEvent::STARTED);
+        $this->transactions[] = $transaction;
+        return $transaction;
     }
     
     /**

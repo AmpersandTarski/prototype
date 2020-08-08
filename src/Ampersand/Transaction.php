@@ -8,7 +8,6 @@
 namespace Ampersand;
 
 use Exception;
-use Ampersand\Misc\Hook;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Plugs\StorageInterface;
@@ -16,6 +15,7 @@ use Ampersand\Rule\RuleEngine;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Rule\Rule;
 use Ampersand\AmpersandApp;
+use Ampersand\Event\TransactionEvent;
 use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
 
@@ -309,8 +309,6 @@ class Transaction
         if ($this->isClosed()) {
             throw new Exception("Cannot close transaction, because transaction is already closed", 500);
         }
-        
-        Hook::callHooks('preCloseTransaction', get_defined_vars());
 
         // (Re)evaluate affected conjuncts
         foreach ($this->getAffectedConjuncts() as $conj) {
@@ -337,8 +335,6 @@ class Transaction
             }
         }
         
-        Hook::callHooks('postCloseTransaction', get_defined_vars());
-        
         self::$currentTransaction = null; // unset currentTransaction
         return $this;
     }
@@ -361,6 +357,8 @@ class Transaction
         }
 
         $this->isCommitted = true;
+
+        $this->app->eventDispatcher()->dispatch(new TransactionEvent($this), TransactionEvent::COMMITTED);
     }
 
     /**
@@ -381,6 +379,8 @@ class Transaction
         }
 
         $this->isCommitted = false;
+
+        $this->app->eventDispatcher()->dispatch(new TransactionEvent($this), TransactionEvent::ROLLEDBACK);
     }
     
     /**

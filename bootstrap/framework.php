@@ -8,6 +8,7 @@ use Ampersand\Model;
 use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Cascade\Cascade;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 // Please be aware that this only captures uncaught exceptions that would otherwise terminate your application.
 // It does not run for every exception that is raised in the application if they are caught.
@@ -88,7 +89,7 @@ $debugMode = $settings->get('global.debugMode');
 set_time_limit($settings->get('global.scriptTimeout'));
 date_default_timezone_set($settings->get('global.defaultTimezone'));
 
-$ampersandApp = new AmpersandApp($model, $settings, $logger);
+$ampersandApp = new AmpersandApp($model, $settings, $logger, new EventDispatcher());
 $angularApp = new AngularApp($ampersandApp, Logger::getLogger('FRONTEND'));
 
 /**************************************************************************************************
