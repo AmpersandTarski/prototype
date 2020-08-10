@@ -30,6 +30,7 @@ use Ampersand\Core\Link;
 use Ampersand\Core\Atom;
 use Ampersand\Exception\RelationNotDefined;
 use Ampersand\Exception\InterfaceNotDefined;
+use Ampersand\Misc\ProtoContext;
 
 /**
  *
@@ -333,9 +334,9 @@ class Model
 
         // Filter meta model atoms from initial population
         $conceptLabels = [
-            'PF_Role',
-            'PF_Interface',
-            'PF_Label'
+            ProtoContext::CPT_ROLE,
+            ProtoContext::CPT_IFC,
+            ProtoContext::CPT_LABEL
         ];
         $population = $population->filterAtoms(function (Atom $atom) use ($conceptLabels) {
             return in_array($atom->concept->getLabel(), $conceptLabels, true);
@@ -343,11 +344,11 @@ class Model
         
         // Filter meta model links from initial population
         $relationSignatures = [
-            'label[PF_Role*PF_Label]',
-            'label[PF_Interface*PF_Label]',
-            'pf_ifcRoles[PF_Interface*PF_Role]',
-            'isPublic[PF_Interface*PF_Interface]',
-            'isAPI[PF_Interface*PF_Interface]'
+            ProtoContext::REL_ROLE_LABEL,
+            ProtoContext::REL_IFC_LABEL,
+            ProtoContext::REL_IFC_ROLES,
+            ProtoContext::REL_IFC_IS_PUBLIC,
+            ProtoContext::REL_IFC_IS_API
         ];
         $population = $population->filterLinks(function (Link $link) use ($relationSignatures) {
             return in_array($link->relation()->getSignature(), $relationSignatures, true);
@@ -415,12 +416,12 @@ class Model
 
     public function getRoleConcept(): Concept
     {
-        return $this->getConceptByLabel('PF_Role');
+        return $this->getConceptByLabel(ProtoContext::CPT_ROLE);
     }
 
     public function getInterfaceConcept(): Concept
     {
-        return $this->getConceptByLabel('PF_Interface');
+        return $this->getConceptByLabel(ProtoContext::CPT_IFC);
     }
 
     /**********************************************************************************************

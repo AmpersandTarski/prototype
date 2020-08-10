@@ -16,6 +16,7 @@ use Ampersand\Interfacing\ResourceList;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\RelationNotDefined;
 use Ampersand\Exception\SessionExpiredException;
+use Ampersand\Misc\ProtoContext;
 
 /**
  * Class of session objects
@@ -99,7 +100,7 @@ class Session
             // If login functionality is not enabled, add all defined roles as allowed roles
             if (!$this->settings->get('session.loginEnabled')) {
                 foreach ($this->ampersandApp->getModel()->getRoleConcept()->getAllAtomObjects() as $roleAtom) {
-                    $this->sessionAtom->link($roleAtom, 'sessionAllowedRoles[SESSION*PF_Role]')->add();
+                    $this->sessionAtom->link($roleAtom, ProtoContext::REL_SESSION_ALLOWED_ROLES)->add();
                     // Activate all allowed roles by default
                     $this->toggleActiveRole($roleAtom, true);
                 }
@@ -175,7 +176,7 @@ class Session
             throw new Exception("Role {$roleAtom} is not defined", 500);
         }
 
-        $link = $this->sessionAtom->link($roleAtom, 'sessionActiveRoles[SESSION*PF_Role]');
+        $link = $this->sessionAtom->link($roleAtom, ProtoContext::REL_SESSION_ACTIVE_ROLES);
         switch ($setActive) {
             case true:
                 $link->add();
@@ -206,7 +207,7 @@ class Session
     {
         return array_map(function (Link $link) {
             return $link->tgt();
-        }, $this->sessionAtom->getLinks('sessionAllowedRoles[SESSION*PF_Role]'));
+        }, $this->sessionAtom->getLinks(ProtoContext::REL_SESSION_ALLOWED_ROLES));
     }
 
     /**
@@ -218,7 +219,7 @@ class Session
     {
         return array_map(function (Link $link) {
             return $link->tgt();
-        }, $this->sessionAtom->getLinks('sessionActiveRoles[SESSION*PF_Role]'));
+        }, $this->sessionAtom->getLinks(ProtoContext::REL_SESSION_ACTIVE_ROLES));
     }
     
     /**

@@ -17,6 +17,7 @@ use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Interfacing\InterfaceTxtObject;
 use Ampersand\AmpersandApp;
 use Ampersand\Core\Atom;
+use Ampersand\Misc\ProtoContext;
 
 /**
  *
@@ -111,7 +112,7 @@ class Ifc
 
     public function isPublic(): bool
     {
-        return !empty($this->getIfcAtom()->getTargetAtoms('isPublic[PF_Interface*PF_Interface]', false));
+        return !empty($this->getIfcAtom()->getTargetAtoms(ProtoContext::REL_IFC_IS_PUBLIC, false));
     }
 
     public function isAPI(): bool
@@ -141,7 +142,7 @@ class Ifc
      */
     public function getRoleNames()
     {
-        return $this->getIfcAtom()->getTargetAtoms('pf_ifcRoles[PF_Interface*PF_Role]', false);
+        return $this->getIfcAtom()->getTargetAtoms(ProtoContext::REL_IFC_ROLES, false);
     }
 
     public function getModel(): Model

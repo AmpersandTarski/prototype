@@ -24,6 +24,7 @@ use Ampersand\Interfacing\Ifc;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Ampersand\Misc\Installer;
 use Ampersand\Interfacing\ResourceList;
+use Ampersand\Misc\ProtoContext;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class AmpersandApp
@@ -369,13 +370,13 @@ class AmpersandApp
             
             $ifcAtoms = ResourceList::makeFromInterface($this->session->getId(), $rbacIfc->getId())->getResources();
         
-        // Else query the RELATION pf_ifcRoles[PF_Interface*PF_Role] for every active role
+        // Else query interfaces for every active role
         } else {
             foreach ($this->getActiveRoles() as $roleAtom) {
                 /** @var \Ampersand\Core\Atom $roleAtom */
                 
                 // Query accessible interfaces
-                $ifcAtoms = array_merge($ifcAtoms, $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*PF_Role]', true));
+                $ifcAtoms = array_merge($ifcAtoms, $roleAtom->getTargetAtoms(ProtoContext::REL_IFC_ROLES, true));
             }
         }
 
@@ -624,7 +625,6 @@ class AmpersandApp
     public function setActiveRoles(array $roles): void
     {
         foreach ($roles as $role) {
-            // Set sessionActiveRoles[SESSION*PF_Role]
             $this->session->toggleActiveRole($this->model->getRoleConcept()->makeAtom($role->id), $role->active);
         }
         
