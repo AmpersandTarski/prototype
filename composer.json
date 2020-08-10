@@ -21,7 +21,8 @@
         "symfony/event-dispatcher": "^5.1",
         "symfony/serializer": "^3.4",
         "symfony/filesystem": "^4.2",
-        "easyrdf/easyrdf": "^0.9.1"
+        "easyrdf/easyrdf": "^0.9.1",
+        "league/flysystem": "^1.1"
     },
     "autoload": {
         "psr-4": {"Ampersand\\": "src/Ampersand"},
