@@ -13,6 +13,7 @@ use Ampersand\AmpersandApp;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\Interfacing\Options;
+use Ampersand\Misc\ProtoContext;
 
 /**
  *
@@ -144,7 +145,7 @@ class AngularApp
 
     public function getNavMenuItems(): array
     {
-        return ResourceList::makeFromInterface($this->ampersandApp->getSession()->getSessionAtom()->getId(), 'PF_MenuItems')->get(Options::INCLUDE_NOTHING);
+        return ResourceList::makeFromInterface($this->ampersandApp->getSession()->getSessionAtom()->getId(), ProtoContext::IFC_MENU_ITEMS)->get(Options::INCLUDE_NOTHING);
     }
 
     public function getNavToResponse($case)
