@@ -30,21 +30,15 @@ $api->group('/file', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        $dataFolder = $ampersandApp->getSettings()->getDataDirectory();
-        $filePath = "{$dataFolder}/{$args['filePath']}";
-        $fs = new Filesystem;
+        $fs = $ampersandApp->fileSystem();
+        $filePath = $args['filePath'];
         
-        // Check if filePath exists (includes directories)
-        if (!$fs->exists($filePath)) {
+        // Check if filePath exists
+        if (!$fs->has($filePath)) {
             throw new Exception("File not found", 404);
         }
 
-        // Check if filePath is a file (and NOT a directory)
-        if (!is_file($filePath)) {
-            throw new Exception("File not found", 404);
-        }
-
-        $fileResource = fopen($filePath, 'rb');
+        $fileResource = $fs->readStream($filePath);
         $stream = new Stream($fileResource); // create a stream instance for the response body
 
         return $response->withHeader('Content-Description', 'File Transfer')

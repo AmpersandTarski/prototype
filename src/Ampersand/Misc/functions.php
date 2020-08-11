@@ -3,6 +3,7 @@
 namespace Ampersand\Misc;
 
 use Exception;
+use League\Flysystem\FilesystemInterface;
 use Throwable;
 
 /**
@@ -38,24 +39,25 @@ function isSequential(array $arr)
 }
 
 /**
- * Returns a filename (including path) that does not exists yet
+ * Returns a file path that does not exists yet
  * Filename is appended with '_i' just before the extension (e.g. dir/file_1.txt)
  *
- * @param string $absolutePath
+ * @param \League\Flysystem\FilesystemInterface $fileSystem
+ * @param string $filePath
  * @return string
  */
-function getSafeFileName(string $absolutePath): string
+function getSafeFileName(FilesystemInterface $fileSystem, string $filePath): string
 {
-    if (!file_exists($absolutePath)) {
-        return $absolutePath;
+    if (!$fileSystem->has($filePath)) {
+        return $filePath;
     }
 
-    $dir = pathinfo($absolutePath, PATHINFO_DIRNAME);
-    $filename = pathinfo($absolutePath, PATHINFO_FILENAME);
-    $ext = pathinfo($absolutePath, PATHINFO_EXTENSION);
+    $dir = pathinfo($filePath, PATHINFO_DIRNAME);
+    $filename = pathinfo($filePath, PATHINFO_FILENAME);
+    $ext = pathinfo($filePath, PATHINFO_EXTENSION);
 
     $i = 1;
-    while (file_exists($dir . DIRECTORY_SEPARATOR . "{$filename}_{$i}.{$ext}")) {
+    while ($fileSystem->has($dir . DIRECTORY_SEPARATOR . "{$filename}_{$i}.{$ext}")) {
         $i++;
     }
     return $dir . DIRECTORY_SEPARATOR . "{$filename}_{$i}.{$ext}";

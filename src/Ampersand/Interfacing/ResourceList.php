@@ -175,22 +175,22 @@ class ResourceList
         // Special case for file upload
         if ($newResource->concept->isFileObject()) {
             if (is_uploaded_file($_FILES['file']['tmp_name'])) {
+                $fs = $ampersandApp->fileSystem();
+                
                 $tmp_name = $_FILES['file']['tmp_name'];
                 $originalFileName = $_FILES['file']['name'];
+                $filePath = "uploads/{$originalFileName}";
 
-                $dataFolder = $ampersandApp->getSettings()->getDataDirectory();
-                $uploads = 'uploads';
-                $dest = getSafeFileName("{$dataFolder}/{$uploads}/{$originalFileName}");
-                $relativePath = $uploads . '/' . pathinfo($dest, PATHINFO_BASENAME); # relative to '/data' folder
+                // Make filePath safe (i.e. valid path and non-existing)
+                $filePath = getSafeFileName($fs, $filePath);
                 
-                $result = move_uploaded_file($tmp_name, $dest);
-                
+                $result = move_uploaded_file($tmp_name, $filePath);
                 if (!$result) {
                     throw new Exception("Error in file upload", 500);
                 }
                 
                 // Populate filePath and originalFileName relations in database
-                $newResource->link($relativePath, 'filePath[FileObject*FilePath]')->add();
+                $newResource->link($filePath, 'filePath[FileObject*FilePath]')->add();
                 $newResource->link($originalFileName, 'originalFileName[FileObject*FileName]')->add();
             } else {
                 throw new Exception("No file uploaded", 400);
