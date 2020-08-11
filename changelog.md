@@ -3,6 +3,7 @@
 ## Unreleased changes
 * [Issue 1070](https://github.com/AmpersandTarski/Ampersand/issues/1070) Don't pick up database configurations from Ampersand compiler anymore
 * [Issue 1096](https://github.com/AmpersandTarski/Ampersand/issues/1096) Show more usefull error message when composer autoloader file can not be found
+* [Issue 1097](https://github.com/AmpersandTarski/Ampersand/issues/1097) Implement file system interface to allow for other storage solutions
 * [Issue 1098](https://github.com/AmpersandTarski/Ampersand/issues/1098) Implementation of event dispatcher. Started with add/del atom and link and transaction related events
 * Removed Hook class implementation. Replaced by event dispatcher
 
