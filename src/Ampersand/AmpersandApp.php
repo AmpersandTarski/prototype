@@ -187,6 +187,12 @@ class AmpersandApp
         return $this->fileSystem;
     }
 
+    public function setFileSystem(FilesystemInterface $fs): AmpersandApp
+    {
+        $this->fileSystem = $fs;
+        return $this;
+    }
+
     public function init(): AmpersandApp
     {
         try {
