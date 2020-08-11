@@ -3,7 +3,6 @@
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\Stream;
-use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * @var \Slim\Slim $api
