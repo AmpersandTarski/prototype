@@ -97,7 +97,7 @@ $ampersandApp = new AmpersandApp(
     $logger,
     new EventDispatcher(),
     new Filesystem(
-        new Local($ampersandApp->getSettings()->getDataDirectory()) // local file system adapter
+        new Local($settings->getDataDirectory()) // local file system adapter
     )
 );
 $angularApp = new AngularApp($ampersandApp, Logger::getLogger('FRONTEND'));
