@@ -346,8 +346,25 @@ class Resource extends Atom implements ArrayAccess
      */
     public function delete(): Resource
     {
-        // Perform DELETE using the interface definition
-        $this->ifc->delete($this);
+        // Special case for FileObject: get filepath before deleting the atom
+        if ($this->concept->isFileObject()) {
+            $filePaths = []; // filePath[FileObject*FilePath] is UNI, so we expect max 1 link
+            foreach ($this->getLinks('filePath[FileObject*FilePath]') as $link) {
+                $filePaths[] = $link->tgt()->getId();
+            }
+
+            // Perform DELETE using the interface definition
+            $this->ifc->delete($this);
+
+            // Special case for FileObject: delete files from file system
+            foreach ($filePaths as $path) {
+                $this->concept->getApp()->fileSystem()->delete($path);
+            }
+            
+        } else {
+            // Perform DELETE using the interface definition
+            $this->ifc->delete($this);
+        }
         
         return $this;
     }
