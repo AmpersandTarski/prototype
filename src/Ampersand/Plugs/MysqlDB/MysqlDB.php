@@ -340,6 +340,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             if (!$this->productionMode) {
                 // Convert mysqli_sql_exceptions into 500 errors
                 switch ($e->getCode()) {
+                    case 1102: // Error: 1102 Incorrect database name
+                        throw new Exception("Incorrect MYSQL database name '{$this->dbName}'. Configure a database name that complies with the MariaDB identifier rules. If not configured the Ampersand CONTEXT name is used by default", 500, $e);
                     case 1146: // Error: 1146 SQLSTATE: 42S02 (ER_NO_SUCH_TABLE)
                     case 1054: // Error: 1054 SQLSTATE: 42S22 (ER_BAD_FIELD_ERROR)
                         throw new NotInstalledException("{$e->getMessage()}. Try reinstalling the application");

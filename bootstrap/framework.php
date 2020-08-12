@@ -8,6 +8,9 @@ use Ampersand\Model;
 use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Cascade\Cascade;
+use League\Flysystem\Adapter\Local;
+use League\Flysystem\Filesystem;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 // Please be aware that this only captures uncaught exceptions that would otherwise terminate your application.
 // It does not run for every exception that is raised in the application if they are caught.
@@ -51,7 +54,11 @@ session_start();
 /**************************************************************************************************
  * COMPOSER AUTOLOADER
  *************************************************************************************************/
-require_once(__DIR__ . '/../lib/autoload.php');
+$composerAutoloaderFile = __DIR__ . '/../lib/autoload.php';
+if (!file_exists($composerAutoloaderFile)) {
+    throw new Exception("Cannot find autoloader for libraries at '{$composerAutoloaderFile}'. Try running 'composer install'");
+}
+require_once($composerAutoloaderFile);
 
 /**************************************************************************************************
  * LOGGING
@@ -76,7 +83,7 @@ $model = new Model(dirname(__FILE__, 2) . '/generics', $logger);
 
 $settings = new Settings($logger); // includes default framework settings
 $settings->set('global.absolutePath', dirname(__FILE__, 2));
-$settings->loadSettingsJsonFile($model->getFilePath('settings')); // load model settings from Ampersand generator
+$settings->loadSettingsFromCompiler($model); // load model settings from Ampersand compiler
 $settings->loadSettingsYamlFile(dirname(__FILE__, 2) . '/config/project.yaml'); // load project specific settings
 $settings->loadSettingsFromEnv();
 $debugMode = $settings->get('global.debugMode');
@@ -84,7 +91,15 @@ $debugMode = $settings->get('global.debugMode');
 set_time_limit($settings->get('global.scriptTimeout'));
 date_default_timezone_set($settings->get('global.defaultTimezone'));
 
-$ampersandApp = new AmpersandApp($model, $settings, $logger);
+$ampersandApp = new AmpersandApp(
+    $model,
+    $settings,
+    $logger,
+    new EventDispatcher(),
+    new Filesystem(
+        new Local($settings->getDataDirectory()) // local file system adapter
+    )
+);
 $angularApp = new AngularApp($ampersandApp, Logger::getLogger('FRONTEND'));
 
 /**************************************************************************************************
@@ -94,7 +109,7 @@ $mysqlDB = new MysqlDB(
     $settings->get('mysql.dbHost'),
     $settings->get('mysql.dbUser'),
     $settings->get('mysql.dbPass'),
-    $settings->get('mysql.dbName'),
+    $settings->get('mysql.dbName', $settings->get('global.contextName')),
     Logger::getLogger('DATABASE'),
     $settings->get('global.debugMode'),
     $settings->get('global.productionEnv')

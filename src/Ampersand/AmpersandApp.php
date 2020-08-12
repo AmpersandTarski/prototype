@@ -17,12 +17,15 @@ use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
 use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
+use Ampersand\Event\TransactionEvent;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Ampersand\Misc\Installer;
 use Ampersand\Interfacing\ResourceList;
+use League\Flysystem\FilesystemInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class AmpersandApp
 {
@@ -39,6 +42,16 @@ class AmpersandApp
      * @var \Ampersand\Log\UserLogger
      */
     protected $userLogger;
+
+    /**
+     * @var \League\Flysystem\FilesystemInterface
+     */
+    protected $fileSystem;
+
+    /**
+     * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+     */
+    protected $eventDispatcher;
 
     /**
      * Ampersand application name (i.e. CONTEXT of ADL entry script)
@@ -133,13 +146,22 @@ class AmpersandApp
      * @param \Ampersand\Model $model
      * @param \Ampersand\Misc\Settings $settings
      * @param \Psr\Log\LoggerInterface $logger
+     * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
+     * @param \League\Flysystem\FilesystemInterface $fileSystem
      */
-    public function __construct(Model $model, Settings $settings, LoggerInterface $logger)
-    {
+    public function __construct(
+        Model $model,
+        Settings $settings,
+        LoggerInterface $logger,
+        EventDispatcherInterface $eventDispatcher,
+        FilesystemInterface $fileSystem
+    ) {
         $this->logger = $logger;
         $this->userLogger = new UserLogger($this, $logger);
         $this->model = $model;
         $this->settings = $settings;
+        $this->eventDispatcher = $eventDispatcher;
+        $this->fileSystem = $fileSystem;
 
         // Set app name
         $this->name = $this->settings->get('global.contextName');
@@ -153,6 +175,22 @@ class AmpersandApp
     public function userLog(): UserLogger
     {
         return $this->userLogger;
+    }
+
+    public function eventDispatcher(): EventDispatcherInterface
+    {
+        return $this->eventDispatcher;
+    }
+
+    public function fileSystem(): FilesystemInterface
+    {
+        return $this->fileSystem;
+    }
+
+    public function setFileSystem(FilesystemInterface $fs): AmpersandApp
+    {
+        $this->fileSystem = $fs;
+        return $this;
     }
 
     public function init(): AmpersandApp
@@ -444,7 +482,10 @@ class AmpersandApp
      */
     public function newTransaction(): Transaction
     {
-        return $this->transactions[] = new Transaction($this, Logger::getLogger('TRANSACTION'));
+        $transaction = new Transaction($this, Logger::getLogger('TRANSACTION'));
+        $this->eventDispatcher()->dispatch(new TransactionEvent($transaction), TransactionEvent::STARTED);
+        $this->transactions[] = $transaction;
+        return $transaction;
     }
     
     /**

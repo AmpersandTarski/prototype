@@ -3,14 +3,15 @@ $if(verbose)$<!-- View-FILEOBJECT.html "$label$" : $expAdl$ :: $source$ * $targe
     CONCEPT FileObject ""
     IDENT FileObjectName : FileObject (filePath)
     VIEW FileObject : FileObject DEFAULT {apiPath : TXT "api/v1/file", filePath : filePath, fileName : originalFileName} HTML TEMPLATE "View-FILEOBJECT.html" ENDVIEW
-    RELATION filePath[FileObject*FilePath]
-    RELATION originalFileName[FileObject*FileName]
+    RELATION filePath[FileObject*FilePath] [UNI,TOT]
+    RELATION originalFileName[FileObject*FileName] [UNI,TOT]
     REPRESENT FilePath TYPE ALPHANUMERIC
     REPRESENT FileName TYPE ALPHANUMERIC
 -->
 $endif$$if(crudR)$<div class="input-group" ng-controller="AtomicController">
     <div ng-repeat="obj in requireArray(resource['$name$']) track by \$index">$if(crudU)$
-        <span my-showonhover-box class="glyphicon glyphicon-minus" ng-click="remove(resource, '$name$', obj, patchResource)" uib-tooltip="Remove" tooltip-trigger="mouseenter" tooltip-placement="left"></span>$endif$
+        <span my-showonhover-box class="glyphicon glyphicon-minus" ng-click="remove(resource, '$name$', obj, patchResource)" uib-tooltip="Remove" tooltip-trigger="mouseenter" tooltip-placement="left"></span>$endif$$if(crudD)$
+        <span my-showonhover-box class="glyphicon glyphicon-trash" ng-click="delete(resource, '$name$', obj)" uib-tooltip="Delete" tooltip-trigger="mouseenter" tooltip-placement="left"></span>$endif$
         <a href="{{obj._view_.apiPath}}/{{obj._view_.filePath}}" target="_blank">{{obj._view_.fileName}}</a>
     </div>$if(crudU)$$if(verbose)$
     <!-- Input to add new link to another resource -->$endif$
