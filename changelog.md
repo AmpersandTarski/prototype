@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.7.0 (12 august 2020)
 * [Issue 1070](https://github.com/AmpersandTarski/Ampersand/issues/1070) Don't pick up database configurations from Ampersand compiler anymore
 * [Issue 1096](https://github.com/AmpersandTarski/Ampersand/issues/1096) Show more usefull error message when composer autoloader file can not be found
 * [Issue 1097](https://github.com/AmpersandTarski/Ampersand/issues/1097) Implement file system interface to allow for other storage solutions
