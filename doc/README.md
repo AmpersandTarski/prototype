@@ -8,4 +8,5 @@ This documentation is intended for developers of the framework and more advanced
 ## Table of content
 1. [Interface between Ampersand compiler and prototype framework](../generics/README.md)
 1. [Configuration of the prototype](../config/README.md)
+1. [File system / storage implementation](./file-system.md)
 1. [Event dispatcher](./event-dispatcher.md)
