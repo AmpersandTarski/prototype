@@ -120,7 +120,7 @@ class Settings
 
         // Only the variables mapped in the COMPILER_VAR_CONFIG_MAP are used
         foreach (self::COMPILER_VAR_CONFIG_MAP as $var => $config) {
-            $this->set($config, $compilerSettings[$var], $overwriteAllowed);
+            $this->set($config, $compilerSettings->{$var}, $overwriteAllowed);
         }
         
         return $this;

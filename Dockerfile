@@ -1,6 +1,3 @@
-# TODO pick a specific release of Ampersand. Can be done after next release of Ampersand, when a v4.y.z. tag is available on Docker Hub
-FROM ampersandtarski/ampersand:development as compiler
-
 # To run generated prototypes we require a apache webserver with php
 FROM php:7.4-apache
 
@@ -48,7 +45,7 @@ RUN npm install \
  && npm audit fix
 
 # Copy Ampersand compiler
-COPY --from=compiler /bin/ampersand /usr/local/bin
+COPY --from=ampersandtarski/ampersand:v4.0.2 /bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
 
 # Add folders that Apache can write to
