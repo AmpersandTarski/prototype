@@ -184,7 +184,12 @@ class ResourceList
                 // Make filePath safe (i.e. valid path and non-existing)
                 $filePath = getSafeFileName($fs, $filePath);
                 
-                $result = move_uploaded_file($tmp_name, $filePath);
+                $stream = fopen($tmp_name, 'r+');
+                $result = $fs->writeStream($filePath, $stream);
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
+                
                 if (!$result) {
                     throw new Exception("Error in file upload", 500);
                 }
