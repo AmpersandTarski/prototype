@@ -28,22 +28,22 @@ This template replaces former templates: `ROWS`, `HROWS`, `HROWSNL` and `ROWSNL`
 
 Usage `BOX <FORM attributes*>`
 
-For root interface boxes automatically a title is added which equals the interface name. To hide this title use `noTitle` attribute.
+For root interface boxes automatically a title is added which equals the interface name. To hide this title use `noRootTitle` attribute.
 
 Examples:
 - `BOX <FORM>`
-- `BOX <FORM noLabels>`
-- `BOX <FORM hideNoRecords>`
+- `BOX <FORM hideLabels>`
+- `BOX <FORM hideOnNoRecords>`
 - `BOX <FORM title="Title of your form">`
-- `BOX <FORM noLabels hideNoRecords noTitle>`
+- `BOX <FORM hideLabels hideOnNoRecords noRootTitle>`
 
 Possible attributes are:
 | attribute | value | description |
 | --------- | ----- | ----------- |
-| hideNoRecords | n.a. | when attribute is set, the complete form is hidden in the interface when there are no records |
-| noLabels | n.a. | when attribute is set, no field labels are shown |
+| hideOnNoRecords | n.a. | when attribute is set, the complete form is hidden in the interface when there are no records |
+| hideLabels | n.a. | when attribute is set, no field labels are shown |
 | title | string | title / description for the forms. Title is shown above the form |
-| noTitle | n.a. | hides title; usefull for root interface boxes where a title is automatically is added |
+| noRootTitle | n.a. | hides title; usefull for root interface boxes where a title is automatically is added |
 
 ### TABLE
 Interface template for table structures. The target atoms of the interface make up the records / rows. The sub interfaces are used as columns.
@@ -51,22 +51,22 @@ This templates replaces former templates: `COLS`, `SCOLS`, `HCOLS`, `SHCOLS` and
 
 Usage: `BOX <TABLE attributes*>`
 
-For root interface boxes automatically a title is added which equals the interface name. To hide this title use `noTitle` attribute.
+For root interface boxes automatically a title is added which equals the interface name. To hide this title use `noRootTitle` attribute.
 
 Examples:
 - `BOX <TABLE>`
 - `BOX <TABLE noHeader>`
-- `BOX <TABLE hideNoRecords>`
+- `BOX <TABLE hideOnNoRecords>`
 - `BOX <TABLE title="Title of your table">`
-- `BOX <TABLE noHeader hideNoRecords title="Table with title">`
+- `BOX <TABLE noHeader hideOnNoRecords title="Table with title">`
 
 Possible attributes are:
 | attribute | value | description |
 | --------- | ----- | ----------- |
-| hideNoRecords | n.a. | when attribute is set, the complete table is hidden in the interface when there are no records |
+| hideOnNoRecords | n.a. | when attribute is set, the complete table is hidden in the interface when there are no records |
 | noHeader | n.a. | when attribute is set, no table header is used |
 | title | string | title / description for the table. Title is shown above table |
-| noTitle | n.a. | hides title; usefull for root interface boxes where a title is automatically is added |
+| noRootTitle | n.a. | hides title; usefull for root interface boxes where a title is automatically is added |
 | sortable | n.a. | makes table headers clickable to support sorting on some property of the data. Only applies to univalent fields |
 | sortBy | sub interface label | Add default sorting for given sub interface. Use in combination with 'sortable' |
 | order | `desc`, `asc` | Specifies default sorting order. Use in combination with 'sortBy'. Use `desc` for descending, `asc` for ascending |
@@ -77,18 +77,18 @@ This template is used best in combination with univalent interface expressions (
 
 Usage `BOX <TABS attributes*>`
 
-For root interface boxes automatically a title is added which equals the interface name. To hide this title use `noTitle` attribute.
+For root interface boxes automatically a title is added which equals the interface name. To hide this title use `noRootTitle` attribute.
 
 Example:
 - `BOX <TABS>`
 - `BOX <TABS title="Tabs with title">`
-- `BOX <TABS noTitle>`
+- `BOX <TABS noRootTitle>`
 
 Possible attributes are:
 | attributes | value | description |
 | ---------- | ----- | ----------- |
 | title      | string | title / description for the table. Title is shown above tabs structure |
-| noTitle    | n.a. | hides title; usefull for root interface boxes where a title is automatically is added |
+| noRootTitle    | n.a. | hides title; usefull for root interface boxes where a title is automatically is added |
 
 ### RAW
 Interface template without any additional styling and without (editing) functionality. Just plain html `<div>` elements

@@ -1,6 +1,6 @@
 $if(verbose)$<!-- Box-FORM.html "$label$" $expAdl$ :: $source$ * $target$ $if(exprIsUni)$[UNI]$endif$$if(exprIsTot)$[TOT]$endif$  ($if(crudC)$C$else$c$endif$$if(crudR)$R$else$r$endif$$if(crudU)$U$else$u$endif$$if(crudD)$D$else$d$endif$, $if(!isRoot)$non-$endif$root box) -->
-$endif$$if(crudR)$<div class="box box-rows" ng-controller="BoxController" ng-init="parent = resource"$if(hideNoRecords)$ ng-if="$if(exprIsUni)$resource['$name$']$else$resource['$name$'].length$endif$"$endif$>
-    $if(!noTitle)$$if(title)$<h4>$title$</h4>$else$$if(isRoot)$<h4>$label$</h4>$endif$$endif$$endif$$if(crudC)$
+$endif$$if(crudR)$<div class="box box-rows" ng-controller="BoxController" ng-init="parent = resource"$if(hideOnNoRecords)$ ng-if="$if(exprIsUni)$resource['$name$']$else$resource['$name$'].length$endif$"$endif$>
+    $if(!noRootTitle)$$if(title)$<h4>$title$</h4>$else$$if(isRoot)$<h4>$label$</h4>$endif$$endif$$endif$$if(crudC)$
     <div class="row" ng-if="$if(exprIsUni)$!resource['$name$']$else$!resource['$name$'].length$endif$">
         <div class="col-xs-12">
             <button type="button" class="btn btn-sm btn-success" ng-click="createResource(parent, '$name$', patchResource)">New $target$</button>
@@ -25,7 +25,7 @@ $endif$$if(crudR)$<div class="box box-rows" ng-controller="BoxController" ng-ini
                 <my-nav-to-other-interfaces resource="resource"></my-nav-to-other-interfaces>
             </div>$subObjects:{subObj|$if(verbose)$
             <!-- $subObj.subObjLabel$ -->$endif$
-            <div class="row">$if(noLabels)$
+            <div class="row">$if(hideLabels)$
                 <div class="row-content col-md-12">
                     $subObj.subObjContents$
                 </div>$else$
