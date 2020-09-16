@@ -25,6 +25,7 @@ $if(crudR)$
       ng-model="resource['setrelation']"
       ng-change="resource.selectflag = !resource.selectflag; saveItem(resource, 'selectflag', patchResource); saveItem(resource, 'setrelation', patchResource)"
       ng-disabled="resource.disabled"
+	  class="form-control input-sm"
       required>
       <option value="">{{resource['instruction']}}</option> <!-- add 'disabled' to prevent selecting this option, add 'hidden' to hide this option -->
     </select>
@@ -33,6 +34,7 @@ $if(crudR)$
       ng-options="value for value in requireArray(resource['selectfrom'])"
       ng-model="resource['setrelation']" ng-change="saveItem(resource, 'setrelation', patchResource)"
       ng-disabled="resource.disabled"
+	  class="form-control input-sm"
       required>
       <option value="">{{resource['instruction']}}</option> <!-- add 'disabled' to prevent selecting this option, add 'hidden' to hide this option -->
     </select>
