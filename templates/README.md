@@ -98,11 +98,13 @@ Usage: `BOX <RAW attributes*>`
 
 Examples:
 - `BOX <RAW>`
+- `BOX <RAW form>`
 - `BOX <RAW table>`
 
 Possible attributes are:
 | attribute | value | description |
 | --------- | ----- | ----------- |
+| form      | n.a.  | uses simple form structure to display data. Similar to `FORM` template, but without any functionality nor markup. This is the default layout for `RAW` template.
 | table     | n.a.  | uses simple table structure to display data. Similar to `TABLE` template (see below), but without any functionality, header and styling
 
 ### PROPBUTTON
