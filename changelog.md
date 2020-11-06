@@ -2,6 +2,7 @@
 
 ## Unreleased changes
 * [Issue 1104](https://github.com/AmpersandTarski/Ampersand/issues/1104) Built-in template revisions
+* Add `hideOnNoRecords` functionality to TABS template
 
 ## v1.7.0 (12 august 2020)
 * [Issue 1070](https://github.com/AmpersandTarski/Ampersand/issues/1070) Don't pick up database configurations from Ampersand compiler anymore
