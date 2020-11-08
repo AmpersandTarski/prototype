@@ -1,6 +1,12 @@
 {
     "name" : "ampersandtarski/prototype",
     "description": "Package for the backend application of an Ampersand prototype",
+    "license": "MIT",
+    "authors": [{
+        "name": "Michiel Stornebrink",
+        "email": "michielstornebrink@gmail.com",
+        "homepage": "https://github.com/Michiel-s"
+    }],
     "config": {
         "vendor-dir" : "lib"
     },
