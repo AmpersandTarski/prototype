@@ -9,26 +9,26 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",
-    "license": "GPL-3.0-only",
+    "license": "MIT",
     "repository": {
         "type": "git",
         "url": "https://github.com/AmpersandTarski/Prototype.git"
     },
     "devDependencies": {
-        "@babel/core": "^7.5.4",
-        "@babel/preset-env": "^7.5.4",
+        "@babel/core": "^7.12.3",
+        "@babel/preset-env": "^7.12.1",
         "add-stream": "^1.0.0",
         "bower": "^1.8.8",
         "gulp": "^4.0.2",
         "gulp-angular-templatecache": "^2.2.7",
         "gulp-babel": "^8.0.0",
         "gulp-clean": "^0.4.0",
-        "gulp-clean-css": "^4.2.0",
+        "gulp-clean-css": "^4.3.0",
         "gulp-concat": "^2.6.1",
         "gulp-filter": "^5.1.0",
         "gulp-flatten": "^0.4.0",
         "gulp-jsvalidate": "^4.0.0",
-        "gulp-main-bower-files": "^1.7.0",
+        "gulp-main-bower-files": "^1.7.2",
         "gulp-ng-annotate": "^2.1.0",
         "gulp-rename": "^1.4.0",
         "gulp-sourcemaps": "^2.6.5",
@@ -36,6 +36,6 @@
         "merge": "^1.2.1"
     },
     "dependencies": {
-        "@babel/polyfill": "^7.4.4"
+        "@babel/polyfill": "^7.12.1"
     }
 }

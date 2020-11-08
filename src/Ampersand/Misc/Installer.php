@@ -9,6 +9,7 @@ namespace Ampersand\Misc;
 
 use Ampersand\Model;
 use Psr\Log\LoggerInterface;
+use Ampersand\Misc\ProtoContext;
 
 /**
  *
@@ -78,10 +79,10 @@ class Installer
         // TODO: add function to clear/delete current nav menu population
 
         // MainMenu (i.e. all UI interfaces with SESSION as src concept)
-        $mainMenu = $model->getConceptByLabel('PF_NavMenu')->makeAtom('MainMenu')->add();
-        $mainMenu->link('Main menu', 'label[PF_NavMenuItem*PF_Label]')->add();
-        $mainMenu->link($mainMenu, 'isVisible[PF_NavMenuItem*PF_NavMenuItem]')->add(); // make visible by default
-        $mainMenu->link($mainMenu, 'isPartOf[PF_NavMenuItem*PF_NavMenu]')->add();
+        $mainMenu = $model->getConceptByLabel(ProtoContext::CPT_NAV_MENU)->makeAtom('MainMenu')->add();
+        $mainMenu->link('Main menu', ProtoContext::REL_NAV_LABEL)->add();
+        $mainMenu->link($mainMenu, ProtoContext::REL_NAV_IS_VISIBLE)->add(); // make visible by default
+        $mainMenu->link($mainMenu, ProtoContext::REL_NAV_IS_PART_OF)->add();
         $i = '0';
         foreach ($model->getAllInterfaces() as $ifc) {
             /** @var \Ampersand\Interfacing\Ifc $ifc */
@@ -92,12 +93,12 @@ class Installer
 
             if ($ifc->getSrcConcept()->isSession()) {
                 $i++;
-                $menuItem = $model->getConceptByLabel('PF_NavMenuItem')->makeAtom($ifc->getId())->add();
-                $menuItem->link($ifc->getLabel(), 'label[PF_NavMenuItem*PF_Label]')->add();
-                $menuItem->link($menuItem, 'isVisible[PF_NavMenuItem*PF_NavMenuItem]')->add(); // make visible by default
-                $menuItem->link($ifc->getId(), 'ifc[PF_NavMenuItem*PF_Interface]')->add();
-                $menuItem->link((string) $i, 'seqNr[PF_NavMenuItem*PF_SeqNr]')->add();
-                $menuItem->link($mainMenu, 'isSubItemOf[PF_NavMenuItem*PF_NavMenuItem]')->add();
+                $menuItem = $model->getConceptByLabel(ProtoContext::CPT_NAV_ITEM)->makeAtom($ifc->getId())->add();
+                $menuItem->link($ifc->getLabel(), ProtoContext::REL_NAV_LABEL)->add();
+                $menuItem->link($menuItem, ProtoContext::REL_NAV_IS_VISIBLE)->add(); // make visible by default
+                $menuItem->link($ifc->getId(), ProtoContext::REL_NAV_IFC)->add();
+                $menuItem->link((string) $i, ProtoContext::REL_NAV_SEQ_NR)->add();
+                $menuItem->link($mainMenu, ProtoContext::REL_NAV_SUB_OF)->add();
             }
         }
 

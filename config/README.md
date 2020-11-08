@@ -31,3 +31,17 @@ These are loaded last and overwrite previous set settings.
 * AMPERSAND_DBNAME -> mysql.dbName
 * AMPERSAND_DBUSER -> mysql.dbUser
 * AMPERSAND_DBPASS -> mysql.dbPass
+
+## Explanation of settings
+
+* global.debugMode (env AMPERSAND_DEBUG_MODE)
+  
+  This setting determines how much debug information is provided to the user. When set to `true`, the detailed error message, including full stack trace is provided by the api and shown in the frontend. You can view the stack trace by opening (clicking on) the red error message.
+  
+  When you set the debug mode to `false`, error details are not displayed and the message states: `An error occured (debug information in server log files)`. The end user doesn't see what's wrong.
+
+* global.productionEnv (env AMPERSAND_PRODUCTION_MODE)
+  
+  This setting determines which management functions are (not) allowed. Most important one is that in production mode `true` reinstalling the database is not allowed, never! This ensures that by accident all data is lost.
+  
+  This means that when you start the application in production mode `true`, and the database doesn't exist or is outdated (new tables/columns are needed), an exception is thrown. And you are stuck.

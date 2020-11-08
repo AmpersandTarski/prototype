@@ -9,6 +9,7 @@ namespace Ampersand;
 
 use Ampersand\Model;
 use Ampersand\Core\Atom;
+use Ampersand\Misc\ProtoContext;
 
 /**
  *
@@ -115,7 +116,7 @@ class Role
 
             // Query and filter (un)defined interfaces
             $ifcAtoms = array_filter(
-                $roleAtom->getTargetAtoms('pf_ifcRoles[PF_Interface*Role]', true),
+                $roleAtom->getTargetAtoms(ProtoContext::REL_IFC_ROLES, true),
                 function (Atom $ifcAtom) {
                     return $this->model->interfaceExists($ifcAtom->getId());
                 }

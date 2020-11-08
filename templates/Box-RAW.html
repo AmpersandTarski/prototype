@@ -1,8 +1,8 @@
 $if(verbose)$<!-- Box-RAW.html "$label$" : $expAdl$ :: $source$ * $target$ $if(exprIsUni)$[UNI]$endif$$if(exprIsTot)$[TOT]$endif$  ($if(crudC)$C$else$c$endif$$if(crudR)$R$else$r$endif$$if(crudU)$U$else$u$endif$$if(crudD)$D$else$d$endif$, $if(!isRoot)$non-$endif$root box) -->
 $endif$$if(crudR)$$if(table)$<div>
-    <table class="table table-striped table-hover table-condensed">
+    <table>
         <tr ng-repeat="resource in requireArray(resource['$name$'])">$subObjects:{subObj|
-            <td style="border-top-style:none">
+            <td>
                 $subObj.subObjContents$
             </td>}$
         </tr>
