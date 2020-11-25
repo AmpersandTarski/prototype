@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* Bugfix link to population exporter API
 
 ## v1.7.1 (9 novemer 2020)
 * [Issue 1104](https://github.com/AmpersandTarski/Ampersand/issues/1104) Built-in template revisions
