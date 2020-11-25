@@ -11,7 +11,7 @@ angular.module('AmpersandApp')
                 }
             }],
             controller : 'LoginExtLoginController',
-            templateUrl : 'app/ext/OAuthLogin/views/Login.html',
+            templateUrl : 'app/src/oauthlogin/login.html',
             interfaceLabel : 'Login'
         });
 }).requires.push('LoginModule'); // add LoginModule to dependency list

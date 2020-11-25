@@ -69,4 +69,5 @@ COPY . /var/www
 WORKDIR /var/www
 RUN gulp build-ampersand
 
-ADD https://curl.haxx.se/ca/cacert.pem /var/www/extensions/OAuthLogin/cacert.pem
+# CA cert needed by php curl
+ADD https://curl.haxx.se/ca/cacert.pem /etc/ssl/certs/cacert.pem

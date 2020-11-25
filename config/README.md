@@ -45,3 +45,31 @@ These are loaded last and overwrite previous set settings.
   This setting determines which management functions are (not) allowed. Most important one is that in production mode `true` reinstalling the database is not allowed, never! This ensures that by accident all data is lost.
   
   This means that when you start the application in production mode `true`, and the database doesn't exist or is outdated (new tables/columns are needed), an exception is thrown. And you are stuck.
+
+## The SIAM\OAuth module
+The SIAM\OAuth module allows you to easily add a user (account) registration to your Ampersand prototype.
+
+### How to enable and configure the module
+Step 1: Choose identity providers you would like to support (e.g. Github, LinkedIn, Google, etc)
+  * Register application at identity provider
+  * Configure supported identity providers in a config yaml file, see [example](./oauth.sample.yaml)
+  * Rename and place the file in the /config folder
+
+Step 2: Add the configuration file to the list of config files in your project.yaml
+  ```yaml
+  config:
+    - config/oauth.yaml
+  ```
+
+Step 3: Add required concepts and relations to your Ampersand script. See SIAM OAuth module.
+  TODO: explain here which concepts and relations are needed
+
+Step 4 (optional): Test the OAuth protocol on your local machine:
+  * add example.com to redirect to localhost in host table
+    * windows: c:/windows/system32/drivers/etc/hosts (flush dns afterwards: `ipconfig /flushdns`)
+    * linux: /etc/hosts
+  * restart browser and check if example.com redirect to your local machine
+  * replace 'https://[server]' in config yaml with example.com
+
+### Notes
+* The OAuth module uses [curl](http://php.net/manual/en/book.curl.php) to get/request data from the identity providers. To verify the peer curl needs a file with root certificates, which is provided in the `/etc/ssl/certs/cacert.pem` file. Goto https://curl.haxx.se/docs/caextract.html to update the cacert.pem once in a while. During Docker build the latest version is downloaded automatically. You can also set another location for your cacert.pem file using the config `oauthlogin.cacertLocation`

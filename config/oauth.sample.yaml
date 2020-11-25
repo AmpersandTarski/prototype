@@ -1,12 +1,14 @@
 settings:
+  oauthlogin.enabled: true
   # path 'redirect-after-login' triggers frontend to route back to page where status 401 was raised.
   oauthlogin.redirectAfterLogin: \#/redirect-after-login # can be relative to global.serverURL or absolute starting with http(s)://
   oauthlogin.redirectAfterLoginFailure: \#/ # can be relative to global.serverURL or absolute starting with http(s)://
+  oauthlogin.cacertLocation: /etc/ssl/certs/cacert.pem
 
   oauthlogin.identityProviders:
     linkedin:
       name: LinkedIn
-      logoUrl: app/ext/OAuthLogin/images/logo-linkedin.png
+      logoUrl: app/images/oauth/logo-linkedin.png
       authBase: https://www.linkedin.com/uas/oauth2/authorization
       redirectUrl: api/v1/oauthlogin/callback/linkedin # can be relative to global.serverURL or absolute starting with http(s)://
       clientId: <string>
@@ -17,7 +19,7 @@ settings:
       state: <string> # A unique string value of your choice that is hard to guess. Used to prevent CSRF
     google:
       name: Google
-      logoUrl: app/ext/OAuthLogin/images/logo-google.png
+      logoUrl: app/images/oauth/logo-google.png
       authBase: https://accounts.google.com/o/oauth2/auth
       redirectUrl: api/v1/oauthlogin/callback/google # can be relative to global.serverURL or absolute starting with http(s)://
       clientId: <string>
@@ -28,7 +30,7 @@ settings:
       state: <string> # A unique string value of your choice that is hard to guess. Used to prevent CSRF
     github:
       name: GitHub
-      logoUrl: app/ext/OAuthLogin/images/logo-github.png
+      logoUrl: app/images/oauth/logo-github.png
       authBase: https://github.com/login/oauth/authorize
       redirectUrl: api/v1/oauthlogin/callback/github # can be relative to global.serverURL or absolute starting with http(s)://
       clientId: <string>
