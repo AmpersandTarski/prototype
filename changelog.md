@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+* **!! Backwards incompatible changes**:
+  * OAuthLogin module is not an extension anymore, but built in the framework. Changes are required in configuration files, see [readme](./config/README.md)
 * Bugfix link to population exporter API
 
 ## v1.7.1 (9 novemer 2020)
