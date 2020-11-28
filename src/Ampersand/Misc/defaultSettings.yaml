@@ -53,6 +53,9 @@ settings:
   session.loginEnabled: false # enable/disable login functionality (requires SIAM module)
   session.loginPage: null # other example: '/ext/Login'
 
+  ### Config for core classes: Concepts, Atoms, Relations and Links
+  core.concept.prefixAtomIdWithConceptName: true
+
   ### Transaction settings
   transactions.ignoreInvariantViolations: false # for debugging can be set to true (transactions will be committed regardless off invariant violations)
   transactions.skipUniInjConjuncts: false # TODO: remove after fix for issue #535

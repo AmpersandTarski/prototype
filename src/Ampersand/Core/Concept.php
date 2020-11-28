@@ -96,6 +96,11 @@ class Concept
      * @var string
      */
     public $type;
+
+    /**
+     * Specifies if new atom identifiers must be prefixed with the concept name, e.g. 'ConceptA_<uuid>'
+     */
+    protected bool $prefixAtomIdWithConceptName;
     
     /**
      * List of conjuncts that are affected by creating or deleting an atom of this concept
@@ -185,6 +190,8 @@ class Concept
         $this->name = $conceptDef['id'];
         $this->label = $conceptDef['label'];
         $this->type = $conceptDef['type'];
+
+        $this->prefixAtomIdWithConceptName = $app->getSettings()->get('core.concept.prefixAtomIdWithConceptName');
 
         if (!array_key_exists($this->type, self::$representTypes)) {
             throw new Exception("Unsupported represent type: '{$this->type}'. Supported are: " . implode(',', array_keys(self::$representTypes)), 500);
@@ -528,7 +535,7 @@ class Concept
          * not contain any information about the time they are created or the machine that generated them.
          * If you don’t care about this information, then a version 4 UUID might be perfect for your needs.
          */
-        return $this->name . '_' . Uuid::uuid4()->toString();
+        return $this->prefixAtomIdWithConceptName ? $this->name . '_' . Uuid::uuid4()->toString() : Uuid::uuid4()->toString();
     }
     
     /**
