@@ -522,6 +522,12 @@ class Concept
             }
         }
 
+        /**
+         * Source: https://uuid.ramsey.dev/en/latest/rfc4122/version4.html
+         * Version 4 UUIDs are perhaps the most popular form of UUID. They are randomly-generated and do
+         * not contain any information about the time they are created or the machine that generated them.
+         * If you don’t care about this information, then a version 4 UUID might be perfect for your needs.
+         */
         return $this->name . '_' . Uuid::uuid4()->toString();
     }
     
