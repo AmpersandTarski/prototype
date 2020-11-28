@@ -15,6 +15,7 @@ use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
 use Ampersand\Event\AtomEvent;
+use Ramsey\Uuid\Uuid;
 
 /**
  *
@@ -506,9 +507,6 @@ class Concept
      */
     public function createNewAtomId(): string
     {
-        static $prevTimeSeconds = 0;
-        static $prevTimeMicros  = 0;
-
         // TODO: remove this hack with _AI (autoincrement feature)
         if (strpos($this->name, '_AI') !== false && $this->isInteger()) {
             /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $firstCol */
@@ -518,34 +516,13 @@ class Concept
             $result = array_column((array)$this->primaryPlug->executeCustomSQLQuery($query), 'MAX');
     
             if (empty($result)) {
-                $atomId = 1;
+                return (string) 1;
             } else {
-                $atomId = $result[0] + 1;
+                return (string) ($result[0] + 1);
             }
-        } else {
-            /** @var string $timeMicros */
-            /** @var string $timeSeconds */
-            list($timeMicros, $timeSeconds) = explode(' ', microTime());
-            $timeMicros = substr($timeMicros, 2, 6); // we drop the leading "0." and trailing "00"  from the microseconds
-            
-            // Guarantee that time is increased
-            if ($timeSeconds < $prevTimeSeconds) {
-                $timeSeconds = $prevTimeSeconds;
-                $timeMicros  = ++$prevTimeMicros;
-            } elseif ($timeSeconds == $prevTimeSeconds) {
-                if ($timeMicros <= $prevTimeMicros) {
-                    $timeMicros = ++$prevTimeMicros;
-                } else {
-                    $prevTimeMicros = $timeMicros;
-                }
-            } else {
-                $prevTimeSeconds = $timeSeconds;
-                $prevTimeMicros = $timeMicros;
-            }
-            
-            $atomId = $this->name . '_' . sprintf('%d', $timeSeconds) . '_' . sprintf('%08d', $timeMicros);
         }
-        return $atomId;
+
+        return $this->name . '_' . Uuid::uuid4()->toString();
     }
     
     /**
