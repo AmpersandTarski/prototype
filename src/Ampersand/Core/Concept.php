@@ -379,6 +379,11 @@ class Concept
         // else
         return false;
     }
+
+    public function isRoot(): bool
+    {
+        return empty($this->generalizations);
+    }
     
     /**
      * Array of concepts of which this concept is a generalization.
@@ -795,6 +800,13 @@ class Concept
 
         // Merge step 3: delete rightAtom
         $this->deleteAtom($rightAtom);
+    }
+
+    public function regenerateAllAtomIds(): void
+    {
+        foreach ($this->getAllAtomObjects() as $atom) {
+            $atom->rename($this->createNewAtomId());
+        }
     }
 
     /**
