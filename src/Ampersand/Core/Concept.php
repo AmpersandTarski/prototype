@@ -328,6 +328,11 @@ class Concept
         }
         return false;
     }
+
+    public function isONE(): bool
+    {
+        return $this->label === 'ONE';
+    }
     
     /**
      * Check if this concept is a generalization of another given concept

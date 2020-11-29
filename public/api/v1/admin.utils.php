@@ -40,6 +40,7 @@ $api->group('/admin/utils', function () {
             $conceptList = array_filter($ampersandApp->getModel()->getAllConcepts(), function (Concept $concept) {
                 return $concept->isObject() // we only regenerate object identifiers, not scalar concepts because that wouldn't make sense
                     && !ProtoContext::containsConcept($concept) // filter out concepts from ProtoContext, otherwise interfaces and RBAC doesn't work anymore
+                    && !($concept->isSession() || $concept->isONE())// filter out the concepts SESSION and ONE
                     && $concept->isRoot(); // specializations are automatically handled, therefore we only take root concepts (top of classification tree)
             });
         }
