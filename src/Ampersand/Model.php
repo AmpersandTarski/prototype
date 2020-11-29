@@ -332,26 +332,14 @@ class Model
         // Start with initial population
         $population = $this->getInitialPopulation();
 
-        // Filter meta model atoms from initial population
-        $conceptLabels = [
-            ProtoContext::CPT_ROLE,
-            ProtoContext::CPT_IFC,
-            ProtoContext::CPT_LABEL
-        ];
-        $population = $population->filterAtoms(function (Atom $atom) use ($conceptLabels) {
-            return in_array($atom->concept->getLabel(), $conceptLabels, true);
+        // Filter by concepts defined in ProtoContext
+        $population = $population->filterAtoms(function (Atom $atom) {
+            return ProtoContext::containsConcept($atom->concept);
         });
         
-        // Filter meta model links from initial population
-        $relationSignatures = [
-            ProtoContext::REL_ROLE_LABEL,
-            ProtoContext::REL_IFC_LABEL,
-            ProtoContext::REL_IFC_ROLES,
-            ProtoContext::REL_IFC_IS_PUBLIC,
-            ProtoContext::REL_IFC_IS_API
-        ];
-        $population = $population->filterLinks(function (Link $link) use ($relationSignatures) {
-            return in_array($link->relation()->getSignature(), $relationSignatures, true);
+        // Filter by relations defined in ProtoContext
+        $population = $population->filterLinks(function (Link $link) {
+            return ProtoContext::containsRelation($link->relation());
         });
 
         return $population;
