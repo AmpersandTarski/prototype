@@ -7,6 +7,7 @@ use Ampersand\Core\Relation;
 
 abstract class ProtoContext
 {
+    // Concept labels (i.e. the names as used in Ampersand scripts)
     const
         CPT_ROLE            = 'Role',
         CPT_IFC             = 'PF_Interface',
@@ -22,6 +23,7 @@ abstract class ProtoContext
         self::CPT_NAV_ITEM,
     ];
     
+    // Relation signatures with notation: rel[src*tgt]
     const
         REL_IFC_ROLES               = 'pf_ifcRoles[PF_Interface*Role]',
         REL_IFC_IS_PUBLIC           = 'isPublic[PF_Interface*PF_Interface]',
@@ -58,7 +60,7 @@ abstract class ProtoContext
 
     public static function containsConcept(Concept $cpt): bool
     {
-        return in_array($cpt->getId(), self::CONCEPTS);
+        return in_array($cpt->getLabel(), self::CONCEPTS);
     }
 
     public static function containsRelation(Relation $rel): bool
