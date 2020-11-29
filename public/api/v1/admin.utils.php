@@ -26,7 +26,8 @@ $api->group('/admin/utils', function () {
 
         // Input
         $cptName = isset($args['concept']) ? $args['concept'] : null;
-        $prefixWithConceptName = filter_var($request->getQueryParam('prefix'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        $prefix = $request->getQueryParam('prefix');
+        $prefixWithConceptName = is_null($prefix) ? null : filter_var($prefix, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
         // Determine which concepts to regenerate atom ids
         if (!is_null($cptName)) {
