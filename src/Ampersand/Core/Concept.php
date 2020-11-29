@@ -517,8 +517,10 @@ class Concept
      * Generate a new atom identifier for this concept
      * @return string
      */
-    public function createNewAtomId(): string
+    public function createNewAtomId(bool $prefixAtomIdWithConceptName = null): string
     {
+        $prefixAtomIdWithConceptName ??= $this->prefixAtomIdWithConceptName;
+
         // TODO: remove this hack with _AI (autoincrement feature)
         if (strpos($this->name, '_AI') !== false && $this->isInteger()) {
             /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $firstCol */
@@ -540,7 +542,7 @@ class Concept
          * not contain any information about the time they are created or the machine that generated them.
          * If you don’t care about this information, then a version 4 UUID might be perfect for your needs.
          */
-        return $this->prefixAtomIdWithConceptName ? $this->name . '_' . Uuid::uuid4()->toString() : Uuid::uuid4()->toString();
+        return $prefixAtomIdWithConceptName ? $this->name . '_' . Uuid::uuid4()->toString() : Uuid::uuid4()->toString();
     }
     
     /**
@@ -802,10 +804,10 @@ class Concept
         $this->deleteAtom($rightAtom);
     }
 
-    public function regenerateAllAtomIds(): void
+    public function regenerateAllAtomIds(bool $prefixWithConceptName = null): void
     {
         foreach ($this->getAllAtomObjects() as $atom) {
-            $atom->rename($this->createNewAtomId());
+            $atom->rename($this->createNewAtomId($prefixWithConceptName));
         }
     }
 

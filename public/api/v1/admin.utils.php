@@ -23,11 +23,13 @@ $api->group('/admin/utils', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        $transaction = $ampersandApp->newTransaction();
+        // Input
+        $cptName = isset($args['concept']) ? $args['concept'] : null;
+        $prefixWithConceptName = filter_var($request->getQueryParam('prefix'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
         // Determine which concepts to regenerate atom ids
-        if (isset($args['concept'])) {
-            $cpt = $ampersandApp->getModel()->getConcept($args['concept']);
+        if (!is_null($cptName)) {
+            $cpt = $ampersandApp->getModel()->getConcept($cptName);
             if (!$cpt->isObject()) {
                 throw new Exception("Regenerate atom ids is not allowed for scalar concept types (alphanumeric, decimal, date, ..)", 400);
             }
@@ -40,8 +42,10 @@ $api->group('/admin/utils', function () {
         }
 
         // Do the work
+        $transaction = $ampersandApp->newTransaction();
+        
         foreach ($conceptList as $concept) {
-            $concept->regenerateAllAtomIds();
+            $concept->regenerateAllAtomIds($prefixWithConceptName);
         }
         
         // Close transaction
