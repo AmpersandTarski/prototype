@@ -1,6 +1,7 @@
 <?php
 
 use Ampersand\Core\Concept;
+use Ampersand\Misc\ProtoContext;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
@@ -37,6 +38,7 @@ $api->group('/admin/utils', function () {
         } else {
             $conceptList = array_filter($ampersandApp->getModel()->getAllConcepts(), function (Concept $concept) {
                 return $concept->isObject() // we only regenerate object identifiers, not scalar concepts because that wouldn't make sense
+                    && !ProtoContext::containsConcept($concept) // filter out concepts from ProtoContext, otherwise interfaces and RBAC doesn't work anymore
                     && $concept->isRoot(); // specializations are automatically handled, therefore we only take root concepts (top of classification tree)
             });
         }
