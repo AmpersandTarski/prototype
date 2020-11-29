@@ -19,17 +19,25 @@ $api->group('/admin/utils', function () {
     /**
      * @phan-closure-scope \Slim\Container
      */
-    $this->get('/regenerate-all-atom-ids', function (Request $request, Response $response, $args = []) {
+    $this->get('/regenerate-all-atom-ids[/{concept}]', function (Request $request, Response $response, $args = []) {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
         $transaction = $ampersandApp->newTransaction();
 
         // Determine which concepts to regenerate atom ids
-        $conceptList = array_filter($ampersandApp->getModel()->getAllConcepts(), function (Concept $concept) {
-            return $concept->isObject() // we only regenerate object identifiers, not scalar concepts because that wouldn't make sense
-                && $concept->isRoot(); // specializations are automatically handled, therefore we only take root concepts (top of classification tree)
-        });
+        if (isset($args['concept'])) {
+            $cpt = $ampersandApp->getModel()->getConcept($args['concept']);
+            if (!$cpt->isObject()) {
+                throw new Exception("Regenerate atom ids is not allowed for scalar concept types (alphanumeric, decimal, date, ..)", 400);
+            }
+            $conceptList = [$cpt];
+        } else {
+            $conceptList = array_filter($ampersandApp->getModel()->getAllConcepts(), function (Concept $concept) {
+                return $concept->isObject() // we only regenerate object identifiers, not scalar concepts because that wouldn't make sense
+                    && $concept->isRoot(); // specializations are automatically handled, therefore we only take root concepts (top of classification tree)
+            });
+        }
 
         // Do the work
         foreach ($conceptList as $concept) {
