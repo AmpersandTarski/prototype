@@ -1,13 +1,15 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.8.0 (30 november 2020)
 * **!! Backwards incompatible changes**:
   * OAuthLogin module is not an extension anymore, but built in the framework. Changes are required in configuration files, see [readme](./config/README.md)
 * [Issue 1125](https://github.com/AmpersandTarski/Ampersand/issues/1125) Use UUIDs when automatically creating atom identifiers instead of a timestamp
 * Bugfix link to population exporter API
 * Add administrator api functionality to regenerate atom identifiers for all concepts or a specific concept
 
-## v1.7.1 (9 novemer 2020)
+## v1.7.1 (9 november 2020)
 * [Issue 1104](https://github.com/AmpersandTarski/Ampersand/issues/1104) Built-in template revisions
 * Add `hideOnNoRecords` functionality to TABS template
 
