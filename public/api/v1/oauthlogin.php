@@ -53,7 +53,7 @@ $api->group('/oauthlogin', function () {
                                          , 'response_type' => 'code'
                                          , 'redirect_uri' => makeValidUrl($idpSettings['redirectUrl'], $ampersandApp->getSettings()->get('global.serverURL'))
                                          , 'scope' => $idpSettings['scope']
-                                         , 'state' => $idpSettings['state']
+                                         , 'state' => LoginController::getStateToken($ampersandApp)
                                          ]
                         ];
             $url = $auth_url['auth_base'] . '?' . http_build_query($auth_url['arguments']);
@@ -88,11 +88,16 @@ $api->group('/oauthlogin', function () {
         $settings = $ampersandApp->getSettings();
         
         $code = $request->getQueryParam('code');
+        $state = $request->getQueryParam('state');
         $idp = $args['idp'];
 
         $identityProviders = $settings->get('oauthlogin.identityProviders');
         if (!isset($identityProviders[$idp])) {
             throw new Exception("Unsupported identity provider", 400);
+        }
+
+        if ($state !== LoginController::getStateToken($ampersandApp)) {
+            throw new Exception("Invalid state parameter", 401);
         }
 
         // instantiate authController

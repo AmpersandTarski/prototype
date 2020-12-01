@@ -226,4 +226,22 @@ class LoginController
             return false;
         }
     }
+
+    /**
+     * Returns a keyed hash value of the session id that can be used as state token in OAuth request
+     * The state is used to prevent CSRF (cross-site request forgery)
+     *
+     * @param AmpersandApp $app
+     * @return string
+     */
+    public static function getStateToken(AmpersandApp $app): string
+    {
+        $hashKey = $app->getSettings()->get('oauthlogin.stateHashSecret');
+        $sessionId = $app->getSession()->getId();
+        $token = hash_hmac('sha256', $sessionId, $hashKey);
+        if ($token === false) {
+            throw new Exception("Cannot create state token for OAuth login request", 500);
+        }
+        return $token;
+    }
 }

@@ -3,6 +3,7 @@ settings:
   # path 'redirect-after-login' triggers frontend to route back to page where status 401 was raised.
   oauthlogin.redirectAfterLogin: \#/redirect-after-login # can be relative to global.serverURL or absolute starting with http(s)://
   oauthlogin.redirectAfterLoginFailure: \#/ # can be relative to global.serverURL or absolute starting with http(s)://
+  oauthlogin.stateHashSecret: secret # a secret that is used to hash the session state, used for CSRF (cross-site request forgery)
 
   oauthlogin.identityProviders:
     linkedin:
@@ -15,7 +16,6 @@ settings:
       tokenUrl: https://www.linkedin.com/uas/oauth2/accessToken
       apiUrl: https://api.linkedin.com/v1/people/~:(emailAddress)?format=json
       scope: r_emailaddress
-      state: <string> # A unique string value of your choice that is hard to guess. Used to prevent CSRF
     google:
       name: Google
       logoUrl: app/images/oauth/logo-google.png
@@ -26,7 +26,6 @@ settings:
       tokenUrl: https://accounts.google.com/o/oauth2/token
       apiUrl: https://www.googleapis.com/userinfo/v2/me
       scope: https://www.googleapis.com/auth/userinfo.email
-      state: <string> # A unique string value of your choice that is hard to guess. Used to prevent CSRF
     github:
       name: GitHub
       logoUrl: app/images/oauth/logo-github.png
@@ -37,4 +36,3 @@ settings:
       tokenUrl: https://github.com/login/oauth/access_token
       apiUrl: https://api.github.com/user/emails
       scope: user:email
-      state: <string> # A unique string value of your choice that is hard to guess. Used to prevent CSRF
