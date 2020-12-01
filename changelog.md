@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* Try to create missing data directory
 
 ## v1.8.1 (1 december 2020)
 * Bugfix word-wrap css class
