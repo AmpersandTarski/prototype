@@ -2,6 +2,8 @@
 
 ## Unreleased changes
 * Try to create missing data directory
+* Remove unused extensions folder from Phan static analysis check
+* Update dev dependency Phan to v3.x
 
 ## v1.8.1 (1 december 2020)
 * Bugfix word-wrap css class
