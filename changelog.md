@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.8.1 (1 december 2020)
 * Bugfix word-wrap css class
 
 ## v1.8.0 (30 november 2020)
