@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* Bugfix word-wrap css class
 
 ## v1.8.0 (30 november 2020)
 * **Breaking change**: OAuthLogin module is not an extension anymore, but built in the framework. 

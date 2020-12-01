@@ -74,7 +74,7 @@ fieldset {
 }
 
 .wordwrap {
-    word-wrap: break-word;
+    word-break: break-word;
 }
 
 .sortable-col {
