@@ -70,6 +70,3 @@ Step 4 (optional): Test the OAuth protocol on your local machine:
     * linux: /etc/hosts
   * restart browser and check if example.com redirect to your local machine
   * replace 'https://[server]' in config yaml with example.com
-
-### Notes
-* The OAuth module uses [curl](http://php.net/manual/en/book.curl.php) to get/request data from the identity providers. To verify the peer curl needs a file with root certificates, which is provided in the `/etc/ssl/certs/cacert.pem` file. Goto https://curl.haxx.se/docs/caextract.html to update the cacert.pem once in a while. During Docker build the latest version is downloaded automatically. You can also set another location for your cacert.pem file using the config `oauthlogin.cacertLocation`

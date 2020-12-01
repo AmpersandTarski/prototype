@@ -13,7 +13,6 @@ class LoginController
     private $client_secret;
     private $redirect_uri;
     protected AmpersandApp $ampersandApp;
-    protected string $cacertLocation;
 
     private $tokenObj;
     private $dataObj;
@@ -25,7 +24,6 @@ class LoginController
         $this->client_secret = $client_secret;
         $this->redirect_uri = $redirect_uri;
         $this->token_url = $token_url;
-        $this->cacertLocation = $this->ampersandApp->getSettings()->get('oauthlogin.cacertLocation', '/etc/ssl/certs/cacert.pem');
     }
 
     public function requestToken($code)
@@ -50,7 +48,6 @@ class LoginController
                                  , CURLOPT_POST => 1
                                  , CURLOPT_POSTFIELDS => http_build_query($token_request['arguments'])
                                  , CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded', 'Accept: application/json']
-                                 , CURLOPT_CAINFO => $this->cacertLocation
                                  ]);
 
         // Send the request & save response to $resp
@@ -90,7 +87,6 @@ class LoginController
                                  , CURLOPT_URL => $api_url
                                  , CURLOPT_USERAGENT => $this->ampersandApp->getName()
                                  , CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $this->tokenObj->access_token, 'x-li-format: json']
-                                 , CURLOPT_CAINFO => $this->cacertLocation
                                  ]);
 
         // Execute request

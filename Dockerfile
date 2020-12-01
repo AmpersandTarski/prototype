@@ -68,6 +68,3 @@ COPY . /var/www
 # Build ampersand frontend application
 WORKDIR /var/www
 RUN gulp build-ampersand
-
-# CA cert needed by php curl
-ADD https://curl.haxx.se/ca/cacert.pem /etc/ssl/certs/cacert.pem

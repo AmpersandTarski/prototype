@@ -3,7 +3,6 @@ settings:
   # path 'redirect-after-login' triggers frontend to route back to page where status 401 was raised.
   oauthlogin.redirectAfterLogin: \#/redirect-after-login # can be relative to global.serverURL or absolute starting with http(s)://
   oauthlogin.redirectAfterLoginFailure: \#/ # can be relative to global.serverURL or absolute starting with http(s)://
-  oauthlogin.cacertLocation: /etc/ssl/certs/cacert.pem
 
   oauthlogin.identityProviders:
     linkedin:
