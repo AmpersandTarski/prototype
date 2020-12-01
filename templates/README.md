@@ -54,9 +54,9 @@ Usage: `BOX <TABLE attributes*>`
 For root interface boxes automatically a title is added which equals the interface name. To hide this title use `noRootTitle` attribute.
 
 Examples:
-- `BOX <TABLE>`
+- `BOX <TABLE>`                              -- was: COLS
 - `BOX <TABLE noHeader>`
-- `BOX <TABLE hideOnNoRecords>`
+- `BOX <TABLE hideOnNoRecords>`              -- was: HCOLS
 - `BOX <TABLE title="Title of your table">`
 - `BOX <TABLE noHeader hideOnNoRecords title="Table with title">`
 

@@ -68,5 +68,3 @@ COPY . /var/www
 # Build ampersand frontend application
 WORKDIR /var/www
 RUN gulp build-ampersand
-
-ADD https://curl.haxx.se/ca/cacert.pem /var/www/extensions/OAuthLogin/cacert.pem

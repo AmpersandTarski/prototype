@@ -15,6 +15,7 @@ use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
 use Ampersand\Event\AtomEvent;
+use Ramsey\Uuid\Uuid;
 
 /**
  *
@@ -95,6 +96,11 @@ class Concept
      * @var string
      */
     public $type;
+
+    /**
+     * Specifies if new atom identifiers must be prefixed with the concept name, e.g. 'ConceptA_<uuid>'
+     */
+    protected bool $prefixAtomIdWithConceptName;
     
     /**
      * List of conjuncts that are affected by creating or deleting an atom of this concept
@@ -184,6 +190,8 @@ class Concept
         $this->name = $conceptDef['id'];
         $this->label = $conceptDef['label'];
         $this->type = $conceptDef['type'];
+
+        $this->prefixAtomIdWithConceptName = $app->getSettings()->get('core.concept.prefixAtomIdWithConceptName');
 
         if (!array_key_exists($this->type, self::$representTypes)) {
             throw new Exception("Unsupported represent type: '{$this->type}'. Supported are: " . implode(',', array_keys(self::$representTypes)), 500);
@@ -320,6 +328,11 @@ class Concept
         }
         return false;
     }
+
+    public function isONE(): bool
+    {
+        return $this->label === 'ONE';
+    }
     
     /**
      * Check if this concept is a generalization of another given concept
@@ -370,6 +383,11 @@ class Concept
          
         // else
         return false;
+    }
+
+    public function isRoot(): bool
+    {
+        return empty($this->generalizations);
     }
     
     /**
@@ -504,10 +522,9 @@ class Concept
      * Generate a new atom identifier for this concept
      * @return string
      */
-    public function createNewAtomId(): string
+    public function createNewAtomId(bool $prefixAtomIdWithConceptName = null): string
     {
-        static $prevTimeSeconds = 0;
-        static $prevTimeMicros  = 0;
+        $prefixAtomIdWithConceptName ??= $this->prefixAtomIdWithConceptName;
 
         // TODO: remove this hack with _AI (autoincrement feature)
         if (strpos($this->name, '_AI') !== false && $this->isInteger()) {
@@ -518,34 +535,19 @@ class Concept
             $result = array_column((array)$this->primaryPlug->executeCustomSQLQuery($query), 'MAX');
     
             if (empty($result)) {
-                $atomId = 1;
+                return (string) 1;
             } else {
-                $atomId = $result[0] + 1;
+                return (string) ($result[0] + 1);
             }
-        } else {
-            /** @var string $timeMicros */
-            /** @var string $timeSeconds */
-            list($timeMicros, $timeSeconds) = explode(' ', microTime());
-            $timeMicros = substr($timeMicros, 2, 6); // we drop the leading "0." and trailing "00"  from the microseconds
-            
-            // Guarantee that time is increased
-            if ($timeSeconds < $prevTimeSeconds) {
-                $timeSeconds = $prevTimeSeconds;
-                $timeMicros  = ++$prevTimeMicros;
-            } elseif ($timeSeconds == $prevTimeSeconds) {
-                if ($timeMicros <= $prevTimeMicros) {
-                    $timeMicros = ++$prevTimeMicros;
-                } else {
-                    $prevTimeMicros = $timeMicros;
-                }
-            } else {
-                $prevTimeSeconds = $timeSeconds;
-                $prevTimeMicros = $timeMicros;
-            }
-            
-            $atomId = $this->name . '_' . sprintf('%d', $timeSeconds) . '_' . sprintf('%08d', $timeMicros);
         }
-        return $atomId;
+
+        /**
+         * Source: https://uuid.ramsey.dev/en/latest/rfc4122/version4.html
+         * Version 4 UUIDs are perhaps the most popular form of UUID. They are randomly-generated and do
+         * not contain any information about the time they are created or the machine that generated them.
+         * If you don’t care about this information, then a version 4 UUID might be perfect for your needs.
+         */
+        return $prefixAtomIdWithConceptName ? $this->name . '_' . Uuid::uuid4()->toString() : Uuid::uuid4()->toString();
     }
     
     /**
@@ -805,6 +807,13 @@ class Concept
 
         // Merge step 3: delete rightAtom
         $this->deleteAtom($rightAtom);
+    }
+
+    public function regenerateAllAtomIds(bool $prefixWithConceptName = null): void
+    {
+        foreach ($this->getAllAtomObjects() as $atom) {
+            $atom->rename($this->createNewAtomId($prefixWithConceptName));
+        }
     }
 
     /**

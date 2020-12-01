@@ -1,10 +1,21 @@
 <?php
 
-use Ampersand\Extension\OAuthLogin\OAuthLoginController;
+use Ampersand\AmpersandApp;
+use Ampersand\SIAM\OAuth\LoginController;
 use Slim\Http\Request;
 use Slim\Http\Response;
-
 use function Ampersand\Misc\makeValidURL;
+
+// Adds menu item to login/logout
+/** @var \Ampersand\AngularApp $angularApp */
+global $angularApp;
+$angularApp->addMenuItem(
+    'role',
+    'app/src/oauthlogin/menuItem.html',
+    function (AmpersandApp $app) {
+        return $app->getSettings()->get('oauthlogin.enabled', false);
+    }
+);
 
 /**
  * @var \Slim\App $api
@@ -42,7 +53,7 @@ $api->group('/oauthlogin', function () {
                                          , 'response_type' => 'code'
                                          , 'redirect_uri' => makeValidUrl($idpSettings['redirectUrl'], $ampersandApp->getSettings()->get('global.serverURL'))
                                          , 'scope' => $idpSettings['scope']
-                                         , 'state' => $idpSettings['state']
+                                         , 'state' => LoginController::getStateToken($ampersandApp)
                                          ]
                         ];
             $url = $auth_url['auth_base'] . '?' . http_build_query($auth_url['arguments']);
@@ -77,6 +88,7 @@ $api->group('/oauthlogin', function () {
         $settings = $ampersandApp->getSettings();
         
         $code = $request->getQueryParam('code');
+        $state = $request->getQueryParam('state');
         $idp = $args['idp'];
 
         $identityProviders = $settings->get('oauthlogin.identityProviders');
@@ -84,14 +96,18 @@ $api->group('/oauthlogin', function () {
             throw new Exception("Unsupported identity provider", 400);
         }
 
+        if ($state !== LoginController::getStateToken($ampersandApp)) {
+            throw new Exception("Invalid state parameter", 401);
+        }
+
         // instantiate authController
-        $authController = new OAuthLoginController(
+        $authController = new LoginController(
             $identityProviders[$idp]['clientId'],
             $identityProviders[$idp]['clientSecret'],
             makeValidUrl($identityProviders[$idp]['redirectUrl'], $settings->get('global.serverURL')),
-            $identityProviders[$idp]['tokenUrl']
+            $identityProviders[$idp]['tokenUrl'],
+            $ampersandApp
         );
-        $authController->setAmpersandApp($ampersandApp);
 
         $api_url = $identityProviders[$idp]['apiUrl'];
         $isLoggedIn = $authController->authenticate($code, $idp, $api_url);
@@ -101,4 +117,17 @@ $api->group('/oauthlogin', function () {
 
         return $response->withRedirect($url);
     });
+})
+/**
+ * @phan-closure-scope \Slim\Container
+ */
+->add(function (Request $req, Response $res, callable $next) {
+    /** @var \Ampersand\AmpersandApp $ampersandApp */
+    $ampersandApp = $this['ampersand_app'];
+
+    if (!$ampersandApp->getSettings()->get('oauthlogin.enabled', false)) {
+        throw new Exception("The OAuth login module is not enabled", 501);
+    }
+
+    return $next($req, $res);
 });
