@@ -282,7 +282,10 @@ class Settings
 
         // Check that path is really a directory and exists
         if (!is_dir($path)) {
-            throw new Exception("Specified data directory '{$path}' is not a directory, does not exist or is not accessible", 500);
+            // Try to create the directory
+            if (!mkdir($path, 0777, true)) {
+                throw new Exception("Specified data directory '{$path}' is not a directory, cannot be created or is not accessible", 500);
+            }
         }
 
         return $path;

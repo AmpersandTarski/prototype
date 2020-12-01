@@ -22,7 +22,6 @@ return [
     // your application should be included in this list.
     'directory_list' => [
         'bootstrap',
-        'extensions',
         'lib',
         'public/api',
         'src',
