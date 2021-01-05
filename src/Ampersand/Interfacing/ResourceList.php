@@ -78,8 +78,8 @@ class ResourceList
         if (!empty($tgts)) {
             // Resource found
             return $this->makeResource(current($tgts));
-        // Temporary fix for #884. TODO: remove this elseif clause when solution is implemented
-        } elseif ($this->ifcObject->crudC() && !$this->tgtIdInPath()) {
+        // Auto create when allowed
+        } elseif ($this->ifcObject->crudC()) {
             return $this->create($tgtId);
         } else {
             // When not found

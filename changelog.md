@@ -2,6 +2,9 @@
 
 ## Unreleased changes
 
+## v1.8.3 (5 jan 2021)
+Bugfix auto create (crudC) for non-ident interface expressions
+
 ## v1.8.2 (1 dec 2020)
 * Try to create missing data directory
 * Remove unused extensions folder from Phan static analysis check
