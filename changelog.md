@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+Bugfix auto create (crudC) for non-ident interface expressions
 
 ## v1.8.2 (1 dec 2020)
 * Try to create missing data directory
