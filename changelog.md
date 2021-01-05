@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.8.3 (5 jan 2021)
 Bugfix auto create (crudC) for non-ident interface expressions
 
 ## v1.8.2 (1 dec 2020)
