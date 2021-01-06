@@ -45,8 +45,7 @@ RUN npm install \
  && npm audit fix
 
 # Copy Ampersand compiler
-# TODO pick a specific release of Ampersand. Can be done after next release of Ampersand, when a v4.y.z. tag is available on Docker Hub
-COPY --from=ampersandtarski/ampersand:development /bin/ampersand /usr/local/bin
+COPY --from=ampersandtarski/ampersand:Ampersand-v4.1.3 /bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
 
 # Add folders that Apache can write to

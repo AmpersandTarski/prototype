@@ -1,9 +1,10 @@
 # Changelog
 
 ## Unreleased changes
+* Use Ampersand compiler v4.1.3. First time we use an explicit version number instead of development tag
 
 ## v1.8.3 (5 jan 2021)
-Bugfix auto create (crudC) for non-ident interface expressions
+* Bugfix auto create (crudC) for non-ident interface expressions
 
 ## v1.8.2 (1 dec 2020)
 * Try to create missing data directory
