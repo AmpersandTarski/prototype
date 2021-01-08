@@ -412,7 +412,7 @@ class AmpersandApp
                 if ($this->model->interfaceExists($ifcAtom->getId())) {
                     return true;
                 } else {
-                    $this->logger->warning("Interface id '{$ifcAtom->getId()}' specified as accessible interface, but this interface is not defined");
+                    $this->logger->warning("Interface id '{$ifcAtom->getId()}' specified as accessible interface, but this interface is not defined. Run meta population installer to delete those interfaces");
                     return false;
                 }
             }
