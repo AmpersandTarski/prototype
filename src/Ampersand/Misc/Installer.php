@@ -46,6 +46,14 @@ class Installer
         $this->logger->info("(Re)install meta population");
 
         // TODO: add function to clear/delete current meta population
+
+        // Cleanup interface atoms that are not defined (anymore) in the Ampersand model files
+        foreach ($model->getConceptByLabel(ProtoContext::CPT_IFC)->getAllAtomObjects() as $ifcAtom) {
+            if (!$model->interfaceExists($ifcAtom->getId())) {
+                $ifcAtom->delete();
+            }
+        }
+
         $model->getMetaPopulation()->import();
 
         return $this;
