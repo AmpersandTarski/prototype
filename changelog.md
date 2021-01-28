@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* Set content-type to mime type when downloading files using /file api. Let browser determine if content can be loaded in the browser
 
 ## v1.8.4 (8 jan 2021)
 * Use Ampersand compiler v4.1.3. First time we use an explicit version number instead of development tag
