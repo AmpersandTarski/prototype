@@ -39,11 +39,15 @@ $api->group('/file', function () {
 
         $fileResource = $fs->readStream($filePath);
         $stream = new Stream($fileResource); // create a stream instance for the response body
+        $mimeType = $fs->getMimetype($filePath);
+        if ($mimeType === false) {
+            $mimeType = 'application/octet-stream'; // the "octet-stream" subtype is used to indicate that a body contains arbitrary binary data.
+        }
 
         return $response->withHeader('Content-Description', 'File Transfer')
-                        // ->withHeader('Content-Type', $mimeType) // TODO: add mimeType of file
+                        ->withHeader('Content-Type', $mimeType)
                         ->withHeader('Content-Transfer-Encoding', 'binary')
-                        ->withHeader('Content-Disposition', 'attachment; filename="' . basename($filePath) . '"')
+                        // ->withHeader('Content-Disposition', 'attachment; filename="' . basename($filePath) . '"') // enable this to force browser to download the file
                         ->withBody($stream); // all stream contents will be sent to the response
     });
 });
