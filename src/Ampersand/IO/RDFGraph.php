@@ -12,14 +12,9 @@ use Ampersand\Core\Relation;
 use Ampersand\Misc\AcceptHeader;
 use Ampersand\Misc\Settings;
 use Ampersand\Model;
-use EasyRdf_Exception;
-use EasyRdf_Format;
-use EasyRdf_Graph;
-use EasyRdf_Namespace;
-use EasyRdf_Resource;
 use Exception;
 
-class RDFGraph extends EasyRdf_Graph
+class RDFGraph extends \EasyRdf\Graph
 {
     public function __construct(Model $model, Settings $settings)
     {
@@ -29,7 +24,7 @@ class RDFGraph extends EasyRdf_Graph
         parent::__construct($graphURI);
 
         // Set prefixes
-        EasyRdf_Namespace::set('app', "{$graphURI}#");
+        \EasyRdf\RdfNamespace::set('app', "{$graphURI}#");
 
         // Ampersand CONCEPT --> owl:Class
         foreach ($model->getAllConcepts() as $concept) {
@@ -44,7 +39,7 @@ class RDFGraph extends EasyRdf_Graph
 
     protected function addOntology(Settings $settings): void
     {
-        /** @var \EasyRdf_Resource $ontology */
+        /** @var \EasyRdf\Resource $ontology */
         $ontology = $this->resource('app:ontology', 'owl:Ontology');
         $ontology->set('dc:title', $settings->get('global.contextName'));
         $ontology->set('owl:versionInfo', $settings->get('global.version'));
@@ -55,7 +50,7 @@ class RDFGraph extends EasyRdf_Graph
     {
         // owl:Class
         if ($concept->isObject()) {
-            /** @var \EasyRdf_Resource $cptResource */
+            /** @var \EasyRdf\Resource $cptResource */
             $cptResource = $this->resource("app:{$concept->getId()}", 'owl:Class');
             $cptResource->set('rdfs:label', $concept->label);
             foreach ($concept->getGeneralizations(true) as $generalization) {
@@ -81,7 +76,7 @@ class RDFGraph extends EasyRdf_Graph
 
         $type = $relation->tgtConcept->isObject() ? 'owl:ObjectProperty' : 'owl:DatatypeProperty';
 
-        /** @var \EasyRdf_Resource $relationResource */
+        /** @var \EasyRdf\Resource $relationResource */
         $relationUniqueName = "{$relation->srcConcept->getId()}-{$relation->name}"; // TODO: also add tgt concept, because full signature must be unique
         $relationResource = $this->resource("app:{$relationUniqueName}", $type);
         $relationResource->set('rdfs:label', $relation->name);
@@ -110,7 +105,7 @@ class RDFGraph extends EasyRdf_Graph
         }
     }
 
-    protected function addCardinalityConstraint(EasyRdf_Resource $class, EasyRdf_Resource $property, int $min, int $max): EasyRdf_Resource
+    protected function addCardinalityConstraint(\EasyRdf\Resource $class, \EasyRdf\Resource $property, int $min, int $max): \EasyRdf\Resource
     {
         // Checks
         if ($min < 0) {
@@ -125,7 +120,7 @@ class RDFGraph extends EasyRdf_Graph
         }
 
         // owl:Restriction
-        /** @var \EasyRdf_Resource $restriction */
+        /** @var \EasyRdf\Resource $restriction */
         $restriction = $this->newBNode('owl:Restriction');
         $restriction->addResource('owl:onProperty', $property);
         $class->addResource('rdfs:subClassOf', $restriction); // make the class a subclass of the new restriction class
@@ -150,27 +145,27 @@ class RDFGraph extends EasyRdf_Graph
      * Perform content negotiation based on accept header parameter and return a response format
      *
      * @param string $acceptHeader A HTTP accept header string
-     * @return \EasyRdf_Format
+     * @return \EasyRdf\Format
      */
-    public static function getResponseFormat(string $acceptHeader): EasyRdf_Format
+    public static function getResponseFormat(string $acceptHeader): \EasyRdf\Format
     {
         if (empty($acceptHeader)) {
             $acceptHeader = 'text/html'; // default format
         }
         $acceptHeader = new AcceptHeader($acceptHeader); // parses the accept header string and returns an array of accepted mimetypes in order of most preferred to least preferred.
-        $easyRdf_Format = null;
+        $rdfFormat = null;
         foreach ($acceptHeader as $mimetype) {
             try {
-                $easyRdf_Format = EasyRdf_Format::getFormat($mimetype['raw']);
+                $rdfFormat = \EasyRdf\Format::getFormat($mimetype['raw']);
                 break;
-            } catch (EasyRdf_Exception $e) {
+            } catch (\EasyRdf\Exception $e) {
                 // unsupported mimetype, check next.
             }
         }
 
-        if ($easyRdf_Format === null) {
-            throw new Exception("No supported formats in accept header. Supported: " . EasyRdf_Format::getHttpAcceptHeader(), 400);
+        if ($rdfFormat === null) {
+            throw new Exception("No supported formats in accept header. Supported: " . \EasyRdf\Format::getHttpAcceptHeader(), 400);
         }
-        return $easyRdf_Format;
+        return $rdfFormat;
     }
 }
