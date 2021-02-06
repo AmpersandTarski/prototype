@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* Update EasyRdf library to v1.x
 
 ## v1.8.5 (28 jan 2021)
 * Set content-type to mime type when downloading files using /file api. Let browser determine if content can be loaded in the browser
