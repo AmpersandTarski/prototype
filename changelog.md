@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.8.6 (7 feb 2021)
 * Update EasyRdf library to v1.x
 
 ## v1.8.5 (28 jan 2021)
