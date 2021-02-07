@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: CI
 on:
   push:
     branches: # empty list to only trigger on branches (i.e. not tags, ..)
@@ -8,7 +8,7 @@ env:
 
 jobs:
   build:
-    name: Build
+    name: Docker build
     runs-on: ubuntu-latest
 
     steps:
@@ -24,15 +24,13 @@ jobs:
     name: PHP static analyzer
     needs: []
     runs-on: ubuntu-latest
+    container: ampersandtarski/prototype-framework-ci-runner
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Build php-test-suite
-      run: docker build -t php-test-suite tests
     
     - name: Composer install
-      run: docker run --init -i --rm -v $(pwd):/project -w /project php-test-suite composer install
+      run: composer install --prefer-dist --no-dev --profile --optimize-autoloader --no-scripts --ignore-platform-reqs
     
     - name: Phan static analysis
-      run: docker run --init -i --rm -v $(pwd):/project -w /project php-test-suite ./lib/bin/phan
+      run: phan -p --color --config-file ./.phan/config.php

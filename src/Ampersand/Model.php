@@ -498,7 +498,7 @@ class Model
 
     /**
      * Returns if interface exists
-     * @var string $ifcId Identifier of interface
+     * @param string $ifcId Identifier of interface
      * @return bool
      */
     public function interfaceExists(string $ifcId): bool
