@@ -77,23 +77,23 @@ $api->group('/admin/exporter', function () {
 
         // Content negotiation
         $acceptHeader = $request->getParam('format') ?? $request->getHeaderLine('Accept');
-        $easyRdf_Format = RDFGraph::getResponseFormat($acceptHeader);
+        $rdfFormat = RDFGraph::getResponseFormat($acceptHeader);
 
         $graph = new RDFGraph($ampersandApp->getModel(), $ampersandApp->getSettings());
 
         // Output
-        $mimetype = $easyRdf_Format->getDefaultMimeType();
+        $mimetype = $rdfFormat->getDefaultMimeType();
         switch ($mimetype) {
             case 'text/html':
                 return $response->withHeader('Content-Type', 'text/html')->write($graph->dump('html'));
             case 'text/plain':
                 return $response->withHeader('Content-Type', 'text/plain')->write($graph->dump('text'));
             default:
-                $filename = $ampersandApp->getName() . "_meta-model_" . date('Y-m-d\TH-i-s') . "." . $easyRdf_Format->getDefaultExtension();
+                $filename = $ampersandApp->getName() . "_meta-model_" . date('Y-m-d\TH-i-s') . "." . $rdfFormat->getDefaultExtension();
                 return $response
-                    ->withHeader('Content-Type', $easyRdf_Format->getDefaultMimeType())
+                    ->withHeader('Content-Type', $rdfFormat->getDefaultMimeType())
                     ->withHeader('Content-Disposition', "attachment; filename=\"{$filename}\"")
-                    ->write($graph->serialise($easyRdf_Format));
+                    ->write($graph->serialise($rdfFormat));
         }
     });
 })->add($middleWare1)
