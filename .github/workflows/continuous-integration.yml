@@ -24,7 +24,7 @@ jobs:
     name: PHP static analyzer
     needs: []
     runs-on: ubuntu-latest
-    container: jakzal/phpqa:php7.4-alpine
+    container: ampersandtarski/prototype-framework-ci-runner
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
