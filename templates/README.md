@@ -66,7 +66,7 @@ Possible attributes are:
 | attribute | value | description |
 | --------- | ----- | ----------- |
 | hideOnNoRecords | n.a. | when attribute is set, the complete table is hidden in the interface when there are no records |
-| noHeader | n.a. | when attribute is set, no table header is used |
+| noHeader | n.a. | when attribute is set, no table header is used (all column labels are hidden) |
 | title | string | title / description for the table. Title is shown above table |
 | noRootTitle | n.a. | hides title; usefull for root interface boxes where a title is automatically is added |
 | sortable | n.a. | makes table headers clickable to support sorting on some property of the data. Only applies to univalent fields |
@@ -113,30 +113,46 @@ Possible attributes are:
 | table     | n.a.  | uses simple table structure to display data. Similar to `TABLE` template (see below), but without any functionality, header and styling
 
 ### PROPBUTTON
-Interface template that provides functionality to toggle (set/unset) a property-relation using a button.
-The label (i.e. text to put on the button) can be constructed from max 4 expressions or text strings (i.e. `TXT "some text here"`). Also, the color of the button can be defined for various circumstances, as well as other button properties.
+Interface template that provides a botton that, when clicked, can set, clear and/or toggle/flip the value of a number of property-relations (i.e. a relation that is [PROP] (or: [SYM,ASY]). 
 
-Usage:
+The interface provides means to:
+
+- construct the label (i.e. the text that shows on the button) from fixed texts (i.e. `TXT "some text here"`) as well as valiues of expression. This allows you to create detailed/customized texts on a button.
+- flip, set, and clear (up to 3) property-relations. This allows you to easily create complex state machines, where clicking a single button can flip, set and clear several property-relations simultaneously.
+- specify the color of the button, and a different color for when it is disabled.
+- hide and/or disable the button by specifying an expression (that must be a [PROP]-type).
+- provide a popover text for the button, both when it is enabled and when it is disabled. 
+
+Usage (note that all attributes are optional, and you can rearrange their order as you see fit) :
 ```
 expr cRud BOX <PROPBUTTON> 
-  [ "property": propRel cRUd -- mandatory; the property that is set/unset when the button is clicked
-  , "label":  expr or txt -- optional; label text is the result of expr or txt
-  , "label1": expr or txt -- optional; label text = label+label1
-  , "label2": expr or txt -- optional; label text = label+label1+label2
-  , "label3": expr or txt -- optional; label text = label+label1+label2+label3
-  , "color": color -- optional; see below for details.
-  , "popovertext": expr or txt -- optional; text that is displayed when hovering the button
-  , "hide": expr cRud -- optional; button is hidden (not shown) when expression evaluates to true
-  , "disabled": expr -- optional; button is disabled (not clickable) when expression evaluates to true
-  , "disabledcolor": color -- optional; see below for details.
-  , "disabledpopovertext": expr or txt -- optional; text is shown instead of popovertext when button is disabled.
-   ]
+  [ "label":  expr or txt       -- label text is the result of expr or txt
+  , "label1": expr or txt       -- label text = label+label1
+  , "label2": expr or txt       -- label text = label+label1+label2
+  , "label3": expr or txt       -- label text = label+label1+label2+label3
+  , "property": propRel cRUd    -- value of propRel is flipped when the button is clicked
+  , "property2": propRel cRUd   -- value of propRel2 is flipped when the button is clicked
+  , "property3": propRel cRUd   -- value of propRel3 is flipped when the button is clicked
+  , "setprop": propRel cRUd     -- value of propRel is set (made true) when the button is clicked
+  , "setprop2": propRel cRUd    -- value of propRel2 is set (made true) when the button is clicked
+  , "setprop3": propRel cRUd    -- value of propRel3 is set (made true) when the button is clicked
+  , "clrprop": propRel cRUd     -- value of propRel is cleared (made false) when the button is clicked
+  , "clrprop2": propRel cRUd    -- value of propRel2 is cleared (made false) when the button is clicked
+  , "clrprop3": propRel cRUd    -- value of propRel3 is cleared (made false) when the button is clicked
+  , "color": color              -- see below for details.
+  , "hide": expr cRud           -- button is hidden (not shown) when expression evaluates to true
+  , "disabled": expr            -- button is disabled (not clickable) when expression evaluates to true
+  , "disabledcolor": color      -- optional; see below for details.
+  , "disabledpopovertext": expr or txt -- text is shown instead of popovertext when button is disabled.
+  , "popovertext": expr or txt  -- text that is displayed when hovering the button
+  ]
 ```
 where:
 - `propRel` is an & `[PROP]`-type relation, whose value will be toggled when the user clicks the button.
 - `expr` refers to an &-expression that should be univalent (and should be followed by `cRud` except when explicitly mentioned otherwise);
 - `txt` refers to the syntax `TXT "some text here"`;
-- `color` refers to `TXT "colorword"` can be primary (blue), secondary (grey), success (green), warning (yellow), danger (red), info (lightblue), light (grey), dark (black). It should be possible to precede color names 'outline-' (e.g. 'outline-primary') to make outline buttons (i.e. buttons with only the outline coloured), but that does not yet seem to work properly.
+- `color` refers to `TXT "colorword"` can be primary (blue), secondary (grey), success (green), warning (yellow), danger (red), info (lightblue), light (grey), dark (black). So, if you want a red button, you write `"color": TXT "danger" -- button is red`.
+It should be possible to precede color names 'outline-' (e.g. 'outline-primary') to make outline buttons (i.e. buttons with only the outline coloured), but that does not yet seem to work properly.
 
 
 Possible attributes are:
