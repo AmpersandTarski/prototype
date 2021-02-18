@@ -41,6 +41,7 @@ Possible attributes are:
 | attribute | value | description |
 | --------- | ----- | ----------- |
 | hideOnNoRecords | n.a. | when attribute is set, the complete form is hidden in the interface when there are no records |
+| hideSubOnNoRecords | n.a. | when attribute is set, specific form fields (i.e. sub interfaces) that have no records are hidden |
 | hideLabels | n.a. | when attribute is set, no field labels are shown |
 | title | string | title / description for the forms. Title is shown above the form |
 | noRootTitle | n.a. | hides title; usefull for root interface boxes where a title is automatically is added |
@@ -90,6 +91,7 @@ Possible attributes are:
 | title      | string | title / description for the table. Title is shown above tabs structure |
 | noRootTitle    | n.a. | hides title; usefull for root interface boxes where a title is automatically is added |
 | hideOnNoRecords | n.a. | when attribute is set, the complete tab set is hidden in the interface when there are no records |
+| hideSubOnNoRecords | n.a. | when attribute is set, specific tabs (i.e. sub interfaces) that have no records are hidden |
 
 ### RAW
 Interface template without any additional styling and without (editing) functionality. Just plain html `<div>` elements

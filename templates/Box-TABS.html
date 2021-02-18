@@ -24,7 +24,7 @@ $endif$$if(crudR)$<div class="box box-tabs" ng-controller="BoxController" ng-ini
             </div>
             <uib-tabset>$subObjects:{subObj|$if(verbose)$
                 <!-- TAB: $subObj.subObjLabel$ -->$endif$
-                <uib-tab heading="$subObj.subObjLabel$">
+                <uib-tab heading="$subObj.subObjLabel$"$if(hideSubOnNoRecords)$ ng-if="requireArray(resource['$subObj.subObjName$']).length"$endif$>
                     $subObj.subObjContents$
                 </uib-tab>}$
             </uib-tabset>

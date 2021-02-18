@@ -25,7 +25,7 @@ $endif$$if(crudR)$<div class="box box-rows" ng-controller="BoxController" ng-ini
                 <my-nav-to-other-interfaces resource="resource"></my-nav-to-other-interfaces>
             </div>$subObjects:{subObj|$if(verbose)$
             <!-- $subObj.subObjLabel$ -->$endif$
-            <div class="row">$if(hideLabels)$
+            <div class="row"$if(hideSubOnNoRecords)$ ng-if="requireArray(resource['$subObj.subObjName$']).length"$endif$>$if(hideLabels)$
                 <div class="row-content col-md-12">
                     $subObj.subObjContents$
                 </div>$else$
