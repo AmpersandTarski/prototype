@@ -109,12 +109,6 @@ ExecEngine::registerFunction('DelPair', function ($relationName, $srcConceptName
     
     $srcAtoms = explode('_AND', $srcAtom);
     $tgtAtoms = explode('_AND', $tgtAtom);
-    if (count($srcAtoms) > 1) {
-        throw new Exception('DelPair function call has more than one src atom', 501); // 501: Not implemented
-    }
-    if (count($tgtAtoms) > 1) {
-        throw new Exception('DelPair function call has more than one tgt atom', 501); // 501: Not implemented
-    }
     
     foreach ($srcAtoms as $a) {
         $src = new Atom($a, $srcConcept);
