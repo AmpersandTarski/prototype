@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* [Issue 1143](https://github.com/AmpersandTarski/Ampersand/issues/1143) For template TABS change interpretation of hideOnNoRecords from a single TAB to the complete TABSET
 * [Issue 1146](https://github.com/AmpersandTarski/Ampersand/issues/1146) For template TABLE hide complete table (including title) when attribute hideOnNoRecords is set
 * [Issue 1148](https://github.com/AmpersandTarski/Ampersand/issues/1148) Allow exec-engine delpair function to handle multiple src and/or tgt atoms
 

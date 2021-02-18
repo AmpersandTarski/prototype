@@ -89,7 +89,7 @@ Possible attributes are:
 | ---------- | ----- | ----------- |
 | title      | string | title / description for the table. Title is shown above tabs structure |
 | noRootTitle    | n.a. | hides title; usefull for root interface boxes where a title is automatically is added |
-| hideOnNoRecords | n.a. | hides a certain tab (i.e. sub interface) when that expression has no target atoms |
+| hideOnNoRecords | n.a. | when attribute is set, the complete tab set is hidden in the interface when there are no records |
 
 ### RAW
 Interface template without any additional styling and without (editing) functionality. Just plain html `<div>` elements
