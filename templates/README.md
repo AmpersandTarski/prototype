@@ -126,25 +126,26 @@ The interface provides means to:
 Usage (note that all attributes are optional, and you can rearrange their order as you see fit) :
 ```
 expr cRud BOX <PROPBUTTON> 
-  [ "label":  expr or txt       -- label text is the result of expr or txt
-  , "label1": expr or txt       -- label text = label+label1
-  , "label2": expr or txt       -- label text = label+label1+label2
-  , "label3": expr or txt       -- label text = label+label1+label2+label3
-  , "property": propRel cRUd    -- value of propRel is flipped when the button is clicked
-  , "property2": propRel cRUd   -- value of propRel2 is flipped when the button is clicked
-  , "property3": propRel cRUd   -- value of propRel3 is flipped when the button is clicked
-  , "setprop": propRel cRUd     -- value of propRel is set (made true) when the button is clicked
-  , "setprop2": propRel cRUd    -- value of propRel2 is set (made true) when the button is clicked
-  , "setprop3": propRel cRUd    -- value of propRel3 is set (made true) when the button is clicked
-  , "clrprop": propRel cRUd     -- value of propRel is cleared (made false) when the button is clicked
-  , "clrprop2": propRel cRUd    -- value of propRel2 is cleared (made false) when the button is clicked
-  , "clrprop3": propRel cRUd    -- value of propRel3 is cleared (made false) when the button is clicked
-  , "color": color              -- see below for details.
-  , "hide": expr cRud           -- button is hidden (not shown) when expression evaluates to true
-  , "disabled": expr            -- button is disabled (not clickable) when expression evaluates to true
-  , "disabledcolor": color      -- optional; see below for details.
+  [ "label":  expr or txt    -- text on button = result of expr or txt
+  , "label1": expr or txt    -- text on button = label+label1
+  , "label2": expr or txt    -- text on button = label+label1+label2
+  , "label3": expr or txt    -- text on button = label+label1+label2+label3
+  , "property": propRel cRUd -- value of propRel is flipped when the button is clicked (backward compatible)
+  , "fliprop1": propRel cRUd -- value of propRel is flipped when the button is clicked
+  , "fliprop2": propRel cRUd -- value of propRel is flipped when the button is clicked
+  , "fliprop3": propRel cRUd -- value of propRel is flipped when the button is clicked
+  , "setprop1": propRel cRUd -- value of propRel is set (made true) when the button is clicked
+  , "setprop2": propRel cRUd -- value of propRel is set (made true) when the button is clicked
+  , "setprop3": propRel cRUd -- value of propRel is set (made true) when the button is clicked
+  , "clrprop1": propRel cRUd -- value of propRel is cleared (made false) when the button is clicked
+  , "clrprop2": propRel cRUd -- value of propRel is cleared (made false) when the button is clicked
+  , "clrprop3": propRel cRUd -- value of propRel is cleared (made false) when the button is clicked
+  , "color": color           -- see below for details.
+  , "hide": expr cRud        -- button is hidden (not shown) when expression evaluates to true
+  , "disabled": expr         -- button is disabled (not clickable) when expression evaluates to true
+  , "disabledcolor": color   -- optional; see below for details.
   , "disabledpopovertext": expr or txt -- text is shown instead of popovertext when button is disabled.
-  , "popovertext": expr or txt  -- text that is displayed when hovering the button
+  , "popovertext": expr or txt -- text that is displayed when hovering the button
   ]
 ```
 where:
