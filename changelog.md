@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.9.0 (19 feb 2021)
 * [Issue 1103](https://github.com/AmpersandTarski/Ampersand/issues/1103) Adapt templates TABS and FORM: by default don't show 'hamburger' item to nav to other interfaces. Add template attribute 'showNavMenu'
 * [Issue 1143](https://github.com/AmpersandTarski/Ampersand/issues/1143) For template TABS change interpretation of hideOnNoRecords from a single TAB to the complete TABSET
 * [Issue 1144](https://github.com/AmpersandTarski/Ampersand/issues/1144) For templates TABS and FORM add attribute hideSubOnNoRecords to hide a single sub interface when result set is empty
