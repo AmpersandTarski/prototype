@@ -45,6 +45,7 @@ Possible attributes are:
 | hideLabels | n.a. | when attribute is set, no field labels are shown |
 | title | string | title / description for the forms. Title is shown above the form |
 | noRootTitle | n.a. | hides title; usefull for root interface boxes where a title is automatically is added |
+| showNavMenu | n.a. | show 'hamburger' button to navigate to other interfaces designed for target concept of expression |
 
 ### TABLE
 Interface template for table structures. The target atoms of the interface make up the records / rows. The sub interfaces are used as columns.
@@ -71,6 +72,7 @@ Possible attributes are:
 | sortable | n.a. | makes table headers clickable to support sorting on some property of the data. Only applies to univalent fields |
 | sortBy | sub interface label | Add default sorting for given sub interface. Use in combination with 'sortable' |
 | order | `desc`, `asc` | Specifies default sorting order. Use in combination with 'sortBy'. Use `desc` for descending, `asc` for ascending |
+| showNavMenu | n.a. | show 'hamburger' button to navigate to other interfaces designed for target concept of expression |
 
 ### TABS
 Interface template for a form structure with different tabs. For each sub interface a tab is added.
