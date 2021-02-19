@@ -2,6 +2,13 @@
 
 ## Unreleased changes
 
+## v1.9.0 (19 feb 2021)
+* [Issue 1103](https://github.com/AmpersandTarski/Ampersand/issues/1103) Adapt templates TABS and FORM: by default don't show 'hamburger' item to nav to other interfaces. Add template attribute 'showNavMenu'
+* [Issue 1143](https://github.com/AmpersandTarski/Ampersand/issues/1143) For template TABS change interpretation of hideOnNoRecords from a single TAB to the complete TABSET
+* [Issue 1144](https://github.com/AmpersandTarski/Ampersand/issues/1144) For templates TABS and FORM add attribute hideSubOnNoRecords to hide a single sub interface when result set is empty
+* [Issue 1146](https://github.com/AmpersandTarski/Ampersand/issues/1146) For template TABLE hide complete table (including title) when attribute hideOnNoRecords is set
+* [Issue 1148](https://github.com/AmpersandTarski/Ampersand/issues/1148) Allow exec-engine delpair function to handle multiple src and/or tgt atoms
+
 ## v1.8.6 (7 feb 2021)
 * Update EasyRdf library to v1.x
 

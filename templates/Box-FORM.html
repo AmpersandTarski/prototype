@@ -21,11 +21,11 @@ $endif$$if(crudR)$<div class="box box-rows" ng-controller="BoxController" ng-ini
                 </button>$endif$$if(crudD)$
                 <button type="button" class="btn btn-xs btn-danger" ng-hide="resource._showButtons_.cancel" ng-click="delete(parent, '$name$', resource)" uib-tooltip="Delete" tooltip-trigger="mouseenter" tooltip-placement="left">
                     <span class="glyphicon glyphicon-trash"></span>
-                </button>$endif$
-                <my-nav-to-other-interfaces resource="resource"></my-nav-to-other-interfaces>
+                </button>$endif$$if(showNavMenu)$
+                <my-nav-to-other-interfaces resource="resource"></my-nav-to-other-interfaces>$endif$
             </div>$subObjects:{subObj|$if(verbose)$
             <!-- $subObj.subObjLabel$ -->$endif$
-            <div class="row">$if(hideLabels)$
+            <div class="row"$if(hideSubOnNoRecords)$ ng-if="requireArray(resource['$subObj.subObjName$']).length"$endif$>$if(hideLabels)$
                 <div class="row-content col-md-12">
                     $subObj.subObjContents$
                 </div>$else$
