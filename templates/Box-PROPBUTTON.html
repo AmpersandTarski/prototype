@@ -5,15 +5,16 @@ $if(crudR)$<div ng-controller="AtomicController">
             <button class="btn btn-sm"
                 ng-class="resource.hasOwnProperty('disabledcolor') && resource.disabled ? 'btn-{{resource.disabledcolor}}' : (resource.hasOwnProperty('color') ? 'btn-{{resource.color}}' : 'btn-primary')" 
                 ng-style="resource.hasOwnProperty('disabledcolor') && resource.disabled && '{{resource.disabledcolor}}' === 'link' ? {'padding': '0px', 'line-height': '1', 'margin-bottom': '8px'} : (resource.hasOwnProperty('color') && '{{resource.color}}' === 'link' && {'padding': '0px', 'line-height': '1', 'margin-bottom': '2px'})"
-                ng-click="(resource.hasOwnProperty('property') ? resource.property = !resource.property : ''); (resource.hasOwnProperty('property') ? saveItem(resource, 'property', patchResource): '');
-                        (resource.hasOwnProperty('property1') ? resource.fliprop1 = !resource.fliprop1 : ''); (resource.hasOwnProperty('fliprop1') ? saveItem(resource, 'fliprop1', patchResource): '');
-                        (resource.hasOwnProperty('property2') ? resource.fliprop2 = !resource.fliprop2 : ''); (resource.hasOwnProperty('fliprop2') ? saveItem(resource, 'fliprop2', patchResource): '');
-                        (resource.hasOwnProperty('clrprop') ? resource.clrprop = false : ''); (resource.hasOwnProperty('clrprop') ? saveItem(resource, 'clrprop', patchResource): '');
+                ng-click="(resource.hasOwnProperty('property') ? (resource.property = !resource.property) : ''); (resource.hasOwnProperty('property') ? saveItem(resource, 'property', patchResource): '');
+                        (resource.hasOwnProperty('fliprop1') ? (resource.fliprop1 = !resource.fliprop1) : ''); (resource.hasOwnProperty('fliprop1') ? saveItem(resource, 'fliprop1', patchResource): '');
+                        (resource.hasOwnProperty('fliprop2') ? (resource.fliprop2 = !resource.fliprop2) : ''); (resource.hasOwnProperty('fliprop2') ? saveItem(resource, 'fliprop2', patchResource): '');
+                        (resource.hasOwnProperty('fliprop3') ? (resource.fliprop3 = !resource.fliprop3) : ''); (resource.hasOwnProperty('fliprop3') ? saveItem(resource, 'fliprop3', patchResource): '');
                         (resource.hasOwnProperty('clrprop1') ? resource.clrprop1 = false : ''); (resource.hasOwnProperty('clrprop1') ? saveItem(resource, 'clrprop1', patchResource): '');
                         (resource.hasOwnProperty('clrprop2') ? resource.clrprop2 = false : ''); (resource.hasOwnProperty('clrprop2') ? saveItem(resource, 'clrprop2', patchResource): '');
-                        (resource.hasOwnProperty('setprop') ? resource.setprop = true : ''); (resource.hasOwnProperty('setprop') ? saveItem(resource, 'setprop', patchResource): '');
+                        (resource.hasOwnProperty('clrprop3') ? resource.clrprop3 = false : ''); (resource.hasOwnProperty('clrprop3') ? saveItem(resource, 'clrprop3', patchResource): '');
                         (resource.hasOwnProperty('setprop1') ? resource.setprop1 = true : ''); (resource.hasOwnProperty('setprop1') ? saveItem(resource, 'setprop1', patchResource): '');
                         (resource.hasOwnProperty('setprop2') ? resource.setprop2 = true : ''); (resource.hasOwnProperty('setprop2') ? saveItem(resource, 'setprop2', patchResource): '');
+                        (resource.hasOwnProperty('setprop3') ? resource.setprop3 = true : ''); (resource.hasOwnProperty('setprop3') ? saveItem(resource, 'setprop3', patchResource): '');"
                 uib-tooltip="{{resource.disabledpopovertext}}" tooltip-trigger="mouseenter" tooltip-placement="top"
                 ng-disabled="resource.disabled" ng-hide="resource.hide"
                 ng-switch="!resource.hasOwnProperty('label') ? '0' : !resource.hasOwnProperty('label1') ? '1' : !resource.hasOwnProperty('label2') ? '2' : !resource.hasOwnProperty('label3') ? '3' : '4'">
@@ -28,15 +29,16 @@ $if(crudR)$<div ng-controller="AtomicController">
             <button class="btn btn-sm"
                 ng-class="resource.hasOwnProperty('disabledcolor') && resource.disabled ? 'btn-{{resource.disabledcolor}}' : (resource.hasOwnProperty('color') ? 'btn-{{resource.color}}' : 'btn-primary')" 
                 ng-style="resource.hasOwnProperty('disabledcolor') && resource.disabled && '{{resource.disabledcolor}}' === 'link' ? {'padding': '0px', 'line-height': '1', 'margin-bottom': '8px'} : (resource.hasOwnProperty('color') && '{{resource.color}}' === 'link' && {'padding': '0px', 'line-height': '1', 'margin-bottom': '2px'})"
-                ng-click="(resource.hasOwnProperty('property') ? resource.property = !resource.property : ''); (resource.hasOwnProperty('property') ? saveItem(resource, 'property', patchResource): '');
-                          (resource.hasOwnProperty('property1') ? resource.fliprop1 = !resource.fliprop1 : ''); (resource.hasOwnProperty('fliprop1') ? saveItem(resource, 'fliprop1', patchResource): '');
-                          (resource.hasOwnProperty('property2') ? resource.fliprop2 = !resource.fliprop2 : ''); (resource.hasOwnProperty('fliprop2') ? saveItem(resource, 'fliprop2', patchResource): '');
-                          (resource.hasOwnProperty('clrprop') ? resource.clrprop = false : ''); (resource.hasOwnProperty('clrprop') ? saveItem(resource, 'clrprop', patchResource): '');
-                          (resource.hasOwnProperty('clrprop1') ? resource.clrprop1 = false : ''); (resource.hasOwnProperty('clrprop1') ? saveItem(resource, 'clrprop1', patchResource): '');
-                          (resource.hasOwnProperty('clrprop2') ? resource.clrprop2 = false : ''); (resource.hasOwnProperty('clrprop2') ? saveItem(resource, 'clrprop2', patchResource): '');
-                          (resource.hasOwnProperty('setprop') ? resource.setprop = true : ''); (resource.hasOwnProperty('setprop') ? saveItem(resource, 'setprop', patchResource): '');
-                          (resource.hasOwnProperty('setprop1') ? resource.setprop1 = true : ''); (resource.hasOwnProperty('setprop1') ? saveItem(resource, 'setprop1', patchResource): '');
-                          (resource.hasOwnProperty('setprop2') ? resource.setprop2 = true : ''); (resource.hasOwnProperty('setprop2') ? saveItem(resource, 'setprop2', patchResource): '');
+                ng-click="(resource.hasOwnProperty('property') ? (resource.property = !resource.property) : ''); (resource.hasOwnProperty('property') ? saveItem(resource, 'property', patchResource): '');
+                        (resource.hasOwnProperty('fliprop1') ? (resource.fliprop1 = !resource.fliprop1) : ''); (resource.hasOwnProperty('fliprop1') ? saveItem(resource, 'fliprop1', patchResource): '');
+                        (resource.hasOwnProperty('fliprop2') ? (resource.fliprop2 = !resource.fliprop2) : ''); (resource.hasOwnProperty('fliprop2') ? saveItem(resource, 'fliprop2', patchResource): '');
+                        (resource.hasOwnProperty('fliprop3') ? (resource.fliprop3 = !resource.fliprop3) : ''); (resource.hasOwnProperty('fliprop3') ? saveItem(resource, 'fliprop3', patchResource): '');
+                        (resource.hasOwnProperty('clrprop1') ? resource.clrprop1 = false : ''); (resource.hasOwnProperty('clrprop1') ? saveItem(resource, 'clrprop1', patchResource): '');
+                        (resource.hasOwnProperty('clrprop2') ? resource.clrprop2 = false : ''); (resource.hasOwnProperty('clrprop2') ? saveItem(resource, 'clrprop2', patchResource): '');
+                        (resource.hasOwnProperty('clrprop3') ? resource.clrprop3 = false : ''); (resource.hasOwnProperty('clrprop3') ? saveItem(resource, 'clrprop3', patchResource): '');
+                        (resource.hasOwnProperty('setprop1') ? resource.setprop1 = true : ''); (resource.hasOwnProperty('setprop1') ? saveItem(resource, 'setprop1', patchResource): '');
+                        (resource.hasOwnProperty('setprop2') ? resource.setprop2 = true : ''); (resource.hasOwnProperty('setprop2') ? saveItem(resource, 'setprop2', patchResource): '');
+                        (resource.hasOwnProperty('setprop3') ? resource.setprop3 = true : ''); (resource.hasOwnProperty('setprop3') ? saveItem(resource, 'setprop3', patchResource): '');"
                 uib-tooltip="{{resource.popovertext}}" tooltip-trigger="mouseenter" tooltip-placement="top"
                 ng-disabled="resource.disabled" ng-hide="resource.hide"
                 ng-switch="!resource.hasOwnProperty('label') ? '0' : !resource.hasOwnProperty('label1') ? '1' : !resource.hasOwnProperty('label2') ? '2' : !resource.hasOwnProperty('label3') ? '3' : '4'">
