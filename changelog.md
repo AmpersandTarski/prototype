@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* [Issue 1151](https://github.com/AmpersandTarski/Ampersand/issues/1151) Bugfix boolean population transformation to database
 
 ## v1.9.0 (19 feb 2021)
 * [Issue 1103](https://github.com/AmpersandTarski/Ampersand/issues/1103) Adapt templates TABS and FORM: by default don't show 'hamburger' item to nav to other interfaces. Add template attribute 'showNavMenu'
