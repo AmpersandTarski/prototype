@@ -7,7 +7,6 @@
 
 namespace Ampersand\Rule;
 
-use Exception;
 use Ampersand\Core\Atom;
 use Ampersand\Rule\Rule;
 
