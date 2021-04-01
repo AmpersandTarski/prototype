@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.9.1 (1 april 2021)
 * [Issue 1151](https://github.com/AmpersandTarski/Ampersand/issues/1151) Bugfix boolean population transformation to database
 * [Issue 1152](https://github.com/AmpersandTarski/Ampersand/issues/1152) Handle violation segments for expressions with multiple targets
 * Add OAuth2 handler for Microsoft accounts
