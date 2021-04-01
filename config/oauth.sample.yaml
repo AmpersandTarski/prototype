@@ -36,3 +36,13 @@ settings:
       tokenUrl: https://github.com/login/oauth/access_token
       apiUrl: https://api.github.com/user/emails
       scope: user:email
+    microsoft:
+      name: Microsoft
+      logoUrl: app/images/oauth/logo-microsoft.png
+      authBase: https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+      redirectUrl: api/v1/oauthlogin/callback/microsoft
+      clientId: <string>
+      clientSecret: <string>
+      tokenUrl: https://login.microsoftonline.com/common/oauth2/v2.0/token
+      apiUrl: https://graph.microsoft.com/v1.0/me
+      scope: https://graph.microsoft.com/.default # pulls all scopes from app registration in azure. See 'API permissions' section

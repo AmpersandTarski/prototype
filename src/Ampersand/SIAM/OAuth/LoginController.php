@@ -162,6 +162,12 @@ class LoginController
                             throw new Exception("Github primary emailaddress is not verified", 500);
                         }
                         break;
+                    case 'microsoft':
+                        $email = $this->getData()->mail;
+                        if (is_null($email)) {
+                            throw new Exception("Error in getting verified emailadres from Microsoft ID: email not provided", 500);
+                        }
+                        break;
                     default:
                         throw new Exception("Unknown identity provider", 500);
                         break;
