@@ -234,7 +234,16 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             case "TYPEOFONE":
                 return (string) $this->escape($atom->getId());
             case "BOOLEAN":
-                return (int) $atom->getId(); // booleans are stored as tinyint(1) in the database. false = 0, true = 1
+                // Booleans are stored as tinyint(1) in the database. False = 0, True = 1
+                switch ($atom->getId()) {
+                    case "True":
+                        return 1;
+                    case "False":
+                        return 0;
+                    default:
+                        throw new Exception("Unsupported string boolean value '{$atom->getId()}'. Supported are 'True', 'False'", 500);
+                }
+                break;
             case "DATE":
                 $datetime = new DateTime($atom->getId());
                 return $datetime->format('Y-m-d'); // format to store in database

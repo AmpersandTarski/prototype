@@ -5,7 +5,7 @@
    - 'InsPair', 'DelPair': insert and delete links in relations
    - 'NewStruct': create a new atom and populate relations
    - 'InsAtom', 'DelAtom': create/delete a single atom
-   - 'MergeAtoms': unify two atoms that have been discovered to be identical
+   - 'MrgAtoms': unify two atoms that have been discovered to be identical
    - 'SetConcept', 'ClearConcept'
    - 'InsPairCond', 'SetConceptCond': conditionally execute an 'InsPair' or 'SetConcept'
    There are no guarantees with respect to their 100% functioning. Have fun...

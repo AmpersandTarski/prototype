@@ -7,7 +7,6 @@
 
 namespace Ampersand\Rule;
 
-use Exception;
 use Ampersand\Core\Atom;
 use Ampersand\Rule\Rule;
 
@@ -89,7 +88,6 @@ class Violation
     /**
      * Get violation message
      *
-     * @throws Exception when segment expression return more that 1 tgt atom
      * @return string
      */
     public function getViolationMessage(): string
@@ -97,11 +95,7 @@ class Violation
         $strArr = [];
         foreach ($this->rule->getViolationSegments() as $segment) {
             $tgtAtomIds = $segment->getData($this->src, $this->tgt);
-
-            if (count($tgtAtomIds) > 1) {
-                throw new Exception("Expression of RULE segment '{$segment}' results in more than one tgt atom", 501); // 501: Not implemented
-            }
-            $strArr[] = count($tgtAtomIds) ? $tgtAtomIds[0] : null;
+            $strArr[] = count($tgtAtomIds) ? implode(', ', $tgtAtomIds) : null;
         }
 
         // If empty array of strings (i.e. no violation segments defined), use default violation representation: '<src>,<tgt>'
