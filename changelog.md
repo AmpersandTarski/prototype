@@ -1,9 +1,11 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.9.2 (13 apr 2021)
 * Fix query data optimization in case of transformation from Atom to Resource. Improves performance by reducing amount of queries significantly.
 
-## v1.9.1 (1 april 2021)
+## v1.9.1 (1 apr 2021)
 * [Issue 1151](https://github.com/AmpersandTarski/Ampersand/issues/1151) Bugfix boolean population transformation to database
 * [Issue 1152](https://github.com/AmpersandTarski/Ampersand/issues/1152) Handle violation segments for expressions with multiple targets
 * Add OAuth2 handler for Microsoft accounts
