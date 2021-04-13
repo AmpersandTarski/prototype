@@ -291,11 +291,12 @@ class Atom implements JsonSerializable
      * Save query row data (can be used for subinterfaces)
      *
      * @param array|null $data
-     * @return void
+     * @return \Ampersand\Core\Atom
      */
-    public function setQueryData(array $data = null)
+    public function setQueryData(array $data = null): Atom
     {
         $this->queryData = $data;
+        return $this;
     }
     
     /**
