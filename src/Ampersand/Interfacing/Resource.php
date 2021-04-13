@@ -360,7 +360,6 @@ class Resource extends Atom implements ArrayAccess
             foreach ($filePaths as $path) {
                 $this->concept->getApp()->fileSystem()->delete($path);
             }
-            
         } else {
             // Perform DELETE using the interface definition
             $this->ifc->delete($this);

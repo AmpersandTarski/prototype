@@ -250,7 +250,9 @@ class ResourceList
 
     protected function makeResource(Atom $atom): Resource
     {
-        return new Resource($atom->getId(), $atom->concept, $this);
+        $resource = new Resource($atom->getId(), $atom->concept, $this);
+        $resource->setQueryData($atom->getQueryData()); // make sure that query data is preserved for optimization
+        return $resource;
     }
 
     /**********************************************************************************************

@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* Fix query data optimization in case of transformation from Atom to Resource. Improves performance by reducing amount of queries significantly.
 
 ## v1.9.1 (1 april 2021)
 * [Issue 1151](https://github.com/AmpersandTarski/Ampersand/issues/1151) Bugfix boolean population transformation to database
