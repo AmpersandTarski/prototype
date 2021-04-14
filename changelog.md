@@ -2,6 +2,10 @@
 
 ## Unreleased changes
 
+## v1.9.3 (14 apr 2021)
+* [1155](https://github.com/AmpersandTarski/Ampersand/issues/1155) Fix issue with MrgAtom exec-engine function in case of non-existing atoms
+* Hotfix bug introduced in v1.9.2 related to query data optimization
+
 ## v1.9.2 (13 apr 2021)
 * Fix query data optimization in case of transformation from Atom to Resource. Improves performance by reducing amount of queries significantly.
 

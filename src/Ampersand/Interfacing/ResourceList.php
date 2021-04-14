@@ -96,7 +96,7 @@ class ResourceList
     {
         // Convert tgt Atoms into Resources
         return array_map(function (Atom $atom) {
-            return $this->makeResource($atom);
+            return $this->makeResource($atom)->setQueryData($atom->getQueryData()); // make sure that query data is preserved for optimization;
         }, $this->ifcObject->getTgtAtoms($this->srcAtom));
     }
 
@@ -250,9 +250,7 @@ class ResourceList
 
     protected function makeResource(Atom $atom): Resource
     {
-        $resource = new Resource($atom->getId(), $atom->concept, $this);
-        $resource->setQueryData($atom->getQueryData()); // make sure that query data is preserved for optimization
-        return $resource;
+        return new Resource($atom->getId(), $atom->concept, $this);
     }
 
     /**********************************************************************************************
