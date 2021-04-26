@@ -7,6 +7,7 @@ settings:
 
   oauthlogin.identityProviders:
     linkedin:
+      handler: linkedin
       name: LinkedIn
       logoUrl: app/images/oauth/logo-linkedin.png
       authBase: https://www.linkedin.com/uas/oauth2/authorization
@@ -17,6 +18,7 @@ settings:
       apiUrl: https://api.linkedin.com/v1/people/~:(emailAddress)?format=json
       scope: r_emailaddress
     google:
+      handler: google
       name: Google
       logoUrl: app/images/oauth/logo-google.png
       authBase: https://accounts.google.com/o/oauth2/auth
@@ -27,6 +29,7 @@ settings:
       apiUrl: https://www.googleapis.com/userinfo/v2/me
       scope: https://www.googleapis.com/auth/userinfo.email
     github:
+      handler: github
       name: GitHub
       logoUrl: app/images/oauth/logo-github.png
       authBase: https://github.com/login/oauth/authorize
@@ -37,6 +40,7 @@ settings:
       apiUrl: https://api.github.com/user/emails
       scope: user:email
     microsoft:
+      handler: microsoft
       name: Microsoft
       logoUrl: app/images/oauth/logo-microsoft.png
       authBase: https://login.microsoftonline.com/common/oauth2/v2.0/authorize

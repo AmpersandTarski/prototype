@@ -4,6 +4,7 @@ namespace Ampersand\SIAM\OAuth;
 
 use Ampersand\AmpersandApp;
 use Exception;
+use Throwable;
 use Ampersand\Interfacing\ResourceList;
 
 class LoginController
@@ -117,11 +118,11 @@ class LoginController
      * Process authentication request
      *
      * @param string $code
-     * @param string $idp
+     * @param string $handler
      * @param string $api_url
      * @return bool
      */
-    public function authenticate(string $code, string $idp, $api_url): bool
+    public function authenticate(string $code, string $handler, $api_url): bool
     {
         if (empty($code)) {
             throw new Exception("No authentication code provided. Please try again", 400);
@@ -133,7 +134,7 @@ class LoginController
             if ($this->requestData($api_url)) {
                 // Get email here
                 $email = null;
-                switch ($idp) {
+                switch ($handler) {
                     case 'linkedin':
                         // Linkedin provides primary emailaddress only. This is always a verified address.
                         // https://docs.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin?context=linkedin/consumer/context
@@ -167,6 +168,13 @@ class LoginController
                         if (is_null($email)) {
                             throw new Exception("Error in getting verified emailadres from Microsoft ID: email not provided", 500);
                         }
+                        break;
+                    case 'openid':
+                        $sub = $this->getData()->sub;
+                        if (is_null($sub)) {
+                            throw new Exception("No OpenId subject identifier provided", 500);
+                        }
+                        $email = $sub; // FIXME: add login feature based on account identifiers instead of (verified) emailadresses. For now, just proceed with subject identifier like an emailadress
                         break;
                     default:
                         throw new Exception("Unknown identity provider", 500);
@@ -211,7 +219,7 @@ class LoginController
                 foreach ($orgs as $org) {
                     $account->link($org, 'accOrg[Account*Organization]')->add();
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 // Domain orgs not supported => skip
             }
         } elseif (count($accounts) == 1) {

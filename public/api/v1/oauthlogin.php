@@ -109,8 +109,11 @@ $api->group('/oauthlogin', function () {
             $ampersandApp
         );
 
+        // which handler to use
+        $handler = $identityProviders[$idp]['handler'] ?? $idp; // default to identity provider specific handler
+
         $api_url = $identityProviders[$idp]['apiUrl'];
-        $isLoggedIn = $authController->authenticate($code, $idp, $api_url);
+        $isLoggedIn = $authController->authenticate($code, $handler, $api_url);
         
         $url = $isLoggedIn ? $settings->get('oauthlogin.redirectAfterLogin') : $settings->get('oauthlogin.redirectAfterLoginFailure');
         $url = makeValidURL($url, $settings->get('global.serverURL')); // add serverUrl if url is specified as relative path
