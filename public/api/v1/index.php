@@ -202,7 +202,6 @@ require_once(__DIR__ . '/admin.installer.php'); // API calls starting with '/adm
 require_once(__DIR__ . '/admin.utils.php'); // API calls starting with '/admin/utils/'
 require_once(__DIR__ . '/app.php'); // API calls starting with '/app/'
 require_once(__DIR__ . '/files.php'); // API calls starting with '/file/'
-require_once(__DIR__ . '/oauthlogin.php'); // API calls starting with '/oauthlogin/'
 
 foreach ($ampersandApp->getSettings()->getExtensions() as $ext) {
     $ext->bootstrap();

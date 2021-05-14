@@ -310,7 +310,7 @@ class ExcelImporter
                 continue; // continue to next cell
             }
 
-            $cellvalue = $this->getCalculatedValueAsAtomId($cell);
+            $cellvalue = $this->getCalculatedValueAsAtomId($cell); // @phan-suppress-current-line PhanTypeMismatchArgumentNullable
 
             // If cell is empty, skip column
             if ($cellvalue === '') {
