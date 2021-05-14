@@ -5,6 +5,7 @@
 ## v1.10.0 (14 may 2021)
 * Remove OAuth module. Should be implementated by applications that use the framework instead.
 * Remove frontend package from dist folder. Package is now build every time.
+* Update backend libraries (composer update)
 
 ## v1.9.3 (14 apr 2021)
 * [1155](https://github.com/AmpersandTarski/Ampersand/issues/1155) Fix issue with MrgAtom exec-engine function in case of non-existing atoms
