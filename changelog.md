@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased changes
-* Add OpenId connect handler for OAuth login controller
+* Remove OAuth module. Should be implementated by applications that use the framework instead.
 * Remove frontend package from dist folder. Package is now build every time.
 
 ## v1.9.3 (14 apr 2021)
