@@ -2,6 +2,10 @@
 
 ## Unreleased changes
 
+## v1.10.1 (14 jul 2021)
+* Library update indicated by dependabot
+* Add helper methods to Population class
+
 ## v1.10.0 (14 may 2021)
 * Remove OAuth module. Should be implementated by applications that use the framework instead.
 * Remove frontend package from dist folder. Package is now build every time.
