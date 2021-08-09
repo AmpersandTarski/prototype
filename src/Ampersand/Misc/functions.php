@@ -121,3 +121,50 @@ function makeValidURL(string $url, string $baseUrl = null): string
         return $newUrl;
     }
 }
+
+/**
+ * Returns number of bytes as specified in (string) value
+ *
+ * This is a utility function to work with php's shorthand notation 'G', 'M' and 'K'
+ * See: https://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
+ *
+ * @param string|int $value
+ * @return int
+ */
+function returnBytes($value): int
+{
+    $value = trim($value);
+
+    if (is_numeric($value)) {
+        return (int) $value;
+    }
+
+    $last = substr($value, -1);
+    $val = (int) substr($value, 0, -1);
+
+    switch ($last) {
+        // The 'G' modifier is available since PHP 5.1.0
+        case 'G':
+            return $val * 1024**3;
+        case 'M':
+            return $val * 1024**2;
+        case 'K':
+            return $val * 1024**1;
+        default:
+            throw new Exception("Unsupported shorthand notation for number of bytes: '{$value}'", 500);
+    }
+}
+
+function humanFileSize(int $size, int $decimals = 2): string
+{
+    if ($size >= 1024**3) {
+        return number_format($size/(1024**3), $decimals) . "GB";
+    }
+    if ($size >= 1024**2) {
+        return number_format($size/(1024**2), $decimals) . "MB";
+    }
+    if ($size >= 1024**1) {
+        return number_format($size/(1024**1), $decimals) . "KB";
+    }
+    return number_format($size, 0) . " bytes";
+}

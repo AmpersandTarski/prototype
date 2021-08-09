@@ -173,6 +173,12 @@ class ResourceList
         
         $newResource = $this->makeResource($this->ifcObject->create($this->srcAtom));
 
+        // Check if file is specified. This is not the case e.g. when post_max_size is exceeded
+        // Maximum post size is checked in generic API middleware function
+        if (!isset($_FILES['file'])) {
+            throw new Exception("No file(s) provided to upload", 400);
+        }
+
         $fileInfo = $_FILES['file'];
 
         // Special case for file upload
