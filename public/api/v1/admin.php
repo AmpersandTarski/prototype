@@ -11,6 +11,7 @@ use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Ampersand\Core\Population;
+use Ampersand\Exception\UploadException;
 
 /**
  * @var \Slim\App $api
@@ -169,19 +170,21 @@ $api->group('/admin', function () {
             throw new Exception("You do not have access to import population", 403);
         }
         
+        $fileInfo = $_FILES['file'];
+        
         // Check if there is a file uploaded
-        if (!is_uploaded_file($_FILES['file']['tmp_name'])) {
-            throw new Exception("No file uploaded", 400);
+        if (!is_uploaded_file($fileInfo['tmp_name'])) {
+            throw new UploadException($fileInfo['error']);
         }
 
         $transaction = $ampersandApp->newTransaction();
 
         // Determine and execute import method based on extension.
-        $extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
+        $extension = pathinfo($fileInfo['name'], PATHINFO_EXTENSION);
         switch ($extension) {
             case 'json':
                 $decoder = new JsonDecode(false);
-                $populationContent = $decoder->decode(file_get_contents($_FILES['file']['tmp_name']), JsonEncoder::FORMAT);
+                $populationContent = $decoder->decode(file_get_contents($fileInfo['tmp_name']), JsonEncoder::FORMAT);
                 $population = new Population($ampersandApp->getModel(), Logger::getLogger('IO'));
                 $population->loadFromPopulationFile($populationContent);
                 $population->import();
@@ -190,7 +193,7 @@ $api->group('/admin', function () {
             case 'xlsx':
             case 'ods':
                 $importer = new ExcelImporter($ampersandApp, Logger::getLogger('IO'));
-                $importer->parseFile($_FILES['file']['tmp_name']);
+                $importer->parseFile($fileInfo['tmp_name']);
                 break;
             default:
                 throw new Exception("Unsupported file extension", 400);
@@ -200,9 +203,9 @@ $api->group('/admin', function () {
         // Commit transaction
         $transaction->runExecEngine()->close();
         if ($transaction->isCommitted()) {
-            $ampersandApp->userLog()->notice("Imported {$_FILES['file']['name']} successfully");
+            $ampersandApp->userLog()->notice("Imported {$fileInfo['name']} successfully");
         }
-        unlink($_FILES['file']['tmp_name']);
+        unlink($fileInfo['tmp_name']);
         
         // Check all process rules that are relevant for the activate roles
         $ampersandApp->checkProcessRules();

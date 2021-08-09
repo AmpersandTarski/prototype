@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* Provide more specific error message when file upload failed (e.g. exceeded maximum filesize)
 
 ## v1.10.1 (14 jul 2021)
 * Library update indicated by dependabot

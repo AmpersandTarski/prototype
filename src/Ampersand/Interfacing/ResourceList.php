@@ -13,6 +13,7 @@ use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Concept;
 use Ampersand\Exception\AtomNotFoundException;
+use Ampersand\Exception\UploadException;
 use Exception;
 use stdClass;
 use function Ampersand\Misc\getSafeFileName;
@@ -172,13 +173,15 @@ class ResourceList
         
         $newResource = $this->makeResource($this->ifcObject->create($this->srcAtom));
 
+        $fileInfo = $_FILES['file'];
+
         // Special case for file upload
         if ($newResource->concept->isFileObject()) {
-            if (is_uploaded_file($_FILES['file']['tmp_name'])) {
+            if (is_uploaded_file($fileInfo['tmp_name'])) {
                 $fs = $ampersandApp->fileSystem();
                 
-                $tmp_name = $_FILES['file']['tmp_name'];
-                $originalFileName = $_FILES['file']['name'];
+                $tmp_name = $fileInfo['tmp_name'];
+                $originalFileName = $fileInfo['name'];
                 $filePath = "uploads/{$originalFileName}";
 
                 // Make filePath safe (i.e. valid path and non-existing)
@@ -198,7 +201,8 @@ class ResourceList
                 $newResource->link($filePath, 'filePath[FileObject*FilePath]')->add();
                 $newResource->link($originalFileName, 'originalFileName[FileObject*FileName]')->add();
             } else {
-                throw new Exception("No file uploaded", 400);
+                // See: https://www.php.net/manual/en/features.file-upload.errors.php
+                throw new UploadException($fileInfo['error']);
             }
             return $newResource;
         // Regular case
