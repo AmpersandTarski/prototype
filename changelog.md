@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* [Issue 993](https://github.com/AmpersandTarski/Ampersand/issues/993) Don't call API to save field when value is unchanged
 * Provide more specific error message when file upload failed (e.g. exceeded maximum filesize)
 
 ## v1.10.1 (14 jul 2021)
