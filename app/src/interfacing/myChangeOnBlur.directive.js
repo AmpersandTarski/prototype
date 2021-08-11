@@ -24,7 +24,7 @@ angular.module('AmpersandApp')
             elm.bind('blur', (event) => {
                 scope.$apply(() => {
                     let newValue = elm.val();
-                    if (newValue !== oldValue){
+                    if (newValue !== oldValue) {
                         scope.$eval(expressionToCall);
                     }
                 });
