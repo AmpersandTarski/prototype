@@ -9,6 +9,8 @@ bower.json
 phpcs.xml
 
 # content of .gitignore
+.git
 lib/
 app/lib/
 node_modules/
+angular-app/node_modules/

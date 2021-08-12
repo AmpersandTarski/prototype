@@ -137,6 +137,9 @@ class Population
         return $this;
     }
 
+    /**
+     * @return \Ampersand\Core\Concept[]
+     */
     public function getConcepts(): array
     {
         return array_values(
@@ -146,6 +149,9 @@ class Population
         );
     }
 
+    /**
+     * @return \Ampersand\Core\Relation[]
+     */
     public function getRelations(): array
     {
         return array_values(
