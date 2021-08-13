@@ -85,6 +85,11 @@ angular.module('AmpersandApp')
                     }
 
                     return {resource : resource, saved: true, committed: data.isCommitted};
+                }, function (err) {
+                    // Clear list of patches because otherwise the error keeps coming back
+                    // and user must reset with a browser refresh (not intuitive)
+                    // The err message is handled by configured generic error interceptor, see module.js
+                    ResourceService.initResourceMetaData(resource);
                 });
 
                 // Add promise to loading list
