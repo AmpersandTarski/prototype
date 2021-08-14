@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.10.3 (14 aug 2021)
 * Bugfix issue with unhandled exception in frontend when API patch returns error
 * Bugfix redirect to previous url after navigating manually to login page
 
