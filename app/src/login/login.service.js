@@ -30,13 +30,5 @@ angular.module('AmpersandApp')
         }
     };
 
-    $rootScope.$on('$routeChangeSuccess', function (event, current, previous) {
-        if (current.$$route.originalPath !== urlLoginPage) {
-            $localStorage.login_urlBeforeLogin = $location.path();
-        } else {
-            console.log('login page');
-        }
-    });
-    
     return service;
 });

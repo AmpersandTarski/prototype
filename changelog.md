@@ -2,6 +2,7 @@
 
 ## Unreleased changes
 * Bugfix issue with unhandled exception in frontend when API patch returns error
+* Bugfix redirect to previous url after navigating manually to login page
 
 ## v1.10.2 (12 aug 2021)
 * [Issue 993](https://github.com/AmpersandTarski/Ampersand/issues/993) Don't call API to save field when value is unchanged

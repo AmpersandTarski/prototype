@@ -36,7 +36,25 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
     RestangularProvider.setDefaultHeaders({"Content-Type": "application/json"});
     RestangularProvider.setPlainByDefault(true);
     
-}).run(function(Restangular, $rootScope, $location, $route, NotificationService, RoleService, NavigationBarService, LoginService){
+}).run(function(Restangular, $rootScope, $location, $route, NotificationService, RoleService, NavigationBarService, LoginService, $localStorage){
+
+    // Store previous url in localstorage.
+    // This url can be used when returning back to the application after e.g. OAuth login
+    // Value is used by fixed route '/redirect-after-login'
+    $rootScope.$on('$locationChangeSuccess', function (event, newUrl, previousUrl) {
+        const url = new URL(previousUrl);
+
+        // AngularJS is a single page app where routing is done after the hash (#)
+        // Regular URL layout doesn't apply here. We only require the 'hash' part of the URL.
+        const path = url.hash.substr(1); // strip the hash char
+
+        // Don't store the routes for login page itself and redirect-after-login
+        if (path === '/ext/Login' || path === '/redirect-after-login') {
+            return;
+        }
+
+        $localStorage.login_urlBeforeLogin = path;
+    });
 
     Restangular.addFullRequestInterceptor(function(element, operation, what, url, headers, params){
         //params.navIfc = true;
