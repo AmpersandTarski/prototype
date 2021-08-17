@@ -367,12 +367,12 @@ class Concept
     }
     
     /**
-     * Checks if this concept is in same classification tree as the provided concept
+     * Checks if this concept is in same classification branch as the provided concept
      *
      * @param \Ampersand\Core\Concept $concept
      * @return bool
      */
-    public function inSameClassificationTree(Concept $concept): bool
+    public function inSameClassificationBranch(Concept $concept): bool
     {
         if ($this->hasSpecialization($concept, true)) {
             return true;
@@ -571,8 +571,8 @@ class Concept
     {
         // Convert atom to more generic/specific concept if needed
         if ($atom->concept !== $this) {
-            if (!$this->inSameClassificationTree($atom->concept)) {
-                throw new Exception("Concept of atom '{$atom}' not in same classifcation tree with {$this}", 500);
+            if (!$this->inSameClassificationBranch($atom->concept)) {
+                throw new Exception("Concept of atom '{$atom}' not in same classifcation branch as {$this}. Try adding 'CLASSIFY {$atom->concept} ISA {$this}' or vice-versa", 500);
             } else {
                 $atom = new Atom($atom->getId(), $this);
             }
@@ -654,8 +654,8 @@ class Concept
         // Adding atom[A] to another concept [B] ($this)
         } else {
             // Check if concept A and concept B are in the same classification tree
-            if (!$this->inSameClassificationTree($atom->concept)) {
-                throw new Exception("Cannot add {$atom} to concept {$this}, because concepts are not in the same classification tree", 500);
+            if (!$this->inSameClassificationBranch($atom->concept)) {
+                throw new Exception("Cannot add {$atom} to concept {$this}, because neither concept includes the other. Try adding 'CLASSIFY {$atom->concept} ISA {$this}' or vice-versa", 500);
             }
             
             // Check if atom[A] exists. Otherwise it may not be added to concept B
@@ -757,8 +757,8 @@ class Concept
         }
         
         // Check that left and right atoms are in the same typology.
-        if (!$leftAtom->concept->inSameClassificationTree($rightAtom->concept)) {
-            throw new Exception("Cannot merge '{$rightAtom}' into '{$leftAtom}', because they not in the same classification tree", 500);
+        if (!$leftAtom->concept->inSameClassificationBranch($rightAtom->concept)) {
+            throw new Exception("Cannot merge '{$rightAtom}' into '{$leftAtom}', because neither concept includes the other. Try adding 'CLASSIFY {$rightAtom->concept} ISA {$leftAtom->concept}' or vice-versa", 500);
         }
 
         // Skip when left and right atoms are the same
@@ -787,7 +787,7 @@ class Concept
         // Merge step 2: rename right atom by left atom in relation sets
         foreach ($this->app->getModel()->getRelations() as $relation) {
             // Source
-            if ($this->inSameClassificationTree($relation->srcConcept)) {
+            if ($this->inSameClassificationBranch($relation->srcConcept)) {
                 // Delete and add links where atom is the source
                 foreach ($relation->getAllLinks($rightAtom, null) as $link) {
                     $relation->deleteLink($link); // Delete old link
@@ -796,7 +796,7 @@ class Concept
             }
             
             // Target
-            if ($this->inSameClassificationTree($relation->tgtConcept)) {
+            if ($this->inSameClassificationBranch($relation->tgtConcept)) {
                 // Delete and add links where atom is the source
                 foreach ($relation->getAllLinks(null, $rightAtom) as $link) {
                     $relation->deleteLink($link); // Delete old link
@@ -826,10 +826,10 @@ class Concept
     {
         foreach ($this->app->getModel()->getRelations() as $relation) {
             /** @var \Ampersand\Core\Relation $relation */
-            if ($atom->concept->inSameClassificationTree($relation->srcConcept)) {
+            if ($atom->concept->inSameClassificationBranch($relation->srcConcept)) {
                 $relation->deleteAllLinks($atom, 'src');
             }
-            if ($atom->concept->inSameClassificationTree($relation->tgtConcept)) {
+            if ($atom->concept->inSameClassificationBranch($relation->tgtConcept)) {
                 $relation->deleteAllLinks($atom, 'tgt');
             }
         }

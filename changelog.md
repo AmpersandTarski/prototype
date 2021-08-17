@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* [Issue 1170](https://github.com/AmpersandTarski/Ampersand/issues/1170) Rename Concept::inSameClassificationTree to inSameClassificationBranch. Adapt error messages.
 
 ## v1.10.3 (14 aug 2021)
 * Bugfix issue with unhandled exception in frontend when API patch returns error
