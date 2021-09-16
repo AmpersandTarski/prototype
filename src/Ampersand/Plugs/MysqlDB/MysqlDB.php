@@ -190,7 +190,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         
         // Create new database
         $this->logger->info("Create new database: '{$this->dbName}'");
-        $this->doQuery("CREATE DATABASE {$this->dbName} DEFAULT CHARACTER SET UTF8 COLLATE UTF8MB4_NOPAD_BIN");
+        $this->doQuery("CREATE DATABASE {$this->dbName} DEFAULT CHARACTER SET UTF8MB4 COLLATE UTF8MB4_NOPAD_BIN");
 
         $this->dbLink->select_db($this->dbName);
     }
