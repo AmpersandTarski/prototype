@@ -4,10 +4,31 @@
     "name": "PHP 7",
     "dockerFile": "Dockerfile",
     
-    // Set *default* container specific settings.json values on container create.
-    "settings": { 
-        "terminal.integrated.shell.linux": "/bin/bash"
-    },
+  // Use 'settings' to set *default* container specific settings.json values on container create. 
+  // You can edit these settings after create using File > Preferences > Settings > Remote.
+  "settings": {
+    "terminal.integrated.defaultProfile.linux":"bash", 
+    "terminal.integrated.profiles.linux":{
+      "bash": {
+        "path": "bash",
+        "icon": "terminal-bash"
+      },
+      "zsh": {
+        "path": "zsh",
+      },
+      "fish": {
+        "path": "fish"
+      },
+      "tmux": {
+        "path": "tmux",
+        "icon": "terminal-tmux"
+      },
+      "pwsh": {
+        "path": "pwsh",
+        "icon": "terminal-powershell"
+      }
+    }
+  },
 
     // Add the IDs of extensions you want installed when the container is created.
     "extensions": [

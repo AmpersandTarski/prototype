@@ -144,7 +144,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             
             // Flag MYSQLI_CLIENT_FOUND_ROWS -> https://www.codepuppet.com/2014/02/16/mysql-affected-rows-vs-rows-matched/
             $this->dbLink->real_connect($this->dbHost, $this->dbUser, $this->dbPass, '', 0, '', MYSQLI_CLIENT_FOUND_ROWS);
-            $this->dbLink->set_charset("utf8");
+            $this->dbLink->set_charset("utf8mb4");
             
             // Set sql_mode to ANSI
             $this->dbLink->query("SET SESSION sql_mode = 'ANSI,TRADITIONAL'");
@@ -190,7 +190,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         
         // Create new database
         $this->logger->info("Create new database: '{$this->dbName}'");
-        $this->doQuery("CREATE DATABASE {$this->dbName} DEFAULT CHARACTER SET UTF8");
+        $this->doQuery("CREATE DATABASE {$this->dbName} DEFAULT CHARACTER SET UTF8MB4 COLLATE UTF8MB4_NOPAD_BIN");
 
         $this->dbLink->select_db($this->dbName);
     }
