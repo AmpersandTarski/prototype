@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased changes
+
+## v1.10.4 (16 sept 2021)
 * [Issue 1170](https://github.com/AmpersandTarski/Ampersand/issues/1170) Rename Concept::inSameClassificationTree to inSameClassificationBranch. Adapt error messages.
 * [Issue 1212](https://github.com/AmpersandTarski/Ampersand/issues/1212) Change database collation to utf8mb4_nopad_bin to fix issue with trailing whitespace
 * Update build-push to docker hub. We are moving to master branch only, no development anymore
