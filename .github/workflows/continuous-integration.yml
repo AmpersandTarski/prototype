@@ -2,6 +2,8 @@ name: CI
 on:
   push:
     branches: # empty list to only trigger on branches (i.e. not tags, ..)
+    tags-ignore:
+      - '*' # this CI script is not needed for tags
 
 env:
   DOCKER_AMPERSAND_IMAGE: ampersandtarski/prototype-framework
