@@ -100,6 +100,7 @@ class RDFGraph extends \EasyRdf\Graph
             $max = $relation->isInj ? 1 : -1;
             $this->addCardinalityConstraint($range, $relationResource, $min, $max);
         } else {
+            // TODO: add cardinality constraint... why did I skip this??
             $relationResource->addResource('rdfs:range', $relation->tgtConcept->getDatatype('xml'));
             // Skip cardinality constraints on range
         }
