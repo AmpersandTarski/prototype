@@ -586,6 +586,7 @@ class AmpersandApp
         // Call reinstall method on every registered storage (e.g. for MysqlDB implementation this means (re)creating database structure)
         foreach ($this->storages as $storage) {
             $storage->reinstallStorage($this->model);
+            $storage->addToModelVersionHistory($this->model);
         }
 
         $this->init();

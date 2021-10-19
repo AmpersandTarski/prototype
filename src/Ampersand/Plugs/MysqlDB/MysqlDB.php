@@ -213,6 +213,21 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $queries = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'DBStructureQueries.sql');
         $this->doQuery($queries, true);
     }
+
+    public function addToModelVersionHistory(Model $model)
+    {
+        $this->doQuery("INSERT INTO __ampersand_model_history__ (compilerVersion, checksum) VALUES ({$model->compilerVersion}, {$model->checksum})");
+    }
+
+    public function getInstalledModelHash(): string
+    {
+        $result = $this->execute("SELECT * FROM __ampersand_model_history__ ORDER BY id DESC LIMIT 1");
+        if (!is_array($result)) {
+            throw new Exception("Cannot determine latest installed model version in {$this->getLabel()}", 500);
+        }
+
+        return $result['checksum'];
+    }
     
     /**
      * Return escaped mysql representation of Atom (identifier) according to Ampersand technical types (TTypes)

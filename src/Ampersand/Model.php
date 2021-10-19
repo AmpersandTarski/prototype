@@ -63,6 +63,16 @@ class Model
     protected $folder;
 
     /**
+     * Ampersand compiler version
+     */
+    public string $compilerVersion;
+
+    /**
+     * Model checksum
+     */
+    public string $checksum;
+
+    /**
      * Filepath for saving checksums of generated Ampersand model
      *
      * @var string
@@ -177,6 +187,9 @@ class Model
         $this->loadInterfaces($app->getDefaultStorage());
         $this->loadRules($app->getDefaultStorage(), $app, Logger::getLogger('RULEENGINE'));
         $this->loadRoles();
+
+        $this->checksum = $this->getSetting('compiler.modelHash');
+        $this->compilerVersion = $this->getSetting('compiler.version');
 
         return $this;
     }
