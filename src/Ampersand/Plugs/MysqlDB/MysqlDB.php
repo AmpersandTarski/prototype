@@ -226,7 +226,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             throw new NotInstalledException("Cannot determine latest installed model version in {$this->getLabel()}. Try reinstalling the database", 500);
         }
 
-        return $result['checksum'];
+        return current($result)['checksum'];
     }
     
     /**
