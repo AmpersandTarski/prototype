@@ -188,13 +188,13 @@ class AmpersandApp
         return $this->fileSystem;
     }
 
-    public function setFileSystem(FilesystemInterface $fs): AmpersandApp
+    public function setFileSystem(FilesystemInterface $fs): self
     {
         $this->fileSystem = $fs;
         return $this;
     }
 
-    public function init(): AmpersandApp
+    public function init(): self
     {
         try {
             $this->logger->info('Initialize Ampersand application');
@@ -318,7 +318,7 @@ class AmpersandApp
         $this->conjunctCache = $cache;
     }
 
-    public function setSession(Atom $sessionAccount = null): AmpersandApp
+    public function setSession(Atom $sessionAccount = null): self
     {
         $this->session = new Session($this->logger, $this);
         $this->session->initSessionAtom();
@@ -343,7 +343,7 @@ class AmpersandApp
         $this->setSession($sessionAccount);
     }
 
-    protected function setRulesToMaintain(): AmpersandApp
+    protected function setRulesToMaintain(): self
     {
         // Reset
         $this->rulesToMaintain = [];
@@ -367,7 +367,7 @@ class AmpersandApp
         return $this;
     }
 
-    protected function setAccessibleInterfaces(): AmpersandApp
+    protected function setAccessibleInterfaces(): self
     {
         // Reset
         $this->accessibleInterfaces = [];
@@ -566,9 +566,8 @@ class AmpersandApp
      *
      * @param bool $installDefaultPop specifies whether or not to install the default population
      * @param bool $ignoreInvariantRules
-     * @return \Ampersand\AmpersandApp $this
      */
-    public function reinstall(bool $installDefaultPop = true, bool $ignoreInvariantRules = false): AmpersandApp
+    public function reinstall(bool $installDefaultPop = true, bool $ignoreInvariantRules = false): self
     {
         $this->logger->info("Start application reinstall");
 
@@ -641,11 +640,12 @@ class AmpersandApp
         return $this;
     }
 
-    public function registerCurrentModelVersion(): void
+    public function registerCurrentModelVersion(): self
     {
         foreach ($this->storages as $storage) {
             $storage->addToModelVersionHistory($this->model);
         }
+        return $this;
     }
 
     public function verifyChecksum(): bool
