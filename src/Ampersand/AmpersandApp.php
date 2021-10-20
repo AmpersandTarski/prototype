@@ -199,11 +199,6 @@ class AmpersandApp
         try {
             $this->logger->info('Initialize Ampersand application');
 
-            // Verify checksum
-            if (!$this->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
-                $this->userLogger->warning("Generated model is changed. You SHOULD reinstall or migrate your application");
-            }
-
             // Check for default storage plug
             if (!in_array($this->defaultStorage, $this->storages)) {
                 throw new Exception("No default storage plug registered", 500);
@@ -221,6 +216,12 @@ class AmpersandApp
 
             // Initialize Ampersand model (i.e. load all defintions from generated json files)
             $this->model->init($this);
+
+            // Verify checksum
+            // Must be done after init of storages and init of model (see above)
+            if (!$this->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
+                $this->userLogger->warning("Generated model is changed. You SHOULD reinstall or migrate your application");
+            }
 
             // Add concept plugs
             foreach ($this->model->getAllConcepts() as $cpt) {
