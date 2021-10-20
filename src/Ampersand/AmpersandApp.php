@@ -188,21 +188,16 @@ class AmpersandApp
         return $this->fileSystem;
     }
 
-    public function setFileSystem(FilesystemInterface $fs): AmpersandApp
+    public function setFileSystem(FilesystemInterface $fs): self
     {
         $this->fileSystem = $fs;
         return $this;
     }
 
-    public function init(): AmpersandApp
+    public function init(): self
     {
         try {
             $this->logger->info('Initialize Ampersand application');
-
-            // Check checksum
-            if (!$this->model->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
-                $this->userLogger->warning("Generated model is changed. You SHOULD reinstall your application");
-            }
 
             // Check for default storage plug
             if (!in_array($this->defaultStorage, $this->storages)) {
@@ -221,6 +216,12 @@ class AmpersandApp
 
             // Initialize Ampersand model (i.e. load all defintions from generated json files)
             $this->model->init($this);
+
+            // Verify checksum
+            // Must be done after init of storages and init of model (see above)
+            if (!$this->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
+                $this->userLogger->warning("Generated model is changed. You SHOULD reinstall or migrate your application");
+            }
 
             // Add concept plugs
             foreach ($this->model->getAllConcepts() as $cpt) {
@@ -317,7 +318,7 @@ class AmpersandApp
         $this->conjunctCache = $cache;
     }
 
-    public function setSession(Atom $sessionAccount = null): AmpersandApp
+    public function setSession(Atom $sessionAccount = null): self
     {
         $this->session = new Session($this->logger, $this);
         $this->session->initSessionAtom();
@@ -342,7 +343,7 @@ class AmpersandApp
         $this->setSession($sessionAccount);
     }
 
-    protected function setRulesToMaintain(): AmpersandApp
+    protected function setRulesToMaintain(): self
     {
         // Reset
         $this->rulesToMaintain = [];
@@ -366,7 +367,7 @@ class AmpersandApp
         return $this;
     }
 
-    protected function setAccessibleInterfaces(): AmpersandApp
+    protected function setAccessibleInterfaces(): self
     {
         // Reset
         $this->accessibleInterfaces = [];
@@ -565,9 +566,8 @@ class AmpersandApp
      *
      * @param bool $installDefaultPop specifies whether or not to install the default population
      * @param bool $ignoreInvariantRules
-     * @return \Ampersand\AmpersandApp $this
      */
-    public function reinstall(bool $installDefaultPop = true, bool $ignoreInvariantRules = false): AmpersandApp
+    public function reinstall(bool $installDefaultPop = true, bool $ignoreInvariantRules = false): self
     {
         $this->logger->info("Start application reinstall");
 
@@ -580,13 +580,12 @@ class AmpersandApp
         // Clear notifications
         $this->userLogger->clearAll();
 
-        // Write new checksum file of generated Ampersand moel
-        $this->model->writeChecksumFile();
-
         // Call reinstall method on every registered storage (e.g. for MysqlDB implementation this means (re)creating database structure)
         foreach ($this->storages as $storage) {
             $storage->reinstallStorage($this->model);
         }
+
+        $this->registerCurrentModelVersion();
 
         $this->init();
 
@@ -639,6 +638,26 @@ class AmpersandApp
         $this->logger->info("End application reinstall");
 
         return $this;
+    }
+
+    public function registerCurrentModelVersion(): self
+    {
+        foreach ($this->storages as $storage) {
+            $storage->addToModelVersionHistory($this->model);
+        }
+        return $this;
+    }
+
+    public function verifyChecksum(): bool
+    {
+        $check = true;
+        foreach ($this->storages as $storage) {
+            if ($storage->getInstalledModelHash() !== $this->model->checksum) {
+                $this->logger->warning("Installed model hash registered in {$storage->getLabel()} does not match application model version. Reinstall or migrate application");
+                $check = false;
+            }
+        }
+        return $check;
     }
 
     /**

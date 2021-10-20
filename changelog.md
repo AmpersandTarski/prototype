@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased changes
+* [Issue 1208](https://github.com/AmpersandTarski/Ampersand/issues/1208) Fix warning when a reinstall of the database may be needed based on model hash
 
 ## v1.10.4 (16 sept 2021)
 * [Issue 1170](https://github.com/AmpersandTarski/Ampersand/issues/1170) Rename Concept::inSameClassificationTree to inSameClassificationBranch. Adapt error messages.

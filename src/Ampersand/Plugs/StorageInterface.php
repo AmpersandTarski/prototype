@@ -39,5 +39,9 @@ interface StorageInterface
 
     public function reinstallStorage(Model $model);
 
+    public function addToModelVersionHistory(Model $model);
+
+    public function getInstalledModelHash(): string;
+
     public function executeCustomSQLQuery(string $query);
 }

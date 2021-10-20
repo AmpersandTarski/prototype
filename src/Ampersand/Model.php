@@ -63,11 +63,14 @@ class Model
     protected $folder;
 
     /**
-     * Filepath for saving checksums of generated Ampersand model
-     *
-     * @var string
+     * Ampersand compiler version
      */
-    protected $checksumFile;
+    public string $compilerVersion;
+
+    /**
+     * Model checksum
+     */
+    public string $checksum;
 
     /**
      * List of files that contain the generated Ampersand model
@@ -155,13 +158,6 @@ class Model
         if (!$fileSystem->exists($this->modelFiles)) {
             throw new Exception("Not all Ampersand model files are provided. Check model folder '{$this->folder}'", 500);
         }
-
-        $this->checksumFile = "{$this->folder}/checksums.txt";
-        
-        // Write checksum file if not yet exists
-        if (!file_exists($this->checksumFile)) {
-            $this->writeChecksumFile();
-        }
     }
 
     /**********************************************************************************************
@@ -177,6 +173,9 @@ class Model
         $this->loadInterfaces($app->getDefaultStorage());
         $this->loadRules($app->getDefaultStorage(), $app, Logger::getLogger('RULEENGINE'));
         $this->loadRoles();
+
+        $this->checksum = $this->getSetting('compiler.modelHash');
+        $this->compilerVersion = $this->getSetting('compiler.version');
 
         return $this;
     }
@@ -725,59 +724,6 @@ class Model
     /**********************************************************************************************
      * MISC
     **********************************************************************************************/
-    /**
-     * Write new checksum file of generated model
-     *
-     * @return void
-     */
-    public function writeChecksumFile()
-    {
-        /* Earlier implementation.
-        $this->logger->debug("Writing checksum file for generated Ampersand model files");
-
-        $checksums = [];
-        foreach ($this->modelFiles as $path) {
-            $filename = pathinfo($path, PATHINFO_BASENAME);
-            $checksums[$filename] = hash_file(self::HASH_ALGORITHM, $path);
-        }
-
-        file_put_contents($this->checksumFile, serialize($checksums));
-        */
-
-        // Now: use the hash value from generated output (created by Haskell codebase)
-        file_put_contents($this->checksumFile, $this->getSetting('compiler.modelHash'));
-    }
-
-    /**
-     * Verify checksums of generated model. Return true when valid, false otherwise.
-     *
-     * @return bool
-     */
-    public function verifyChecksum(): bool
-    {
-        $this->logger->debug("Verifying checksum for Ampersand model files");
-
-        return (file_get_contents($this->checksumFile) === $this->getSetting('compiler.modelHash'));
-
-        /* Earlier implementation.
-        $valid = true; // assume all checksums match
-
-        // Get stored checksums
-        $checkSums = unserialize(file_get_contents($this->checksumFile));
-
-        // Compare checksum with actual file
-        foreach ($this->modelFiles as $path) {
-            $filename = pathinfo($path, PATHINFO_BASENAME);
-            if ($checkSums[$filename] !== hash_file(self::HASH_ALGORITHM, $path)) {
-                $this->logger->warning("Invalid checksum of file '{$filename}'");
-                $valid = false;
-            }
-        }
-
-        return $valid;
-        */
-    }
-
     public function getFolder(): string
     {
         return $this->folder;
