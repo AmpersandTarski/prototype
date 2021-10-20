@@ -5,7 +5,7 @@ name: Build push to DockerHub
 on:
   push:
     branches: # empty list to trigger all branches
-    - master
+    - main
     tags:
     - 'v*'
 
