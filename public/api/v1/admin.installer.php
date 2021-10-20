@@ -84,9 +84,9 @@ $api->group('/admin/installer', function () {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         $ampersandApp = $this['ampersand_app'];
 
-        $ampersandApp->getModel()->writeChecksumFile();
+        $ampersandApp->registerCurrentModelVersion();
         
-        $ampersandApp->userLog()->info('New checksum calculated for generated Ampersand model files');
+        $ampersandApp->userLog()->info('New model version registered. Checksum is updated');
     });
 })->add($middleWare1)
 /**

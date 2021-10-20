@@ -199,9 +199,9 @@ class AmpersandApp
         try {
             $this->logger->info('Initialize Ampersand application');
 
-            // Check checksum
-            if (!$this->model->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
-                $this->userLogger->warning("Generated model is changed. You SHOULD reinstall your application");
+            // Verify checksum
+            if (!$this->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
+                $this->userLogger->warning("Generated model is changed. You SHOULD reinstall or migrate your application");
             }
 
             // Check for default storage plug
@@ -580,14 +580,12 @@ class AmpersandApp
         // Clear notifications
         $this->userLogger->clearAll();
 
-        // Write new checksum file of generated Ampersand moel
-        $this->model->writeChecksumFile();
-
         // Call reinstall method on every registered storage (e.g. for MysqlDB implementation this means (re)creating database structure)
         foreach ($this->storages as $storage) {
             $storage->reinstallStorage($this->model);
-            $storage->addToModelVersionHistory($this->model);
         }
+
+        $this->registerCurrentModelVersion();
 
         $this->init();
 
@@ -640,6 +638,25 @@ class AmpersandApp
         $this->logger->info("End application reinstall");
 
         return $this;
+    }
+
+    public function registerCurrentModelVersion(): void
+    {
+        foreach ($this->storages as $storage) {
+            $storage->addToModelVersionHistory($this->model);
+        }
+    }
+
+    public function verifyChecksum(): bool
+    {
+        $check = true;
+        foreach ($this->storages as $storage) {
+            if ($storage->getInstalledModelHash() !== $this->model->checksum) {
+                $this->logger->warning("Installed model hash registered in {$storage->getLabel()} does not match application model version. Reinstall or migrate application");
+                $check = false;
+            }
+        }
+        return $check;
     }
 
     /**
