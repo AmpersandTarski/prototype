@@ -222,8 +222,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     public function getInstalledModelHash(): string
     {
         $result = $this->execute("SELECT * FROM \"__ampersand_model_history__\" ORDER BY \"id\" DESC LIMIT 1");
-        if (!is_array($result)) {
-            throw new Exception("Cannot determine latest installed model version in {$this->getLabel()}", 500);
+        if (!is_array($result) || empty($result)) {
+            throw new NotInstalledException("Cannot determine latest installed model version in {$this->getLabel()}. Try reinstalling the database", 500);
         }
 
         return $result['checksum'];
