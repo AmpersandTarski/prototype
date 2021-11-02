@@ -14,7 +14,7 @@ angular.module('AmpersandApp')
             }
             else return false;
         });
-        $scope.notifications.warnings = [];
+        // $scope.notifications.warnings = []; // leave warnings in screen until user dismisses them
         $scope.notifications.infos = [];
         $scope.notifications.invariants = [];
     });
