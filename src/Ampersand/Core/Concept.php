@@ -467,6 +467,19 @@ class Concept
     {
         return $this->relatedConjuncts;
     }
+
+    /**
+     * List relations where this concept is the src or tgt
+     * @return \Ampersand\Core\Relation[]
+     */
+    public function getRelatedRelations(): array
+    {
+        return array_filter($this->app->getModel()->getRelations(), function (Relation $relation) {
+            $concepts = $this->getGeneralizationsIncl();
+            return in_array($relation->srcConcept, $concepts)
+                || in_array($relation->tgtConcept, $concepts);
+        });
+    }
     
     /**
      * Returns database table info for concept
@@ -630,9 +643,10 @@ class Concept
      * ór adding an existing atom to another concept set (making it a specialization)
      *
      * @param \Ampersand\Core\Atom $atom
+     * @param bool $populateDefaults specifies if default src/tgt values for relations must be populated also
      * @return \Ampersand\Core\Atom
      */
-    public function addAtom(Atom $atom): Atom
+    public function addAtom(Atom $atom, bool $populateDefaults = true): Atom
     {
         // Adding atom[A] to [A] ($this)
         if ($atom->concept === $this) {
@@ -650,6 +664,11 @@ class Concept
                 $this->app->eventDispatcher()->dispatch(new AtomEvent($atom), AtomEvent::ADDED);
                 $this->logger->info("Atom added to concept: {$atom}");
             }
+
+            // Add default values in related relations
+            if ($populateDefaults) {
+                $this->addDefaultsFor($atom);
+            }
             return $atom;
         // Adding atom[A] to another concept [B] ($this)
         } else {
@@ -664,7 +683,7 @@ class Concept
             }
             
             $atom->concept = $this; // Change concept definition
-            return $this->addAtom($atom);
+            return $this->addAtom($atom, false);
         }
     }
     
@@ -851,6 +870,25 @@ class Concept
             }
             if ($atom->concept->hasSpecialization($relation->tgtConcept, true)) {
                 $relation->deleteAllLinks($atom, 'tgt');
+            }
+        }
+    }
+
+    // TODO: Query this every time?? or put defaults in concept class during init???
+    protected function addDefaultsFor(Atom $atom): void
+    {
+        foreach ($this->getRelatedRelations() as $relation) {
+            // Add tgt defaults
+            if ($relation->hasDefaultTgtValues() && $atom->concept->inSameClassificationBranch($relation->srcConcept)) {
+                foreach ($relation->getDefaultTgtValues() as $value) {
+                    $atom->link($value, $relation, false)->add();
+                }
+            }
+            // Add src defaults
+            if ($relation->hasDefaultSrcValues() && $atom->concept->inSameClassificationBranch($relation->tgtConcept)) {
+                foreach ($relation->getDefaultSrcValues() as $value) {
+                    $atom->link($value, $relation, true)->add();
+                }
             }
         }
     }

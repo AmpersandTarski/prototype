@@ -322,7 +322,7 @@ ExecEngine::registerFunction('SetConcept', function ($conceptA, $conceptB, $atom
     }
     
     $conceptB = $this->getApp()->getModel()->getConceptByLabel($conceptB);
-    $conceptB->addAtom($atom);
+    $conceptB->addAtom($atom, false);
     $this->debug("Atom '{$atom}' added as member to concept '{$conceptB}'");
 });
 
