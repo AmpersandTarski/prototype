@@ -110,6 +110,20 @@ class Relation
      * @var \Ampersand\Rule\Conjunct[]
      */
     protected $relatedConjuncts = [];
+
+    /**
+     * List of default SRC atom values that is populated for this relation when a new TGT atom is created
+     * The value can start with '{php}' to indicate that it is a php function that needs to be evaluated
+     * @var string[]
+     */
+    protected array $defaultSrc = [];
+
+    /**
+     * List of default TGT atom values that is populated for this relation when a new SRC atom is created
+     * The value can start with '{php}' to indicate that it is a php function that needs to be evaluated
+     * @var string[]
+     */
+    protected array $defaultTgt = [];
     
     /**
      *
@@ -140,6 +154,9 @@ class Relation
         $this->isInj = $relationDef['inj'];
         $this->isSur = $relationDef['sur'];
         $this->isProp = $relationDef['prop'];
+
+        $this->defaultSrc = $relationDef['defaultSrc'];
+        $this->defaultTgt = $relationDef['defaultTgt'];
         
         foreach ((array)$relationDef['affectedConjuncts'] as $conjId) {
             $conj = $app->getModel()->getConjunct($conjId);
@@ -338,5 +355,34 @@ class Relation
             $plug->emptyRelation($this);
         }
         $this->logger->info("Deleted all links in relation: {$this}");
+    }
+
+    public function hasDefaultSrcValues(): bool
+    {
+        return !empty($this->defaultSrc);
+    }
+
+    public function hasDefaultTgtValues(): bool
+    {
+        return !empty($this->defaultTgt);
+    }
+
+    public function getDefaultSrcValues(): array
+    {
+        return array_map('self::resolveDefaultValue', $this->defaultSrc);
+    }
+
+    public function getDefaultTgtValues(): array
+    {
+        return array_map('self::resolveDefaultValue', $this->defaultTgt);
+    }
+
+    protected static function resolveDefaultValue(string $value): string
+    {
+        if (substr($value, 0, 5) === '{php}') {
+            $code = 'return('.substr($value, 5).');';
+            $value = (string) eval($code);
+        }
+        return $value;
     }
 }
