@@ -381,7 +381,11 @@ class Relation
     {
         if (substr($value, 0, 5) === '{php}') {
             $code = 'return('.substr($value, 5).');';
-            $value = (string) eval($code);
+            $result = eval($code);
+            if (!is_scalar($result)) {
+                throw new Exception("Evaluation of '{$value}' does not resolve to a scalar", 500);
+            }
+            return (string) $result;
         }
         return $value;
     }
