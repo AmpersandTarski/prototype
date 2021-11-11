@@ -4,7 +4,7 @@
 * [Issue 1189](https://github.com/AmpersandTarski/Ampersand/issues/1189) Add support for DEFAULT SRC/TGT atoms for RELATION statement
 * [Issue 1208](https://github.com/AmpersandTarski/Ampersand/issues/1208) Fix warning when a reinstall of the database may be needed based on model hash
 * Use main branch instead of master
-* Update to Ampersand compiler version v4.4.3
+* Update to Ampersand compiler v4.5.z
 
 ## v1.10.4 (16 sept 2021)
 * [Issue 1170](https://github.com/AmpersandTarski/Ampersand/issues/1170) Rename Concept::inSameClassificationTree to inSameClassificationBranch. Adapt error messages.
