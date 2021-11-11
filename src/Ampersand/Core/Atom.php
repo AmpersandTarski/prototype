@@ -188,9 +188,9 @@ class Atom implements JsonSerializable
      * Add atom to concept
      * @return Atom $this
      */
-    public function add()
+    public function add(bool $populateDefaults = true)
     {
-        $this->concept->addAtom($this);
+        $this->concept->addAtom($this, $populateDefaults);
         return $this;
     }
     
@@ -228,7 +228,7 @@ class Atom implements JsonSerializable
         if ($newAtom->exists()) {
             throw new Exception("Cannot change atom identifier, because id is already used by another atom of the same concept", 500);
         } else {
-            $newAtom->add();
+            $newAtom->add(false);
             return $newAtom->merge($this);
         }
     }

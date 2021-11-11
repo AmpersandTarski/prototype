@@ -45,7 +45,7 @@ RUN npm install \
  && npm audit fix
 
 # Copy Ampersand compiler
-COPY --from=ampersandtarski/ampersand:v4.4.3 /bin/ampersand /usr/local/bin
+COPY --from=ampersandtarski/ampersand:v4.5 /bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
 
 # Add folders that Apache can write to

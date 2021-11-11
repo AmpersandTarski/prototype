@@ -110,6 +110,20 @@ class Relation
      * @var \Ampersand\Rule\Conjunct[]
      */
     protected $relatedConjuncts = [];
+
+    /**
+     * List of default SRC atom values that is populated for this relation when a new TGT atom is created
+     * The value can start with '{php}' to indicate that it is a php function that needs to be evaluated
+     * @var string[]
+     */
+    protected array $defaultSrc = [];
+
+    /**
+     * List of default TGT atom values that is populated for this relation when a new SRC atom is created
+     * The value can start with '{php}' to indicate that it is a php function that needs to be evaluated
+     * @var string[]
+     */
+    protected array $defaultTgt = [];
     
     /**
      *
@@ -140,6 +154,9 @@ class Relation
         $this->isInj = $relationDef['inj'];
         $this->isSur = $relationDef['sur'];
         $this->isProp = $relationDef['prop'];
+
+        $this->defaultSrc = $relationDef['defaultSrc'];
+        $this->defaultTgt = $relationDef['defaultTgt'];
         
         foreach ((array)$relationDef['affectedConjuncts'] as $conjId) {
             $conj = $app->getModel()->getConjunct($conjId);
@@ -267,8 +284,8 @@ class Relation
         $this->app->getCurrentTransaction()->addAffectedRelations($this); // Add relation to affected relations. Needed for conjunct evaluation and transaction management
         
         // Ensure that atoms exist in their concept tables
-        $link->src()->add(); // TODO: remove when we know for sure that this is guaranteed by calling functions
-        $link->tgt()->add(); // TODO: remove when we know for sure that this is guaranteed by calling functions
+        $link->src()->add(false); // TODO: remove when we know for sure that this is guaranteed by calling functions
+        $link->tgt()->add(false); // TODO: remove when we know for sure that this is guaranteed by calling functions
         
         foreach ($this->getPlugs() as $plug) {
             $plug->addLink($link);
@@ -338,5 +355,38 @@ class Relation
             $plug->emptyRelation($this);
         }
         $this->logger->info("Deleted all links in relation: {$this}");
+    }
+
+    public function hasDefaultSrcValues(): bool
+    {
+        return !empty($this->defaultSrc);
+    }
+
+    public function hasDefaultTgtValues(): bool
+    {
+        return !empty($this->defaultTgt);
+    }
+
+    public function getDefaultSrcValues(): array
+    {
+        return array_map('self::resolveDefaultValue', $this->defaultSrc);
+    }
+
+    public function getDefaultTgtValues(): array
+    {
+        return array_map('self::resolveDefaultValue', $this->defaultTgt);
+    }
+
+    protected static function resolveDefaultValue(string $value): string
+    {
+        if (substr($value, 0, 5) === '{php}') {
+            $code = 'return('.substr($value, 5).');';
+            $result = eval($code);
+            if (!is_scalar($result)) {
+                throw new Exception("Evaluation of '{$value}' does not resolve to a scalar", 500);
+            }
+            return (string) $result;
+        }
+        return $value;
     }
 }
