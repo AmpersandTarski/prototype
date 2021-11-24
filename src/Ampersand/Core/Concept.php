@@ -654,14 +654,15 @@ class Concept
                 $this->logger->debug("Atom {$atom} already exists in concept");
             } else {
                 $this->logger->debug("Add atom {$atom} to plug");
-                $this->app->getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
+                $transaction = $this->app->getCurrentTransaction();
+                $transaction->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
                 
                 foreach ($this->getPlugs() as $plug) {
                     $plug->addAtom($atom); // Add to plug
                 }
                 $this->atomCache[] = $atom->getId(); // Add to cache
 
-                $this->app->eventDispatcher()->dispatch(new AtomEvent($atom), AtomEvent::ADDED);
+                $this->app->eventDispatcher()->dispatch(new AtomEvent($atom, $transaction), AtomEvent::ADDED);
                 $this->logger->info("Atom added to concept: {$atom}");
             }
 
@@ -739,7 +740,8 @@ class Concept
     {
         if ($atom->exists()) {
             $this->logger->debug("Delete atom {$atom} from plug");
-            $this->app->getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
+            $transaction = $this->app->getCurrentTransaction();
+            $transaction->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
             
             foreach ($this->getPlugs() as $plug) {
                 $plug->deleteAtom($atom); // Delete from plug
@@ -748,7 +750,7 @@ class Concept
                 unset($this->atomCache[$key]); // Delete from cache
             }
 
-            $this->app->eventDispatcher()->dispatch(new AtomEvent($atom), AtomEvent::DELETED);
+            $this->app->eventDispatcher()->dispatch(new AtomEvent($atom, $transaction), AtomEvent::DELETED);
             $this->logger->info("Atom deleted: {$atom}");
             
             // Delete all links where $atom is used as src or tgt atom

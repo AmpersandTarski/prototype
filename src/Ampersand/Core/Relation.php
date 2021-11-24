@@ -281,7 +281,8 @@ class Relation
     public function addLink(Link $link)
     {
         $this->logger->debug("Add link {$link} to plug");
-        $this->app->getCurrentTransaction()->addAffectedRelations($this); // Add relation to affected relations. Needed for conjunct evaluation and transaction management
+        $transaction = $this->app->getCurrentTransaction();
+        $transaction->addAffectedRelations($this); // Add relation to affected relations. Needed for conjunct evaluation and transaction management
         
         // Ensure that atoms exist in their concept tables
         $link->src()->add(false); // TODO: remove when we know for sure that this is guaranteed by calling functions
@@ -291,7 +292,7 @@ class Relation
             $plug->addLink($link);
         }
 
-        $this->app->eventDispatcher()->dispatch(new LinkEvent($link), LinkEvent::ADDED);
+        $this->app->eventDispatcher()->dispatch(new LinkEvent($link, $transaction), LinkEvent::ADDED);
         $this->logger->info("Link added to relation: {$link}");
     }
     
@@ -303,13 +304,14 @@ class Relation
     public function deleteLink(Link $link)
     {
         $this->logger->debug("Delete link {$link} from plug");
-        $this->app->getCurrentTransaction()->addAffectedRelations($this); // Add relation to affected relations. Needed for conjunct evaluation and transaction management
+        $transaction = $this->app->getCurrentTransaction();
+        $transaction->addAffectedRelations($this); // Add relation to affected relations. Needed for conjunct evaluation and transaction management
         
         foreach ($this->getPlugs() as $plug) {
             $plug->deleteLink($link);
         }
 
-        $this->app->eventDispatcher()->dispatch(new LinkEvent($link), LinkEvent::DELETED);
+        $this->app->eventDispatcher()->dispatch(new LinkEvent($link, $transaction), LinkEvent::DELETED);
         $this->logger->info("Link deleted: {$link}");
     }
     
