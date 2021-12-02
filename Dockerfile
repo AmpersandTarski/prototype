@@ -46,7 +46,7 @@ RUN npm install \
 
 # Copy Ampersand compiler
 # NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
-COPY --from=ampersandtarski/ampersand:v4.5 /bin/ampersand /usr/local/bin
+COPY --from=ampersandtarski/ampersand:v4.6 /bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
 
 # Add folders that Apache can write to

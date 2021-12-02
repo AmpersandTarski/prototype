@@ -11,6 +11,7 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased changes
 * Add transaction reference to AtomEvent and LinkEvent
+* Update to Ampersand compiler from v4.5.z to v4.6.z. **Backward incompatible change**. See compiler [releases](https://github.com/AmpersandTarski/Ampersand/releases)
 
 ## v1.11.0 (11 nov 2021)
 * [Issue 1189](https://github.com/AmpersandTarski/Ampersand/issues/1189) Add support for DEFAULT SRC/TGT atoms for RELATION statement
