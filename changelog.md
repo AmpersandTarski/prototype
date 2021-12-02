@@ -10,6 +10,8 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+
+## v1.12.0 (2 dec 2021)
 * Add transaction reference to AtomEvent and LinkEvent
 * Update to Ampersand compiler from v4.5.z to v4.6.z. **Backward incompatible change**. See compiler [releases](https://github.com/AmpersandTarski/Ampersand/releases)
 
