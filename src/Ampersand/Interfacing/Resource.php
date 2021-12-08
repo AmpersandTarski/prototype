@@ -92,7 +92,15 @@ class Resource extends Atom implements ArrayAccess
      * Methods to navigate through list
      *********************************************************************************************/
 
-    public function one(string $ifcId, string $tgtId): Resource
+    /**
+     * Get a single tgt resource for a certain sub interface of this resource
+     *
+     * If multiple resources are set then the resource returned may be arbitrary.
+     * Throws exception when no resource is set
+     *
+     * @throws \Ampersand\Exception\AtomNotFoundException
+     */
+    public function one(string $ifcId, ?string $tgtId = null): Resource
     {
         return $this->all($ifcId)->one($tgtId);
     }
