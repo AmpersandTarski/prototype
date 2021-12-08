@@ -32,8 +32,8 @@ $apiContainer['angular_app'] = $angularApp; // add AngularApp object to API DI-c
 // The application can also return a Resource not found, this is handled by the errorHandler below
 $apiContainer['notFoundHandler'] = function ($c) {
     return function (Request $request, Response $response) {
-        $msg = "API endpoint not found: {$request->getMethod()} {$request->getUri()}. Note! virtual path is case sensitive";
-        Logger::getLogger("API")->warning($msg);
+        $msg = "API path not found: {$request->getMethod()} {$request->getUri()}. Path is case sensitive";
+        Logger::getLogger("API")->notice($msg);
         return $response
             ->withStatus(404)
             ->withHeader('Content-Type', 'application/json')
