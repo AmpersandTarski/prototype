@@ -17,6 +17,7 @@ use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\ResourcePath;
 use Ampersand\Interfacing\ResourceList;
+use Ampersand\Exception\AtomNotFoundException;
 
 /**
  *
@@ -118,6 +119,17 @@ class Resource extends Atom implements ArrayAccess
         $tgts = $this->all($ifcId)->getResources();
 
         return empty($tgts) ? null : current($tgts)->getId();
+    }
+
+    public function mandatoryValue(string $ifcId): string
+    {
+        $tgts = $this->all($ifcId)->getResources();
+
+        if (empty($tgts)) {
+            throw new AtomNotFoundException("No value set for sub interface '{$ifcId}' of '{$this->parentList->getResourcePath($this)}'");
+        }
+        
+        return current($tgts)->getId();
     }
 
     /**
