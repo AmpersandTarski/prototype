@@ -10,6 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+* Add methods Resource::value() and Resource::values() to replace ArrayAccess methods offsetGet()
 
 ## v1.12.0 (2 dec 2021)
 * Add transaction reference to AtomEvent and LinkEvent

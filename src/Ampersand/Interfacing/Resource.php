@@ -106,6 +106,39 @@ class Resource extends Atom implements ArrayAccess
     }
 
     /**
+     * Get a single string value for a certain sub interface of this resource
+     *
+     * If multiple values are set then the value returned may be arbitrary.
+     * Returns null if there is no value set
+     *
+     * @param string $ifcId
+     */
+    public function value(string $ifcId): ?string
+    {
+        $tgts = $this->all($ifcId)->getResources();
+
+        return empty($tgts) ? null : current($tgts)->getId();
+    }
+
+    /**
+     * Get string values for a certain sub interface of this resource
+     *
+     * Returns empty list if there are no values set
+     *
+     * @param string $ifcId
+     * @return string[]
+     */
+    public function values(string $ifcId): array
+    {
+        return array_map(
+            function (Resource $resource) {
+                return $resource->getId();
+            },
+            $this->all($ifcId)->getResources()
+        );
+    }
+
+    /**
      * Undocumented function
      *
      * @param array $pathList
@@ -145,6 +178,7 @@ class Resource extends Atom implements ArrayAccess
     /**
      * Implementation of ArrayAccess::offsetExists
      *
+     * @deprecated use methods one(), all(), value() or values() instead
      * @param string $offset
      * @return bool
      */
@@ -157,6 +191,7 @@ class Resource extends Atom implements ArrayAccess
     /**
      * Implementation of ArrayAccess::offsetGet
      *
+     * @deprecated use methods one(), all(), value() or values() instead
      * @param string $offset
      * @return \Ampersand\Interfacing\Resource|\Ampersand\Interfacing\Resource[]|null
      */
@@ -172,14 +207,14 @@ class Resource extends Atom implements ArrayAccess
         }
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         throw new Exception("Resource::offsetSet not yet implemented", 501);
         // $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
         // $ifcObj->set($this, $value);
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         throw new Exception("Resource::offsetSet not yet implemented", 501);
         // $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
