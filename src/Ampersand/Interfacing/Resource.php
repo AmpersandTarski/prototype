@@ -106,6 +106,13 @@ class Resource extends Atom implements ArrayAccess
         );
     }
 
+    public function isset(string $ifcId): bool
+    {
+        $tgts = $this->all($ifcId)->getResources();
+
+        return !empty($tgts);
+    }
+
     /**
      * Get a single string value for a certain sub interface of this resource
      *
@@ -190,7 +197,7 @@ class Resource extends Atom implements ArrayAccess
     /**
      * Implementation of ArrayAccess::offsetExists
      *
-     * @deprecated use methods one(), all(), value() or values() instead
+     * @deprecated use method Resource::isset()
      * @param string $offset
      * @return bool
      */
