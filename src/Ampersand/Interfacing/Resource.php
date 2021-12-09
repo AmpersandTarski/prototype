@@ -102,10 +102,21 @@ class Resource extends Atom implements ArrayAccess
      */
     public function one(string $ifcId, ?string $tgtId = null): Resource
     {
-        return $this->all($ifcId)->one($tgtId);
+        return $this->list($ifcId)->one($tgtId);
     }
 
-    public function all(string $ifcId): ResourceList
+    /**
+     * Undocumented function
+     *
+     * @param string $ifcId
+     * @return array<\Ampersand\Interfacing\Resource>
+     */
+    public function all(string $ifcId): array
+    {
+        return $this->list($ifcId)->getResources();
+    }
+
+    protected function list(string $ifcId): ResourceList
     {
         return new ResourceList(
             $this,
@@ -116,9 +127,7 @@ class Resource extends Atom implements ArrayAccess
 
     public function isset(string $ifcId): bool
     {
-        $tgts = $this->all($ifcId)->getResources();
-
-        return !empty($tgts);
+        return !empty($this->all($ifcId));
     }
 
     /**
@@ -131,14 +140,14 @@ class Resource extends Atom implements ArrayAccess
      */
     public function value(string $ifcId): ?string
     {
-        $tgts = $this->all($ifcId)->getResources();
+        $tgts = $this->all($ifcId);
 
         return empty($tgts) ? null : current($tgts)->getId();
     }
 
     public function mandatoryValue(string $ifcId): string
     {
-        $tgts = $this->all($ifcId)->getResources();
+        $tgts = $this->all($ifcId);
 
         if (empty($tgts)) {
             throw new AtomNotFoundException("No value set for sub interface '{$ifcId}' of '{$this->parentList->getResourcePath($this)}'");
@@ -161,7 +170,7 @@ class Resource extends Atom implements ArrayAccess
             function (Resource $resource) {
                 return $resource->getId();
             },
-            $this->all($ifcId)->getResources()
+            $this->all($ifcId)
         );
     }
 
@@ -176,7 +185,7 @@ class Resource extends Atom implements ArrayAccess
         if (empty($pathList)) {
             return $this;
         } else {
-            return $this->all(array_shift($pathList))->walkPath($pathList);
+            return $this->list(array_shift($pathList))->walkPath($pathList);
         }
     }
 
@@ -185,7 +194,7 @@ class Resource extends Atom implements ArrayAccess
         if (empty($pathList)) {
             return $this;
         } else {
-            return $this->all(array_shift($pathList))->walkPathToResource($pathList);
+            return $this->list(array_shift($pathList))->walkPathToResource($pathList);
         }
     }
 
@@ -194,7 +203,7 @@ class Resource extends Atom implements ArrayAccess
         if (empty($pathList)) {
             throw new Exception("Provided path MUST NOT end with a resource identifier", 400);
         } else {
-            return $this->all(array_shift($pathList))->walkPathToList($pathList);
+            return $this->list(array_shift($pathList))->walkPathToList($pathList);
         }
     }
 
@@ -211,8 +220,7 @@ class Resource extends Atom implements ArrayAccess
      */
     public function offsetExists($offset): bool
     {
-        $tgts = $this->all($offset)->getResources();
-        return !empty($tgts);
+        return !empty($this->all($offset));
     }
 
     /**
@@ -224,7 +232,7 @@ class Resource extends Atom implements ArrayAccess
      */
     public function offsetGet($offset)
     {
-        $list = $this->all($offset);
+        $list = $this->list($offset);
         $tgts = $list->getResources();
 
         if ($list->isUni()) {
@@ -280,7 +288,7 @@ class Resource extends Atom implements ArrayAccess
                 continue; // skip special internal attributes
             }
             try {
-                $list = $this->all($ifcId);
+                $list = $this->list($ifcId);
             } catch (Exception $e) {
                 Logger::getLogger('INTERFACING')->warning("Unknown attribute '{$ifcId}' in PUT data");
                 continue;
@@ -399,7 +407,7 @@ class Resource extends Atom implements ArrayAccess
 
     public function post($subIfcId, stdClass $resourceToPost = null): Resource
     {
-        return $this->all($subIfcId)->post($resourceToPost);
+        return $this->list($subIfcId)->post($resourceToPost);
     }
     
     /**
