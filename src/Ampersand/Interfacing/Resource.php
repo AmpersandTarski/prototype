@@ -115,7 +115,7 @@ class Resource extends Atom
         return $this->list($ifcId)->getResources();
     }
 
-    protected function list(string $ifcId): ResourceList
+    public function list(string $ifcId): ResourceList
     {
         return new ResourceList(
             $this,
