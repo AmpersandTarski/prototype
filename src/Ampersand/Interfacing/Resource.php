@@ -8,7 +8,6 @@
 namespace Ampersand\Interfacing;
 
 use stdClass;
-use ArrayAccess;
 use Exception;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Concept;
@@ -24,7 +23,7 @@ use Ampersand\Exception\AtomNotFoundException;
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class Resource extends Atom implements ArrayAccess
+class Resource extends Atom
 {
     /**
      * Interface for this resource.
@@ -205,55 +204,6 @@ class Resource extends Atom implements ArrayAccess
         } else {
             return $this->list(array_shift($pathList))->walkPathToList($pathList);
         }
-    }
-
-/**************************************************************************************************
- * ArrayAccess methods
- *************************************************************************************************/
-
-    /**
-     * Implementation of ArrayAccess::offsetExists
-     *
-     * @deprecated use method Resource::isset()
-     * @param string $offset
-     * @return bool
-     */
-    public function offsetExists($offset): bool
-    {
-        return !empty($this->all($offset));
-    }
-
-    /**
-     * Implementation of ArrayAccess::offsetGet
-     *
-     * @deprecated use methods one(), all(), value() or values() instead
-     * @param string $offset
-     * @return \Ampersand\Interfacing\Resource|\Ampersand\Interfacing\Resource[]|null
-     */
-    public function offsetGet($offset)
-    {
-        $list = $this->list($offset);
-        $tgts = $list->getResources();
-
-        if ($list->isUni()) {
-            return empty($tgts) ? null : current($tgts);
-        } else {
-            return $tgts;
-        }
-    }
-
-    public function offsetSet($offset, $value): void
-    {
-        throw new Exception("Resource::offsetSet not yet implemented", 501);
-        // $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
-        // $ifcObj->set($this, $value);
-    }
-
-    public function offsetUnset($offset): void
-    {
-        throw new Exception("Resource::offsetSet not yet implemented", 501);
-        // $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
-        // $ifcObj->set($this, null);
     }
 
 /**************************************************************************************************

@@ -11,6 +11,7 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased changes
 * **Backward incompatible change** Refactor Resource::all() to return array of Resource instead ResourceList object
+* **Backward incompatible change** Remove ArrayAccess methods from Resource class
 * Add methods Resource::value() and Resource::values() to replace ArrayAccess methods offsetGet()
 
 ## v1.12.0 (2 dec 2021)
