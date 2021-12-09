@@ -231,7 +231,7 @@ class AmpersandApp
                         $cpt->addPlug($plug);
                     }
                 } else {
-                    $cpt->addPlug($this->defaultStorage);
+                    $cpt->addPlug($this->defaultStorage); // @phan-suppress-current-line PhanTypeMismatchArgumentSuperType
                 }
             }
 
@@ -243,7 +243,7 @@ class AmpersandApp
                         $rel->addPlug($plug);
                     }
                 } else {
-                    $rel->addPlug($this->defaultStorage);
+                    $rel->addPlug($this->defaultStorage); // @phan-suppress-current-line PhanTypeMismatchArgumentSuperType
                 }
             }
 

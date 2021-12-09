@@ -1,14 +1,16 @@
 {
-    "name" : "ampersandtarski/prototype",
+    "name": "ampersandtarski/prototype",
     "description": "Package for the backend application of an Ampersand prototype",
     "license": "MIT",
-    "authors": [{
-        "name": "Michiel Stornebrink",
-        "email": "michielstornebrink@gmail.com",
-        "homepage": "https://github.com/Michiel-s"
-    }],
+    "authors": [
+        {
+            "name": "Michiel Stornebrink",
+            "email": "michielstornebrink@gmail.com",
+            "homepage": "https://github.com/Michiel-s"
+        }
+    ],
     "config": {
-        "vendor-dir" : "lib"
+        "vendor-dir": "lib"
     },
     "require": {
         "php": ">=7.4",
@@ -31,12 +33,16 @@
         "ramsey/uuid": "^4.1"
     },
     "autoload": {
-        "psr-4": {"Ampersand\\": "src/Ampersand"},
-        "files": ["src/Ampersand/Misc/functions.php"]
+        "psr-4": {
+            "Ampersand\\": "src/Ampersand"
+        },
+        "files": [
+            "src/Ampersand/Misc/functions.php"
+        ]
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.2",
-        "phan/phan": "3.x"
+        "phan/phan": "^5.3"
     },
     "prefer-stable": true
 }

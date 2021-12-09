@@ -72,20 +72,23 @@ class ResourceList
      * Methods to navigate through list
      *********************************************************************************************/
 
-    public function one(string $tgtId): Resource
+    public function one(?string $tgtId = null): Resource
     {
         $tgts = $this->ifcObject->getTgtAtoms($this->srcAtom, $tgtId);
 
+        // Resource found
         if (!empty($tgts)) {
-            // Resource found
             return $this->makeResource(current($tgts));
-        // Auto create when allowed
-        } elseif ($this->ifcObject->crudC()) {
-            return $this->create($tgtId);
-        } else {
-            // When not found
-            throw new AtomNotFoundException("Resource '{$tgtId}' not found");
         }
+        
+        // Auto create when allowed
+        if (!is_null($tgtId) && $this->ifcObject->crudC()) {
+            return $this->create($tgtId);
+        }
+        
+        // Not found
+        $msg = is_null($tgtId) ? "Resource not found" : "Resource '{$tgtId}' not found";
+        throw new AtomNotFoundException($msg);
     }
 
     /**

@@ -175,7 +175,7 @@ class Ifc
             throw new Exception("Interface expression object definition required, but '{$objectDef['type']}' provided.", 500);
         }
 
-        return $this->newObject($objectDef, $defaultPlug, $parent);
+        return new InterfaceExprObject($objectDef, $defaultPlug, $this, $parent);
     }
     
     public static function getNullObject(Concept $concept, AmpersandApp $app): InterfaceObjectInterface

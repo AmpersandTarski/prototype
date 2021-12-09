@@ -8,7 +8,6 @@
 namespace Ampersand\Interfacing;
 
 use stdClass;
-use ArrayAccess;
 use Exception;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Concept;
@@ -24,7 +23,7 @@ use Ampersand\Exception\AtomNotFoundException;
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class Resource extends Atom implements ArrayAccess
+class Resource extends Atom
 {
     /**
      * Interface for this resource.
@@ -92,12 +91,31 @@ class Resource extends Atom implements ArrayAccess
      * Methods to navigate through list
      *********************************************************************************************/
 
-    public function one(string $ifcId, string $tgtId): Resource
+    /**
+     * Get a single tgt resource for a certain sub interface of this resource
+     *
+     * If multiple resources are set then the resource returned may be arbitrary.
+     * Throws exception when no resource is set
+     *
+     * @throws \Ampersand\Exception\AtomNotFoundException
+     */
+    public function one(string $ifcId, ?string $tgtId = null): Resource
     {
-        return $this->all($ifcId)->one($tgtId);
+        return $this->list($ifcId)->one($tgtId);
     }
 
-    public function all(string $ifcId): ResourceList
+    /**
+     * Undocumented function
+     *
+     * @param string $ifcId
+     * @return array<\Ampersand\Interfacing\Resource>
+     */
+    public function all(string $ifcId): array
+    {
+        return $this->list($ifcId)->getResources();
+    }
+
+    public function list(string $ifcId): ResourceList
     {
         return new ResourceList(
             $this,
@@ -108,9 +126,7 @@ class Resource extends Atom implements ArrayAccess
 
     public function isset(string $ifcId): bool
     {
-        $tgts = $this->all($ifcId)->getResources();
-
-        return !empty($tgts);
+        return !empty($this->all($ifcId));
     }
 
     /**
@@ -123,14 +139,14 @@ class Resource extends Atom implements ArrayAccess
      */
     public function value(string $ifcId): ?string
     {
-        $tgts = $this->all($ifcId)->getResources();
+        $tgts = $this->all($ifcId);
 
         return empty($tgts) ? null : current($tgts)->getId();
     }
 
     public function mandatoryValue(string $ifcId): string
     {
-        $tgts = $this->all($ifcId)->getResources();
+        $tgts = $this->all($ifcId);
 
         if (empty($tgts)) {
             throw new AtomNotFoundException("No value set for sub interface '{$ifcId}' of '{$this->parentList->getResourcePath($this)}'");
@@ -153,7 +169,7 @@ class Resource extends Atom implements ArrayAccess
             function (Resource $resource) {
                 return $resource->getId();
             },
-            $this->all($ifcId)->getResources()
+            $this->all($ifcId)
         );
     }
 
@@ -168,7 +184,7 @@ class Resource extends Atom implements ArrayAccess
         if (empty($pathList)) {
             return $this;
         } else {
-            return $this->all(array_shift($pathList))->walkPath($pathList);
+            return $this->list(array_shift($pathList))->walkPath($pathList);
         }
     }
 
@@ -177,7 +193,7 @@ class Resource extends Atom implements ArrayAccess
         if (empty($pathList)) {
             return $this;
         } else {
-            return $this->all(array_shift($pathList))->walkPathToResource($pathList);
+            return $this->list(array_shift($pathList))->walkPathToResource($pathList);
         }
     }
 
@@ -186,58 +202,8 @@ class Resource extends Atom implements ArrayAccess
         if (empty($pathList)) {
             throw new Exception("Provided path MUST NOT end with a resource identifier", 400);
         } else {
-            return $this->all(array_shift($pathList))->walkPathToList($pathList);
+            return $this->list(array_shift($pathList))->walkPathToList($pathList);
         }
-    }
-
-/**************************************************************************************************
- * ArrayAccess methods
- *************************************************************************************************/
-
-    /**
-     * Implementation of ArrayAccess::offsetExists
-     *
-     * @deprecated use method Resource::isset()
-     * @param string $offset
-     * @return bool
-     */
-    public function offsetExists($offset): bool
-    {
-        $tgts = $this->all($offset)->getResources();
-        return !empty($tgts);
-    }
-
-    /**
-     * Implementation of ArrayAccess::offsetGet
-     *
-     * @deprecated use methods one(), all(), value() or values() instead
-     * @param string $offset
-     * @return \Ampersand\Interfacing\Resource|\Ampersand\Interfacing\Resource[]|null
-     */
-    public function offsetGet($offset)
-    {
-        $list = $this->all($offset);
-        $tgts = $list->getResources();
-
-        if ($list->isUni()) {
-            return empty($tgts) ? null : current($tgts);
-        } else {
-            return $tgts;
-        }
-    }
-
-    public function offsetSet($offset, $value): void
-    {
-        throw new Exception("Resource::offsetSet not yet implemented", 501);
-        // $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
-        // $ifcObj->set($this, $value);
-    }
-
-    public function offsetUnset($offset): void
-    {
-        throw new Exception("Resource::offsetSet not yet implemented", 501);
-        // $ifcObj = $this->ifc->getSubinterface($offset, Options::INCLUDE_REF_IFCS | Options::INCLUDE_LINKTO_IFCS);
-        // $ifcObj->set($this, null);
     }
 
 /**************************************************************************************************
@@ -272,7 +238,7 @@ class Resource extends Atom implements ArrayAccess
                 continue; // skip special internal attributes
             }
             try {
-                $list = $this->all($ifcId);
+                $list = $this->list($ifcId);
             } catch (Exception $e) {
                 Logger::getLogger('INTERFACING')->warning("Unknown attribute '{$ifcId}' in PUT data");
                 continue;
@@ -391,7 +357,7 @@ class Resource extends Atom implements ArrayAccess
 
     public function post($subIfcId, stdClass $resourceToPost = null): Resource
     {
-        return $this->all($subIfcId)->post($resourceToPost);
+        return $this->list($subIfcId)->post($resourceToPost);
     }
     
     /**
