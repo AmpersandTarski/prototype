@@ -32,5 +32,8 @@ jobs:
     - name: Composer install
       run: composer install --prefer-dist --no-dev --profile --optimize-autoloader --no-scripts --ignore-platform-reqs
     
+    - name: Phan version
+      run: phan --version
+    
     - name: Phan static analysis
       run: phan -p --color --config-file ./.phan/config.php
