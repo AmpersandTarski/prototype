@@ -1,53 +1,43 @@
-// For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.112.0/containers/php-7
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.209.3/containers/php
 {
-    "name": "PHP 7",
-    "dockerFile": "Dockerfile",
-    
-  // Use 'settings' to set *default* container specific settings.json values on container create. 
-  // You can edit these settings after create using File > Preferences > Settings > Remote.
-  "settings": {
-    "terminal.integrated.defaultProfile.linux":"bash", 
-    "terminal.integrated.profiles.linux":{
-      "bash": {
-        "path": "bash",
-        "icon": "terminal-bash"
-      },
-      "zsh": {
-        "path": "zsh",
-      },
-      "fish": {
-        "path": "fish"
-      },
-      "tmux": {
-        "path": "tmux",
-        "icon": "terminal-tmux"
-      },
-      "pwsh": {
-        "path": "pwsh",
-        "icon": "terminal-powershell"
-      }
-    }
-  },
+	"name": "PHP",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": { 
+			// Update VARIANT to pick a PHP version: 8, 8.1, 8.0, 7, 7.4
+			// Append -bullseye or -buster to pin to an OS version.
+			// Use -bullseye variants on local on arm64/Apple Silicon.
+			"VARIANT": "8.1",
+			"NODE_VERSION": "none"
+		}
+	},
 
-    // Add the IDs of extensions you want installed when the container is created.
-    "extensions": [
-        "felixfbecker.php-debug",
-        "neilbrayfield.php-docblocker",
-        // "felixfbecker.php-intellisense",
-        "bmewburn.vscode-intelephense-client",
-        "mehedidracula.php-namespace-resolver",
-        "ikappas.phpcs",
-        "gruntfuggly.todo-tree",
-        "pflannery.vscode-versionlens"
-    ]
+	"mounts": [
+		"source=${localWorkspaceFolder}/.devcontainer/php.ini,target=/usr/local/etc/php/php.ini,type=bind,consistency=cached"
+	],
+	
+	// Set *default* container specific settings.json values on container create.
+	"settings": { 
+		"php.validate.executablePath": "/usr/local/bin/php"
+	},
 
-    // Use 'forwardPorts' to make a list of ports inside the container available locally.
-    // "forwardPorts": [],
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		// "felixfbecker.php-debug",
+		"bmewburn.vscode-intelephense-client",
+		"mrmlnc.vscode-apache",
+		"mehedidracula.php-namespace-resolver",
+		"neilbrayfield.php-docblocker",
+		"ikappas.phpcs",
+	],
 
-    // Use 'postCreateCommand' to run commands after the container is created.
-    // "postCreateCommand": "php -v",
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [8080],
 
-    // Uncomment to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
-    // "remoteUser": "vscode"
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "sudo chmod a+x \"$(pwd)\" && sudo rm -rf /var/www/html && sudo ln -s \"$(pwd)\" /var/www/html"
+
+	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode"
 }
