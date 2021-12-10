@@ -10,6 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+* Update Docker image to PHP v8.1. Make backend compatible with php 8.x
 * **Backward incompatible change** Refactor Resource::all() to return array of Resource instead ResourceList object
 * **Backward incompatible change** Remove ArrayAccess methods from Resource class
 * Add methods Resource::value() and Resource::values() to replace ArrayAccess methods offsetGet()
