@@ -11,6 +11,7 @@ use Exception;
 use Ampersand\Core\Relation;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
+use Ampersand\Core\SrcOrTgt;
 use Ampersand\Exception\AccessDeniedException;
 
 use function Ampersand\Misc\isSequential;
@@ -853,7 +854,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             throw new Exception("Update not allowed for " . $this->getPath(), 405);
         }
         
-        $this->relation->deleteAllLinks($src, ($this->relationIsFlipped ? 'tgt' : 'src'));
+        $this->relation->deleteAllLinks($src, ($this->relationIsFlipped ? SrcOrTgt::TGT : SrcOrTgt::SRC));
 
         return;
     }

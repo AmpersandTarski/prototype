@@ -15,6 +15,7 @@ use Ampersand\Core\Atom;
 use Ampersand\Core\Link;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
+use Ampersand\Core\SrcOrTgt;
 use Ampersand\Interfacing\ViewSegment;
 use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Plugs\ConceptPlugInterface;
@@ -700,25 +701,17 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      *
      * @param \Ampersand\Core\Relation $relation relation from which to delete all links
      * @param \Ampersand\Core\Atom $atom atom for which to delete all links
-     * @param string $srcOrTgt specifies to delete all link with $atom as src or tgt
-     * TODO: use enum here
+     * @param \Ampersand\Core\SrcOrTgt $srcOrTgt specifies to delete all link with $atom as src or tgt
      */
-    public function deleteAllLinks(Relation $relation, Atom $atom, string $srcOrTgt): void
+    public function deleteAllLinks(Relation $relation, Atom $atom, SrcOrTgt $srcOrTgt): void
     {
         $relationTable = $relation->getMysqlTable();
         $atomId = $this->getDBRepresentation($atom);
         
-        switch ($srcOrTgt) {
-            case 'src':
-                $whereCol = $relationTable->srcCol();
-                break;
-            case 'tgt':
-                $whereCol = $relationTable->tgtCol();
-                break;
-            default:
-                throw new Exception("Unknown/unsupported param option '{$srcOrTgt}'. Supported options are 'src' or 'tgt'", 500);
-                break;
-        }
+        $whereCol = match ($srcOrTgt) {
+            SrcOrTgt::SRC => $relationTable->srcCol(),
+            SrcOrTgt::TGT => $relationTable->tgtCol()
+        };
 
         switch ($relationTable->inTableOf()) {
             case TableType::Binary: // n-n table -> remove entire row

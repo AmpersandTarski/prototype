@@ -10,6 +10,7 @@ namespace Ampersand\Plugs;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Link;
 use Ampersand\Core\Relation;
+use Ampersand\Core\SrcOrTgt;
 
 /**
  *
@@ -36,7 +37,7 @@ interface RelationPlugInterface extends StorageInterface
     /**
      * Delete all links in the specified relation with the specified atom as src or target
      */
-    public function deleteAllLinks(Relation $relation, Atom $atom, string $srcOrTgt): void;
+    public function deleteAllLinks(Relation $relation, Atom $atom, SrcOrTgt $srcOrTgt): void;
 
     /**
      * Delete all links in a relation

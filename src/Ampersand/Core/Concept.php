@@ -785,10 +785,10 @@ class Concept
         foreach ($this->app->getModel()->getRelations() as $relation) {
             /** @var \Ampersand\Core\Relation $relation */
             if ($atom->concept->inSameClassificationBranch($relation->srcConcept)) {
-                $relation->deleteAllLinks($atom, 'src');
+                $relation->deleteAllLinks($atom, SrcOrTgt::SRC);
             }
             if ($atom->concept->inSameClassificationBranch($relation->tgtConcept)) {
-                $relation->deleteAllLinks($atom, 'tgt');
+                $relation->deleteAllLinks($atom, SrcOrTgt::TGT);
             }
         }
     }
@@ -802,10 +802,10 @@ class Concept
         foreach ($this->app->getModel()->getRelations() as $relation) {
             /** @var \Ampersand\Core\Relation $relation */
             if ($atom->concept->hasSpecialization($relation->srcConcept, true)) {
-                $relation->deleteAllLinks($atom, 'src');
+                $relation->deleteAllLinks($atom, SrcOrTgt::SRC);
             }
             if ($atom->concept->hasSpecialization($relation->tgtConcept, true)) {
-                $relation->deleteAllLinks($atom, 'tgt');
+                $relation->deleteAllLinks($atom, SrcOrTgt::TGT);
             }
         }
     }

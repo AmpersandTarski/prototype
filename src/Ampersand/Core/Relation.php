@@ -16,6 +16,7 @@ use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
 use Ampersand\Event\LinkEvent;
 use Ampersand\Plugs\MysqlDB\TableType;
+use Ampersand\Core\SrcOrTgt;
 
 /**
  *
@@ -300,20 +301,11 @@ class Relation
     /**
      * Delete all links where specified atom is used
      *
-     * SrcOrTgt specifies to delete all link with $atom as src, tgt or both (null/not provided)
-     * TODO: use enum here
+     * SrcOrTgt specifies to delete all links with atom as src or tgt
      */
-    public function deleteAllLinks(Atom $atom, string $srcOrTgt): void
+    public function deleteAllLinks(Atom $atom, SrcOrTgt $srcOrTgt): void
     {
-        switch ($srcOrTgt) {
-            case 'src':
-            case 'tgt':
-                $this->logger->debug("Deleting all links in relation '{$this}' with {$srcOrTgt} '{$atom}'");
-                break;
-            default:
-                throw new Exception("Unknown/unsupported param option '{$srcOrTgt}'. Supported options are 'src' or 'tgt'", 500);
-                break;
-        }
+        $this->logger->debug("Deleting all links in relation '{$this}' with {$srcOrTgt->value} '{$atom}'");
 
         // Add relation to affected relations. Needed for conjunct evaluation and transaction management
         $this->app->getCurrentTransaction()->addAffectedRelations($this);
@@ -321,7 +313,7 @@ class Relation
         foreach ($this->getPlugs() as $plug) {
             $plug->deleteAllLinks($this, $atom, $srcOrTgt);
         }
-        $this->logger->info("Deleted all links in relation '{$this}' where atom '{$atom}' is used as '{$srcOrTgt}'");
+        $this->logger->info("Deleted all links in relation '{$this}' where atom '{$atom}' is used as '{$srcOrTgt->value}'");
     }
 
     /**
