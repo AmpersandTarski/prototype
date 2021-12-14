@@ -46,9 +46,6 @@ class UserLogger extends AbstractLogger
 
     /**
      * Constructor
-     *
-     * @param \Ampersand\AmpersandApp $app
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(AmpersandApp $app, LoggerInterface $logger)
     {
@@ -62,10 +59,8 @@ class UserLogger extends AbstractLogger
      * @param mixed  $level
      * @param string $message
      * @param array  $context
-     *
-     * @return void
      */
-    public function log($level, $message, array $context = array())
+    public function log($level, $message, array $context = array()): void
     {
         // Also log to non-user log
         $this->logger->log($level, $message, $context);
@@ -108,7 +103,7 @@ class UserLogger extends AbstractLogger
         }
     }
 
-    public function getAll()
+    public function getAll(): array
     {
         return [ 'errors' => array_values($this->errors)
                , 'warnings' => array_values($this->warnings)
@@ -121,10 +116,8 @@ class UserLogger extends AbstractLogger
 
     /**
      * Clear all notification arrays
-     *
-     * @return void
      */
-    public function clearAll()
+    public function clearAll(): void
     {
         $this->logger->debug("Clear user notification lists");
         
@@ -138,11 +131,8 @@ class UserLogger extends AbstractLogger
 
     /**
      * Notify user of invariant rule violation
-     *
-     * @param \Ampersand\Rule\Violation $violation
-     * @return void
      */
-    public function invariant(Violation $violation)
+    public function invariant(Violation $violation): void
     {
         $rule = $violation->getRule();
         $hash = hash('md5', $rule->getId());
@@ -155,11 +145,8 @@ class UserLogger extends AbstractLogger
     
     /**
      * Notify user of signal rule violation
-     *
-     * @param \Ampersand\Rule\Violation $violation
-     * @return void
      */
-    public function signal(Violation $violation)
+    public function signal(Violation $violation): void
     {
         $rule = $violation->getRule();
         $ruleHash = hash('md5', $rule->getId());

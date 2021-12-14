@@ -82,7 +82,6 @@ class Population
      *
      * @param \Ampersand\Core\Concept[] $concepts
      * @param \Ampersand\Core\Relation[] $relations
-     * @return \Ampersand\Core\Population
      */
     public function loadExistingPopulation(array $concepts, array $relations): Population
     {
@@ -98,7 +97,7 @@ class Population
         return $this;
     }
 
-    public function export(EncoderInterface $encoder, string $format)
+    public function export(EncoderInterface $encoder, string $format): string
     {
         $conceptPop = [];
         foreach ($this->atoms as $atom) {

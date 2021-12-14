@@ -35,11 +35,6 @@ class MysqlDBTable
      */
     public $allAtomsQuery;
 
-    /**
-     * Constructor of Database table
-     *
-     * @param string $name
-     */
     public function __construct(string $name)
     {
         if ($name === '') {
@@ -55,11 +50,8 @@ class MysqlDBTable
 
     /**
      * Add database table column object to this table
-     *
-     * @param \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $col
-     * @return void
      */
-    public function addCol(MysqlDBTableCol $col)
+    public function addCol(MysqlDBTableCol $col): void
     {
         $this->cols[$col->getName()] = $col;
     }
@@ -90,10 +82,6 @@ class MysqlDBTable
 
     /**
      * Return col object with given column name
-     *
-     * @param string $colName
-     * @throws \Exception when col does not exist
-     * @return \Ampersand\Plugs\MysqlDB\MysqlDBTableCol
      */
     public function getCol(string $colName): MysqlDBTableCol
     {
@@ -105,8 +93,6 @@ class MysqlDBTable
 
     /**
      * Return first registered col object
-     *
-     * @return \Ampersand\Plugs\MysqlDB\MysqlDBTableCol
      */
     public function getFirstCol(): MysqlDBTableCol
     {

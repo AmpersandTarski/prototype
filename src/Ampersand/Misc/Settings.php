@@ -100,11 +100,9 @@ class Settings
     /**
      * Load settings file
      *
-     * @param \Ampersand\Model $model
-     * @param bool $overwriteAllowed specifies if already set settings may be overwritten
-     * @return \Ampersand\Misc\Settings $this
+     * Use overwriteAllowed to specify if already set settings may be overwritten
      */
-    public function loadSettingsFromCompiler(Model $model, bool $overwriteAllowed = true): Settings
+    public function loadSettingsFromCompiler(Model $model, bool $overwriteAllowed = true): self
     {
         $filePath = $model->getFilePath('settings');
 
@@ -129,11 +127,9 @@ class Settings
     /**
      * Load settings file (yaml format)
      *
-     * @param string $filePath
-     * @param bool $overwriteAllowed specifies if already set settings may be overwritten
-     * @return \Ampersand\Misc\Settings $this
+     * Use overwriteAllowed to specify if already set settings may be overwritten
      */
-    public function loadSettingsYamlFile(string $filePath, bool $overwriteAllowed = true, bool $fileMustExist = true): Settings
+    public function loadSettingsYamlFile(string $filePath, bool $overwriteAllowed = true, bool $fileMustExist = true): self
     {
         $fileSystem = new Filesystem;
         if (!$fileSystem->exists($filePath)) {
@@ -193,7 +189,7 @@ class Settings
         return $this;
     }
 
-    public function loadSettingsFromEnv()
+    public function loadSettingsFromEnv(): void
     {
         $this->logger->info("Loading env settings");
 
@@ -211,12 +207,8 @@ class Settings
 
     /**
      * Get a specific setting
-     *
-     * @param string $setting
-     * @param mixed $defaultIfNotSet
-     * @return mixed
      */
-    public function get(string $setting, $defaultIfNotSet = null)
+    public function get(string $setting, mixed $defaultIfNotSet = null): mixed
     {
         $setting = strtolower($setting); // use lowercase
 
@@ -230,12 +222,10 @@ class Settings
     /**
      * Set a specific setting to a (new) value
      *
-     * @param string $setting
-     * @param mixed $value
-     * @param boolean $overwriteAllowed specifies if already set setting may be overwritten
-     * @return void
+     * If overwriteAllowed is set, the value will overwrite any value that is previously set
+     * Otherwise, throws exception when setting was already set
      */
-    public function set(string $setting, $value = null, $overwriteAllowed = true)
+    public function set(string $setting, mixed $value = null, bool $overwriteAllowed = true): void
     {
         $setting = strtolower($setting); // use lowercase
         
@@ -252,7 +242,7 @@ class Settings
      *
      * @return \Ampersand\Misc\Extension[]
      */
-    public function getExtensions()
+    public function getExtensions(): array
     {
         return $this->extensions;
     }

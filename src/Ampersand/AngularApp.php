@@ -58,9 +58,6 @@ class AngularApp
 
     /**
      * Constructor
-     *
-     * @param \Ampersand\AmpersandApp $ampersandApp
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(AmpersandApp $ampersandApp, LoggerInterface $logger)
     {
@@ -70,10 +67,11 @@ class AngularApp
     
     /**
      * @param string $menu specifies to which part of the menu (navbar) this item belongs to
+     * TODO: use enum here
      * @param string $itemUrl location of html template to use as menu item
      * @param callable $function function which returns true/false determining to add the menu item or not
      */
-    public function addMenuItem(string $menu, string $itemUrl, callable $function)
+    public function addMenuItem(string $menu, string $itemUrl, callable $function): void
     {
         switch ($menu) {
             case 'ext':
@@ -88,7 +86,7 @@ class AngularApp
         }
     }
     
-    public function getMenuItems($menu)
+    public function getMenuItems($menu): array
     {
         $ampersandApp = $this->ampersandApp;
 
@@ -148,7 +146,7 @@ class AngularApp
         return ResourceList::makeFromInterface($this->ampersandApp->getSession()->getSessionAtom()->getId(), ProtoContext::IFC_MENU_ITEMS)->get(Options::INCLUDE_NOTHING);
     }
 
-    public function getNavToResponse($case)
+    public function getNavToResponse($case): ?string
     {
         switch ($case) {
             case 'COMMIT':
@@ -164,7 +162,7 @@ class AngularApp
         }
     }
     
-    public function setNavToResponse($navTo, $case = 'COMMIT')
+    public function setNavToResponse(string $navTo, string $case = 'COMMIT'): void
     {
         switch ($case) {
             case 'COMMIT':
@@ -181,8 +179,6 @@ class AngularApp
      *
      * True when session variable is affected in a committed transaction
      * False otherwise
-     *
-     * @return boolean
      */
     public function getSessionRefreshAdvice(): bool
     {

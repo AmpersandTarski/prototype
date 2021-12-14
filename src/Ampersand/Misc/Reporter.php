@@ -31,9 +31,6 @@ class Reporter
 
     /**
      * Constructor
-     *
-     * @param \Symfony\Component\Serializer\Encoder\EncoderInterface $encoder
-     * @param \Psr\Http\Message\StreamInterface $stream
      */
     public function __construct(EncoderInterface $encoder, StreamInterface $stream)
     {
@@ -44,22 +41,19 @@ class Reporter
     /**
      * Encode and write data to stream
      *
-     * @param string $format encoding format (must be supported by $this->encoder)
-     * @param mixed $data data to output
-     * @return void
+     * Note! The specified format must be supported by the encoder
      */
-    protected function write(string $format, $data)
+    protected function write(string $format, mixed $data): void
     {
         $this->stream->write($this->encoder->encode($data, $format));
     }
 
     /**
      * Write relation definition report
+     *
      * Specifies multiplicity constraints, related conjuncts and other aspects of provided relations
      *
      * @param \Ampersand\Core\Relation[] $relations
-     * @param string $format
-     * @return \Ampersand\Misc\Reporter
      */
     public function reportRelationDefinitions(array $relations, string $format): Reporter
     {
@@ -126,12 +120,10 @@ class Reporter
 
     /**
      * Write interface report
-     * Inlcuding interface (sub) objects aspects like path, label, crud-rights, etc
      *
-     * @param string $format
-     * @return \Ampersand\Misc\Reporter
+     * Inlcuding interface (sub) objects aspects like path, label, crud-rights, etc
      */
-    public function reportInterfaceObjectDefinitions(array $interfaces, string $format): Reporter
+    public function reportInterfaceObjectDefinitions(array $interfaces, string $format): self
     {
         $content = [];
         foreach ($interfaces as $ifc) {
@@ -150,12 +142,10 @@ class Reporter
 
     /**
      * Write interface issue report
-     * Currently focussed on CRUD rights
      *
-     * @param string $format
-     * @return \Ampersand\Misc\Reporter
+     * Currently focussed on CRUD rights
      */
-    public function reportInterfaceIssues(array $interfaces, string $format): Reporter
+    public function reportInterfaceIssues(array $interfaces, string $format): self
     {
         $content = [];
         foreach ($interfaces as $interface) {
@@ -177,13 +167,12 @@ class Reporter
 
     /**
      * Write conjunct usage report
+     *
      * Specifies which conjuncts are used by which rules, grouped by invariants, signals, and unused conjuncts
      *
      * @param \Ampersand\Rule\Conjunct[] $conjuncts
-     * @param string $format
-     * @return \Ampersand\Misc\Reporter
      */
-    public function reportConjunctUsage(array $conjuncts, string $format): Reporter
+    public function reportConjunctUsage(array $conjuncts, string $format): self
     {
         $content = [];
         foreach ($conjuncts as $conj) {
@@ -208,10 +197,8 @@ class Reporter
      * Write conjunct performance report
      *
      * @param \Ampersand\Rule\Conjunct[] $conjuncts
-     * @param string $format
-     * @return \Ampersand\Misc\Reporter
      */
-    public function reportConjunctPerformance(array $conjuncts, string $format): Reporter
+    public function reportConjunctPerformance(array $conjuncts, string $format): self
     {
         $content = [];
         

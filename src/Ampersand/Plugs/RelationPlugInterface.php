@@ -23,32 +23,23 @@ interface RelationPlugInterface extends StorageInterface
     
     /**
     * Get all links given a relation
-    * @param Relation $relation
-    * @param \Ampersand\Core\Atom|null $srcAtom if specified get all links with $srcAtom as source
-    * @param \Ampersand\Core\Atom|null $tgtAtom if specified get all links with $tgtAtom as tgt
+    *
+    * If src and/or tgt atom is specified only links are returned with these atoms
     * @return Link[]
     */
-    public function getAllLinks(Relation $relation, Atom $srcAtom = null, Atom $tgtAtom = null);
+    public function getAllLinks(Relation $relation, ?Atom $srcAtom = null, ?Atom $tgtAtom = null): array;
     
-    public function addLink(Link $link);
+    public function addLink(Link $link): void;
     
-    public function deleteLink(Link $link);
+    public function deleteLink(Link $link): void;
     
     /**
-     * Delete all links in a relation with provided atom as src or target
-     *
-     * @param \Ampersand\Core\Relation $relation relation from which to delete all links
-     * @param \Ampersand\Core\Atom $atom atom for which to delete all links
-     * @param string $srcOrTgt specifies to delete all link with $atom as src or tgt
-     * @return void
+     * Delete all links in the specified relation with the specified atom as src or target
      */
     public function deleteAllLinks(Relation $relation, Atom $atom, string $srcOrTgt): void;
 
     /**
      * Delete all links in a relation
-     *
-     * @param \Ampersand\Core\Relation $relation
-     * @return void
      */
     public function emptyRelation(Relation $relation): void;
 }

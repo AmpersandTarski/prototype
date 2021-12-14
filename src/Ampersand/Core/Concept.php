@@ -174,11 +174,7 @@ class Concept
     private $atomCache = [];
     
     /**
-     * Concept constructor
-     *
-     * @param array $conceptDef
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Ampersand\AmpersandApp $app
+     * Constructor
      */
     public function __construct(array $conceptDef, LoggerInterface $logger, AmpersandApp $app)
     {
@@ -227,12 +223,8 @@ class Concept
      * Temporary function to manually add a more optimize query for getting all atoms at once
      * Default view and query belong together
      * TODO: replace hack by proper implementation in Ampersand generator
-     *
-     * @param string $viewId
-     * @param string $query
-     * @return void
      */
-    public function setAllAtomsQuery(string $viewId, string $query)
+    public function setAllAtomsQuery(string $viewId, string $query): void
     {
         $this->defaultView = $this->app->getModel()->getView($viewId);
         $this->mysqlConceptTable->allAtomsQuery = $query;
@@ -240,8 +232,6 @@ class Concept
     
     /**
      * Function is called when object is treated as a string
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -250,8 +240,6 @@ class Concept
 
     /**
      * Get escaped name of concept
-     *
-     * @return string
      */
     public function getId(): string
     {
@@ -272,7 +260,7 @@ class Concept
      * Undocumented function
      *
      * @param string $serialization options are: 'datatype', 'xml'
-     * @return string
+     * TODO: use enum here
      */
     public function getDatatype($serialization = 'datatype'): string
     {
@@ -281,8 +269,6 @@ class Concept
     
     /**
      * Specifies if concept representation is integer
-     *
-     * @return bool
      */
     public function isInteger(): bool
     {
@@ -291,8 +277,6 @@ class Concept
     
     /**
      * Specifies if concept is object
-     *
-     * @return bool
      */
     public function isObject(): bool
     {
@@ -301,8 +285,6 @@ class Concept
     
     /**
      * Check if concept is file object
-     *
-     * @return boolean
      */
     public function isFileObject(): bool
     {
@@ -316,8 +298,6 @@ class Concept
     
     /**
      * Returns if concept is the ampersand SESSION concept
-     *
-     * @return bool
      */
     public function isSession(): bool
     {
@@ -337,9 +317,7 @@ class Concept
     /**
      * Check if this concept is a generalization of another given concept
      *
-     * @param \Ampersand\Core\Concept $concept
-     * @param bool $thisIncluded specifies if $this concept is included in comparison
-     * @return bool
+     * Use thisIncluded to specify that this concept itself is included in the comparison
      */
     public function hasSpecialization(Concept $concept, bool $thisIncluded = false): bool
     {
@@ -353,9 +331,7 @@ class Concept
     /**
      * Check if this concept is a specialization of another given concept
      *
-     * @param \Ampersand\Core\Concept $concept
-     * @param bool $thisIncluded specifies if $this concept is included in comparison
-     * @return bool
+     * Use thisIncluded to specify that this concept itself is included in the comparison
      */
     public function hasGeneralization(Concept $concept, bool $thisIncluded = false): bool
     {
@@ -368,9 +344,6 @@ class Concept
     
     /**
      * Checks if this concept is in same classification branch as the provided concept
-     *
-     * @param \Ampersand\Core\Concept $concept
-     * @return bool
      */
     public function inSameClassificationBranch(Concept $concept): bool
     {
@@ -393,10 +366,9 @@ class Concept
     /**
      * Array of concepts of which this concept is a generalization.
      *
-     * @param bool $onlyDirectSpecializations (default=false)
      * @return \Ampersand\Core\Concept[]
      */
-    public function getSpecializations(bool $onlyDirectSpecializations = false)
+    public function getSpecializations(bool $onlyDirectSpecializations = false): array
     {
         $specizalizations = $onlyDirectSpecializations ? $this->directSpecs : $this->specializations;
         
@@ -410,10 +382,9 @@ class Concept
     /**
      * Array of concepts of which this concept is a specialization (exluding the concept itself).
      *
-     * @param bool $onlyDirectGeneralizations (default=false)
      * @return \Ampersand\Core\Concept[]
      */
-    public function getGeneralizations(bool $onlyDirectGeneralizations = false)
+    public function getGeneralizations(bool $onlyDirectGeneralizations = false): array
     {
         $generalizations = $onlyDirectGeneralizations ? $this->directGens : $this->generalizations;
 
@@ -429,7 +400,7 @@ class Concept
      *
      * @return \Ampersand\Core\Concept[]
      */
-    public function getSpecializationsIncl()
+    public function getSpecializationsIncl(): array
     {
         $specializations = $this->getSpecializations();
         $specializations[] = $this;
@@ -441,7 +412,7 @@ class Concept
      *
      * @return \Ampersand\Core\Concept[]
      */
-    public function getGeneralizationsIncl()
+    public function getGeneralizationsIncl(): array
     {
         $generalizations = $this->getGeneralizations();
         $generalizations[] = $this;
@@ -450,10 +421,8 @@ class Concept
     
     /**
      * Returns largest generalization concept (can be itself)
-     *
-     * @return \Ampersand\Core\Concept
      */
-    public function getLargestConcept()
+    public function getLargestConcept(): Concept
     {
         return $this->app->getModel()->getConcept($this->largestConceptId);
     }
@@ -463,7 +432,7 @@ class Concept
      *
      * @return \Ampersand\Rule\Conjunct[]
      */
-    public function getRelatedConjuncts()
+    public function getRelatedConjuncts(): array
     {
         return $this->relatedConjuncts;
     }
@@ -485,9 +454,8 @@ class Concept
      * Returns database table info for concept
      *
      * @throws \Exception if no database table is defined
-     * @return \Ampersand\Plugs\MysqlDB\MysqlDBTable
      */
-    public function getConceptTableInfo()
+    public function getConceptTableInfo(): MysqlDBTable
     {
         return $this->mysqlConceptTable;
     }
@@ -497,7 +465,7 @@ class Concept
      *
      * @return \Ampersand\Plugs\ConceptPlugInterface[]
      */
-    public function getPlugs()
+    public function getPlugs(): array
     {
         if (empty($this->plugs)) {
             throw new Exception("No plug(s) provided for concept {$this}", 500);
@@ -507,11 +475,8 @@ class Concept
 
     /**
      * Add plug for this concept
-     *
-     * @param \Ampersand\Plugs\ConceptPlugInterface $plug
-     * @return void
      */
-    public function addPlug(ConceptPlugInterface $plug)
+    public function addPlug(ConceptPlugInterface $plug): void
     {
         if (!in_array($plug, $this->plugs)) {
             $this->plugs[] = $plug;
@@ -523,17 +488,14 @@ class Concept
 
     /**
      * Clear atom cache
-     *
-     * @return void
      */
-    public function clearAtomCache()
+    public function clearAtomCache(): void
     {
         $this->atomCache = [];
     }
     
     /**
      * Generate a new atom identifier for this concept
-     * @return string
      */
     public function createNewAtomId(bool $prefixAtomIdWithConceptName = null): string
     {
@@ -566,8 +528,6 @@ class Concept
     /**
      * Instantiate new Atom object in backend
      * NB! this does not result automatically in a database insert
-     *
-     * @return \Ampersand\Core\Atom
      */
     public function createNewAtom(): Atom
     {
@@ -576,9 +536,6 @@ class Concept
     
     /**
      * Check if atom exists
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return bool
      */
     public function atomExists(Atom $atom): bool
     {
@@ -615,8 +572,6 @@ class Concept
 
     /**
      * Returns view data for given atom
-     * @param \Ampersand\Core\Atom $atom
-     * @return array
      */
     public function getViewData(Atom $atom): array
     {
@@ -629,9 +584,6 @@ class Concept
 
     /**
      * Instantiate a new atom
-     *
-     * @param string $atomId
-     * @return \Ampersand\Core\Atom
      */
     public function makeAtom(string $atomId): Atom
     {
@@ -642,9 +594,7 @@ class Concept
      * Creating and adding a new atom to the plug
      * ór adding an existing atom to another concept set (making it a specialization)
      *
-     * @param \Ampersand\Core\Atom $atom
      * @param bool $populateDefaults specifies if default src/tgt values for relations must be populated also
-     * @return \Ampersand\Core\Atom
      */
     public function addAtom(Atom $atom, bool $populateDefaults = true): Atom
     {
@@ -690,11 +640,8 @@ class Concept
     
     /**
      * Remove an existing atom from a concept set (i.e. removing specialization)
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
      */
-    public function removeAtom(Atom $atom)
+    public function removeAtom(Atom $atom): void
     {
         if ($atom->concept != $this) {
             throw new Exception("Cannot remove {$atom} from concept {$this}, because concepts don't match", 500);
@@ -732,11 +679,8 @@ class Concept
     
     /**
      * Completely delete and atom and all connected links
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
      */
-    public function deleteAtom(Atom $atom)
+    public function deleteAtom(Atom $atom): void
     {
         if ($atom->exists()) {
             $this->logger->debug("Delete atom {$atom} from plug");
@@ -764,12 +708,8 @@ class Concept
      * Function to merge two atoms
      * All link from/to the $rightAtom are merged into the $leftAtom
      * The $rightAtom itself is deleted afterwards
-     *
-     * @param \Ampersand\Core\Atom $leftAtom
-     * @param \Ampersand\Core\Atom $rightAtom
-     * @return void
      */
-    public function mergeAtoms(Atom $leftAtom, Atom $rightAtom)
+    public function mergeAtoms(Atom $leftAtom, Atom $rightAtom): void
     {
         $this->logger->info("Request to merge '{$rightAtom}' into '{$leftAtom}'");
 
@@ -839,9 +779,6 @@ class Concept
 
     /**
      * Delete all links where $atom is used
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
      */
     protected function deleteAllLinksWithAtom(Atom $atom): void
     {
@@ -859,9 +796,6 @@ class Concept
     /**
      * Delete all links where $atom is used as src or tgt atom
      * from relations where $atom's concept (or any of its specializations) is used as src or tgt concept
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
      */
     protected function deleteAllSpecializationLinks(Atom $atom): void
     {

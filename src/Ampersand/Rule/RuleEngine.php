@@ -21,7 +21,8 @@ class RuleEngine
 
     /**
      * Function to get violations for a set of rules
-     * Conjuncts are NOT re-evaluated
+     *
+     * Note! Conjuncts are NOT re-evaluated
      *
      * @param \Ampersand\Rule\Rule[] $rules set of rules to check
      * @return \Ampersand\Rule\Violation[]
@@ -76,9 +77,7 @@ class RuleEngine
     /**
      * Get conjunct violations (if possible from cache) for given set of conjuncts
      *
-     * @param \Psr\Cache\CacheItemPoolInterface $cache
      * @param \Ampersand\Rule\Conjunct[] $conjuncts
-     * @return \Generator
      */
     protected static function getConjunctViolations(CacheItemPoolInterface $cache, array $conjuncts = []): Generator
     {

@@ -182,10 +182,6 @@ class Model
 
     /**
      * Import all concept definitions from json file and instantiate Concept objects
-     *
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Ampersand\AmpersandApp $app
-     * @return void
      */
     protected function loadConcepts(LoggerInterface $logger, AmpersandApp $app): void
     {
@@ -200,14 +196,8 @@ class Model
 
     /**
      * Import all role definitions from json file and instantiate Conjunct objects
-     *
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Ampersand\AmpersandApp $app
-     * @param \Ampersand\Plugs\MysqlDB\MysqlDB $database
-     * @param \Psr\Cache\CacheItemPoolInterface $cachePool
-     * @return void
      */
-    protected function loadConjuncts(LoggerInterface $logger, AmpersandApp $app, MysqlDB $database, CacheItemPoolInterface $cachePool)
+    protected function loadConjuncts(LoggerInterface $logger, AmpersandApp $app, MysqlDB $database, CacheItemPoolInterface $cachePool): void
     {
         $allConjDefs = (array)json_decode(file_get_contents($this->modelFiles['conjuncts']), true);
     
@@ -234,11 +224,8 @@ class Model
 
     /**
      * Import all interface object definitions from json file and instantiate interfaces
-     *
-     * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
-     * @return void
      */
-    protected function loadInterfaces(IfcPlugInterface $defaultPlug)
+    protected function loadInterfaces(IfcPlugInterface $defaultPlug): void
     {
         $allInterfaceDefs = (array)json_decode(file_get_contents($this->modelFiles['interfaces']), true);
         
@@ -253,11 +240,8 @@ class Model
 
     /**
      * Import all view definitions from json file and instantiate View objects
-     *
-     * @param \Ampersand\Plugs\ViewPlugInterface $defaultPlug
-     * @return void
      */
-    protected function loadViews(ViewPlugInterface $defaultPlug)
+    protected function loadViews(ViewPlugInterface $defaultPlug): void
     {
         $allViewDefs = (array)json_decode(file_get_contents($this->modelFiles['views']), true);
         
@@ -270,13 +254,8 @@ class Model
 
     /**
      * Import all rule definitions from json file and instantiate Rule objects
-     *
-     * @param \Ampersand\Plugs\ViewPlugInterface $defaultPlug
-     * @param \Ampersand\AmpersandApp $app
-     * @param \Psr\Log\LoggerInterface $logger
-     * @return void
      */
-    protected function loadRules(ViewPlugInterface $defaultPlug, AmpersandApp $app, LoggerInterface $logger)
+    protected function loadRules(ViewPlugInterface $defaultPlug, AmpersandApp $app, LoggerInterface $logger): void
     {
         $this->rules = [];
 
@@ -299,8 +278,6 @@ class Model
 
     /**
      * Import all role definitions from json file and instantiate Role objects
-     *
-     * @return void
      */
     protected function loadRoles(): void
     {
@@ -324,7 +301,6 @@ class Model
      * Return meta population for this Ampersand model
      *
      * Population is added to user population by SystemContext grinder in Ampersand compiler
-     * @return \Ampersand\Core\Population
      */
     public function getMetaPopulation(): Population
     {
@@ -363,10 +339,6 @@ class Model
 
     /**
      * Return concept object given a concept identifier
-     *
-     * @param string $conceptId escaped concept name
-     * @throws \Exception if concept is not defined
-     * @return \Ampersand\Core\Concept
      */
     public function getConcept(string $conceptId): Concept
     {
@@ -380,9 +352,7 @@ class Model
     /**
      * Return concept object given a concept label
      *
-     * @param string $conceptLabel Unescaped concept name
-     * @throws \Exception if concept is not defined
-     * @return \Ampersand\Core\Concept
+     * @param string $conceptLabel unescaped concept name
      */
     public function getConceptByLabel(string $conceptLabel): Concept
     {
@@ -433,15 +403,9 @@ class Model
     /**
      * Return relation object
      *
-     * @param string $relationSignature
-     * @param \Ampersand\Core\Concept|null $srcConcept
-     * @param \Ampersand\Core\Concept|null $tgtConcept
-     *
      * @throws \Ampersand\Exception\RelationNotDefined if relation is not defined
-     * @throws \Exception when something is wrong
-     * @return \Ampersand\Core\Relation
      */
-    public function getRelation($relationSignature, Concept $srcConcept = null, Concept $tgtConcept = null): Relation
+    public function getRelation(string $relationSignature, ?Concept $srcConcept = null, ?Concept $tgtConcept = null): Relation
     {
         if (!in_array('relations', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
@@ -497,8 +461,6 @@ class Model
 
     /**
      * Returns if interface exists
-     * @param string $ifcId Identifier of interface
-     * @return bool
      */
     public function interfaceExists(string $ifcId): bool
     {
@@ -507,12 +469,11 @@ class Model
 
     /**
      * Returns toplevel interface object
-     * @param string $ifcId
-     * @param bool $fallbackOnLabel if set to true, the param $ifcId may also contain an interface label (i.e. name as defined in &-script)
+     *
+     * If fallbackOnLabel is set to true, the param $ifcId may also contain an interface label (i.e. name as defined in &-script)
      * @throws \Ampersand\Exception\InterfaceNotDefined when interface does not exist
-     * @return \Ampersand\Interfacing\Ifc
      */
-    public function getInterface(string $ifcId, $fallbackOnLabel = false): Ifc
+    public function getInterface(string $ifcId, bool $fallbackOnLabel = false): Ifc
     {
         if (!array_key_exists($ifcId, $interfaces = $this->getAllInterfaces())) {
             if ($fallbackOnLabel) {
@@ -528,9 +489,7 @@ class Model
     /**
      * Undocumented function
      *
-     * @param string $ifcLabel
      * @throws \Ampersand\Exception\InterfaceNotDefined when interface does not exist
-     * @return \Ampersand\Interfacing\Ifc
      */
     public function getInterfaceByLabel(string $ifcLabel): Ifc
     {
@@ -552,7 +511,7 @@ class Model
      *
      * @return \Ampersand\Interfacing\View[]
      */
-    public function getAllViews()
+    public function getAllViews(): array
     {
         if (!in_array('views', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
@@ -564,11 +523,8 @@ class Model
     /**
      * Return view object
      *
-     * @param string $viewLabel
-     * @throws \Exception if view is not defined
-     * @return \Ampersand\Interfacing\View
      */
-    public function getView($viewLabel): View
+    public function getView(string $viewLabel): View
     {
         if (!in_array('views', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
@@ -618,11 +574,8 @@ class Model
     /**
      * Get rule with a given rule name
      *
-     * @param string $ruleName
-     * @throws Exception if rule is not defined
-     * @return \Ampersand\Rule\Rule
      */
-    public function getRule($ruleName): Rule
+    public function getRule(string $ruleName): Rule
     {
         if (!in_array('rules', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
@@ -655,11 +608,8 @@ class Model
     /**
      * Return conjunct object
      *
-     * @param string $conjId
-     * @throws \Exception if conjunct is not defined
-     * @return \Ampersand\Rule\Conjunct
      */
-    public function getConjunct($conjId): Conjunct
+    public function getConjunct(string $conjId): Conjunct
     {
         if (!in_array('conjuncts', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
@@ -680,7 +630,7 @@ class Model
      *
      * @return \Ampersand\Role[]
      */
-    public function getAllRoles()
+    public function getAllRoles(): array
     {
         if (!in_array('roles', $this->initialized)) {
             throw new Exception("Ampersand model is not yet initialized", 500);
@@ -692,8 +642,6 @@ class Model
     /**
      * Return role object
      *
-     * @param string $roleId
-     * @return \Ampersand\Role
      */
     public function getRoleById(string $roleId): Role
     {
@@ -709,10 +657,8 @@ class Model
     /**
      * Return role object
      *
-     * @param string $roleName
-     * @return \Ampersand\Role
      */
-    public function getRoleByName($roleName): Role
+    public function getRoleByName(string $roleName): Role
     {
         if (!array_key_exists($roleName, $roles = $this->getAllRoles())) {
             throw new Exception("Role '{$roleName}' is not defined", 500);
@@ -738,13 +684,13 @@ class Model
         return $this->modelFiles[$filename];
     }
 
-    protected function loadFile(string $filename)
+    protected function loadFile(string $filename): mixed
     {
         $decoder = new JsonDecode(false);
         return $decoder->decode(file_get_contents($this->getFilePath($filename)), JsonEncoder::FORMAT);
     }
 
-    protected function getFileContent(string $filename)
+    protected function getFileContent(string $filename): mixed
     {
         static $loadedFiles = [];
 
@@ -755,7 +701,7 @@ class Model
         return $loadedFiles[$filename];
     }
 
-    protected function getSetting(string $setting)
+    protected function getSetting(string $setting): mixed
     {
         $settings = $this->getFileContent('settings');
         

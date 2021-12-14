@@ -41,8 +41,8 @@ class MysqlDBRelationTable extends MysqlDBTable
     /**
      * Constructor of RelationTable
      *
-     * @param string $name
      * @param string|null $tableOf ('src', 'tgt' or null)
+     * TODO: use enum here
      */
     public function __construct(string $name, string $tableOf = null)
     {
@@ -64,33 +64,18 @@ class MysqlDBRelationTable extends MysqlDBTable
         return $this->tableOf;
     }
 
-    /**
-     *
-     * @param \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $col
-     * @return void
-     */
-    public function addSrcCol(MysqlDBTableCol $col)
+    public function addSrcCol(MysqlDBTableCol $col): void
     {
         $this->srcCol = $col;
         $this->cols[$col->getName()] = $col;
     }
 
-    /**
-     *
-     * @param \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $col
-     * @return void
-     */
-    public function addTgtCol(MysqlDBTableCol $col)
+    public function addTgtCol(MysqlDBTableCol $col): void
     {
         $this->tgtCol = $col;
         $this->cols[$col->getName()] = $col;
     }
 
-    /**
-     *
-     * @throws \Exception when src column is not defined
-     * @return \Ampersand\Plugs\MysqlDB\MysqlDBTableCol
-     */
     public function srcCol(): MysqlDBTableCol
     {
         if (is_null($this->srcCol)) {
@@ -99,11 +84,6 @@ class MysqlDBRelationTable extends MysqlDBTable
         return $this->srcCol;
     }
 
-    /**
-     *
-     * @throws \Exception when tgt column is not defined
-     * @return MysqlDBTableCol
-     */
     public function tgtCol(): MysqlDBTableCol
     {
         if (is_null($this->tgtCol)) {

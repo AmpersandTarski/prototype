@@ -26,9 +26,6 @@ trait ExtensionThreat
 
     /**
      * Setter method for $ampersandApp
-     *
-     * @param \Ampersand\AmpersandApp $app
-     * @return void
      */
     public function setAmpersandApp(AmpersandApp $app): void
     {

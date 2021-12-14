@@ -19,12 +19,9 @@ class Extension
     protected $bootstrapFile;
 
     /**
-     * Undocumented function
-     *
-     * @param string $name
-     * @param string|null $bootstrapFile
+     * Constructor
      */
-    public function __construct(string $name, string $bootstrapFile = null)
+    public function __construct(string $name, ?string $bootstrapFile = null)
     {
         $this->name = $name;
         $this->bootstrapFile = $bootstrapFile;
@@ -32,10 +29,8 @@ class Extension
 
     /**
      * Bootstrap the extensions (i.e. load php bootstrap file if specified)
-     *
-     * @return \Ampersand\Misc\Extension $this
      */
-    public function bootstrap(): Extension
+    public function bootstrap(): self
     {
         if (!is_null($this->bootstrapFile)) {
             require_once($this->bootstrapFile);

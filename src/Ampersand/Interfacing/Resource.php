@@ -43,10 +43,6 @@ class Resource extends Atom
     
     /**
      * Constructor
-     *
-     * @param string $resourceId Ampersand atom identifier
-     * @param \Ampersand\Core\Concept $cpt
-     * @param \Ampersand\Interfacing\ResourceList $parentList
      */
     public function __construct(string $resourceId, Concept $cpt, ResourceList $parentList)
     {
@@ -63,11 +59,10 @@ class Resource extends Atom
 
     /**
      * Function is called when object is treated as a string
-     * This functionality is needed when the ArrayAccess::offsetGet method below is used by internal code
      *
-     * @return string
+     * This functionality is needed when the ArrayAccess::offsetGet method below is used by internal code
      */
-    public function __toString()
+    public function __toString(): string
     {
         return (string) parent::jsonSerialize();
     }
@@ -79,8 +74,6 @@ class Resource extends Atom
 
     /**
      * Return interface for this resource
-     *
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface
      */
     public function getIfc(): InterfaceObjectInterface
     {
@@ -107,8 +100,7 @@ class Resource extends Atom
     /**
      * Undocumented function
      *
-     * @param string $ifcId
-     * @return array<\Ampersand\Interfacing\Resource>
+     * @return \Ampersand\Interfacing\Resource[]
      */
     public function all(string $ifcId): array
     {
@@ -134,8 +126,6 @@ class Resource extends Atom
      *
      * If multiple values are set then the value returned may be arbitrary.
      * Returns null if there is no value set
-     *
-     * @param string $ifcId
      */
     public function value(string $ifcId): ?string
     {
@@ -159,8 +149,6 @@ class Resource extends Atom
      * Get string values for a certain sub interface of this resource
      *
      * Returns empty list if there are no values set
-     *
-     * @param string $ifcId
      * @return string[]
      */
     public function values(string $ifcId): array
@@ -175,11 +163,8 @@ class Resource extends Atom
 
     /**
      * Undocumented function
-     *
-     * @param array $pathList
-     * @return \Ampersand\Interfacing\Resource|\Ampersand\Interfacing\ResourceList
      */
-    public function walkPath(array $pathList)
+    public function walkPath(array $pathList): Resource|ResourceList
     {
         if (empty($pathList)) {
             return $this;
@@ -212,21 +197,16 @@ class Resource extends Atom
  
     /**
      * Get resource data according to provided interface
-     * @param int $options
-     * @param int|null $depth
-     * @return array|string
      */
-    public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null)
+    public function get(int $options = Options::DEFAULT_OPTIONS, ?int $depth = null): array|string
     {
         return $this->parentList->getOne($this->id, $options, $depth);
     }
     
     /**
      * Update a resource (updates only first level of subinterfaces, for now)
-     * @param \stdClass|null $resourceToPut
-     * @return \Ampersand\Interfacing\Resource $this
      */
-    public function put(stdClass $resourceToPut = null): Resource
+    public function put(?stdClass $resourceToPut = null): self
     {
         if (!isset($resourceToPut)) {
             return $this; // nothing to do
@@ -289,12 +269,10 @@ class Resource extends Atom
     
     /**
      * Patch this resource with provided patches
-     * Use JSONPatch specification for $patches (see: http://jsonpatch.com/)
      *
-     * @param array $patches
-     * @return \Ampersand\Interfacing\Resource $this
+     * Use JSONPatch specification for $patches (see: http://jsonpatch.com/)
      */
-    public function patch(array $patches): Resource
+    public function patch(array $patches): self
     {
         foreach ($patches as $key => $patch) {
             if (!property_exists($patch, 'op')) {
@@ -362,9 +340,8 @@ class Resource extends Atom
     
     /**
      * Delete this resource and remove as target atom from current interface
-     * @return \Ampersand\Interfacing\Resource $this
      */
-    public function delete(): Resource
+    public function delete(): self
     {
         // Special case for FileObject: get filepath before deleting the atom
         if ($this->concept->isFileObject()) {

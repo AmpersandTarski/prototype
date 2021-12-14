@@ -37,11 +37,7 @@ class MysqlDBTableCol
     protected $unique;
 
     /**
-     * Constructor of Database table column
-     *
-     * @param string $name
-     * @param bool $null
-     * @param bool $unique
+     * Constructor
      */
     public function __construct(string $name, bool $null = false, bool $unique = true)
     {

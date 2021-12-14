@@ -41,9 +41,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Constructor
-     *
-     * @param \Ampersand\Core\Concept $tgtConcept
-     * @param \Ampersand\AmpersandApp $app
      */
     public function __construct(Concept $tgtConcept, AmpersandApp $app)
     {
@@ -66,7 +63,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         return "InterfaceNullObject";
     }
 
-    public function getEditableConcepts()
+    public function getEditableConcepts(): array
     {
         return [];
     }
@@ -141,7 +138,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     /**
      * Returns list of target atoms
      *
-     * @param \Ampersand\Core\Atom $src
      * @return \Ampersand\Core\Atom[]
      */
     public function getTgtAtoms(Atom $src, string $selectTgt = null): array
@@ -171,10 +167,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Returns path for given tgt atom
-     *
-     * @param \Ampersand\Core\Atom $tgt
-     * @param string $pathToSrc
-     * @return string
      */
     public function buildResourcePath(Atom $tgt, string $pathToSrc): string
     {
@@ -192,7 +184,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     /**
      * Undocumented function
      *
-     * @param int $options
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS): array
@@ -268,7 +259,13 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         return $tgtAtom->add();
     }
 
-    public function read(Atom $src, string $pathToSrc, string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(
+        Atom $src,
+        string $pathToSrc,
+        string $tgtId = null,
+        int $options = Options::DEFAULT_OPTIONS,
+        int $depth = null, array $recursionArr = []
+    ): mixed
     {
         if (!$this->crudR()) {
             throw new AccessDeniedException("Access denied to read with InterfaceNullObject");
@@ -339,8 +336,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Return properties of interface object
-     *
-     * @return array
      */
     public function getTechDetails(): array
     {
@@ -349,8 +344,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Return diagnostic information of interface object
-     *
-     * @return array
      */
     public function diagnostics(): array
     {

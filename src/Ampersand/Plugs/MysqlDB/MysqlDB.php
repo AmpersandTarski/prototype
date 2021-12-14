@@ -116,12 +116,6 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      *
      * Constructor of StorageInterface implementation MUST not throw Errors/Exceptions
      * when application is not installed (yet).
-     *
-     * @param string $dbHost
-     * @param string $dbUser
-     * @param string $dbPass
-     * @param string $dbName
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(string $dbHost, string $dbUser, string $dbPass, string $dbName, LoggerInterface $logger, bool $debugMode = false, bool $productionMode = false)
     {
@@ -154,12 +148,12 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         }
     }
 
-    public function init()
+    public function init(): void
     {
         $this->selectDB();
     }
 
-    protected function selectDB()
+    protected function selectDB(): void
     {
         try {
             $this->dbLink->select_db($this->dbName);
@@ -179,10 +173,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Function to create new database. Drops database (and loose all data) if already exists
-     *
-     * @return void
      */
-    protected function createDB()
+    protected function createDB(): void
     {
         // Drop database
         $this->logger->info("Drop database if exists: '{$this->dbName}'");
@@ -197,11 +189,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
 
     /**
      * The database is dropped, created again and all tables are created
-     *
-     * @param \Ampersand\Model $model
-     * @return void
      */
-    public function reinstallStorage(Model $model)
+    public function reinstallStorage(Model $model): void
     {
         $this->createDB();
         $structure = file_get_contents($model->getFolder() . '/database.sql');
@@ -214,7 +203,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $this->doQuery($queries, true);
     }
 
-    public function addToModelVersionHistory(Model $model)
+    public function addToModelVersionHistory(Model $model): void
     {
         $this->doQuery("INSERT INTO \"__ampersand_model_history__\" (\"compilerVersion\", \"checksum\") VALUES ('{$model->compilerVersion}', '{$model->checksum}')");
     }
@@ -233,9 +222,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      * Return escaped mysql representation of Atom (identifier) according to Ampersand technical types (TTypes)
      *
      * @throws Exception when technical type is not (yet) supported
-     * @return mixed
      */
-    protected function getDBRepresentation(Atom $atom)
+    protected function getDBRepresentation(Atom $atom): mixed
     {
         if (is_null($atom->getId())) {
             throw new Exception("Atom identifier MUST NOT be NULL", 500);
@@ -280,15 +268,13 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Execute query on database. Function replaces reserved words by their corresponding value (e.g. _SESSION)
-     * @param string $query
-     * @return boolean|array
      *
      * TODO:
      * Create private equivalent that is used by addAtom(), addLink(), deleteLink() and deleteAtom() functions, to perform any INSERT, UPDATE, DELETE
      * The public version should be allowed to only do SELECT queries.
      * This is needed to prevent Extensions or ExecEngine functions to go around the functions in this class that keep track of the affectedConjuncts.
      */
-    public function execute($query)
+    public function execute(string $query): bool|array
     {
         $this->logger->debug($query);
         $result = $this->doQuery($query);
@@ -319,13 +305,9 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Execute query on database.
-     *
-     * @param string $query
-     * @param bool $multiQuery specifies if query is a single command or multiple commands concatenated by a semicolon
-     * @return mixed
-     * @throws Exception
+     * Set multiQuery if query is a single command or multiple commands concatenated by a semicolon
      */
-    protected function doQuery($query, $multiQuery = false)
+    protected function doQuery(string $query, bool $multiQuery = false): mixed
     {
         $this->lastQuery = $query;
         try {
@@ -388,13 +370,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     /**
      * Escape identifier for use in database queries
      *
-     * @param string $escapestr
-     * @return NULL|string
-     *
      * http://php.net/manual/en/language.types.string.php#language.types.string.parsing
      * http://php.net/manual/en/mysqli.real-escape-string.php
      */
-    public function escape($escapestr)
+    public function escape(string $escapestr): ?string
     {
         if (is_null($escapestr)) {
             return null;
@@ -411,20 +390,16 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Returns name of storage implementation
-     * @return string
      */
-    public function getLabel()
+    public function getLabel(): string
     {
         return "MySQL database {$this->dbHost} - {$this->dbName}";
     }
     
     /**
      * Function to start/open a database transaction to track of all changes and be able to rollback
-     *
-     * @param \Ampersand\Transaction $transaction
-     * @return void
      */
-    public function startTransaction(Transaction $transaction)
+    public function startTransaction(Transaction $transaction): void
     {
         if (!$this->dbTransactionActive) {
             $this->logger->info("Start mysql database transaction for {$transaction}");
@@ -436,11 +411,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Function to commit the open database transaction
-     *
-     * @param \Ampersand\Transaction $transaction
-     * @return void
      */
-    public function commitTransaction(Transaction $transaction)
+    public function commitTransaction(Transaction $transaction): void
     {
         $this->logger->info("Commit mysql database transaction for {$transaction}");
         $this->execute("COMMIT");
@@ -450,11 +422,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Function to rollback changes made in the open database transaction
-     *
-     * @param \Ampersand\Transaction $transaction
-     * @return void
      */
-    public function rollbackTransaction(Transaction $transaction)
+    public function rollbackTransaction(Transaction $transaction): void
     {
         $this->logger->info("Rollback mysql database transaction for {$transaction}");
         $this->execute("ROLLBACK");
@@ -470,11 +439,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
 
     /**
     * Check if atom exists in database
-
-    * @param \Ampersand\Core\Atom $atom
-    * @return bool
     */
-    public function atomExists(Atom $atom)
+    public function atomExists(Atom $atom): bool
     {
         $tableInfo = $atom->concept->getConceptTableInfo();
         /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $firstCol */
@@ -494,10 +460,9 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     /**
      * Get all atoms for given concept
      *
-     * @param \Ampersand\Core\Concept $concept
      * @return \Ampersand\Core\Atom[]
      */
-    public function getAllAtoms(Concept $concept)
+    public function getAllAtoms(Concept $concept): array
     {
         $tableInfo = $concept->getConceptTableInfo();
         
@@ -521,11 +486,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Add atom to database
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
      */
-    public function addAtom(Atom $atom)
+    public function addAtom(Atom $atom): void
     {
         $atomId = $this->getDBRepresentation($atom);
                         
@@ -557,13 +519,9 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     }
     
     /**
-     * Removing an atom as member from a concept set.
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @throws \Exception
-     * @return void
+     * Removing an atom as member from a concept set
      */
-    public function removeAtom(Atom $atom)
+    public function removeAtom(Atom $atom): void
     {
         $atomId = $this->getDBRepresentation($atom);
         
@@ -589,11 +547,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Delete atom from concept table in the database
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
      */
-    public function deleteAtom(Atom $atom)
+    public function deleteAtom(Atom $atom): void
     {
         $atomId = $this->getDBRepresentation($atom);
         
@@ -606,7 +561,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $this->checkForAffectedRows();
     }
 
-    public function executeCustomSQLQuery(string $query)
+    public function executeCustomSQLQuery(string $query): bool|array
     {
         return $this->execute($query);
     }
@@ -619,11 +574,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
     * Check if link exists in database
-
-    * @param \Ampersand\Core\Link $link
-    * @return bool
     */
-    public function linkExists(Link $link)
+    public function linkExists(Link $link): bool
     {
         $relTable = $link->relation()->getMysqlTable();
         $srcAtomId = $this->getDBRepresentation($link->src());
@@ -640,13 +592,11 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
     * Get all links given a relation
-
-    * @param \Ampersand\Core\Relation $relation
-    * @param \Ampersand\Core\Atom|null $srcAtom if specified get all links with $srcAtom as source
-    * @param \Ampersand\Core\Atom|null $tgtAtom if specified get all links with $tgtAtom as tgt
+    *
+    * If src and/or tgt atom is specified only links are returned with these atoms
     * @return \Ampersand\Core\Link[]
     */
-    public function getAllLinks(Relation $relation, Atom $srcAtom = null, Atom $tgtAtom = null): array
+    public function getAllLinks(Relation $relation, ?Atom $srcAtom = null, ?Atom $tgtAtom = null): array
     {
         $relTable = $relation->getMysqlTable();
         
@@ -676,11 +626,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Add link (srcAtom,tgtAtom) into database table for relation r
-     *
-     * @param \Ampersand\Core\Link $link
-     * @return void
      */
-    public function addLink(Link $link)
+    public function addLink(Link $link): void
     {
         $relation = $link->relation();
         $srcAtomId = $this->getDBRepresentation($link->src());
@@ -711,11 +658,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Delete link (srcAtom,tgtAtom) into database table for relation r
-     *
-     * @param \Ampersand\Core\Link $link
-     * @return void
      */
-    public function deleteLink(Link $link)
+    public function deleteLink(Link $link): void
     {
         $relation = $link->relation();
         $srcAtomId = $this->getDBRepresentation($link->src());
@@ -752,12 +696,12 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     }
     
     /**
-     *
+     * Undocumented function
      *
      * @param \Ampersand\Core\Relation $relation relation from which to delete all links
      * @param \Ampersand\Core\Atom $atom atom for which to delete all links
      * @param string $srcOrTgt specifies to delete all link with $atom as src or tgt
-     * @return void
+     * TODO: use enum here
      */
     public function deleteAllLinks(Relation $relation, Atom $atom, string $srcOrTgt): void
     {
@@ -797,9 +741,6 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
 
     /**
      * Delete all links in a relation
-     *
-     * @param \Ampersand\Core\Relation $relation
-     * @return void
      */
     public function emptyRelation(Relation $relation): void
     {
@@ -828,12 +769,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Execute query for given interface expression and source atom
-     *
-     * @param \Ampersand\Interfacing\InterfaceExprObject $ifc
-     * @param \Ampersand\Core\Atom $srcAtom
-     * @return mixed
      */
-    public function executeIfcExpression(InterfaceExprObject $ifc, Atom $srcAtom)
+    public function executeIfcExpression(InterfaceExprObject $ifc, Atom $srcAtom): mixed
     {
         $srcAtomId = $this->getDBRepresentation($srcAtom);
         $query = $ifc->getQuery();
@@ -848,10 +785,6 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Execute query for giver view segement and source atom
-     *
-     * @param \Ampersand\Interfacing\ViewSegment $view
-     * @param \Ampersand\Core\Atom $srcAtom
-     * @return array
      */
     public function executeViewExpression(ViewSegment $view, Atom $srcAtom): array
     {
@@ -874,12 +807,12 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
  *************************************************************************************************/
     
     /**
-     * Check if insert/update/delete function resulted in updated record(s). If not, report warning (or throw exception) to indicate that something is going wrong
+     * Check if insert/update/delete function resulted in updated record(s)
+     * If not, report warning (or throw exception) to indicate that something is going wrong
      *
      * @throws \Exception when no records are affected and application is not in production mode
-     * @return void
      */
-    protected function checkForAffectedRows()
+    protected function checkForAffectedRows(): void
     {
         if ($this->dbLink->affected_rows == 0) {
             if ($this->debugMode) {

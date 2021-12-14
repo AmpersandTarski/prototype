@@ -10,9 +10,8 @@ class UploadException extends AmpersandException
      * Instantiate UploadException based on php's upload error codes
      *
      * See: https://www.php.net/manual/en/features.file-upload.errors.php
-     * @param int $uploadErrorCode
      */
-    public function __construct($uploadErrorCode)
+    public function __construct(int $uploadErrorCode)
     {
         switch ($uploadErrorCode) {
             case UPLOAD_ERR_INI_SIZE:

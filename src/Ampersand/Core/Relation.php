@@ -133,12 +133,8 @@ class Relation
     
     /**
      * Constructor
-     *
-     * @param array $relationDef
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Ampersand\AmpersandApp $app
      */
-    public function __construct($relationDef, LoggerInterface $logger, AmpersandApp $app)
+    public function __construct(array $relationDef, LoggerInterface $logger, AmpersandApp $app)
     {
         $this->logger = $logger;
         $this->app = $app;
@@ -175,35 +171,30 @@ class Relation
     
     /**
      * Function is called when object is treated as a string
-     * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getSignature();
     }
     
     /**
      * Return signature of relation (format: relName[srcConceptName*tgtConceptName])
-     * @return string
      */
-    public function getSignature()
+    public function getSignature(): string
     {
         return "{$this->name}[{$this->srcConcept}*{$this->tgtConcept}]";
     }
     
     /**
      * Returns array with signal conjuncts that are affected by updating this Relation
+     *
      * @return \Ampersand\Rule\Conjunct[]
      */
-    public function getRelatedConjuncts()
+    public function getRelatedConjuncts(): array
     {
         return $this->relatedConjuncts;
     }
     
-    /**
-     *
-     * @return \Ampersand\Plugs\MysqlDB\MysqlDBRelationTable
-     */
     public function getMysqlTable(): MysqlDBRelationTable
     {
         return $this->mysqlTable;
@@ -214,7 +205,7 @@ class Relation
      *
      * @return \Ampersand\Plugs\RelationPlugInterface[]
      */
-    public function getPlugs()
+    public function getPlugs(): array
     {
         if (empty($this->plugs)) {
             throw new Exception("No plug(s) provided for relation {$this->getSignature()}", 500);
@@ -224,11 +215,8 @@ class Relation
 
     /**
      * Add plug for this relation
-     *
-     * @param \Ampersand\Plugs\RelationPlugInterface $plug
-     * @return void
      */
-    public function addPlug(RelationPlugInterface $plug)
+    public function addPlug(RelationPlugInterface $plug): void
     {
         if (!in_array($plug, $this->plugs)) {
             $this->plugs[] = $plug;
@@ -240,10 +228,6 @@ class Relation
 
     /**
      * Instantiate new Link object for this relation
-     *
-     * @param string $srcId
-     * @param string $tgtId
-     * @return \Ampersand\Core\Link
      */
     public function makeLink(string $srcId, string $tgtId): Link
     {
@@ -252,10 +236,8 @@ class Relation
     
     /**
      * Check if link (tuple of src and tgt atom) exists in this relation
-     * @param \Ampersand\Core\Link $link
-     * @return boolean
      */
-    public function linkExists(Link $link)
+    public function linkExists(Link $link): bool
     {
         $this->logger->debug("Checking if link {$link} exists in plug");
         
@@ -264,21 +246,19 @@ class Relation
     
     /**
     * Get all links for this relation
-    * @param \Ampersand\Core\Atom|null $srcAtom if specified get all links with $srcAtom as source
-    * @param \Ampersand\Core\Atom|null $tgtAtom if specified get all links with $tgtAtom as tgt
+    *
+    * If src and/or tgt atom is specified only links are returned with these atoms
     * @return \Ampersand\Core\Link[]
     */
-    public function getAllLinks(Atom $srcAtom = null, Atom $tgtAtom = null)
+    public function getAllLinks(?Atom $srcAtom = null, ?Atom $tgtAtom = null): array
     {
         return $this->primaryPlug->getAllLinks($this, $srcAtom, $tgtAtom);
     }
     
     /**
      * Add link to this relation
-     * @param \Ampersand\Core\Link $link
-     * @return void
      */
-    public function addLink(Link $link)
+    public function addLink(Link $link): void
     {
         $this->logger->debug("Add link {$link} to plug");
         $transaction = $this->app->getCurrentTransaction();
@@ -298,10 +278,8 @@ class Relation
     
     /**
      * Delete link from this relation
-     * @param \Ampersand\Core\Link $link
-     * @return void
      */
-    public function deleteLink(Link $link)
+    public function deleteLink(Link $link): void
     {
         $this->logger->debug("Delete link {$link} from plug");
         $transaction = $this->app->getCurrentTransaction();
@@ -316,11 +294,12 @@ class Relation
     }
     
     /**
-     * @param \Ampersand\Core\Atom $atom atom for which to delete all links
-     * @param string $srcOrTgt specifies to delete all link with $atom as src, tgt or both (null/not provided)
-     * @return void
+     * Delete all links where specified atom is used
+     *
+     * SrcOrTgt specifies to delete all link with $atom as src, tgt or both (null/not provided)
+     * TODO: use enum here
      */
-    public function deleteAllLinks(Atom $atom, $srcOrTgt): void
+    public function deleteAllLinks(Atom $atom, string $srcOrTgt): void
     {
         switch ($srcOrTgt) {
             case 'src':
@@ -343,8 +322,6 @@ class Relation
 
     /**
      * Empty relation (i.e. delete all links)
-     *
-     * @return void
      */
     public function empty(): void
     {

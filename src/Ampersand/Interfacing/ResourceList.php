@@ -106,11 +106,8 @@ class ResourceList
 
     /**
      * Undocumented function
-     *
-     * @param array $pathList
-     * @return \Ampersand\Interfacing\Resource|\Ampersand\Interfacing\ResourceList
      */
-    public function walkPath(array $pathList)
+    public function walkPath(array $pathList): Resource|ResourceList
     {
         if (empty($pathList) && $this->tgtIdInPath()) {
             return $this;
@@ -159,12 +156,12 @@ class ResourceList
      * REST methods to call on resource list
      *********************************************************************************************/
 
-    public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null)
+    public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null): mixed
     {
         return $this->ifcObject->read($this->srcAtom, $this->pathEntry, null, $options, $depth);
     }
 
-    public function getOne(string $tgtId, int $options = Options::DEFAULT_OPTIONS, int $depth = null)
+    public function getOne(string $tgtId, int $options = Options::DEFAULT_OPTIONS, int $depth = null): mixed
     {
         return $this->ifcObject->read($this->srcAtom, $this->pathEntry, $tgtId, $options, $depth);
     }
@@ -227,11 +224,8 @@ class ResourceList
 
     /**
      * Undocumented function
-     *
-     * @param string|bool|null $value
-     * @return \Ampersand\Interfacing\Resource|null
      */
-    public function set($value = null): ?Resource
+    public function set(mixed $value = null): ?Resource
     {
         $tgt = $this->ifcObject->set($this->srcAtom, $value);
         if (is_null($tgt)) {
@@ -272,10 +266,6 @@ class ResourceList
 
     /**
      * Instantiate resource list with given src atom and interface
-     *
-     * @param string $srcAtomId
-     * @param string $ifcIdOrLabel
-     * @return \Ampersand\Interfacing\ResourceList
      */
     public static function makeFromInterface(string $srcAtomId, string $ifcIdOrLabel): ResourceList
     {
@@ -296,9 +286,6 @@ class ResourceList
 
     /**
      * Instantiate resource list for a given resource type (i.e. concept)
-     *
-     * @param \Ampersand\Core\Concept $concept
-     * @return \Ampersand\Interfacing\ResourceList
      */
     public static function makeWithoutInterface(Concept $concept): ResourceList
     {

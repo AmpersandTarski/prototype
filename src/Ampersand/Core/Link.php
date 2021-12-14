@@ -21,32 +21,19 @@ class Link implements JsonSerializable
 {
     /**
      * Relation of which this link is a instance
-     *
-     * @var \Ampersand\Core\Relation
      */
-    protected $rel;
+    protected Relation $rel;
     
     /**
      * Source atom of this link
-     *
-     * @var \Ampersand\Core\Atom
      */
-    protected $src;
+    protected Atom $src;
     
     /**
      * Target atom of this link
-     *
-     * @var \Ampersand\Core\Atom
      */
-    protected $tgt;
+    protected Atom $tgt;
     
-    /**
-     * Constructor
-     *
-     * @param \Ampersand\Core\Relation $rel
-     * @param \Ampersand\Core\Atom $src
-     * @param \Ampersand\Core\Atom $tgt
-     */
     public function __construct(Relation $rel, Atom $src, Atom $tgt)
     {
         $this->rel = $rel;
@@ -64,8 +51,6 @@ class Link implements JsonSerializable
     
     /**
      * Function is called when object is treated as a string
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -74,8 +59,6 @@ class Link implements JsonSerializable
     
     /**
      * Function is called when object encoded to json with json_encode()
-     *
-     * @return array
      */
     public function jsonSerialize(): array
     {
@@ -84,8 +67,6 @@ class Link implements JsonSerializable
     
     /**
      * Check if link exists in relation
-     *
-     * @return bool
      */
     public function exists(): bool
     {
@@ -94,10 +75,8 @@ class Link implements JsonSerializable
     
     /**
      * Add link relation set
-     *
-     * @return \Ampersand\Core\Link $this
      */
-    public function add(): Link
+    public function add(): self
     {
         $this->rel->addLink($this);
         return $this;
@@ -105,10 +84,8 @@ class Link implements JsonSerializable
     
     /**
      * Delete link from relation set
-     *
-     * @return \Ampersand\Core\Link $this
      */
-    public function delete(): Link
+    public function delete(): self
     {
         $this->rel->deleteLink($this);
         return $this;
@@ -116,8 +93,6 @@ class Link implements JsonSerializable
     
     /**
      * Return relation
-     *
-     * @return \Ampersand\Core\Relation
      */
     public function relation(): Relation
     {
@@ -126,8 +101,6 @@ class Link implements JsonSerializable
     
     /**
      * Return source atom
-     *
-     * @return \Ampersand\Core\Atom
      */
     public function src(): Atom
     {
@@ -136,8 +109,6 @@ class Link implements JsonSerializable
     
     /**
      * Return target atom
-     *
-     * @return \Ampersand\Core\Atom
      */
     public function tgt(): Atom
     {

@@ -40,10 +40,7 @@ class ViolationSegment extends ViewSegment
     protected $srcOrTgt = null;
 
     /**
-     * Constructor of violation segments
-     *
-     * @param array $segmentDef
-     * @param \Ampersand\Rule\Rule $rule rule of which this segment is part of
+     * Constructor of violation segments as part of specified rule
      */
     public function __construct(array $segmentDef, Rule $rule)
     {
@@ -63,7 +60,7 @@ class ViolationSegment extends ViewSegment
         }
     }
     
-    public function __toString()
+    public function __toString(): string
     {
         return $this->rule . ":{$this->label}";
     }
@@ -71,11 +68,9 @@ class ViolationSegment extends ViewSegment
     /**
      * Undocumented function
      *
-     * @param Atom $srcAtom
-     * @param Atom|null $tgtAtom param is declared optional, because the method must be compatible with the parent method it overwrites (i.e. ViewSegment::getData())
-     * @return array
+     * Tgt atom parameter is declared optional, because the method must be compatible with the parent method it overwrites (i.e. ViewSegment::getData())
      */
-    public function getData(Atom $srcAtom, Atom $tgtAtom = null): array
+    public function getData(Atom $srcAtom, ?Atom $tgtAtom = null): array
     {
         if (is_null($tgtAtom)) {
             throw new Exception("No target atom provided for ViolationSegment::getData()", 500);

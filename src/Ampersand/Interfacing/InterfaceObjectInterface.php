@@ -8,8 +8,8 @@
 namespace Ampersand\Interfacing;
 
 use Ampersand\Core\Atom;
-use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
+use Ampersand\Interfacing\Resource;
 
 /**
  *
@@ -40,17 +40,12 @@ interface InterfaceObjectInterface
     /**
      * Returns list of target atoms
      *
-     * @param \Ampersand\Core\Atom $src
      * @return \Ampersand\Core\Atom[]
      */
     public function getTgtAtoms(Atom $src, string $selectTgt = null): array;
 
     /**
      * Returns path for given tgt atom
-     *
-     * @param \Ampersand\Core\Atom $tgt
-     * @param string $pathToSrc
-     * @return string
      */
     public function buildResourcePath(Atom $tgt, string $pathToSrc): string;
 
@@ -60,10 +55,10 @@ interface InterfaceObjectInterface
     /**
      * Return list of sub interface objects
      *
-     * @param int $options
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS): array;
+
     public function hasSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): bool;
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface;
     public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface;
@@ -94,15 +89,11 @@ interface InterfaceObjectInterface
 
     /**
      * Return properties of interface object
-     *
-     * @return array
      */
     public function getTechDetails(): array;
 
     /**
      * Return diagnostic information of interface object
-     *
-     * @return array
      */
     public function diagnostics(): array;
 }

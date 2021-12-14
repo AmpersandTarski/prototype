@@ -51,11 +51,8 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
 
     /**
      * Constructor
-     *
-     * @param array $ifcDef Interface object definition as provided by Ampersand generator
-     * @param \Ampersand\Interfacing\InterfaceObjectInterface|null $parent
      */
-    public function __construct(array $ifcDef, InterfaceObjectInterface $parent = null)
+    public function __construct(array $ifcDef, ?InterfaceObjectInterface $parent = null)
     {
         if ($ifcDef['type'] != 'ObjText') {
             throw new Exception("Provided interface definition is not of type ObjText", 500);
@@ -72,7 +69,6 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     
     /**
      * Function is called when object is treated as a string
-     * @return string
      */
     public function __toString(): string
     {
@@ -93,16 +89,15 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
      * Array with all editable concepts for this interface and all sub interfaces
      * @return \Ampersand\Core\Concept[]
      */
-    public function getEditableConcepts()
+    public function getEditableConcepts(): array
     {
         return [];
     }
     
     /**
      * Returns if the interface expression isIdent
-     * Note! Epsilons are not included
      *
-     * @return bool
+     * Note! Epsilons are not included
      */
     public function isIdent(): bool
     {
@@ -149,10 +144,6 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
 
     /**
      * Returns path for given tgt atom
-     *
-     * @param \Ampersand\Core\Atom $tgt
-     * @param string $pathToSrc
-     * @return string
      */
     public function buildResourcePath(Atom $tgt, string $pathToSrc): string
     {
@@ -173,21 +164,11 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
         return false;
     }
     
-    /**
-     * @param string $ifcId
-     * @param int $options
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface
-     */
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         throw new Exception("Method getSubinterface() is n.a. for InterfaceTxtObject and must not be called", 500);
     }
     
-    /**
-     * @param string $ifcLabel
-     * @param int $options
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface
-     */
     public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         throw new Exception("Method getSubinterfaceByLabel() is n.a. for InterfaceTxtObject and must not be called", 500);
@@ -206,7 +187,14 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
         throw new Exception("Create operation not implemented for TXT interface object", 501);
     }
     
-    public function read(Atom $src, string $pathToSrc, string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(
+        Atom $src,
+        string $pathToSrc,
+        string $tgtId = null,
+        int $options = Options::DEFAULT_OPTIONS,
+        int $depth = null,
+        array $recursionArr = []
+    ): string
     {
         return $this->txt;
     }

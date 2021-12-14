@@ -32,9 +32,6 @@ class Options
 
     /**
      * Get resource options using API params
-     *
-     * @param array $params
-     * @return integer
      */
     public static function getFromRequestParams(array $params): int
     {
@@ -50,11 +47,6 @@ class Options
 
     /**
      * Set/unset options based on provided params and options map
-     *
-     * @param array $optionsMap
-     * @param array $params
-     * @param integer $options
-     * @return integer
      */
     protected static function processOptionsMap(array $optionsMap, array $params, int $options = 0): int
     {

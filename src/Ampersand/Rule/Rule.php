@@ -111,15 +111,18 @@ class Rule
     protected $type;
     
     /**
-     * Rule constructor
+     * Constructor
      *
-     * @param array $ruleDef
-     * @param \Ampersand\Plugs\ViewPlugInterface $plug
      * @param string $type specifies if it is a signal (sig) or invariant (inv) rule
-     * @param \Ampersand\AmpersandApp $app
-     * @param \Psr\Log\LoggerInterface $logger
+     * TODO: use enum here
     */
-    public function __construct(array $ruleDef, ViewPlugInterface $plug, string $type, AmpersandApp $app, LoggerInterface $logger)
+    public function __construct(
+        array $ruleDef,
+        ViewPlugInterface $plug,
+        string $type,
+        AmpersandApp $app,
+        LoggerInterface $logger
+    )
     {
         $this->logger = $logger;
         $this->ampersandApp = $app;
@@ -155,8 +158,6 @@ class Rule
     
     /**
      * Function is called when object is treated as a string
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -185,8 +186,6 @@ class Rule
 
     /**
      * Specifies if rule is a signal rule
-     *
-     * @return boolean
      */
     public function isSignalRule(): bool
     {
@@ -195,8 +194,6 @@ class Rule
 
     /**
      * Specifies is rule is a invariant rule
-     *
-     * @return boolean
      */
     public function isInvariantRule(): bool
     {
@@ -205,8 +202,6 @@ class Rule
     
     /**
      * Get message to tell that a rule is broken
-     *
-     * @return string
      */
     public function getViolationMessage(): string
     {
@@ -226,7 +221,6 @@ class Rule
     /**
      * Check rule and return violations
      *
-     * @param bool $forceReEvaluation
      * @return \Ampersand\Rule\Violation[]
      */
     public function checkRule(bool $forceReEvaluation = true): array

@@ -144,9 +144,6 @@ class RDFGraph extends \EasyRdf\Graph
 
     /**
      * Perform content negotiation based on accept header parameter and return a response format
-     *
-     * @param string $acceptHeader A HTTP accept header string
-     * @return \EasyRdf\Format
      */
     public static function getResponseFormat(string $acceptHeader): \EasyRdf\Format
     {

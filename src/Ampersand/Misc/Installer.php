@@ -27,8 +27,6 @@ class Installer
 
     /**
      * Constructor
-     *
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(LoggerInterface $logger)
     {
@@ -37,9 +35,6 @@ class Installer
 
     /**
      * Add/import meta population
-     *
-     * @param \Ampersand\Model $model
-     * @return \Ampersand\Misc\Installer
      */
     public function reinstallMetaPopulation(Model $model): Installer
     {
@@ -61,9 +56,6 @@ class Installer
 
     /**
      * Add/import initial population as defined in generated Ampersand model file
-     *
-     * @param \Ampersand\Model $model
-     * @return \Ampersand\Misc\Installer
      */
     public function addInitialPopulation(Model $model): Installer
     {
@@ -76,9 +68,6 @@ class Installer
 
     /**
      * Add menu items for navigation menus
-     *
-     * @param \Ampersand\Model $model
-     * @return \Ampersand\Misc\Installer
      */
     public function reinstallNavigationMenus(Model $model): Installer
     {

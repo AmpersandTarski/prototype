@@ -50,12 +50,9 @@ class Role
     protected $model;
     
     /**
-     * Constructor of role
-     *
-     * @param array $roleDef
-     * @param \Ampersand\Model $model
+     * Constructor
      */
-    public function __construct($roleDef, Model $model)
+    public function __construct(array $roleDef, Model $model)
     {
         $this->model = $model;
 
@@ -69,8 +66,6 @@ class Role
     
     /**
      * Function is called when object is treated as a string
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -87,7 +82,7 @@ class Role
         return $this->id;
     }
 
-    public function getLabel()
+    public function getLabel(): string
     {
         return $this->label;
     }

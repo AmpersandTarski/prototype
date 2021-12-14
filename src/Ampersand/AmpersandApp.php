@@ -143,12 +143,6 @@ class AmpersandApp
     
     /**
      * Constructor
-     *
-     * @param \Ampersand\Model $model
-     * @param \Ampersand\Misc\Settings $settings
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
-     * @param \League\Flysystem\FilesystemInterface $fileSystem
      */
     public function __construct(
         Model $model,
@@ -260,9 +254,6 @@ class AmpersandApp
 
     /**
      * Add closure to be executed during initialization of Ampersand application
-     *
-     * @param \Closure $closure
-     * @return void
      */
     public function registerInitClosure(Closure $closure): void
     {
@@ -298,9 +289,6 @@ class AmpersandApp
      * Set default storage.
      * For know we only support a MysqlDB as default storage.
      * Ampersand generator outputs a SQL (construct) query for each concept, relation, interface-, view- and conjunct expression
-     *
-     * @param \Ampersand\Plugs\MysqlDB\MysqlDB $storage
-     * @return void
      */
     public function setDefaultStorage(MysqlDB $storage): void
     {
@@ -335,7 +323,7 @@ class AmpersandApp
         return $this;
     }
 
-    public function resetSession(Atom $sessionAccount = null)
+    public function resetSession(Atom $sessionAccount = null): void
     {
         $this->logger->debug("Resetting session");
         $this->session->deleteSessionAtom(); // delete Ampersand representation of session
@@ -432,8 +420,6 @@ class AmpersandApp
 
     /**
      * Get the session object for this instance of the ampersand application
-     *
-     * @return \Ampersand\Session
      */
     public function getSession(): Session
     {
@@ -445,8 +431,6 @@ class AmpersandApp
 
     /**
      * Get Ampersand model for this application
-     *
-     * @return \Ampersand\Model
      */
     public function getModel(): Model
     {
@@ -455,8 +439,6 @@ class AmpersandApp
 
     /**
      * Get settings object for this application
-     *
-     * @return \Ampersand\Misc\Settings
      */
     public function getSettings(): Settings
     {
@@ -477,10 +459,9 @@ class AmpersandApp
      * TRANSACTIONS
      **********************************************************************************************/
     /**
-     * Open new transaction.
-     * Note! Make sure that a open transaction is closed first
+     * Open new transaction
      *
-     * @return \Ampersand\Transaction
+     * Note! Make sure that a open transaction is closed first
      */
     public function newTransaction(): Transaction
     {
@@ -492,8 +473,6 @@ class AmpersandApp
     
     /**
      * Return current open transaction or open new transactions
-     *
-     * @return \Ampersand\Transaction
      */
     public function getCurrentTransaction(): Transaction
     {
@@ -522,8 +501,6 @@ class AmpersandApp
 
     /**
      * Login user and commit transaction
-     *
-     * @return void
      */
     public function login(Atom $account): void
     {
@@ -547,8 +524,6 @@ class AmpersandApp
 
     /**
      * Logout user, destroy and reset session
-     *
-     * @return void
      */
     public function logout(): void
     {
@@ -564,8 +539,7 @@ class AmpersandApp
     /**
      * Function to reinstall the application. This includes database structure and load default population
      *
-     * @param bool $installDefaultPop specifies whether or not to install the default population
-     * @param bool $ignoreInvariantRules
+     * Use $installDefaultPop to specify whether or not to install the default population
      */
     public function reinstall(bool $installDefaultPop = true, bool $ignoreInvariantRules = false): self
     {
@@ -662,9 +636,6 @@ class AmpersandApp
 
     /**
      * (De)activate session roles
-     *
-     * @param array $roles
-     * @return void
      */
     public function setActiveRoles(array $roles): void
     {
@@ -711,8 +682,6 @@ class AmpersandApp
 
     /**
      * Get session roles with their id, label and state (active or not)
-     *
-     * @return array
      */
     public function getSessionRoles(): array
     {
@@ -732,9 +701,8 @@ class AmpersandApp
      * Check if session has any of the provided roles
      *
      * @param string[]|null $roles
-     * @return bool
      */
-    public function hasRole(array $roles = null): bool
+    public function hasRole(?array $roles = null): bool
     {
         // If provided roles is null (i.e. NOT empty array), then true
         if (is_null($roles)) {
@@ -751,9 +719,8 @@ class AmpersandApp
      * Check if session has any of the provided roles active
      *
      * @param string[]|null $roles
-     * @return bool
      */
-    public function hasActiveRole(array $roles = null): bool
+    public function hasActiveRole(?array $roles = null): bool
     {
         // If provided roles is null (i.e. NOT empty array), then true
         if (is_null($roles)) {
@@ -769,7 +736,6 @@ class AmpersandApp
     /**
      * Get interfaces that are accessible in the current session to 'Read' a certain concept
      *
-     * @param \Ampersand\Core\Concept $cpt
      * @return \Ampersand\Interfacing\Ifc[]
      */
     public function getInterfacesToReadConcept(Concept $cpt): array
@@ -785,8 +751,6 @@ class AmpersandApp
 
     /**
      * Determine if provided concept is editable concept in one of the accessible interfaces in the current session
-     * @param \Ampersand\Core\Concept $concept
-     * @return bool
      */
     public function isEditableConcept(Concept $concept): bool
     {
@@ -798,8 +762,6 @@ class AmpersandApp
     
     /**
      * Determine if provided interface is accessible in the current session
-     * @param \Ampersand\Interfacing\Ifc $ifc
-     * @return bool
      */
     public function isAccessibleIfc(Ifc $ifc): bool
     {
@@ -808,8 +770,6 @@ class AmpersandApp
 
     /**
      * Evaluate and signal violations for all rules that are maintained by the activated roles
-     *
-     * @return void
      */
     public function checkProcessRules(): void
     {
@@ -830,15 +790,8 @@ class AmpersandApp
      **********************************************************************************************/
     /**
      * Return relation object
-     *
-     * @param string $relationSignature
-     * @param \Ampersand\Core\Concept|null $srcConcept
-     * @param \Ampersand\Core\Concept|null $tgtConcept
-     *
-     * @throws \Ampersand\Exception\RelationNotDefined if relation is not defined
-     * @return \Ampersand\Core\Relation
      */
-    public function getRelation($relationSignature, Concept $srcConcept = null, Concept $tgtConcept = null): Relation
+    public function getRelation(string $relationSignature, ?Concept $srcConcept = null, ?Concept $tgtConcept = null): Relation
     {
         return $this->model->getRelation($relationSignature, $srcConcept, $tgtConcept);
     }

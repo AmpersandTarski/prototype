@@ -171,13 +171,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Constructor
-     *
-     * @param array $ifcDef Interface object definition as provided by Ampersand generator
-     * @param \Ampersand\Plugs\IfcPlugInterface $plug
-     * @param \Ampersand\Interfacing\Ifc $rootIfc
-     * @param \Ampersand\Interfacing\InterfaceObjectInterface|null $parent
      */
-    public function __construct(array $ifcDef, IfcPlugInterface $plug, Ifc $rootIfc, InterfaceObjectInterface $parent = null)
+    public function __construct(array $ifcDef, IfcPlugInterface $plug, Ifc $rootIfc, ?InterfaceObjectInterface $parent = null)
     {
         if ($ifcDef['type'] != 'ObjExpression') {
             throw new Exception("Provided interface definition is not of type ObjExpression", 500);
@@ -270,7 +265,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Function is called when object is treated as a string
-     * @return string
      */
     public function __toString(): string
     {
@@ -299,8 +293,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Returns interface relation (when interface expression = relation), throws exception otherwise
-     * @throws \Exception when interface expression is not an (editable) relation
-     * @return \Ampersand\Core\Relation
      */
     protected function relation(): Relation
     {
@@ -313,7 +305,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Returns if interface expression is editable (i.e. expression = relation)
-     * @return bool
      */
     protected function isEditable(): bool
     {
@@ -324,7 +315,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      * Array with all editable concepts for this interface and all sub interfaces
      * @return \Ampersand\Core\Concept[]
      */
-    public function getEditableConcepts()
+    public function getEditableConcepts(): array
     {
         $arr = [];
         
@@ -343,7 +334,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Returns if interface expression relation is a property
-     * @return bool
      */
     protected function isProp(): bool
     {
@@ -352,7 +342,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Returns if interface is a reference to another interface
-     * @return bool
      */
     protected function isRef(): bool
     {
@@ -363,7 +352,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      * Returns referenced interface object
      *
      * @throws Exception when $this is not a reference interface
-     * @return \Ampersand\Interfacing\Ifc
      */
     protected function getRefToIfc(): Ifc
     {
@@ -376,7 +364,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Returns if interface object is a leaf node
-     * @return bool
      */
     protected function isLeaf(int $options = Options::DEFAULT_OPTIONS): bool
     {
@@ -390,9 +377,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Returns if the interface expression isIdent
-     * Note! Epsilons are not included
      *
-     * @return boolean
+     * Note! Epsilons are not included
      */
     public function isIdent(): bool
     {
@@ -467,7 +453,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Returns generated query for this interface expression
-     * @return string
      */
     public function getQuery(): string
     {
@@ -476,9 +461,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Function to manually set optimized query
-     *
-     * @param string $query
-     * @return void
      */
     public function setQuery(string $query): void
     {
@@ -487,21 +469,12 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Returns if subinterface is defined
-     *
-     * @param string $ifcId
-     * @param int $options
-     * @return bool
      */
     public function hasSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): bool
     {
         return array_key_exists($ifcId, $this->getSubinterfaces($options));
     }
     
-    /**
-     * @param string $ifcId
-     * @param int $options
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface
-     */
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         if (!array_key_exists($ifcId, $subifcs = $this->getSubinterfaces($options))) {
@@ -511,11 +484,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         return $subifcs[$ifcId];
     }
     
-    /**
-     * @param string $ifcLabel
-     * @param int $options
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface
-     */
     public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         foreach ($this->getSubinterfaces($options) as $ifc) {
@@ -528,7 +496,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     }
     
     /**
-     * @param int $options
+     * Undocumented function
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS): array
@@ -552,7 +520,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     /**
      * @return \Ampersand\Interfacing\Ifc[]
      */
-    protected function getNavInterfacesForTgt()
+    protected function getNavInterfacesForTgt(): array
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
@@ -576,10 +544,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     }
 
     /**
-     * Undocumented function
-     *
-     * @param \Ampersand\Core\Atom $tgtAtom the atom for which to get view data
-     * @return array
+     * Get view data for specified atom
      */
     public function getViewData(Atom $tgtAtom): array
     {
@@ -592,10 +557,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Returns path for given tgt atom
-     *
-     * @param \Ampersand\Core\Atom $tgt
-     * @param string $pathToSrc
-     * @return string
      */
     public function buildResourcePath(Atom $tgt, string $pathToSrc): string
     {
@@ -613,7 +574,14 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
     }
     
-    public function read(Atom $src, string $pathToSrc, string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(
+        Atom $src,
+        string $pathToSrc,
+        string $tgtId = null,
+        int $options = Options::DEFAULT_OPTIONS,
+        int $depth = null,
+        array $recursionArr = []
+    ): mixed
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for ". $this->getPath(), 405);
@@ -659,7 +627,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
     }
 
-    protected function getResourceContent(Atom $tgt, string $pathToSrc, $options, $depth, $recursionArr)
+    protected function getResourceContent(Atom $tgt, string $pathToSrc, $options, $depth, $recursionArr): string|array
     {
         // Prevent infinite loops for reference interfaces when no depth is provided
         // We only need to check LINKTO ref interfaces, because cycles may not exist in regular references (enforced by Ampersand generator)
@@ -784,12 +752,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Set provided value (for univalent interfaces)
-     *
-     * @param \Ampersand\Core\Atom $src
-     * @param mixed|null $value
-     * @return ?\Ampersand\Core\Atom
      */
-    public function set(Atom $src, $value = null): ?Atom
+    public function set(Atom $src, mixed $value = null): ?Atom
     {
         if (!$this->isUni()) {
             throw new Exception("Cannot use set() for non-univalent interface " . $this->getPath() . ". Use add or remove instead", 400);
@@ -823,12 +787,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Add value to resource list
-     * @param \Ampersand\Core\Atom $src
-     * @param mixed $value
-     * @param bool $skipCrudUCheck
-     * @return \Ampersand\Core\Atom
      */
-    public function add(Atom $src, $value, bool $skipCrudUCheck = false): Atom
+    public function add(Atom $src, mixed $value, bool $skipCrudUCheck = false): Atom
     {
         if (!isset($value)) {
             throw new Exception("Cannot add item. Value not provided", 400);
@@ -857,12 +817,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Remove value from resource list
-     *
-     * @param \Ampersand\Core\Atom $src
-     * @param mixed $value
-     * @return void
      */
-    public function remove(Atom $src, $value): void
+    public function remove(Atom $src, mixed $value): void
     {
         if (!isset($value)) {
             throw new Exception("Cannot remove item. Value not provided", 400);
@@ -886,9 +842,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Undocumented function
-     *
-     * @param \Ampersand\Core\Atom $src
-     * @return void
      */
     public function removeAll(Atom $src): void
     {
@@ -919,12 +872,9 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     /**
      * Return list of target atoms
      *
-     *
-     * @param \Ampersand\Core\Atom $src
-     * @param string|null $selectTgt
      * @return \Ampersand\Core\Atom[]
      */
-    public function getTgtAtoms(Atom $src, string $selectTgt = null): array
+    public function getTgtAtoms(Atom $src, ?string $selectTgt = null): array
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for " . $this->getPath(), 405);

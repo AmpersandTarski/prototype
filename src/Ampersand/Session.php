@@ -58,10 +58,7 @@ class Session
     protected $sessionAtom;
     
     /**
-     * Constructor of Session class
-     *
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Ampersand\AmpersandApp $app
+     * Constructor
      */
     public function __construct(LoggerInterface $logger, AmpersandApp $app)
     {
@@ -74,21 +71,19 @@ class Session
 
     /**
      * Get session identifier
-     *
-     * @return string
      */
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
 
-    private function setId()
+    private function setId(): void
     {
         $this->id = session_id();
         $this->logger->debug("Session id set to: {$this->id}");
     }
     
-    public function initSessionAtom()
+    public function initSessionAtom(): void
     {
         $this->sessionAtom = $this->ampersandApp->getModel()->getSessionConcept()->makeAtom($this->id);
         $now = time();
@@ -141,8 +136,6 @@ class Session
 
     /**
      * Get ampersand atom representation of this session object
-     *
-     * @return \Ampersand\Core\Atom
      */
     public function getSessionAtom(): Atom
     {
@@ -151,8 +144,6 @@ class Session
 
     /**
      * Delete Ampersand representation of session
-     *
-     * @return void
      */
     public function deleteSessionAtom(): void
     {
@@ -164,12 +155,8 @@ class Session
      *
      * This function to (de)activate roles depends on the invariant as defined in SystemContext.adl
      * RULE sessionActiveRole |- sessionAllowedRole
-     *
-     * @param \Ampersand\Core\Atom $roleAtom
-     * @param bool|null $setActive
-     * @return \Ampersand\Core\Atom
      */
-    public function toggleActiveRole(Atom $roleAtom, bool $setActive = null): Atom
+    public function toggleActiveRole(Atom $roleAtom, ?bool $setActive = null): Atom
     {
         // Check/prevent unexisting role atoms
         if (!$roleAtom->exists()) {
@@ -203,7 +190,7 @@ class Session
      *
      * @return \Ampersand\Core\Atom[]
      */
-    public function getSessionAllowedRoles()
+    public function getSessionAllowedRoles(): array
     {
         return array_map(function (Link $link) {
             return $link->tgt();
@@ -215,7 +202,7 @@ class Session
      *
      * @return \Ampersand\Core\Atom[]
      */
-    public function getSessionActiveRoles()
+    public function getSessionActiveRoles(): array
     {
         return array_map(function (Link $link) {
             return $link->tgt();
@@ -225,9 +212,9 @@ class Session
     /**
      * Get session account or false
      *
-     * @return Atom|false returns Ampersand account atom when there is a session account or false otherwise
+     * Returns Ampersand account atom when there is a session account or false otherwise
      */
-    public function getSessionAccount()
+    public function getSessionAccount(): Atom|false
     {
         $this->logger->debug("Getting sessionAccount");
 
@@ -255,9 +242,6 @@ class Session
 
     /**
      * Set session account and register login timestamps
-     *
-     * @param \Ampersand\Core\Atom $accountAtom
-     * @return \Ampersand\Core\Atom
      */
     public function setSessionAccount(Atom $accountAtom): Atom
     {
@@ -281,9 +265,8 @@ class Session
     
     /**
      * Determine is there is a loggedin user (account)
-     * @return boolean
      */
-    public function sessionUserLoggedIn()
+    public function sessionUserLoggedIn(): bool
     {
         if (!$this->settings->get('session.loginEnabled')) {
             return false;
@@ -296,9 +279,10 @@ class Session
     
     /**
      * Get session variables (from 'SessionVars' interface)
-     * @return mixed|false session variables (if interface 'SessionVars' is defined in &-script) or false otherwise
+     *
+     * Returns session variables (if interface 'SessionVars' is defined in &-script) or false otherwise
      */
-    public function getSessionVars()
+    public function getSessionVars(): mixed
     {
         if ($this->ampersandApp->getModel()->interfaceExists('SessionVars')) {
             try {

@@ -26,22 +26,20 @@ interface StorageInterface
      *
      * Constructor of StorageInterface implementation MUST not throw Errors/Exceptions
      * when application is not installed (yet).
-     *
-     * @return void
      */
-    public function init();
+    public function init(): void;
 
-    public function startTransaction(Transaction $transaction);
+    public function startTransaction(Transaction $transaction): void;
     
-    public function commitTransaction(Transaction $transaction);
+    public function commitTransaction(Transaction $transaction): void;
     
-    public function rollbackTransaction(Transaction $transaction);
+    public function rollbackTransaction(Transaction $transaction): void;
 
-    public function reinstallStorage(Model $model);
+    public function reinstallStorage(Model $model): void;
 
-    public function addToModelVersionHistory(Model $model);
+    public function addToModelVersionHistory(Model $model): void;
 
     public function getInstalledModelHash(): string;
 
-    public function executeCustomSQLQuery(string $query);
+    public function executeCustomSQLQuery(string $query): bool|array;
 }
