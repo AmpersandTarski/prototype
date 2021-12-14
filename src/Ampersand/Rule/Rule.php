@@ -11,6 +11,7 @@ use Exception;
 use Ampersand\AmpersandApp;
 use Ampersand\Plugs\ViewPlugInterface;
 use Psr\Log\LoggerInterface;
+use Ampersand\Rule\RuleType;
 
 /**
  *
@@ -104,22 +105,17 @@ class Rule
     protected $violationSegments = [];
     
     /**
-     * Specifies the type of rule (signal or invariant)
-     *
-     * @var string
+     * Specifies the type of rule
      */
-    protected $type;
+    protected RuleType $type;
     
     /**
      * Constructor
-     *
-     * @param string $type specifies if it is a signal (sig) or invariant (inv) rule
-     * TODO: use enum here
     */
     public function __construct(
         array $ruleDef,
         ViewPlugInterface $plug,
-        string $type,
+        RuleType $type,
         AmpersandApp $app,
         LoggerInterface $logger
     )
@@ -127,6 +123,7 @@ class Rule
         $this->logger = $logger;
         $this->ampersandApp = $app;
         $this->plug = $plug;
+        $this->type = $type;
         
         $this->id = $ruleDef['name'];
         
@@ -148,12 +145,6 @@ class Rule
         foreach ((array)$ruleDef['pairView'] as $segment) {
             $this->violationSegments[] = new ViolationSegment($segment, $this);
         }
-        
-        // Set type of rule
-        if (!in_array($type, ['signal', 'invariant'])) {
-            throw new Exception("Unsupported rule type. Allowed types are signal or invariant", 500);
-        }
-        $this->type = $type;
     }
     
     /**
@@ -189,7 +180,7 @@ class Rule
      */
     public function isSignalRule(): bool
     {
-        return $this->type === 'signal';
+        return $this->type === RuleType::SIG;
     }
 
     /**
@@ -197,7 +188,7 @@ class Rule
      */
     public function isInvariantRule(): bool
     {
-        return $this->type === 'invariant';
+        return $this->type === RuleType::INV;
     }
     
     /**

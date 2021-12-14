@@ -31,6 +31,7 @@ use Ampersand\Core\Atom;
 use Ampersand\Exception\RelationNotDefined;
 use Ampersand\Exception\InterfaceNotDefined;
 use Ampersand\Misc\ProtoContext;
+use Ampersand\Rule\RuleType;
 
 /**
  *
@@ -263,13 +264,13 @@ class Model
         
         // Signal rules
         foreach ($allRuleDefs['signals'] as $ruleDef) {
-            $rule = new Rule($ruleDef, $defaultPlug, 'signal', $app, $logger);
+            $rule = new Rule($ruleDef, $defaultPlug, RuleType::SIG, $app, $logger);
             $this->rules[$rule->getId()] = $rule;
         }
         
         // Invariant rules
         foreach ($allRuleDefs['invariants'] as $ruleDef) {
-            $rule = new Rule($ruleDef, $defaultPlug, 'invariant', $app, $logger);
+            $rule = new Rule($ruleDef, $defaultPlug, RuleType::INV, $app, $logger);
             $this->rules[$rule->getId()] = $rule;
         }
 
