@@ -2,6 +2,7 @@
 
 use Slim\Http\Request;
 use Slim\Http\Response;
+use Ampersand\Frontend\MenuType;
 
 /**
  * @var \Slim\Slim $api
@@ -41,9 +42,9 @@ $api->group('/app', function () {
         $settings = $ampersandApp->getSettings();
         $content =  ['home' => $ampersandApp->getSettings()->get('frontend.homePage')
                     ,'navs' => $angularApp->getNavMenuItems()
-                    ,'new' => $angularApp->getMenuItems('new')
-                    ,'ext' => $angularApp->getMenuItems('ext')
-                    ,'role' => $angularApp->getMenuItems('role')
+                    ,'new' => $angularApp->getMenuItems(MenuType::NEW)
+                    ,'ext' => $angularApp->getMenuItems(MenuType::EXT)
+                    ,'role' => $angularApp->getMenuItems(MenuType::ROLE)
                     ,'defaultSettings' => ['notify_showSignals'        => $settings->get('notifications.defaultShowSignals')
                                           ,'notify_showInfos'          => $settings->get('notifications.defaultShowInfos')
                                           ,'notify_showSuccesses'      => $settings->get('notifications.defaultShowSuccesses')

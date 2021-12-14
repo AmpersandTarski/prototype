@@ -10,6 +10,7 @@ namespace Ampersand;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
+use Ampersand\Frontend\MenuType;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\Interfacing\Options;
@@ -66,45 +67,38 @@ class AngularApp
     }
     
     /**
-     * @param string $menu specifies to which part of the menu (navbar) this item belongs to
-     * TODO: use enum here
+     * @param \Ampersand\Frontend\MenuType $menu specifies to which part of the menu (navbar) this item belongs to
      * @param string $itemUrl location of html template to use as menu item
      * @param callable $function function which returns true/false determining to add the menu item or not
      */
-    public function addMenuItem(string $menu, string $itemUrl, callable $function): void
+    public function addMenuItem(MenuType $menu, string $itemUrl, callable $function): void
     {
-        switch ($menu) {
-            case 'ext':
-                $this->extMenu[] = ['url' => $itemUrl, 'function' => $function];
-                break;
-            case 'role':
-                $this->roleMenu[] = ['url' => $itemUrl, 'function' => $function];
-                break;
-            default:
-                throw new Exception("Cannot add item to menu. Unknown menu: '{$menu}'", 500);
-                break;
-        }
+        match ($menu) {
+            MenuType::EXT => $this->extMenu[] = ['url' => $itemUrl, 'function' => $function],
+            MenuType::ROLE => $this->roleMenu[] = ['url' => $itemUrl, 'function' => $function],
+            MenuType::NEW => throw new Exception("Cannot add custom menu items to menu 'new'")
+        };
     }
     
-    public function getMenuItems($menu): array
+    public function getMenuItems(MenuType $menu): array
     {
         $ampersandApp = $this->ampersandApp;
 
         switch ($menu) {
             // Items for extension menu
-            case 'ext':
+            case MenuType::EXT:
                 $result = array_filter($this->extMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
                 break;
             // Items for role menu
-            case 'role':
+            case MenuType::ROLE:
                 $result = array_filter($this->roleMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
                 break;
             // Items in menu to create new resources (indicated with + sign)
-            case 'new':
+            case MenuType::NEW:
                 // Filter interfaces that are capable to create new Resources
                 $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (Ifc $ifc) {
                     $ifcObj = $ifc->getIfcObject();
@@ -135,7 +129,7 @@ class AngularApp
                 }
                 break;
             default:
-                throw new Exception("Cannot get menu items. Unknown menu: '{$menu}'", 500);
+                throw new Exception("Cannot get menu items. Unknown menu: '{$menu->value}'", 500);
         }
 
         return array_values($result); // Make sure that a true numeric array is returned

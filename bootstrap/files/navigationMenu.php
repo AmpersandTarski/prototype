@@ -1,12 +1,13 @@
 <?php
 
 use Ampersand\AmpersandApp;
+use Ampersand\Frontend\MenuType;
 
 // Navigation menu settings
 /** @var \Ampersand\AngularApp $angularApp */
 global $angularApp;
 $angularApp->addMenuItem(
-    'ext',
+    MenuType::EXT,
     'app/src/admin/installer-menu-item.html',
     function (AmpersandApp $app) {
         $roles = $app->getSettings()->get('rbac.adminRoles');
@@ -15,7 +16,7 @@ $angularApp->addMenuItem(
 );
 
 $angularApp->addMenuItem(
-    'ext',
+    MenuType::EXT,
     'app/src/admin/check-rules-menu-item.html',
     function (AmpersandApp $app) {
         $roles = $app->getSettings()->get('rbac.adminRoles');
@@ -24,7 +25,7 @@ $angularApp->addMenuItem(
 );
 
 $angularApp->addMenuItem(
-    'ext',
+    MenuType::EXT,
     'app/src/admin/execengine-menu-item.html',
     function (AmpersandApp $app) {
         $roles = $app->getSettings()->get('rbac.adminRoles');
@@ -33,7 +34,7 @@ $angularApp->addMenuItem(
 );
 
 $angularApp->addMenuItem(
-    'ext',
+    MenuType::EXT,
     'app/src/importer/menu-item.html',
     function (AmpersandApp $app) {
         $roles = $app->getSettings()->get('rbac.importerRoles');
@@ -42,7 +43,7 @@ $angularApp->addMenuItem(
 );
 
 $angularApp->addMenuItem(
-    'ext',
+    MenuType::EXT,
     'app/src/admin/exporter-menu-item.html',
     function (AmpersandApp $app) {
         $roles = $app->getSettings()->get('rbac.adminRoles');
