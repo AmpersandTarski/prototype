@@ -9,6 +9,7 @@ namespace Ampersand\Plugs\MysqlDB;
 
 use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
+use Ampersand\Plugs\MysqlDB\TableType;
 
 /**
  *
@@ -32,34 +33,20 @@ class MysqlDBRelationTable extends MysqlDBTable
     protected $tgtCol = null;
 
     /**
-     * Specifies if this relation is administrated in the table of the src concept ('src'), the tgt concept ('tgt') or its own n-n table (null)
-     *
-     * @var string
+     * Specifies if this relation is administrated in the table of the src concept, the tgt concept or its own binary table
      */
-    protected $tableOf;
+    protected TableType $tableOf;
 
     /**
      * Constructor of RelationTable
-     *
-     * @param string|null $tableOf ('src', 'tgt' or null)
-     * TODO: use enum here
      */
-    public function __construct(string $name, string $tableOf = null)
+    public function __construct(string $name, TableType $tableOf = TableType::Binary)
     {
         parent::__construct($name);
-
-        switch ($tableOf) {
-            case 'src':
-            case 'tgt':
-            case null:
-                $this->tableOf = $tableOf;
-                break;
-            default:
-                throw new Exception("Unknown tableOf value '{$tableOf}' specified for RelationTable {$this->name}", 500);
-        }
+        $this->tableOf = $tableOf;
     }
 
-    public function inTableOf(): ?string
+    public function inTableOf(): TableType
     {
         return $this->tableOf;
     }

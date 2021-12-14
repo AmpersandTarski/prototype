@@ -20,6 +20,7 @@ use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\AbstractIfcObject;
+use Ampersand\Plugs\MysqlDB\TableType;
 
 /**
  *
@@ -970,8 +971,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             // Only applies to crudU, because issue is with patchReplace, not with add/remove
             // Only applies to scalar, because objects don't use patchReplace, but Remove and Add
             // Only if interface expression (not! the relation) is univalent, because else a add/remove option is used in the UI
-            if ((!$this->relationIsFlipped && $this->relation()->getMysqlTable()->inTableOf() === 'tgt')
-                    || ($this->relationIsFlipped && $this->relation()->getMysqlTable()->inTableOf() === 'src')) {
+            if ((!$this->relationIsFlipped && $this->relation()->getMysqlTable()->inTableOf() === TableType::Tgt)
+                    || ($this->relationIsFlipped && $this->relation()->getMysqlTable()->inTableOf() === TableType::Src)) {
                 $diagnostics[] = [ 'interface' => $this->getPath()
                                  , 'message' => "Unsupported edit functionality due to combination of factors. See issue #318"
                                  ];

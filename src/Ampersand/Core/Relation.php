@@ -15,6 +15,7 @@ use Ampersand\Plugs\RelationPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
 use Ampersand\Event\LinkEvent;
+use Ampersand\Plugs\MysqlDB\TableType;
 
 /**
  *
@@ -160,7 +161,10 @@ class Relation
         }
 
         // Specify mysql table information
-        $this->mysqlTable = new MysqlDBRelationTable($relationDef['mysqlTable']['name'], $relationDef['mysqlTable']['tableOf']);
+        $this->mysqlTable = new MysqlDBRelationTable(
+            $relationDef['mysqlTable']['name'],
+            TableType::fromCompiler($relationDef['mysqlTable']['tableOf'], $this->name)
+        );
         
         $srcCol = $relationDef['mysqlTable']['srcCol'];
         $tgtCol = $relationDef['mysqlTable']['tgtCol'];

@@ -639,17 +639,17 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $tgtCol = $relTable->tgtCol()->getName();
         
         switch ($relTable->inTableOf()) {
-            case null: // Relation is administrated in n-n table
+            case TableType::Binary: // Relation is administrated in n-n table
                 $this->execute("REPLACE INTO \"{$table}\" (\"{$srcCol}\", \"{$tgtCol}\") VALUES ('{$srcAtomId}', '{$tgtAtomId}')");
                 break;
-            case 'src': // Relation is administrated in concept table (wide) of source of relation
+            case TableType::Src: // Relation is administrated in concept table (wide) of source of relation
                 $this->execute("UPDATE \"{$table}\" SET \"{$tgtCol}\" = '{$tgtAtomId}' WHERE \"{$srcCol}\" = '{$srcAtomId}'");
                 break;
-            case 'tgt': //  Relation is administrated in concept table (wide) of target of relation
+            case TableType::Tgt: //  Relation is administrated in concept table (wide) of target of relation
                 $this->execute("UPDATE \"{$table}\" SET \"{$srcCol}\" = '{$srcAtomId}' WHERE \"{$tgtCol}\" = '{$tgtAtomId}'");
                 break;
             default:
-                throw new Exception("Unknown 'tableOf' option for relation '{$relation}'", 500);
+                throw new Exception("Unsupported TableType '{$relTable->inTableOf()->value}' to addLink for for relation '{$relation}'", 500);
         }
         
         // Check if query resulted in an affected row
@@ -671,17 +671,17 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $tgtCol = $relTable->tgtCol()->getName();
          
         switch ($relTable->inTableOf()) {
-            case null: // Relation is administrated in n-n table
+            case TableType::Binary: // Relation is administrated in n-n table
                 $this->execute("DELETE FROM \"{$table}\" WHERE \"{$srcCol}\" = '{$srcAtomId}' AND \"{$tgtCol}\" = '{$tgtAtomId}'");
                 break;
-            case 'src': // Relation is administrated in concept table (wide) of source of relation
+            case TableType::Src: // Relation is administrated in concept table (wide) of source of relation
                 if (!$relTable->tgtCol()->nullAllowed()) {
                     throw new Exception("Cannot delete link {$link} because target column '{$tgtCol}' in table '{$table}' may not be set to null", 500);
                 }
                 // Source atom can be used in WHERE statement
                 $this->execute("UPDATE \"{$table}\" SET \"{$tgtCol}\" = NULL WHERE \"{$srcCol}\" = '{$srcAtomId}'");
                 break;
-            case 'tgt': //  Relation is administrated in concept table (wide) of target of relation
+            case TableType::Tgt: //  Relation is administrated in concept table (wide) of target of relation
                 if (!$relTable->srcCol()->nullAllowed()) {
                     throw new Exception("Cannot delete link {$link} because source column '{$srcCol}' in table '{$table}' may not be set to null", 500);
                 }
@@ -689,7 +689,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                 $this->execute("UPDATE \"{$table}\" SET \"{$srcCol}\" = NULL WHERE \"{$tgtCol}\" = '{$tgtAtomId}'");
                 break;
             default:
-                throw new Exception("Unknown 'tableOf' option for relation '{$relation}'", 500);
+                throw new Exception("Unsupported TableType '{$relTable->inTableOf()->value}' to deleteLink for for relation '{$relation}'", 500);
         }
         
         $this->checkForAffectedRows(); // Check if query resulted in an affected row
@@ -721,19 +721,19 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         }
 
         switch ($relationTable->inTableOf()) {
-            case null: // n-n table -> remove entire row
+            case TableType::Binary: // n-n table -> remove entire row
                 $query = "DELETE FROM \"{$relationTable->getName()}\" WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
                 break;
-            case 'src': // administrated in table of src
+            case TableType::Src: // administrated in table of src
                 $setCol = $relationTable->tgtCol();
                 $query = "UPDATE \"{$relationTable->getName()}\" SET \"{$setCol->getName()}\" = NULL WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
                 break;
-            case 'tgt': // adminsitrated in table of tgt
+            case TableType::Tgt: // adminsitrated in table of tgt
                 $setCol = $relationTable->srcCol();
                 $query = "UPDATE \"{$relationTable->getName()}\" SET \"{$setCol->getName()}\" = NULL WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
                 break;
             default:
-                throw new Exception("Unknown 'tableOf' option for relation '{$relation}'", 500);
+                throw new Exception("Unsupported TableType '{$relationTable->inTableOf()->value}' to deleteAllLinks for for relation '{$relation}'", 500);
         }
         
         $this->execute($query);
