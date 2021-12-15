@@ -7,21 +7,21 @@
 
 namespace Ampersand\Interfacing;
 
-use Exception;
-use Ampersand\Core\Relation;
-use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
+use Ampersand\Core\Concept;
+use Ampersand\Core\Relation;
 use Ampersand\Core\SrcOrTgt;
+use Ampersand\Core\TType;
 use Ampersand\Exception\AccessDeniedException;
-
-use function Ampersand\Misc\isSequential;
-use Ampersand\Plugs\IfcPlugInterface;
-use Ampersand\Interfacing\Options;
+use Ampersand\Interfacing\AbstractIfcObject;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\InterfaceObjectInterface;
+use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\Resource;
-use Ampersand\Interfacing\AbstractIfcObject;
+use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Plugs\MysqlDB\TableType;
+use Exception;
+use function Ampersand\Misc\isSequential;
 
 /**
  *
@@ -213,7 +213,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         if (!is_null($subIfcsDef)) {
             // Subinterfacing is not supported/possible for tgt concepts with a scalar representation type (i.e. non-objects)
             if (!$this->tgtConcept->isObject()) {
-                throw new Exception("Subinterfacing is not supported for concepts with a scalar representation type (i.e. non-objects). (Sub)Interface '{$this->path}' with target {$this->tgtConcept} (type:{$this->tgtConcept->type}) has subinterfaces specified", 501);
+                throw new Exception("Subinterfacing is not supported for concepts with a scalar representation type (i.e. non-objects). (Sub)Interface '{$this->path}' with target {$this->tgtConcept} (ttype:{$this->tgtConcept->type->value}) has subinterfaces specified", 501);
             }
 
             /* Subinterfaces can be one of:
@@ -612,7 +612,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // Notice that ->getResourceContent() is not called. The interface stops here.
         } else {
             // Temporary hack to prevent passwords from being returned to user
-            if ($this->tgtConcept->type === 'PASSWORD') {
+            if ($this->tgtConcept->type === TType::PASSWORD) {
                 $result = [];
             } else {
                 $result = array_map(function (Atom $tgt) {

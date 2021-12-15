@@ -16,6 +16,7 @@ use Ampersand\Core\Link;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Core\SrcOrTgt;
+use Ampersand\Core\TType;
 use Ampersand\Interfacing\ViewSegment;
 use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Plugs\ConceptPlugInterface;
@@ -231,13 +232,13 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         }
         
         switch ($atom->concept->type) {
-            case "ALPHANUMERIC":
-            case "BIGALPHANUMERIC":
-            case "HUGEALPHANUMERIC":
-            case "PASSWORD":
-            case "TYPEOFONE":
+            case TType::ALPHANUMERIC:
+            case TType::BIGALPHANUMERIC:
+            case TType::HUGEALPHANUMERIC:
+            case TType::PASSWORD:
+            case TType::TYPEOFONE:
                 return (string) $this->escape($atom->getId());
-            case "BOOLEAN":
+            case TType::BOOLEAN:
                 // Booleans are stored as tinyint(1) in the database. False = 0, True = 1
                 switch ($atom->getId()) {
                     case "True":
@@ -248,22 +249,22 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                         throw new Exception("Unsupported string boolean value '{$atom->getId()}'. Supported are 'True', 'False'", 500);
                 }
                 break;
-            case "DATE":
+            case TType::DATE:
                 $datetime = new DateTime($atom->getId());
                 return $datetime->format('Y-m-d'); // format to store in database
-            case "DATETIME":
+            case TType::DATETIME:
                 // DateTime atom(s) may contain a timezone, otherwise UTC is asumed.
                 $datetime = new DateTime($atom->getId());
                 $datetime->setTimezone(new DateTimeZone('UTC')); // convert to UTC to store in database
                 return $datetime->format('Y-m-d H:i:s'); // format to store in database (UTC)
-            case "FLOAT":
+            case TType::FLOAT:
                 return (float) $atom->getId();
-            case "INTEGER":
+            case TType::INTEGER:
                 return (int) $atom->getId();
-            case "OBJECT":
+            case TType::OBJECT:
                 return $this->escape($atom->getId());
             default:
-                throw new Exception("Unknown/unsupported representation type '{$atom->concept->type}' for concept '[{$atom->concept}]'", 501);
+                throw new Exception("Unknown/unsupported ttype '{$atom->concept->type->value}' for concept '[{$atom->concept}]'", 501);
         }
     }
     

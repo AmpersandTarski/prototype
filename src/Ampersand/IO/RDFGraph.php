@@ -101,7 +101,7 @@ class RDFGraph extends \EasyRdf\Graph
             $this->addCardinalityConstraint($range, $relationResource, $min, $max);
         } else {
             // TODO: add cardinality constraint... why did I skip this??
-            $relationResource->addResource('rdfs:range', $relation->tgtConcept->getDatatype('xml'));
+            $relationResource->addResource('rdfs:range', $relation->tgtConcept->type->getXmlTypeUri());
             // Skip cardinality constraints on range
         }
     }

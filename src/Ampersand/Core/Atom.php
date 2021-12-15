@@ -12,6 +12,7 @@ use DateTime;
 use DateTimeZone;
 use JsonSerializable;
 use Ampersand\Core\Link;
+use Ampersand\Core\TType;
 
 /**
  *
@@ -82,33 +83,33 @@ class Atom implements JsonSerializable
         }
         
         switch ($this->concept->type) {
-            case "ALPHANUMERIC":
-            case "BIGALPHANUMERIC":
-            case "HUGEALPHANUMERIC":
-            case "PASSWORD":
-            case "TYPEOFONE":
-            case "BOOLEAN":
+            case TType::ALPHANUMERIC:
+            case TType::BIGALPHANUMERIC:
+            case TType::HUGEALPHANUMERIC:
+            case TType::PASSWORD:
+            case TType::TYPEOFONE:
+            case TType::BOOLEAN:
                 $this->id = $atomId;
                 break;
-            case "DATE":
+            case TType::DATE:
                 // In php backend, all Dates are kept in ISO-8601 format
                 $datetime = new DateTime($atomId);
                 $this->id = $datetime->format('Y-m-d'); // format in ISO-8601 standard
                 break;
-            case "DATETIME":
+            case TType::DATETIME:
                 // In php backend, all DateTimes are kept in DateTimeZone::UTC and DateTime::ATOM format
                 // $atomId may contain a timezone, otherwise UTC is asumed.
                 $datetime = new DateTime($atomId, new DateTimeZone('UTC')); // The $timezone parameter is ignored when the $time parameter either is a UNIX timestamp (e.g. @946684800) or specifies a timezone (e.g. 2010-01-28T15:00:00+02:00).
                 $datetime->setTimezone(new DateTimeZone('UTC')); // if not yet UTC, convert to UTC
                 $this->id = $datetime->format(DateTime::ATOM); // format in ISO-8601 standard, i.e. 2005-08-15T15:52:01+00:00 (DateTime::ATOM)
                 break;
-            case "FLOAT":
-            case "INTEGER":
-            case "OBJECT":
+            case TType::FLOAT:
+            case TType::INTEGER:
+            case TType::OBJECT:
                 $this->id = $atomId;
                 break;
             default:
-                throw new Exception("Unknown/unsupported representation type '{$this->concept->type}' for concept '[{$this->concept}]'", 501);
+                throw new Exception("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'", 501);
         }
         return $this;
     }
@@ -121,30 +122,30 @@ class Atom implements JsonSerializable
     public function jsonSerialize(): mixed
     {
         switch ($this->concept->type) {
-            case "ALPHANUMERIC":
-            case "BIGALPHANUMERIC":
-            case "HUGEALPHANUMERIC":
-            case "PASSWORD":
-            case "TYPEOFONE":
+            case TType::ALPHANUMERIC:
+            case TType::BIGALPHANUMERIC:
+            case TType::HUGEALPHANUMERIC:
+            case TType::PASSWORD:
+            case TType::TYPEOFONE:
                 return (string) $this->id;
-            case "BOOLEAN":
+            case TType::BOOLEAN:
                 return (bool) $this->id;
-            case "DATE":
+            case TType::DATE:
                 $datetime = new DateTime($this->id);
                 return $datetime->format('Y-m-d'); // format in ISO-8601 standard
-            case "DATETIME":
+            case TType::DATETIME:
                 // DateTime(s) may contain a timezone, otherwise UTC is asumed.
                 $datetime = new DateTime($this->id, new DateTimeZone('UTC')); // The $timezone parameter is ignored when the $time parameter either is a UNIX timestamp (e.g. @946684800) or specifies a timezone (e.g. 2010-01-28T15:00:00+02:00).
                 $datetime->setTimezone(new DateTimeZone(date_default_timezone_get())); // convert back to systemtime
                 return $datetime->format(DateTime::ATOM); // format in ISO-8601 standard, i.e. 2005-08-15T15:52:01+00:00 (DateTime::ATOM)
-            case "FLOAT":
+            case TType::FLOAT:
                 return (float) $this->id;
-            case "INTEGER":
+            case TType::INTEGER:
                 return (int) $this->id;
-            case "OBJECT":
+            case TType::OBJECT:
                 return rawurlencode($this->id);
             default:
-                throw new Exception("Unknown/unsupported representation type '{$this->concept->type}' for concept '[{$this->concept}]'", 501);
+                throw new Exception("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'", 501);
         }
     }
     

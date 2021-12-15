@@ -11,6 +11,7 @@ use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTable;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 use Ampersand\Core\Atom;
+use Ampersand\Core\TType;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
@@ -24,23 +25,6 @@ use Ramsey\Uuid\Uuid;
  */
 class Concept
 {
-    protected static $representTypes =
-        [ 'ALPHANUMERIC'        => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
-        , 'BIGALPHANUMERIC'     => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
-        , 'HUGEALPHANUMERIC'    => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
-        , 'PASSWORD'            => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
-        , 'BINARY'              => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
-        , 'BIGBINARY'           => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
-        , 'HUGEBINARY'          => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
-        , 'DATE'                => ['datatype' => 'date',       'xml' => 'http://www.w3.org/2001/XMLSchema#data']
-        , 'DATETIME'            => ['datatype' => 'datetime',   'xml' => 'http://www.w3.org/2001/XMLSchema#dateType']
-        , 'BOOLEAN'             => ['datatype' => 'boolean',    'xml' => 'http://www.w3.org/2001/XMLSchema#boolean']
-        , 'INTEGER'             => ['datatype' => 'integer',    'xml' => 'http://www.w3.org/2001/XMLSchema#integer']
-        , 'FLOAT'               => ['datatype' => 'float',      'xml' => 'http://www.w3.org/2001/XMLSchema#float']
-        , 'OBJECT'              => ['datatype' => 'object',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
-        , 'TYPEOFONE'           => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
-        ];
-    
     /**
      *
      * @var \Psr\Log\LoggerInterface
@@ -91,11 +75,9 @@ class Concept
     public $label;
     
     /**
-     * Specifies technical representation of atoms of this concept (e.g. OBJECT, ALPHANUMERIC, INTERGER, BOOLEAN, etc)
-     *
-     * @var string
+     * Specifies technical representation of atoms of this concept
      */
-    public $type;
+    public TType $type;
 
     /**
      * Specifies if new atom identifiers must be prefixed with the concept name, e.g. 'ConceptA_<uuid>'
@@ -185,13 +167,9 @@ class Concept
         
         $this->name = $conceptDef['id'];
         $this->label = $conceptDef['label'];
-        $this->type = $conceptDef['type'];
+        $this->type = TType::from($conceptDef['type']);
 
         $this->prefixAtomIdWithConceptName = $app->getSettings()->get('core.concept.prefixAtomIdWithConceptName');
-
-        if (!array_key_exists($this->type, self::$representTypes)) {
-            throw new Exception("Unsupported represent type: '{$this->type}'. Supported are: " . implode(',', array_keys(self::$representTypes)), 500);
-        }
         
         foreach ((array)$conceptDef['affectedConjuncts'] as $conjId) {
             $conj = $app->getModel()->getConjunct($conjId);
@@ -255,32 +233,13 @@ class Concept
     {
         return $this->app;
     }
-
-    /**
-     * Undocumented function
-     *
-     * @param string $serialization options are: 'datatype', 'xml'
-     * TODO: use enum here
-     */
-    public function getDatatype($serialization = 'datatype'): string
-    {
-        return self::$representTypes[$this->type][$serialization];
-    }
-    
-    /**
-     * Specifies if concept representation is integer
-     */
-    public function isInteger(): bool
-    {
-        return $this->type === "INTEGER";
-    }
     
     /**
      * Specifies if concept is object
      */
     public function isObject(): bool
     {
-        return $this->type === "OBJECT";
+        return $this->type === TType::OBJECT;
     }
     
     /**
@@ -502,7 +461,7 @@ class Concept
         $prefixAtomIdWithConceptName ??= $this->prefixAtomIdWithConceptName;
 
         // TODO: remove this hack with _AI (autoincrement feature)
-        if (strpos($this->name, '_AI') !== false && $this->isInteger()) {
+        if (strpos($this->name, '_AI') !== false && $this->type === TType::INTEGER) {
             /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $firstCol */
             $firstCol = current($this->mysqlConceptTable->getCols());
             $query = "SELECT MAX(\"{$firstCol->getName()}\") as \"MAX\" FROM \"{$this->mysqlConceptTable->getName()}\"";

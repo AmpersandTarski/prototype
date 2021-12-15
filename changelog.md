@@ -11,7 +11,7 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased changes
 * Add missing parameter and return type declarations for all methods. Remove unneeded docblock comments
-* Refactor use enums for TableType, RuleType, SrcOrTgt, MenuType
+* Refactor use enums for TableType, RuleType, SrcOrTgt, MenuType, concept TType
 
 ## v1.13.0 (10 dec 2021)
 * [Issue 68](https://github.com/AmpersandTarski/prototype/issues/68) Update Docker image to PHP v8.1. Make backend compatible with php 8.x
