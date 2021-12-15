@@ -27,17 +27,13 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 {
     /**
      * The target concept of this interface object
-     *
-     * @var \Ampersand\Core\Concept
      */
-    protected $tgtConcept;
+    protected Concept $tgtConcept;
 
     /**
      * Reference to Ampersand app
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $app;
+    protected AmpersandApp $app;
 
     /**
      * Constructor
@@ -96,7 +92,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
         // Allow when there is at least an interface accesible for the user to create a new tgt
         foreach ($this->app->getAccessibleInterfaces() as $ifc) {
-            /** @var \Ampersand\Interfacing\Ifc $ifc */
             $ifcObj = $ifc->getIfcObject();
             if ($ifcObj->crudC() && $ifc->getTgtConcept() === $this->tgtConcept) {
                 return true;
@@ -208,7 +203,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         foreach ($this->getSubinterfaces($options) as $ifcobj) {
-            /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
             if ($ifcobj->getIfcId() === $ifcId) {
                 return $ifcobj;
             }
@@ -221,7 +215,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         foreach ($this->getSubinterfaces($options) as $ifcobj) {
-            /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
             if ($ifcobj->getIfcLabel() === $ifcLabel) {
                 return $ifcobj;
             }
@@ -275,7 +268,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         $result = [];
 
         foreach ($this->getTgtAtoms($src, $tgtId) as $tgt) {
-            /** @var \Ampersand\Core\Atom $tgt */
             // Basic UI data of a resource
             if ($options & Options::INCLUDE_UI_DATA) {
                 $resource = [];

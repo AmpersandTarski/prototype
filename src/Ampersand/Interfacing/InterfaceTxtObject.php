@@ -23,31 +23,23 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
 {
     /**
      * Interface id (i.e. safe name) to use in framework
-     *
-     * @var string
      */
-    protected $id;
+    protected string $id;
 
     /**
      * Interface name to show in UI
-     *
-     * @var string
      */
-    protected $label;
+    protected string $label;
 
     /**
      * The string that is the content of this interface object
-     *
-     * @var string
      */
-    protected $txt;
+    protected string $txt;
 
     /**
      * Path to this interface object (for debugging purposes)
-     *
-     * @var string
      */
-    protected $path;
+    protected string $path;
 
     /**
      * Constructor

@@ -27,91 +27,63 @@ class Relation
 {
     
     /**
-     *
-     * @var \Psr\Log\LoggerInterface
+     * Logger
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app for which this relation is defined
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $app;
+    protected AmpersandApp $app;
     
     /**
      * Dependency injection of plug implementation
+     *
      * There must at least be one plug for every relation
      *
      * @var \Ampersand\Plugs\RelationPlugInterface[]
      */
-    protected $plugs = [];
+    protected array $plugs = [];
     
     /**
+     * Primairy implementation of RelationPlug
      *
-     * @var \Ampersand\Plugs\RelationPlugInterface
+     * This is e.g. where link existance check is done
      */
-    protected $primaryPlug;
+    protected RelationPlugInterface $primaryPlug;
     
     /**
-     *
-     * @var string
+     * Relation signature with format: 'r[A*B]'
      */
-    public $signature;
+    public string $signature;
     
     /**
-     *
-     * @var string
+     * Relation name
      */
-    public $name;
+    public string $name;
     
     /**
-     *
-     * @var Concept
+     * Src concept of relation
      */
-    public $srcConcept;
+    public Concept $srcConcept;
     
     /**
-     *
-     * @var Concept
+     * Tgt concept of relation
      */
-    public $tgtConcept;
+    public Concept $tgtConcept;
     
-    /**
-     * @var boolean
-     */
-    public $isUni;
-    
-    /**
-     *
-     * @var boolean
-     */
-    public $isTot;
-    
-    /**
-     *
-     * @var boolean
-     */
-    public $isInj;
-    
-    /**
-     *
-     * @var boolean
-     */
-    public $isSur;
-    
-    /**
-     *
-     * @var boolean
-     */
-    public $isProp;
+    public bool $isUni;
+    public bool $isTot;
+    public bool $isInj;
+    public bool $isSur;
+    public bool $isProp;
     
     /**
      * List of conjuncts that are affected by adding or removing a link in this relation
      *
      * @var \Ampersand\Rule\Conjunct[]
      */
-    protected $relatedConjuncts = [];
+    protected array $relatedConjuncts = [];
 
     /**
      * List of default SRC atom values that is populated for this relation when a new TGT atom is created
@@ -128,10 +100,9 @@ class Relation
     protected array $defaultTgt = [];
     
     /**
-     *
-     * @var \Ampersand\Plugs\MysqlDB\MysqlDBRelationTable
+     * Contains information about mysql table and columns in which this relation is administrated
      */
-    private $mysqlTable;
+    private MysqlDBRelationTable $mysqlTable;
     
     /**
      * Constructor

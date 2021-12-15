@@ -17,17 +17,13 @@ class Reporter
 {
     /**
      * Encoder
-     *
-     * @var \Symfony\Component\Serializer\Encoder\EncoderInterface
      */
-    protected $encoder;
+    protected EncoderInterface $encoder;
 
     /**
      * Stream to output the report(s) to
-     *
-     * @var \Psr\Http\Message\StreamInterface
      */
-    protected $stream;
+    protected StreamInterface $stream;
 
     /**
      * Constructor
@@ -122,12 +118,13 @@ class Reporter
      * Write interface report
      *
      * Inlcuding interface (sub) objects aspects like path, label, crud-rights, etc
+     *
+     * @param \Ampersand\Interfacing\Ifc[] $interfaces
      */
     public function reportInterfaceObjectDefinitions(array $interfaces, string $format): self
     {
         $content = [];
         foreach ($interfaces as $ifc) {
-            /** @var \Ampersand\Interfacing\Ifc $ifc */
             $content = array_merge($content, $ifc->getIfcObject()->getIfcObjFlattened());
         }
         
@@ -144,14 +141,14 @@ class Reporter
      * Write interface issue report
      *
      * Currently focussed on CRUD rights
+     *
+     * @param \Ampersand\Interfacing\Ifc[] $interfaces
      */
     public function reportInterfaceIssues(array $interfaces, string $format): self
     {
         $content = [];
         foreach ($interfaces as $interface) {
-            /** @var \Ampersand\Interfacing\Ifc $interface */
             foreach ($interface->getIfcObject()->getIfcObjFlattened() as $ifcObj) {
-                /** @var InterfaceObjectInterface $ifcObj */
                 $content = array_merge($content, $ifcObj->diagnostics());
             }
         }
@@ -176,7 +173,6 @@ class Reporter
     {
         $content = [];
         foreach ($conjuncts as $conj) {
-            /** @var \Ampersand\Rule\Conjunct $conj */
             if ($conj->isInvConj()) {
                 $content['invConjuncts'][] = $conj->__toString();
             }
@@ -202,9 +198,8 @@ class Reporter
     {
         $content = [];
         
-        // run all conjuncts (from - to)
+        // Run all conjuncts (from - to)
         foreach ($conjuncts as $conjunct) {
-            /** @var \Ampersand\Rule\Conjunct $conjunct */
             $startTimeStamp = microtime(true); // true means get as float instead of string
             $conjunct->evaluate();
             $endTimeStamp = microtime(true);

@@ -11,11 +11,10 @@ class BoxHeader
 {
     /**
      * Specifies the type of the BOX (in case of BOX interface)
-     * e.g. in ADL script: INTERFACE "test" : expr BOX <SCOLS> []
-     * the type is 'SCOLS'
-     * @var string
+     *
+     * E.g. in ADL script: `INTERFACE "test" : expr BOX <SCOLS> []` the type is 'SCOLS'
      */
-    protected $type;
+    protected string $type;
 
     protected $keyVals = [];
 

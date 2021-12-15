@@ -36,82 +36,63 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
 {
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
     
     /**
      * A connection to the mysql database
-     *
-     * @var \mysqli
      */
-    protected $dbLink;
+    protected \mysqli $dbLink;
     
     /**
      * Host/server of mysql database
-     *
-     * @var string
      */
-    protected $dbHost;
+    protected string $dbHost;
     
     /**
      * Username for mysql database
-     *
-     * @var string
      */
-    protected $dbUser;
+    protected string $dbUser;
     
     /**
      * Password for mysql database
-     *
-     * @var string
      */
-    protected $dbPass;
+    protected string $dbPass;
     
     /**
      * Database name
-     *
-     * @var string
      */
-    protected $dbName;
+    protected string $dbName;
     
     /**
      * Specifies if database transaction is active
-     *
-     * @var bool
      */
-    protected $dbTransactionActive = false;
+    protected bool $dbTransactionActive = false;
 
     /**
      * Specifies if this object is in debug mode
-     * Affects the database exception-/error messages that are returned for errors in queries
      *
-     * @var bool
+     * Affects the database exception-/error messages that are returned for errors in queries
      */
-    protected $debugMode = false;
+    protected bool $debugMode = false;
 
     /**
      * Specifies if this object is in production mode
      * Affects the database exception-/error messages that are returned for errors in schema constructs (database, tables, columns, etc)
      */
-    protected $productionMode = false;
+    protected bool $productionMode = false;
 
     /**
      * Contains the last executed query
-     *
-     * @var $string
      */
-    protected $lastQuery = null;
+    protected ?string $lastQuery = null;
 
     /**
      * Number of queries executed within a transaction
      *
      * Attribute is reset to 0 on start of (new) transaction
-     *
-     * @var integer
      */
-    protected $queryCount = 0;
+    protected int $queryCount = 0;
     
     /**
      * Constructor
@@ -445,7 +426,6 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     public function atomExists(Atom $atom): bool
     {
         $tableInfo = $atom->concept->getConceptTableInfo();
-        /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $firstCol */
         $firstCol = current($tableInfo->getCols());
         $atomId = $this->getDBRepresentation($atom);
         
@@ -472,7 +452,6 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         if (isset($tableInfo->allAtomsQuery)) {
             $query = $tableInfo->allAtomsQuery;
         } else {
-            /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $firstCol */
             $firstCol = current($tableInfo->getCols()); // We can query an arbitrary concept col for checking the existence of an atom
             $query = "SELECT DISTINCT \"{$firstCol->getName()}\" as \"atomId\" FROM \"{$tableInfo->getName()}\" WHERE \"{$firstCol->getName()}\" IS NOT NULL";
         }
@@ -508,7 +487,6 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         
         $str = '';
         foreach ($conceptCols as $col) {
-            /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $col */
             $str .= ", \"{$col->getName()}\" = '{$atomId}'";
         }
         $duplicateStatement = substr($str, 1);

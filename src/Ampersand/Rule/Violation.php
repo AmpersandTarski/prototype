@@ -20,31 +20,23 @@ class Violation
 
     /**
      * Rule to which this violation belongs to
-     *
-     * @var \Ampersand\Rule\Rule
      */
-    protected $rule;
+    protected Rule $rule;
 
     /**
      * The source atom of the violation
-     *
-     * @var \Ampersand\Core\Atom
      */
-    protected $src;
+    protected Atom $src;
 
     /**
      * The target atom of the violation
-     *
-     * @var \Ampersand\Core\Atom
      */
-    protected $tgt;
+    protected Atom $tgt;
 
     /**
      * The violation message
-     *
-     * @var string
      */
-    protected $message;
+    protected string $message;
 
     /**
      * Constructor of violation

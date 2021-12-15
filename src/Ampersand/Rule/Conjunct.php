@@ -7,9 +7,10 @@
 
 namespace Ampersand\Rule;
 
-use Exception;
 use Ampersand\AmpersandApp;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
+use Exception;
+use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 
@@ -22,73 +23,57 @@ class Conjunct
 {
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app for which this conjunct is defined
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $app;
+    protected AmpersandApp $app;
 
     /**
      * Database to evaluate conjuncts and store violation cache
-     *
-     * @var \Ampersand\Plugs\MysqlDB\MysqlDB
      */
-    protected $database;
+    protected MysqlDB $database;
 
     /**
      * Undocumented variable
-     *
-     * @var \Psr\Cache\CacheItemPoolInterface
      */
-    protected $cachePool;
+    protected CacheItemPoolInterface $cachePool;
     
     /**
      * Undocumented variable
-     *
-     * @var \Psr\Cache\CacheItemInterface
      */
-    protected $cacheItem;
+    protected CacheItemInterface $cacheItem;
 
     /**
      * Conjunct identifier
-     *
-     * @var string
      */
-    protected $id;
+    protected string $id;
     
     /**
      * Query to evaluate conjunct (i.e. get violations)
-     *
-     * @var string
      */
-    protected $query;
+    protected string $query;
     
     /**
      * List invariant rules that use this conjunct
      *
      * @var string[]
      */
-    protected $invRuleNames;
+    protected array $invRuleNames;
     
     /**
      * List signal rules that use this conjunct
      *
      * @var string[]
      */
-    protected $sigRuleNames;
+    protected array $sigRuleNames;
     
     /**
      * Specifies if conjunct is already evaluated
-     *
-     * @var bool
      */
-    protected $isEvaluated = false;
+    protected bool $isEvaluated = false;
     
     /**
      * Constructor

@@ -12,6 +12,7 @@ use Ampersand\AmpersandApp;
 use Ampersand\Plugs\ViewPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\Rule\RuleType;
+use Ampersand\Core\Concept;
 
 /**
  *
@@ -22,87 +23,67 @@ class Rule
 {
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app for which this rule is defined
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $ampersandApp;
+    protected AmpersandApp $ampersandApp;
 
     /**
      * Dependency injection of an ViewPlug implementation
-     *
-     * @var \Ampersand\Plugs\ViewPlugInterface
      */
-    protected $plug;
+    protected ViewPlugInterface $plug;
 
     /**
      * Rule identifier
-     *
-     * @var string
      */
-    protected $id;
+    protected string $id;
     
     /**
      * The file and line number of the Ampersand script where this rule is defined
-     *
-     * @var string
      */
-    protected $origin;
+    protected string $origin;
     
     /**
      * The formalized rule in adl
-     *
-     * @var string
      */
-    protected $ruleAdl;
+    protected string $ruleAdl;
     
     /**
      * The source concept of this rule
-     *
-     * @var \Ampersand\Core\Concept
      */
-    public $srcConcept;
+    public Concept $srcConcept;
     
     /**
      * The target concept of this rule
-     *
-     * @var \Ampersand\Core\Concept
      */
-    public $tgtConcept;
+    public Concept $tgtConcept;
     
     /**
      * The meaning of this rule (provided in natural language by the Ampersand engineer)
-     *
-     * @var string
      */
-    protected $meaning;
+    protected string $meaning;
     
     /**
      * The violation message to display (provided in natural language by the Ampersand engineer)
-     *
-     * @var string
      */
-    protected $message;
+    protected string $message;
     
     /**
      * List of conjuncts of which this rule is made of
      *
      * @var \Ampersand\Rule\Conjunct[]
      */
-    protected $conjuncts = [];
+    protected array $conjuncts = [];
     
     /**
      * List with segments to build violation messages
      *
      * @var \Ampersand\Rule\ViolationSegment[]
      */
-    protected $violationSegments = [];
+    protected array $violationSegments = [];
     
     /**
      * Specifies the type of rule

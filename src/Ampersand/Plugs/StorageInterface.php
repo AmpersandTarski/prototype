@@ -19,7 +19,7 @@ use Ampersand\Transaction;
 interface StorageInterface
 {
     
-    public function getLabel();
+    public function getLabel(): string;
 
     /**
      * This method is called during initialization of Ampersand app.

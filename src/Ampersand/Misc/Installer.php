@@ -20,10 +20,8 @@ class Installer
 {
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * Constructor
@@ -82,7 +80,6 @@ class Installer
         $mainMenu->link($mainMenu, ProtoContext::REL_NAV_IS_PART_OF)->add();
         $i = '0';
         foreach ($model->getAllInterfaces() as $ifc) {
-            /** @var \Ampersand\Interfacing\Ifc $ifc */
             // Skip API and non-readable interfaces
             if ($ifc->isAPI() || !$ifc->getIfcObject()->crudR()) {
                 continue;

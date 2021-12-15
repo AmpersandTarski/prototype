@@ -17,6 +17,7 @@ use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
 use Ampersand\Event\AtomEvent;
 use Ramsey\Uuid\Uuid;
+use Ampersand\Interfacing\View;
 
 /**
  *
@@ -26,53 +27,47 @@ use Ramsey\Uuid\Uuid;
 class Concept
 {
     /**
-     *
-     * @var \Psr\Log\LoggerInterface
+     * Logger
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app for which this concept is defined
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $app;
+    protected AmpersandApp $app;
     
     /**
      * Dependency injection of ConceptPlug implementation
+     *
      * There must at least be one plug for every concept
      *
      * @var \Ampersand\Plugs\ConceptPlugInterface[]
      */
-    protected $plugs = [];
+    protected array $plugs = [];
     
     /**
+     * Primairy implementation of ConceptPlug
      *
-     * @var \Ampersand\Plugs\ConceptPlugInterface
+     * This is e.g. where atom existance check is done
      */
-    protected $primaryPlug;
+    protected ConceptPlugInterface $primaryPlug;
     
     /**
      * Definition from which Concept object is created
-     *
-     * @var array
      */
-    private $def;
+    private array $def;
     
     /**
      * Name (and unique escaped identifier) of concept as defined in Ampersand script
-     * TODO: rename var to $id
      *
-     * @var string
+     * TODO: rename var to $id
      */
-    public $name;
+    public string $name;
     
     /**
      * Unescaped name of concept as defined in Ampersand script
-     *
-     * @var string
      */
-    public $label;
+    public string $label;
     
     /**
      * Specifies technical representation of atoms of this concept
@@ -89,71 +84,66 @@ class Concept
      *
      * @var \Ampersand\Rule\Conjunct[]
      */
-    protected $relatedConjuncts = [];
+    protected array $relatedConjuncts = [];
     
     /**
      * List of concepts (name) that are specializations of this concept
      *
      * @var string[]
      */
-    private $specializations = [];
+    private array $specializations = [];
     
     /**
      * List of concepts (name) that are direct specializations of this concept
      *
      * @var string[]
      */
-    private $directSpecs = [];
+    private array $directSpecs = [];
     
     /**
      * List of concepts (name) that are generalizations of this concept
      *
      * @var string[]
      */
-    private $generalizations = [];
+    private array $generalizations = [];
     
     /**
      * List of concepts (name) that are direct generalizations of this concept
      *
      * @var string[]
      */
-    private $directGens = [];
+    private array $directGens = [];
     
     /**
      * Concept identifier of largest generalization for this concept
-     *
-     * @var string
      */
-    private $largestConceptId;
+    private string $largestConceptId;
     
     /**
      * List of interface identifiers that have this concept as src concept
      *
      * @var string[]
      */
-    protected $interfaceIds = [];
+    protected array $interfaceIds = [];
     
     /**
      * Default view object for atoms of this concept
-     *
-     * @var \Ampersand\Interfacing\View|NULL
      */
-    private $defaultView = null;
+    private ?View $defaultView = null;
 
     /**
      * Contains information about mysql table and columns in which this concept is administrated
-     *
-     * @var \Ampersand\Plugs\MysqlDB\MysqlDBTable
      */
-    private $mysqlConceptTable;
+    private MysqlDBTable $mysqlConceptTable;
     
     /**
      * List with atom identifiers that exist in the concept
-     * used to prevent unnecessary checks if atom exists in plug
+     *
+     * Used to prevent unnecessary checks if atom exists in plug
      *
      * @var string[]
      */
-    private $atomCache = [];
+    private array $atomCache = [];
     
     /**
      * Constructor
@@ -462,7 +452,6 @@ class Concept
 
         // TODO: remove this hack with _AI (autoincrement feature)
         if (strpos($this->name, '_AI') !== false && $this->type === TType::INTEGER) {
-            /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $firstCol */
             $firstCol = current($this->mysqlConceptTable->getCols());
             $query = "SELECT MAX(\"{$firstCol->getName()}\") as \"MAX\" FROM \"{$this->mysqlConceptTable->getName()}\"";
              
@@ -742,7 +731,6 @@ class Concept
     protected function deleteAllLinksWithAtom(Atom $atom): void
     {
         foreach ($this->app->getModel()->getRelations() as $relation) {
-            /** @var \Ampersand\Core\Relation $relation */
             if ($atom->concept->inSameClassificationBranch($relation->srcConcept)) {
                 $relation->deleteAllLinks($atom, SrcOrTgt::SRC);
             }
@@ -759,7 +747,6 @@ class Concept
     protected function deleteAllSpecializationLinks(Atom $atom): void
     {
         foreach ($this->app->getModel()->getRelations() as $relation) {
-            /** @var \Ampersand\Core\Relation $relation */
             if ($atom->concept->hasSpecialization($relation->srcConcept, true)) {
                 $relation->deleteAllLinks($atom, SrcOrTgt::SRC);
             }

@@ -27,24 +27,18 @@ class ResourceList
 {
     /**
      * Undocumented variable
-     *
-     * @var \Ampersand\Core\Atom
      */
-    protected $srcAtom;
+    protected Atom $srcAtom;
 
     /**
      * Undocumented variable
-     *
-     * @var \Ampersand\Interfacing\InterfaceObjectInterface
      */
-    protected $ifcObject;
+    protected InterfaceObjectInterface $ifcObject;
 
     /**
-     * Path to $srcAtom
-     *
-     * @var string
+     * Path to src atom
      */
-    protected $pathEntry;
+    protected string $pathEntry;
 
     public function __construct(Atom $srcAtom, InterfaceObjectInterface $ifcObj, string $pathEntry)
     {

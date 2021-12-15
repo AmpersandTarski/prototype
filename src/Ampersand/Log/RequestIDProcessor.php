@@ -11,10 +11,8 @@ class RequestIDProcessor
 {
     /**
      * Request identifier
-     *
-     * @var string
      */
-    protected $requestID;
+    protected string $requestID;
     
     public function __construct()
     {

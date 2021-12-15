@@ -11,6 +11,7 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased changes
 * Add missing parameter and return type declarations for all methods. Remove unneeded docblock comments
+* Add class property type declarations. Remove unneeded docblock comments
 * Refactor use enums for TableType, RuleType, SrcOrTgt, MenuType, concept TType
 
 ## v1.13.0 (10 dec 2021)

@@ -19,18 +19,8 @@ use Ampersand\Plugs\MysqlDB\TableType;
 
 class MysqlDBRelationTable extends MysqlDBTable
 {
-
-    /**
-     *
-     * @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol
-     */
-    protected $srcCol = null;
-
-    /**
-     *
-     * @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol
-     */
-    protected $tgtCol = null;
+    protected ?MysqlDBTableCol $srcCol = null;
+    protected ?MysqlDBTableCol $tgtCol = null;
 
     /**
      * Specifies if this relation is administrated in the table of the src concept, the tgt concept or its own binary table

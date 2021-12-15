@@ -20,34 +20,30 @@ class Role
 {
     /**
      * Role identifier
-     * @var string
      */
-    protected $id;
+    protected string $id;
     
     /**
      * Name of the role
-     * @var string
      */
-    protected $label;
+    protected string $label;
     
     /**
      * List of all rules that are maintained by this role
      * @var \Ampersand\Rule\Rule[]
      */
-    protected $maintains = [];
+    protected array $maintains = [];
     
     /**
      * List of all interfaces that are accessible by this role
      * @var \Ampersand\Interfacing\Ifc[]
      */
-    protected $interfaces = null;
+    protected ?array $interfaces = null;
 
     /**
      * Reference to Ampersand model
-     *
-     * @var \Ampersand\Model
      */
-    protected $model;
+    protected Model $model;
     
     /**
      * Constructor

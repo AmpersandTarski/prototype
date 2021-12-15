@@ -14,10 +14,12 @@ use Ampersand\Core\SrcOrTgt;
 use Ampersand\Core\TType;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Interfacing\AbstractIfcObject;
+use Ampersand\Interfacing\BoxHeader;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\Resource;
+use Ampersand\Interfacing\View;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Plugs\MysqlDB\TableType;
 use Exception;
@@ -32,144 +34,63 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 {
     /**
      * Dependency injection of an IfcPlug implementation
-     * @var \Ampersand\Plugs\IfcPlugInterface
      */
-    protected $plug;
+    protected IfcPlugInterface $plug;
     
     /**
      * Interface id (i.e. safe name) to use in framework
-     * @var string
      */
-    protected $id;
+    protected string $id;
     
     /**
-     *
-     * @var string
+     * Path to this interface object; concatenation of interface name + sub interface labels
      */
-    protected $path;
+    protected string $path;
     
     /**
      * Interface name to show in UI
-     * @var string
      */
-    protected $label;
+    protected string $label;
     
-    /**
-     *
-     * @var bool|null
-     */
-    protected $crudC;
+    protected ?bool $crudC;
+    protected ?bool $crudR;
+    protected ?bool $crudU;
+    protected ?bool $crudD;
     
-    /**
-     *
-     * @var bool|null
-     */
-    protected $crudR;
+    protected ?Relation $relation;
+    protected ?bool $relationIsFlipped;
     
-    /**
-     *
-     * @var bool|null
-     */
-    protected $crudU;
+    protected bool $isUni;
+    protected bool $isTot;
+    protected bool $isIdent;
     
-    /**
-     *
-     * @var bool|null
-     */
-    protected $crudD;
-    
-    /**
-     *
-     * @var \Ampersand\Core\Relation|null
-     */
-    protected $relation;
-    
-    /**
-     *
-     * @var boolean|null
-     */
-    protected $relationIsFlipped;
-    
-    /**
-     *
-     * @var boolean
-     */
-    protected $isUni;
-    
-    /**
-     *
-     * @var boolean
-     */
-    protected $isTot;
-    
-    /**
-     *
-     * @var boolean
-     */
-    protected $isIdent;
-    
-    /**
-     *
-     * @var string
-     */
-    protected $query;
+    protected string $query;
 
     /**
      * Determines if query contains data for subinterfaces
+     *
      * See https://github.com/AmpersandTarski/Ampersand/issues/217
-     *
-     * @var bool
      */
-    protected $queryContainsSubData = false;
+    protected bool $queryContainsSubData = false;
+    
+    protected Concept $srcConcept;
+    protected Concept $tgtConcept;
+    
+    protected ?View $view;
+    protected ?BoxHeader $boxHeader = null;
+    
+    protected string $refInterfaceId;
+    protected bool $isLinkTo = false;
     
     /**
-     *
-     * @var \Ampersand\Core\Concept
-     */
-    protected $srcConcept;
-    
-    /**
-     *
-     * @var \Ampersand\Core\Concept
-     */
-    protected $tgtConcept;
-    
-    /**
-     *
-     * @var \Ampersand\Interfacing\View|null
-     */
-    protected $view;
-
-    /**
-     *
-     * @var \Ampersand\Interfacing\BoxHeader|null
-     */
-    protected $boxHeader = null;
-    
-    /**
-     *
-     * @var string
-     */
-    protected $refInterfaceId;
-    
-    /**
-     *
-     * @var boolean
-     */
-    protected $isLinkTo = false;
-    
-    /**
-     *
      * @var \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
-    protected $subInterfaces = [];
+    protected array $subInterfaces = [];
 
     /**
      * Interface of which this object is part of
-     *
-     * @var \Ampersand\Interfacing\Ifc
      */
-    protected $rootIfc;
+    protected Ifc $rootIfc;
 
     /**
      * Constructor
@@ -675,7 +596,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             }
 
             foreach ($this->getSubinterfaces($options) as $ifcObj) {
-                /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcObj */
                 if (!$ifcObj->crudR()) {
                     continue; // skip subinterface if not given read rights (otherwise exception will be thrown when getting content)
                 }
@@ -812,7 +732,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
         
         $tgt->add();
-        $src->link($tgt, $this->relation(), $this->relationIsFlipped)->add();
+        $src->link($tgt, $this->relation(), $this->relationIsFlipped ?? false)->add();
         
         return $tgt;
     }
@@ -837,7 +757,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
         
         $tgt = new Atom($value, $this->tgtConcept);
-        $src->link($tgt, $this->relation(), $this->relationIsFlipped)->delete();
+        $src->link($tgt, $this->relation(), $this->relationIsFlipped ?? false)->delete();
         
         return;
     }
@@ -932,7 +852,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             , 'src' => $this->srcConcept->name
             , 'tgt' => $this->tgtConcept->name
             , 'view' => $this->view->label ?? ''
-            , 'relation' => $this->isEditable() ? $this->relation()->signature : ''
+            , 'relation' => $this->relation?->signature
             , 'flipped' => $this->relationIsFlipped
             , 'ref' => $this->refInterfaceId
             ];

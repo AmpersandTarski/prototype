@@ -27,64 +27,51 @@ class ExecEngine extends RuleEngine
      *
      * @var \Closure[]
      */
-    protected static $closures = [];
+    protected static array $closures = [];
 
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * Identifier (role id) of this exec engine
-     *
-     * @var string
      */
-    protected $id;
+    protected string $id;
 
     /**
      * Rules this ExecEngine maintains
      *
      * @var \Ampersand\Rule\Rule[]
      */
-    protected $maintainsRules;
+    protected array $maintainsRules;
 
     /**
      * Reference to the Transaction for which this ExecEngine is instantiated
-     *
-     * @var \Ampersand\Transaction
      */
-    protected $transaction;
+    protected Transaction $transaction;
 
     /**
      * Reference to Ampersand app for which this ExecEngine is instantiated
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $ampersandApp;
+    protected AmpersandApp $ampersandApp;
 
     /**
      * Number of runs this exec engine is called (i.e. the checkFixRules() method)
-     *
-     * @var int
      */
-    protected $runCount = 0;
+    protected int $runCount = 0;
     
     /**
-     * Specifies latest atom created by a Newstruct/InsAtom function call.
-     * Can be (re)used within the scope of one violation statement
+     * Specifies latest atom created by a Newstruct/InsAtom function call
      *
-     * @var \Ampersand\Core\Atom|null
+     * Can be (re)used within the scope of one violation statement
      */
-    protected $newAtom = null;
+    protected ?Atom $newAtom = null;
 
     /**
      * Specifies is this exec engine is terminated (i.e. it won't check-fix rules anymore)
-     *
-     * @var bool
      */
-    protected $isTerminated = false;
+    protected bool $isTerminated = false;
 
     /**
      * Constructor
@@ -175,7 +162,6 @@ class ExecEngine extends RuleEngine
 
         $rulesFixed = [];
         foreach ($rulesToCheck as $rule) {
-            /** @var \Ampersand\Rule\Rule $rule */
             $violations = $rule->checkRule(true); // param true to force (re)evaluation of conjuncts
             
             if (empty($violations)) {
@@ -186,7 +172,6 @@ class ExecEngine extends RuleEngine
             $total = count($violations);
             $this->info("ExecEngine fixing {$total} violations for rule '{$rule}'");
             foreach ($violations as $key => $violation) {
-                /** @var \Ampersand\Rule\Violation $violation */
                 $num = $key + 1;
                 $this->info("Fixing violation {$num}/{$total}: ({$violation})");
                 $this->fixViolation($violation);

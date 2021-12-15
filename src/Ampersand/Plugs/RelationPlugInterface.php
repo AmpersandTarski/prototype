@@ -19,19 +19,27 @@ use Ampersand\Core\SrcOrTgt;
  */
 interface RelationPlugInterface extends StorageInterface
 {
-    
-    public function linkExists(Link $link);
+    /**
+    * Check if link exists in storage
+    */
+    public function linkExists(Link $link): bool;
     
     /**
     * Get all links given a relation
     *
     * If src and/or tgt atom is specified only links are returned with these atoms
-    * @return Link[]
+    * @return \Ampersand\Core\Link[]
     */
     public function getAllLinks(Relation $relation, ?Atom $srcAtom = null, ?Atom $tgtAtom = null): array;
     
+    /**
+     * Add link (srcAtom,tgtAtom) in storage
+     */
     public function addLink(Link $link): void;
     
+    /**
+     * Delete link (srcAtom,tgtAtom) from storage
+     */
     public function deleteLink(Link $link): void;
     
     /**

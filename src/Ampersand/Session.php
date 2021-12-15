@@ -17,6 +17,7 @@ use Ampersand\AmpersandApp;
 use Ampersand\Exception\RelationNotDefined;
 use Ampersand\Exception\SessionExpiredException;
 use Ampersand\Misc\ProtoContext;
+use Ampersand\Misc\Settings;
 
 /**
  * Class of session objects
@@ -27,35 +28,29 @@ class Session
 {
     
     /**
-     * @var \Psr\Log\LoggerInterface
+     * Logger
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app for which this session is defined
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $ampersandApp;
+    protected AmpersandApp $ampersandApp;
 
     /**
      * Reference to Ampersand app settings object
-     *
-     * @var \Ampersand\Misc\Settings
      */
-    protected $settings;
+    protected Settings $settings;
     
     /**
-     * @var string $id session identifier
+     * Session identifier
      */
-    protected $id;
+    protected string $id;
     
     /**
      * Reference to corresponding session object (Atom) in &-domain
-     *
-     * @var \Ampersand\Core\Atom $sessionAtom
      */
-    protected $sessionAtom;
+    protected Atom $sessionAtom;
     
     /**
      * Constructor

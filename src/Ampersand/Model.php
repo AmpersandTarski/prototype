@@ -44,24 +44,20 @@ class Model
 
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Specifies which part(s) of the Model are initialized (i.e. when definitions are loaded from the json files)
      *
      * @var string[]
      */
-    protected $initialized = [];
+    protected array $initialized = [];
 
     /**
      * Directory where Ampersand model is generated in
-     *
-     * @var string
      */
-    protected $folder;
+    protected string $folder;
 
     /**
      * Ampersand compiler version
@@ -75,59 +71,57 @@ class Model
 
     /**
      * List of files that contain the generated Ampersand model
-     *
-     * @var array
      */
-    protected $modelFiles = [];
+    protected array $modelFiles = [];
 
     /**
      * List of all defined concepts in this Ampersand model
      *
      * @var \Ampersand\Core\Concept[]
      */
-    protected $concepts = [];
+    protected array $concepts = [];
 
     /**
      * List of all defined conjuncts in this Ampersand model
      *
      * @var \Ampersand\Rule\Conjunct[]
      */
-    protected $conjuncts = [];
+    protected array $conjuncts = [];
 
     /**
      * List of all defined relations in this Ampersand model
      *
      * @var \Ampersand\Core\Relation[]
      */
-    protected $relations = [];
+    protected array $relations = [];
 
     /**
      * List of all defined interfaces in this Ampersand model
      *
      * @var \Ampersand\Interfacing\Ifc[]
      */
-    protected $interfaces = [];
+    protected array $interfaces = [];
 
     /**
      * List of all defined views in this Ampersand model
      *
      * @var \Ampersand\Interfacing\View[]
      */
-    protected $views = [];
+    protected array $views = [];
 
     /**
      * List of all defined rules in this Ampersand model
      *
      * @var \Ampersand\Rule\Rule[]
      */
-    protected $rules = [];
+    protected array $rules = [];
 
     /**
      * List of all defined roles in this Ampersand model
      *
      * @var \Ampersand\Role[]
      */
-    protected $roles = [];
+    protected array $roles = [];
 
     /**
      * Constructor
@@ -358,7 +352,6 @@ class Model
     public function getConceptByLabel(string $conceptLabel): Concept
     {
         foreach ($this->getAllConcepts() as $concept) {
-            /** @var \Ampersand\Core\Concept $concept */
             if ($concept->label === $conceptLabel) {
                 return $concept;
             }
@@ -495,7 +488,6 @@ class Model
     public function getInterfaceByLabel(string $ifcLabel): Ifc
     {
         foreach ($this->getAllInterfaces() as $interface) {
-            /** @var \Ampersand\Interfacing\Ifc $interface */
             if ($interface->getLabel() === $ifcLabel) {
                 return $interface;
             }

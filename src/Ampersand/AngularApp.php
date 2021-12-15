@@ -23,39 +23,27 @@ use Ampersand\Misc\ProtoContext;
  */
 class AngularApp
 {
-    /**
-     *
-     * @var \Psr\Log\LoggerInterface
-     */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app of which this frontend app (Angular) belongs to
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $ampersandApp;
+    protected AmpersandApp $ampersandApp;
     
     /**
      * List of items for the extensions menu (in navbar)
-     *
-     * @var array
      */
-    protected $extMenu = [];
+    protected array $extMenu = [];
     
     /**
      * List of items for the role menu (in navbar)
-     *
-     * @var array
      */
-    protected $roleMenu = [];
+    protected array $roleMenu = [];
 
     /**
      * Contains information for the front-end to navigate the user in a certain case (e.g. after COMMIT)
-     *
-     * @var array
      */
-    protected $navToResponse = [];
+    protected array $navToResponse = [];
 
     /**
      * Constructor
@@ -114,7 +102,6 @@ class AngularApp
                 // Prepare output and group by type
                 $result = [];
                 foreach ($interfaces as $ifc) {
-                    /** @var \Ampersand\Interfacing\Ifc $ifc */
                     $type = $ifc->getTgtConcept()->name;
 
                     if (!isset($result[$type])) {

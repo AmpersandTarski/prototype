@@ -18,5 +18,8 @@ use Ampersand\Interfacing\ViewSegment;
  */
 interface ViewPlugInterface extends PlugInterface
 {
+    /**
+     * Execute query for giver view segement and source atom
+     */
     public function executeViewExpression(ViewSegment $view, Atom $srcAtom): array;
 }

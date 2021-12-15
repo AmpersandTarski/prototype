@@ -30,78 +30,57 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class AmpersandApp
 {
-    /**
-     * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
-     */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * User logger (i.e. logs are returned to user)
-     *
-     * @var \Ampersand\Log\UserLogger
      */
-    protected $userLogger;
+    protected UserLogger $userLogger;
 
-    /**
-     * @var \League\Flysystem\FilesystemInterface
-     */
-    protected $fileSystem;
+    protected FilesystemInterface $fileSystem;
 
-    /**
-     * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
-     */
-    protected $eventDispatcher;
+    protected EventDispatcherInterface $eventDispatcher;
 
     /**
      * Ampersand application name (i.e. CONTEXT of ADL entry script)
-     *
-     * @var string
      */
-    protected $name;
+    protected string $name;
 
     /**
      * Reference to generated Ampersand model
-     *
-     * @var \Ampersand\Model
      */
-    protected $model;
+    protected Model $model;
 
     /**
      * Settings object
-     *
-     * @var \Ampersand\Misc\Settings
      */
-    protected $settings;
+    protected Settings $settings;
 
     /**
      * List with storages that are registered for this application
      * @var \Ampersand\Plugs\StorageInterface[]
      */
-    protected $storages = [];
+    protected array $storages = [];
 
     /**
      * Default storage plug
-     * @var \Ampersand\Plugs\MysqlDB\MysqlDB
      */
-    protected $defaultStorage = null;
+    protected ?MysqlDB $defaultStorage = null;
 
     /**
      * Cache implementation for conjunct violation cache
-     * @var \Psr\Cache\CacheItemPoolInterface
      */
-    protected $conjunctCache = null;
+    protected ?CacheItemPoolInterface $conjunctCache = null;
 
     /**
      * List of custom plugs for concepts
-     * @var array<string,ConceptPlugInterface[]>
+     * @var array<string,\Ampersand\Plugs\ConceptPlugInterface[]>
      */
-    protected $customConceptPlugs = [];
+    protected array $customConceptPlugs = [];
 
     /**
      * List of custom plugs for relations
-     * @var array<string,RelationPlugInterface[]>
+     * @var array<string,\Ampersand\Plugs\RelationPlugInterface[]>
      */
     protected $customRelationPlugs = [];
 
@@ -111,35 +90,33 @@ class AmpersandApp
      *
      * @var \Closure[]
      */
-    protected $initClosures = [];
+    protected array $initClosures = [];
 
     /**
      * The session between AmpersandApp and user
-     *
-     * @var \Ampersand\Session
      */
-    protected $session = null;
+    protected ?Session $session = null;
 
     /**
      * List of accessible interfaces for the user of this Ampersand application
      *
      * @var \Ampersand\Interfacing\Ifc[]
      */
-    protected $accessibleInterfaces = [];
+    protected array $accessibleInterfaces = [];
     
     /**
      * List with rules that are maintained by the activated roles in this Ampersand application
      *
      * @var \Ampersand\Rule\Rule[] $rulesToMaintain
      */
-    protected $rulesToMaintain = []; // rules that are maintained by active roles
+    protected array $rulesToMaintain = []; // rules that are maintained by active roles
 
     /**
      * List of all transactions (open and closed)
      *
      * @var \Ampersand\Transaction[]
      */
-    protected $transactions = [];
+    protected array $transactions = [];
     
     /**
      * Constructor
@@ -219,7 +196,6 @@ class AmpersandApp
 
             // Add concept plugs
             foreach ($this->model->getAllConcepts() as $cpt) {
-                /** @var \Ampersand\Core\Concept $cpt */
                 if (array_key_exists($cpt->label, $this->customConceptPlugs)) {
                     foreach ($this->customConceptPlugs[$cpt->label] as $plug) {
                         $cpt->addPlug($plug);
@@ -231,7 +207,6 @@ class AmpersandApp
 
             // Add relation plugs
             foreach ($this->model->getRelations() as $rel) {
-                /** @var \Ampersand\Core\Relation $rel */
                 if (array_key_exists($rel->signature, $this->customRelationPlugs)) {
                     foreach ($this->customRelationPlugs[$rel->signature] as $plug) {
                         $rel->addPlug($plug);
@@ -282,6 +257,10 @@ class AmpersandApp
 
     public function getDefaultStorage(): MysqlDB
     {
+        if (is_null($this->defaultStorage)) {
+            throw new Exception("Default storage not set for Ampersand app", 500);
+        }
+
         return $this->defaultStorage;
     }
 
@@ -298,6 +277,10 @@ class AmpersandApp
 
     public function getConjunctCache(): CacheItemPoolInterface
     {
+        if (is_null($this->conjunctCache)) {
+            throw new Exception("Conjunct cache not set for Ampersand app", 500);
+        }
+
         return $this->conjunctCache;
     }
 
@@ -338,8 +321,6 @@ class AmpersandApp
 
         // Add rules for all active session roles
         foreach ($this->getActiveRoles() as $roleAtom) {
-            /** @var \Ampersand\Core\Atom $roleAtom */
-
             // Set rules to maintain
             try {
                 $role = $this->model->getRoleById($roleAtom->getId());
@@ -387,8 +368,6 @@ class AmpersandApp
         // Else query interfaces for every active role
         } else {
             foreach ($this->getActiveRoles() as $roleAtom) {
-                /** @var \Ampersand\Core\Atom $roleAtom */
-                
                 // Query accessible interfaces
                 $ifcAtoms = array_merge($ifcAtoms, $roleAtom->getTargetAtoms(ProtoContext::REL_IFC_ROLES, true));
             }
@@ -566,7 +545,6 @@ class AmpersandApp
         // Clear caches
         $this->conjunctCache->clear(); // external cache item pool
         foreach ($this->model->getAllConcepts() as $cpt) {
-            /** @var \Ampersand\Core\Concept $cpt */
             $cpt->clearAtomCache(); // local cache in Ampersand code
         }
 
@@ -604,7 +582,6 @@ class AmpersandApp
         // Evaluate all conjunct and save cache
         $this->logger->info("Initial evaluation of all conjuncts after application reinstallation");
         foreach ($this->model->getAllConjuncts() as $conj) {
-            /** @var \Ampersand\Rule\Conjunct $conj */
             $conj->evaluate()->persistCacheItem();
         }
 

@@ -24,18 +24,15 @@ class UserLogger extends AbstractLogger
 {
     /**
      * Logger instance
-     * All notifications/logs for the user are also logged to this logger
      *
-     * @var \Psr\Log\LoggerInterface
+     * All notifications/logs for the user are also logged to this logger
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app for which this logger is defined
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $app;
+    protected AmpersandApp $app;
 
     protected $errors = [];
     protected $invariants = [];
@@ -157,7 +154,6 @@ class UserLogger extends AbstractLogger
         
         // Add links for src atom
         $ifcs = array_map(function (Ifc $ifc) use ($violation) {
-            /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
             $ifcobj = $ifc->getIfcObject();
             return ['id' => $ifcobj->getIfcId(),
                     'label' => $ifcobj->getIfcLabel(),
@@ -169,7 +165,6 @@ class UserLogger extends AbstractLogger
         if ($violation->getSrc()->concept !== $violation->getTgt()->concept || $violation->getSrc()->getId() !== $violation->getTgt()->getId()) {
             array_merge($ifcs, array_map(
                 function (Ifc $ifc) use ($violation) {
-                    /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
                     $ifcobj = $ifc->getIfcObject();
                     return [ 'id' => $ifcobj->getIfcId()
                            , 'label' => $ifcobj->getIfcLabel()

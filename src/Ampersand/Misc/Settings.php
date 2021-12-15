@@ -68,25 +68,22 @@ class Settings
 
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * Array of all settings
-     * Setting keys (e.g. global.debugMode) are case insensitive
      *
-     * @var array
+     * Setting keys (e.g. global.debugMode) are case insensitive
      */
-    protected $settings = [];
+    protected array $settings = [];
 
     /**
      * List of configured extensions
      *
      * @var \Ampersand\Misc\Extension[]
      */
-    protected $extensions = [];
+    protected array $extensions = [];
 
     /**
      * Constructor

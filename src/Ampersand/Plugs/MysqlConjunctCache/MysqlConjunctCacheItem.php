@@ -27,31 +27,23 @@ class MysqlConjunctCacheItem implements CacheItemInterface
 {
     /**
      * Undocumented variable
-     *
-     * @var string
      */
-    protected $key;
+    protected string $key;
 
     /**
      * Callback function to get the current value of this item from the CachePool
-     *
-     * @var callable
      */
-    protected $callable;
+    protected \callable $callable;
 
     /**
      * Undocumented variable
-     *
-     * @var boolean
      */
-    protected $hasValue = false;
+    protected bool $hasValue = false;
 
     /**
      * Undocumented variable
-     *
-     * @var array
      */
-    protected $value;
+    protected array $value;
 
     /**
      * Undocumented function

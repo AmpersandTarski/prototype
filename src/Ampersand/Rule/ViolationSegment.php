@@ -10,6 +10,7 @@ namespace Ampersand\Rule;
 use Ampersand\Interfacing\ViewSegment;
 use Exception;
 use Ampersand\Core\Atom;
+use Ampersand\Rule\Rule;
 
 /**
  *
@@ -21,23 +22,18 @@ class ViolationSegment extends ViewSegment
 
     /**
      * The view to which this segment belongs to
-     *
-     * @var \Ampersand\Rule\Rule $rule
      */
-    protected $rule;
+    protected Rule $rule;
 
     /**
      * Specifies if expression is the ident relation (in case of an Expr segment type)
-     *
-     * @var bool|null $expIsIdent
      */
-    protected $expIsIdent = null;
+    protected ?bool $expIsIdent = null;
 
     /**
-     * Specifies if violation segment concerns a SRC or TGT atom. NULL if N/A.
-     * @var string
+     * Specifies if violation segment concerns a SRC or TGT atom. NULL if N/A
      */
-    protected $srcOrTgt = null;
+    protected ?string $srcOrTgt = null;
 
     /**
      * Constructor of violation segments as part of specified rule

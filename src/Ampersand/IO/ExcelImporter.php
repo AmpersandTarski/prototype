@@ -18,17 +18,14 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class ExcelImporter
 {
     /**
-     *
-     * @var \Psr\Log\LoggerInterface
+     * Logger
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to application instance
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $ampersandApp;
+    protected AmpersandApp $ampersandApp;
 
     /**
      * Constructor

@@ -15,5 +15,4 @@ namespace Ampersand\Plugs;
  */
 interface PlugInterface
 {
-    
 }

@@ -13,6 +13,7 @@ use DateTimeZone;
 use JsonSerializable;
 use Ampersand\Core\Link;
 use Ampersand\Core\TType;
+use Ampersand\Core\Concept;
 
 /**
  *
@@ -23,20 +24,18 @@ class Atom implements JsonSerializable
 {
     /**
      * Ampersand identifier of the atom
-     * @var string
      */
-    protected $id;
+    protected string $id;
     
     /**
      * Specifies the concept of which this atom is an instance
-     * @var Concept
      */
-    public $concept;
+    public Concept $concept;
     
     /**
-     * @var array|null $queryData the row data (from database query) from which this resource is created
+     * Row data (from database query) from which this resource is created
      */
-    protected $queryData = null;
+    protected ?array $queryData = null;
     
     public function __construct(string $atomId, Concept $concept)
     {

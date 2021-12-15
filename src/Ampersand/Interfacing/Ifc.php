@@ -28,38 +28,28 @@ class Ifc
 {
     /**
      * Interface id (i.e. escaped name) to use for referencing
-     *
-     * @var string
      */
-    protected $id;
+    protected string $id;
 
     /**
      * Human readable name of the interface (i.e. name as specified in Ampersand script)
-     *
-     * @var string
      */
-    protected $label;
+    protected string $label;
 
     /**
      * Specifies if this Interface is intended as API
-     *
-     * @var bool
      */
-    protected $isAPI;
+    protected bool $isAPI;
 
     /**
      * Root interface object (must be a InterfaceExprObject)
-     *
-     * @var \Ampersand\Interfacing\InterfaceExprObject
      */
-    protected $ifcObject;
+    protected InterfaceExprObject $ifcObject;
 
     /**
      * Reference to Ampersand model
-     *
-     * @var \Ampersand\Model
      */
-    protected $model;
+    protected Model $model;
 
     /**
      * Constructor

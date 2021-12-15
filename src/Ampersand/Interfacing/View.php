@@ -21,33 +21,30 @@ class View
 {
     /**
      * Dependency injection of an ViewPlug implementation
-     * @var \Ampersand\Plugs\ViewPlugInterface
      */
-    protected $plug;
+    protected ViewPlugInterface $plug;
     
     /**
      * Name (and unique identifier) of view
-     * @var string
      */
-    public $label;
+    public string $label;
     
     /**
      * Specifies if this view is defined as default view for $this->concept
-     * @var boolean
      */
-    protected $isDefault;
+    protected bool $isDefault;
     
     /**
      * Specifies the concept for which this view can defined
-     * @var string
      */
-    protected $forConcept;
+    protected string $forConcept;
     
     /**
      * Array with view segments that are used to build the view
+     *
      * @var \Ampersand\Interfacing\ViewSegment[]
      */
-    protected $segments = [];
+    protected array $segments = [];
     
     /**
      * Constructor

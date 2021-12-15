@@ -19,10 +19,8 @@ trait ExtensionThreat
 {
     /**
      * Reference to AmpersandApp instance
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $ampersandApp;
+    protected AmpersandApp $ampersandApp;
 
     /**
      * Setter method for $ampersandApp

@@ -17,23 +17,11 @@ use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
  */
 class MysqlDBTable
 {
-    /**
-     *
-     * @var string
-     */
-    protected $name;
+    protected string $name;
 
-    /**
-     *
-     * @var array
-     */
-    protected $cols = [];
+    protected array $cols = [];
     
-    /**
-     *
-     * @var string $allAtomsQuery
-     */
-    public $allAtomsQuery;
+    public string $allAtomsQuery;
 
     public function __construct(string $name)
     {

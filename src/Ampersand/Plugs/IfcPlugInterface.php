@@ -18,5 +18,8 @@ use Ampersand\Interfacing\InterfaceExprObject;
  */
 interface IfcPlugInterface extends PlugInterface
 {
+    /**
+     * Execute query for given interface expression and source atom
+     */
     public function executeIfcExpression(InterfaceExprObject $ifc, Atom $srcAtom): mixed;
 }

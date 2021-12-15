@@ -9,6 +9,7 @@ namespace Ampersand\Interfacing;
 
 use Ampersand\Core\Atom;
 use Exception;
+use Ampersand\Interfacing\View;
 
 /**
  *
@@ -20,45 +21,20 @@ class ViewSegment
 
     /**
      * The view to which this segment belongs to
-     * @var View $view
      */
-    protected $view;
+    protected View $view;
     
-    /**
-     *
-     * @var int
-     */
-    protected $seqNr;
+    protected int $seqNr;
 
-    /**
-     *
-     * @var string
-     */
-    protected $label;
+    protected string $label;
 
-    /**
-     *
-     * @var string
-     */
-    protected $segType;
+    protected string $segType;
 
-    /**
-     *
-     * @var string
-     */
-    protected $text;
+    protected string $text;
 
-    /**
-     *
-     * @var string
-     */
-    protected $expADL;
+    protected string $expADL;
 
-    /**
-     *
-     * @var string
-     */
-    protected $expSQL;
+    protected string $expSQL;
 
     /**
      * Constructor

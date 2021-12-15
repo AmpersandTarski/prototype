@@ -28,81 +28,74 @@ class Transaction
 {
     /**
      * Points to the current open transaction
-     *
-     * @var \Ampersand\Transaction|null
      */
-    private static $currentTransaction = null;
+    private static ?Transaction $currentTransaction = null;
     
     /**
      * Transaction number (random int)
-     *
-     * @var int
      */
-    private $id;
+    private int $id;
     
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app for which this transaction is instantiated
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $app;
+    protected AmpersandApp $app;
     
     /**
      * Contains all affected Concepts during a transaction
      *
      * @var \Ampersand\Core\Concept[]
      */
-    private $affectedConcepts = [];
+    private array $affectedConcepts = [];
     
     /**
      * Contains all affected relations during a transaction
      *
      * @var \Ampersand\Core\Relation[]
      */
-    private $affectedRelations = [];
+    private array $affectedRelations = [];
     
     /**
-     * Specifies if invariant rules hold. Null if no transaction has occurred (yet)
+     * Specifies if invariant rules hold
      *
-     * @var bool|NULL
+     * Null if no transaction has occurred (yet)
      */
-    private $invariantRulesHold = null;
+    private ?bool $invariantRulesHold = null;
     
     /**
      * Specifies if the transaction is committed or rolled back
      *
-     * @var bool
+     * Null if transaction is still open (i.e. not committed nor rolled back)
      */
-    private $isCommitted = null;
+    private ?bool $isCommitted = null;
     
     /**
      * List with storages that are affected in this transaction
+     *
      * Used to commit/rollback all storages when this transaction is closed
      *
      * @var \Ampersand\Plugs\StorageInterface[] $storages
      */
-    private $storages = [];
+    private array $storages = [];
 
     /**
      * List of exec engines
      *
      * @var \Ampersand\Rule\ExecEngine[]
      */
-    protected $execEngines = [];
+    protected array $execEngines = [];
 
     /**
      * List of services (i.e. role names) for which a run is requested
      *
      * @var string[]
      */
-    protected $requestedServiceIds = [];
+    protected array $requestedServiceIds = [];
     
     /**
      * Constructor

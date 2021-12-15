@@ -20,10 +20,8 @@ class MysqlConjunctCache implements CacheItemPoolInterface
 {
     /**
      * Mysql database where conjunct violations are cached
-     *
-     * @var \Ampersand\Plugs\MysqlDB\MysqlDB
      */
-    protected $database;
+    protected MysqlDB $database;
 
     /**
      * Name of table where conjunct violations are cached.
@@ -32,15 +30,13 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * "conjId" VARCHAR(255) NOT NULL,
      * "src" VARCHAR(255) NOT NULL,
      * "tgt" VARCHAR(255) NOT NULL
-     *
-     * @var string
      */
-    protected $tableName;
+    protected string $tableName;
 
     /**
-     * @var \Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCacheItem[] deferred
+     * @var \Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCacheItem[]
      */
-    protected $deferred = [];
+    protected array $deferred = [];
 
     /**
      * Constructor

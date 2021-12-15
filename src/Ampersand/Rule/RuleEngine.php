@@ -32,7 +32,6 @@ class RuleEngine
         // Evaluate rules
         $violations = [];
         foreach ($rules as $rule) {
-            /** @var \Ampersand\Rule\Rule $rule */
             $violations = array_merge($violations, $rule->checkRule($forceReEvaluation = false));
         }
         return $violations;
@@ -51,9 +50,7 @@ class RuleEngine
         $conjuncts = [];
         $conjunctRuleMap = []; // needed because violations are instantiated per rule (not per conjunct)
         foreach ($rules as $rule) {
-            /** @var \Ampersand\Rule\Rule $rule */
             foreach ($rule->getConjuncts() as $conjunct) {
-                /** @var \Ampersand\Rule\Conjunct $conjunct */
                 $conjunctRuleMap[$conjunct->getId()][] = $rule;
             }
             $conjuncts = array_merge($conjuncts, $rule->getConjuncts());
