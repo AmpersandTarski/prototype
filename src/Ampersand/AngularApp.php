@@ -10,6 +10,7 @@ namespace Ampersand;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
+use Ampersand\Frontend\MenuType;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\Interfacing\Options;
@@ -22,45 +23,30 @@ use Ampersand\Misc\ProtoContext;
  */
 class AngularApp
 {
-    /**
-     *
-     * @var \Psr\Log\LoggerInterface
-     */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app of which this frontend app (Angular) belongs to
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $ampersandApp;
+    protected AmpersandApp $ampersandApp;
     
     /**
      * List of items for the extensions menu (in navbar)
-     *
-     * @var array
      */
-    protected $extMenu = [];
+    protected array $extMenu = [];
     
     /**
      * List of items for the role menu (in navbar)
-     *
-     * @var array
      */
-    protected $roleMenu = [];
+    protected array $roleMenu = [];
 
     /**
      * Contains information for the front-end to navigate the user in a certain case (e.g. after COMMIT)
-     *
-     * @var array
      */
-    protected $navToResponse = [];
+    protected array $navToResponse = [];
 
     /**
      * Constructor
-     *
-     * @param \Ampersand\AmpersandApp $ampersandApp
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(AmpersandApp $ampersandApp, LoggerInterface $logger)
     {
@@ -69,44 +55,38 @@ class AngularApp
     }
     
     /**
-     * @param string $menu specifies to which part of the menu (navbar) this item belongs to
+     * @param \Ampersand\Frontend\MenuType $menu specifies to which part of the menu (navbar) this item belongs to
      * @param string $itemUrl location of html template to use as menu item
      * @param callable $function function which returns true/false determining to add the menu item or not
      */
-    public function addMenuItem(string $menu, string $itemUrl, callable $function)
+    public function addMenuItem(MenuType $menu, string $itemUrl, callable $function): void
     {
-        switch ($menu) {
-            case 'ext':
-                $this->extMenu[] = ['url' => $itemUrl, 'function' => $function];
-                break;
-            case 'role':
-                $this->roleMenu[] = ['url' => $itemUrl, 'function' => $function];
-                break;
-            default:
-                throw new Exception("Cannot add item to menu. Unknown menu: '{$menu}'", 500);
-                break;
-        }
+        match ($menu) {
+            MenuType::EXT => $this->extMenu[] = ['url' => $itemUrl, 'function' => $function],
+            MenuType::ROLE => $this->roleMenu[] = ['url' => $itemUrl, 'function' => $function],
+            MenuType::NEW => throw new Exception("Cannot add custom menu items to menu 'new'")
+        };
     }
     
-    public function getMenuItems($menu)
+    public function getMenuItems(MenuType $menu): array
     {
         $ampersandApp = $this->ampersandApp;
 
         switch ($menu) {
             // Items for extension menu
-            case 'ext':
+            case MenuType::EXT:
                 $result = array_filter($this->extMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
                 break;
             // Items for role menu
-            case 'role':
+            case MenuType::ROLE:
                 $result = array_filter($this->roleMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
                 break;
             // Items in menu to create new resources (indicated with + sign)
-            case 'new':
+            case MenuType::NEW:
                 // Filter interfaces that are capable to create new Resources
                 $interfaces = array_filter($ampersandApp->getAccessibleInterfaces(), function (Ifc $ifc) {
                     $ifcObj = $ifc->getIfcObject();
@@ -122,7 +102,6 @@ class AngularApp
                 // Prepare output and group by type
                 $result = [];
                 foreach ($interfaces as $ifc) {
-                    /** @var \Ampersand\Interfacing\Ifc $ifc */
                     $type = $ifc->getTgtConcept()->name;
 
                     if (!isset($result[$type])) {
@@ -137,7 +116,7 @@ class AngularApp
                 }
                 break;
             default:
-                throw new Exception("Cannot get menu items. Unknown menu: '{$menu}'", 500);
+                throw new Exception("Cannot get menu items. Unknown menu: '{$menu->value}'", 500);
         }
 
         return array_values($result); // Make sure that a true numeric array is returned
@@ -148,7 +127,7 @@ class AngularApp
         return ResourceList::makeFromInterface($this->ampersandApp->getSession()->getSessionAtom()->getId(), ProtoContext::IFC_MENU_ITEMS)->get(Options::INCLUDE_NOTHING);
     }
 
-    public function getNavToResponse($case)
+    public function getNavToResponse($case): ?string
     {
         switch ($case) {
             case 'COMMIT':
@@ -164,7 +143,7 @@ class AngularApp
         }
     }
     
-    public function setNavToResponse($navTo, $case = 'COMMIT')
+    public function setNavToResponse(string $navTo, string $case = 'COMMIT'): void
     {
         switch ($case) {
             case 'COMMIT':
@@ -181,8 +160,6 @@ class AngularApp
      *
      * True when session variable is affected in a committed transaction
      * False otherwise
-     *
-     * @return boolean
      */
     public function getSessionRefreshAdvice(): bool
     {

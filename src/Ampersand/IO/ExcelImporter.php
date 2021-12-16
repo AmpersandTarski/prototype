@@ -18,22 +18,17 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class ExcelImporter
 {
     /**
-     *
-     * @var \Psr\Log\LoggerInterface
+     * Logger
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to application instance
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $ampersandApp;
+    protected AmpersandApp $ampersandApp;
 
     /**
      * Constructor
-     *
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(AmpersandApp $app, LoggerInterface $logger)
     {
@@ -43,11 +38,8 @@ class ExcelImporter
     
     /**
      * Parse excelsheet and import population
-     *
-     * @param string $filename
-     * @return void
      */
-    public function parseFile($filename)
+    public function parseFile(string $filename): void
     {
         $file = IOFactory::load($filename);
 
@@ -72,10 +64,6 @@ class ExcelImporter
     /**
      * Parse worksheet according to an Ampersand interface definition.
      *
-     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $worksheet
-     * @param \Ampersand\Interfacing\Ifc $ifc
-     * @return void
-     *
      * Use interface name as worksheet name. Format for content is as follows:
      *          | Column A        | Column B        | Column C        | etc
      * Row 1    | <Concept>       | <ifc label x>   | <ifc label y>   | etc
@@ -83,7 +71,7 @@ class ExcelImporter
      * Row 3    | <Atom a2>       | <tgtAtom b2>    | <tgtAtom c2>    | etc
      * etc
      */
-    protected function parseWorksheetWithIfc(Worksheet $worksheet, Ifc $ifc)
+    protected function parseWorksheetWithIfc(Worksheet $worksheet, Ifc $ifc): void
     {
         // Source concept of interface MUST be SESSION
         if (!$ifc->getSrcConcept()->isSession()) {
@@ -181,9 +169,6 @@ class ExcelImporter
      * Multiple block of imports can be specified on a single sheet.
      * The parser looks for the brackets '[ ]' to start a new block
      *
-     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $worksheet
-     * @return void
-     *
      * Format of sheet:
      *           | Column A        | Column B        | Column C        | etc
      * Row 1     | [ block label ] | <relation name> | <relation name> | etc
@@ -193,7 +178,7 @@ class ExcelImporter
      * etc
      *
      */
-    protected function parseWorksheet(Worksheet $worksheet)
+    protected function parseWorksheet(Worksheet $worksheet): void
     {
         // Find import blocks
         $blockStartRowNrs = [];
@@ -216,20 +201,15 @@ class ExcelImporter
 
     /**
      * Undocumented function
-     *
-     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $worksheet
-     * @param int $startRowNr
-     * @param int|null $endRowNr
-     * @return void
      */
-    protected function parseBlock(Worksheet $worksheet, int $startRowNr, int $endRowNr = null)
+    protected function parseBlock(Worksheet $worksheet, int $startRowNr, ?int $endRowNr = null): void
     {
         $line1 = [];
         $line2 = [];
         $header = [];
 
         $i = 0; // row counter
-        foreach ($worksheet->getRowIterator($startRowNr, $endRowNr) as $row) {
+        foreach ($worksheet->getRowIterator($startRowNr, $endRowNr) as $row) { // @phan-suppress-current-line PhanTypeMismatchArgumentNullable
             $i++; // increment row counter
 
             // Header line 1 specifies relation names
@@ -294,13 +274,8 @@ class ExcelImporter
     
     /**
      * Undocumented function
-     *
-     * @param \Ampersand\Core\Atom $leftAtom
-     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Row $row
-     * @param array $headerInfo
-     * @return void
      */
-    protected function processDataRow(Atom $leftAtom, Row $row, array $headerInfo)
+    protected function processDataRow(Atom $leftAtom, Row $row, array $headerInfo): void
     {
         foreach ($row->getCellIterator('B') as $cell) {
             $col = $cell->getColumn();

@@ -24,18 +24,15 @@ class UserLogger extends AbstractLogger
 {
     /**
      * Logger instance
-     * All notifications/logs for the user are also logged to this logger
      *
-     * @var \Psr\Log\LoggerInterface
+     * All notifications/logs for the user are also logged to this logger
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app for which this logger is defined
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $app;
+    protected AmpersandApp $app;
 
     protected $errors = [];
     protected $invariants = [];
@@ -46,9 +43,6 @@ class UserLogger extends AbstractLogger
 
     /**
      * Constructor
-     *
-     * @param \Ampersand\AmpersandApp $app
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(AmpersandApp $app, LoggerInterface $logger)
     {
@@ -62,10 +56,8 @@ class UserLogger extends AbstractLogger
      * @param mixed  $level
      * @param string $message
      * @param array  $context
-     *
-     * @return void
      */
-    public function log($level, $message, array $context = array())
+    public function log($level, $message, array $context = array()): void
     {
         // Also log to non-user log
         $this->logger->log($level, $message, $context);
@@ -108,7 +100,7 @@ class UserLogger extends AbstractLogger
         }
     }
 
-    public function getAll()
+    public function getAll(): array
     {
         return [ 'errors' => array_values($this->errors)
                , 'warnings' => array_values($this->warnings)
@@ -121,10 +113,8 @@ class UserLogger extends AbstractLogger
 
     /**
      * Clear all notification arrays
-     *
-     * @return void
      */
-    public function clearAll()
+    public function clearAll(): void
     {
         $this->logger->debug("Clear user notification lists");
         
@@ -138,11 +128,8 @@ class UserLogger extends AbstractLogger
 
     /**
      * Notify user of invariant rule violation
-     *
-     * @param \Ampersand\Rule\Violation $violation
-     * @return void
      */
-    public function invariant(Violation $violation)
+    public function invariant(Violation $violation): void
     {
         $rule = $violation->getRule();
         $hash = hash('md5', $rule->getId());
@@ -155,11 +142,8 @@ class UserLogger extends AbstractLogger
     
     /**
      * Notify user of signal rule violation
-     *
-     * @param \Ampersand\Rule\Violation $violation
-     * @return void
      */
-    public function signal(Violation $violation)
+    public function signal(Violation $violation): void
     {
         $rule = $violation->getRule();
         $ruleHash = hash('md5', $rule->getId());
@@ -170,7 +154,6 @@ class UserLogger extends AbstractLogger
         
         // Add links for src atom
         $ifcs = array_map(function (Ifc $ifc) use ($violation) {
-            /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
             $ifcobj = $ifc->getIfcObject();
             return ['id' => $ifcobj->getIfcId(),
                     'label' => $ifcobj->getIfcLabel(),
@@ -182,7 +165,6 @@ class UserLogger extends AbstractLogger
         if ($violation->getSrc()->concept !== $violation->getTgt()->concept || $violation->getSrc()->getId() !== $violation->getTgt()->getId()) {
             array_merge($ifcs, array_map(
                 function (Ifc $ifc) use ($violation) {
-                    /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
                     $ifcobj = $ifc->getIfcObject();
                     return [ 'id' => $ifcobj->getIfcId()
                            , 'label' => $ifcobj->getIfcLabel()

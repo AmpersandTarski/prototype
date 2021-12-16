@@ -11,21 +11,15 @@ class RequestIDProcessor
 {
     /**
      * Request identifier
-     *
-     * @var string
      */
-    protected $requestID;
+    protected string $requestID;
     
     public function __construct()
     {
         $this->requestID = bin2hex(random_bytes(5));
     }
 
-    /**
-     * @param  array $record
-     * @return array
-     */
-    public function __invoke(array $record)
+    public function __invoke(array $record): array
     {
         $record['extra']['request_id'] = $this->requestID;
 

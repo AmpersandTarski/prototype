@@ -20,7 +20,6 @@ set_exception_handler(function (Throwable $exception) {
 });
 
 register_shutdown_function(function () {
-    /** @var array|null $error */
     $error = error_get_last();
     if (isset($error) && ($error['type'] & (E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR))) {
         global $debugMode; // $debugMode is set below after loading setting files

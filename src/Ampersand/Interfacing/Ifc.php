@@ -28,48 +28,31 @@ class Ifc
 {
     /**
      * Interface id (i.e. escaped name) to use for referencing
-     *
-     * @var string
      */
-    protected $id;
+    protected string $id;
 
     /**
      * Human readable name of the interface (i.e. name as specified in Ampersand script)
-     *
-     * @var string
      */
-    protected $label;
+    protected string $label;
 
     /**
      * Specifies if this Interface is intended as API
-     *
-     * @var bool
      */
-    protected $isAPI;
+    protected bool $isAPI;
 
     /**
      * Root interface object (must be a InterfaceExprObject)
-     *
-     * @var \Ampersand\Interfacing\InterfaceExprObject
      */
-    protected $ifcObject;
+    protected InterfaceExprObject $ifcObject;
 
     /**
      * Reference to Ampersand model
-     *
-     * @var \Ampersand\Model
      */
-    protected $model;
+    protected Model $model;
 
     /**
      * Constructor
-     *
-     * @param string $id
-     * @param string $label
-     * @param bool $isAPI
-     * @param array $objectDef
-     * @param \Ampersand\Plugs\IfcPlugInterface $defaultPlug
-     * @param \Ampersand\Model $model
      */
     public function __construct(string $id, string $label, bool $isAPI, array $objectDef, IfcPlugInterface $defaultPlug, Model $model)
     {
@@ -87,8 +70,6 @@ class Ifc
 
     /**
      * Returns identifier of this interface
-     *
-     * @return string
      */
     public function getId(): string
     {
@@ -102,8 +83,6 @@ class Ifc
 
     /**
      * Atom representation of this interface object
-     *
-     * @return \Ampersand\Core\Atom
      */
     public function getIfcAtom(): Atom
     {
@@ -140,7 +119,7 @@ class Ifc
      *
      * @return \Ampersand\Core\Atom[]
      */
-    public function getRoleNames()
+    public function getRoleNames(): array
     {
         return $this->getIfcAtom()->getTargetAtoms(ProtoContext::REL_IFC_ROLES, false);
     }

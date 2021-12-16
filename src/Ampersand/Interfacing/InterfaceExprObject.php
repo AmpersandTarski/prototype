@@ -7,19 +7,23 @@
 
 namespace Ampersand\Interfacing;
 
-use Exception;
-use Ampersand\Core\Relation;
-use Ampersand\Core\Concept;
 use Ampersand\Core\Atom;
+use Ampersand\Core\Concept;
+use Ampersand\Core\Relation;
+use Ampersand\Core\SrcOrTgt;
+use Ampersand\Core\TType;
 use Ampersand\Exception\AccessDeniedException;
-
-use function Ampersand\Misc\isSequential;
-use Ampersand\Plugs\IfcPlugInterface;
-use Ampersand\Interfacing\Options;
+use Ampersand\Interfacing\AbstractIfcObject;
+use Ampersand\Interfacing\BoxHeader;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\InterfaceObjectInterface;
+use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\Resource;
-use Ampersand\Interfacing\AbstractIfcObject;
+use Ampersand\Interfacing\View;
+use Ampersand\Plugs\IfcPlugInterface;
+use Ampersand\Plugs\MysqlDB\TableType;
+use Exception;
+use function Ampersand\Misc\isSequential;
 
 /**
  *
@@ -30,154 +34,68 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 {
     /**
      * Dependency injection of an IfcPlug implementation
-     * @var \Ampersand\Plugs\IfcPlugInterface
      */
-    protected $plug;
+    protected IfcPlugInterface $plug;
     
     /**
      * Interface id (i.e. safe name) to use in framework
-     * @var string
      */
-    protected $id;
+    protected string $id;
     
     /**
-     *
-     * @var string
+     * Path to this interface object; concatenation of interface name + sub interface labels
      */
-    protected $path;
+    protected string $path;
     
     /**
      * Interface name to show in UI
-     * @var string
      */
-    protected $label;
+    protected string $label;
     
-    /**
-     *
-     * @var bool|null
-     */
-    protected $crudC;
+    protected ?bool $crudC;
+    protected ?bool $crudR;
+    protected ?bool $crudU;
+    protected ?bool $crudD;
     
-    /**
-     *
-     * @var bool|null
-     */
-    protected $crudR;
+    protected ?Relation $relation;
+    protected ?bool $relationIsFlipped;
     
-    /**
-     *
-     * @var bool|null
-     */
-    protected $crudU;
+    protected bool $isUni;
+    protected bool $isTot;
+    protected bool $isIdent;
     
-    /**
-     *
-     * @var bool|null
-     */
-    protected $crudD;
-    
-    /**
-     *
-     * @var \Ampersand\Core\Relation|null
-     */
-    protected $relation;
-    
-    /**
-     *
-     * @var boolean|null
-     */
-    protected $relationIsFlipped;
-    
-    /**
-     *
-     * @var boolean
-     */
-    protected $isUni;
-    
-    /**
-     *
-     * @var boolean
-     */
-    protected $isTot;
-    
-    /**
-     *
-     * @var boolean
-     */
-    protected $isIdent;
-    
-    /**
-     *
-     * @var string
-     */
-    protected $query;
+    protected string $query;
 
     /**
      * Determines if query contains data for subinterfaces
+     *
      * See https://github.com/AmpersandTarski/Ampersand/issues/217
-     *
-     * @var bool
      */
-    protected $queryContainsSubData = false;
+    protected bool $queryContainsSubData = false;
+    
+    protected Concept $srcConcept;
+    protected Concept $tgtConcept;
+    
+    protected ?View $view;
+    protected ?BoxHeader $boxHeader = null;
+    
+    protected string $refInterfaceId;
+    protected bool $isLinkTo = false;
     
     /**
-     *
-     * @var \Ampersand\Core\Concept
-     */
-    protected $srcConcept;
-    
-    /**
-     *
-     * @var \Ampersand\Core\Concept
-     */
-    protected $tgtConcept;
-    
-    /**
-     *
-     * @var \Ampersand\Interfacing\View|null
-     */
-    protected $view;
-
-    /**
-     *
-     * @var \Ampersand\Interfacing\BoxHeader|null
-     */
-    protected $boxHeader = null;
-    
-    /**
-     *
-     * @var string
-     */
-    protected $refInterfaceId;
-    
-    /**
-     *
-     * @var boolean
-     */
-    protected $isLinkTo = false;
-    
-    /**
-     *
      * @var \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
-    protected $subInterfaces = [];
+    protected array $subInterfaces = [];
 
     /**
      * Interface of which this object is part of
-     *
-     * @var \Ampersand\Interfacing\Ifc
      */
-    protected $rootIfc;
+    protected Ifc $rootIfc;
 
     /**
      * Constructor
-     *
-     * @param array $ifcDef Interface object definition as provided by Ampersand generator
-     * @param \Ampersand\Plugs\IfcPlugInterface $plug
-     * @param \Ampersand\Interfacing\Ifc $rootIfc
-     * @param \Ampersand\Interfacing\InterfaceObjectInterface|null $parent
      */
-    public function __construct(array $ifcDef, IfcPlugInterface $plug, Ifc $rootIfc, InterfaceObjectInterface $parent = null)
+    public function __construct(array $ifcDef, IfcPlugInterface $plug, Ifc $rootIfc, ?InterfaceObjectInterface $parent = null)
     {
         if ($ifcDef['type'] != 'ObjExpression') {
             throw new Exception("Provided interface definition is not of type ObjExpression", 500);
@@ -216,7 +134,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         if (!is_null($subIfcsDef)) {
             // Subinterfacing is not supported/possible for tgt concepts with a scalar representation type (i.e. non-objects)
             if (!$this->tgtConcept->isObject()) {
-                throw new Exception("Subinterfacing is not supported for concepts with a scalar representation type (i.e. non-objects). (Sub)Interface '{$this->path}' with target {$this->tgtConcept} (type:{$this->tgtConcept->type}) has subinterfaces specified", 501);
+                throw new Exception("Subinterfacing is not supported for concepts with a scalar representation type (i.e. non-objects). (Sub)Interface '{$this->path}' with target {$this->tgtConcept} (ttype:{$this->tgtConcept->type->value}) has subinterfaces specified", 501);
             }
 
             /* Subinterfaces can be one of:
@@ -270,7 +188,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Function is called when object is treated as a string
-     * @return string
      */
     public function __toString(): string
     {
@@ -299,8 +216,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Returns interface relation (when interface expression = relation), throws exception otherwise
-     * @throws \Exception when interface expression is not an (editable) relation
-     * @return \Ampersand\Core\Relation
      */
     protected function relation(): Relation
     {
@@ -313,7 +228,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Returns if interface expression is editable (i.e. expression = relation)
-     * @return bool
      */
     protected function isEditable(): bool
     {
@@ -324,7 +238,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      * Array with all editable concepts for this interface and all sub interfaces
      * @return \Ampersand\Core\Concept[]
      */
-    public function getEditableConcepts()
+    public function getEditableConcepts(): array
     {
         $arr = [];
         
@@ -343,7 +257,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Returns if interface expression relation is a property
-     * @return bool
      */
     protected function isProp(): bool
     {
@@ -352,7 +265,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Returns if interface is a reference to another interface
-     * @return bool
      */
     protected function isRef(): bool
     {
@@ -363,7 +275,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      * Returns referenced interface object
      *
      * @throws Exception when $this is not a reference interface
-     * @return \Ampersand\Interfacing\Ifc
      */
     protected function getRefToIfc(): Ifc
     {
@@ -376,7 +287,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Returns if interface object is a leaf node
-     * @return bool
      */
     protected function isLeaf(int $options = Options::DEFAULT_OPTIONS): bool
     {
@@ -390,9 +300,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Returns if the interface expression isIdent
-     * Note! Epsilons are not included
      *
-     * @return boolean
+     * Note! Epsilons are not included
      */
     public function isIdent(): bool
     {
@@ -467,7 +376,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Returns generated query for this interface expression
-     * @return string
      */
     public function getQuery(): string
     {
@@ -476,9 +384,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Function to manually set optimized query
-     *
-     * @param string $query
-     * @return void
      */
     public function setQuery(string $query): void
     {
@@ -487,21 +392,12 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Returns if subinterface is defined
-     *
-     * @param string $ifcId
-     * @param int $options
-     * @return bool
      */
     public function hasSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): bool
     {
         return array_key_exists($ifcId, $this->getSubinterfaces($options));
     }
     
-    /**
-     * @param string $ifcId
-     * @param int $options
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface
-     */
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         if (!array_key_exists($ifcId, $subifcs = $this->getSubinterfaces($options))) {
@@ -511,11 +407,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         return $subifcs[$ifcId];
     }
     
-    /**
-     * @param string $ifcLabel
-     * @param int $options
-     * @return \Ampersand\Interfacing\InterfaceObjectInterface
-     */
     public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         foreach ($this->getSubinterfaces($options) as $ifc) {
@@ -528,7 +419,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     }
     
     /**
-     * @param int $options
+     * Undocumented function
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS): array
@@ -552,7 +443,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     /**
      * @return \Ampersand\Interfacing\Ifc[]
      */
-    protected function getNavInterfacesForTgt()
+    protected function getNavInterfacesForTgt(): array
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
@@ -576,10 +467,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     }
 
     /**
-     * Undocumented function
-     *
-     * @param \Ampersand\Core\Atom $tgtAtom the atom for which to get view data
-     * @return array
+     * Get view data for specified atom
      */
     public function getViewData(Atom $tgtAtom): array
     {
@@ -592,10 +480,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Returns path for given tgt atom
-     *
-     * @param \Ampersand\Core\Atom $tgt
-     * @param string $pathToSrc
-     * @return string
      */
     public function buildResourcePath(Atom $tgt, string $pathToSrc): string
     {
@@ -613,7 +497,14 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
     }
     
-    public function read(Atom $src, string $pathToSrc, string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(
+        Atom $src,
+        string $pathToSrc,
+        string $tgtId = null,
+        int $options = Options::DEFAULT_OPTIONS,
+        int $depth = null,
+        array $recursionArr = []
+    ): mixed
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for ". $this->getPath(), 405);
@@ -642,7 +533,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // Notice that ->getResourceContent() is not called. The interface stops here.
         } else {
             // Temporary hack to prevent passwords from being returned to user
-            if ($this->tgtConcept->type === 'PASSWORD') {
+            if ($this->tgtConcept->type === TType::PASSWORD) {
                 $result = [];
             } else {
                 $result = array_map(function (Atom $tgt) {
@@ -659,7 +550,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
     }
 
-    protected function getResourceContent(Atom $tgt, string $pathToSrc, $options, $depth, $recursionArr)
+    protected function getResourceContent(Atom $tgt, string $pathToSrc, $options, $depth, $recursionArr): string|array
     {
         // Prevent infinite loops for reference interfaces when no depth is provided
         // We only need to check LINKTO ref interfaces, because cycles may not exist in regular references (enforced by Ampersand generator)
@@ -705,7 +596,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             }
 
             foreach ($this->getSubinterfaces($options) as $ifcObj) {
-                /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcObj */
                 if (!$ifcObj->crudR()) {
                     continue; // skip subinterface if not given read rights (otherwise exception will be thrown when getting content)
                 }
@@ -784,12 +674,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Set provided value (for univalent interfaces)
-     *
-     * @param \Ampersand\Core\Atom $src
-     * @param mixed|null $value
-     * @return ?\Ampersand\Core\Atom
      */
-    public function set(Atom $src, $value = null): ?Atom
+    public function set(Atom $src, mixed $value = null): ?Atom
     {
         if (!$this->isUni()) {
             throw new Exception("Cannot use set() for non-univalent interface " . $this->getPath() . ". Use add or remove instead", 400);
@@ -823,12 +709,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Add value to resource list
-     * @param \Ampersand\Core\Atom $src
-     * @param mixed $value
-     * @param bool $skipCrudUCheck
-     * @return \Ampersand\Core\Atom
      */
-    public function add(Atom $src, $value, bool $skipCrudUCheck = false): Atom
+    public function add(Atom $src, mixed $value, bool $skipCrudUCheck = false): Atom
     {
         if (!isset($value)) {
             throw new Exception("Cannot add item. Value not provided", 400);
@@ -850,19 +732,15 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
         
         $tgt->add();
-        $src->link($tgt, $this->relation(), $this->relationIsFlipped)->add();
+        $src->link($tgt, $this->relation(), $this->relationIsFlipped ?? false)->add();
         
         return $tgt;
     }
 
     /**
      * Remove value from resource list
-     *
-     * @param \Ampersand\Core\Atom $src
-     * @param mixed $value
-     * @return void
      */
-    public function remove(Atom $src, $value): void
+    public function remove(Atom $src, mixed $value): void
     {
         if (!isset($value)) {
             throw new Exception("Cannot remove item. Value not provided", 400);
@@ -879,16 +757,13 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
         
         $tgt = new Atom($value, $this->tgtConcept);
-        $src->link($tgt, $this->relation(), $this->relationIsFlipped)->delete();
+        $src->link($tgt, $this->relation(), $this->relationIsFlipped ?? false)->delete();
         
         return;
     }
 
     /**
      * Undocumented function
-     *
-     * @param \Ampersand\Core\Atom $src
-     * @return void
      */
     public function removeAll(Atom $src): void
     {
@@ -899,7 +774,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             throw new Exception("Update not allowed for " . $this->getPath(), 405);
         }
         
-        $this->relation->deleteAllLinks($src, ($this->relationIsFlipped ? 'tgt' : 'src'));
+        $this->relation->deleteAllLinks($src, ($this->relationIsFlipped ? SrcOrTgt::TGT : SrcOrTgt::SRC));
 
         return;
     }
@@ -919,12 +794,9 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     /**
      * Return list of target atoms
      *
-     *
-     * @param \Ampersand\Core\Atom $src
-     * @param string|null $selectTgt
      * @return \Ampersand\Core\Atom[]
      */
-    public function getTgtAtoms(Atom $src, string $selectTgt = null): array
+    public function getTgtAtoms(Atom $src, ?string $selectTgt = null): array
     {
         if (!$this->crudR()) {
             throw new Exception("Read not allowed for " . $this->getPath(), 405);
@@ -980,7 +852,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             , 'src' => $this->srcConcept->name
             , 'tgt' => $this->tgtConcept->name
             , 'view' => $this->view->label ?? ''
-            , 'relation' => $this->isEditable() ? $this->relation()->signature : ''
+            , 'relation' => $this->relation?->signature
             , 'flipped' => $this->relationIsFlipped
             , 'ref' => $this->refInterfaceId
             ];
@@ -1020,8 +892,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             // Only applies to crudU, because issue is with patchReplace, not with add/remove
             // Only applies to scalar, because objects don't use patchReplace, but Remove and Add
             // Only if interface expression (not! the relation) is univalent, because else a add/remove option is used in the UI
-            if ((!$this->relationIsFlipped && $this->relation()->getMysqlTable()->inTableOf() === 'tgt')
-                    || ($this->relationIsFlipped && $this->relation()->getMysqlTable()->inTableOf() === 'src')) {
+            if ((!$this->relationIsFlipped && $this->relation()->getMysqlTable()->inTableOf() === TableType::Tgt)
+                    || ($this->relationIsFlipped && $this->relation()->getMysqlTable()->inTableOf() === TableType::Src)) {
                 $diagnostics[] = [ 'interface' => $this->getPath()
                                  , 'message' => "Unsupported edit functionality due to combination of factors. See issue #318"
                                  ];

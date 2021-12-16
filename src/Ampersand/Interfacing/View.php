@@ -21,41 +21,35 @@ class View
 {
     /**
      * Dependency injection of an ViewPlug implementation
-     * @var \Ampersand\Plugs\ViewPlugInterface
      */
-    protected $plug;
+    protected ViewPlugInterface $plug;
     
     /**
      * Name (and unique identifier) of view
-     * @var string
      */
-    public $label;
+    public string $label;
     
     /**
      * Specifies if this view is defined as default view for $this->concept
-     * @var boolean
      */
-    protected $isDefault;
+    protected bool $isDefault;
     
     /**
      * Specifies the concept for which this view can defined
-     * @var string
      */
-    protected $forConcept;
+    protected string $forConcept;
     
     /**
      * Array with view segments that are used to build the view
+     *
      * @var \Ampersand\Interfacing\ViewSegment[]
      */
-    protected $segments = [];
+    protected array $segments = [];
     
     /**
-     * View constructor
-     *
-     * @param array $viewDef
-     * @param \Ampersand\Plugs\ViewPlugInterface $plug
+     * Constructor
      */
-    public function __construct($viewDef, ViewPlugInterface $plug)
+    public function __construct(array $viewDef, ViewPlugInterface $plug)
     {
         $this->plug = $plug;
         
@@ -68,7 +62,7 @@ class View
         }
     }
     
-    public function getLabel()
+    public function getLabel(): string
     {
         return $this->label;
     }
@@ -79,10 +73,9 @@ class View
     }
     
     /**
-     * @param Atom $srcAtom the atom for which to get the view data
-     * @return array
+     * Get view data for specified atom
      */
-    public function getViewData(Atom $srcAtom)
+    public function getViewData(Atom $srcAtom): array
     {
         $viewData = [];
         foreach ($this->segments as $viewSegment) {
@@ -93,11 +86,8 @@ class View
 
     /**
      * Get specific view segment
-     *
-     * @param string|int $label
-     * @return \Ampersand\Interfacing\ViewSegment
      */
-    public function getSegment($label): ViewSegment
+    public function getSegment(string|int $label): ViewSegment
     {
         foreach ($this->segments as $segment) {
             if ($segment->getLabel() == $label) {

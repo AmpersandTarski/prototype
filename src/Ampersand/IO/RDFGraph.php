@@ -39,7 +39,6 @@ class RDFGraph extends \EasyRdf\Graph
 
     protected function addOntology(Settings $settings): void
     {
-        /** @var \EasyRdf\Resource $ontology */
         $ontology = $this->resource('app:ontology', 'owl:Ontology');
         $ontology->set('dc:title', $settings->get('global.contextName'));
         $ontology->set('owl:versionInfo', $settings->get('global.version'));
@@ -50,7 +49,6 @@ class RDFGraph extends \EasyRdf\Graph
     {
         // owl:Class
         if ($concept->isObject()) {
-            /** @var \EasyRdf\Resource $cptResource */
             $cptResource = $this->resource("app:{$concept->getId()}", 'owl:Class');
             $cptResource->set('rdfs:label', $concept->label);
             foreach ($concept->getGeneralizations(true) as $generalization) {
@@ -76,7 +74,6 @@ class RDFGraph extends \EasyRdf\Graph
 
         $type = $relation->tgtConcept->isObject() ? 'owl:ObjectProperty' : 'owl:DatatypeProperty';
 
-        /** @var \EasyRdf\Resource $relationResource */
         $relationUniqueName = "{$relation->srcConcept->getId()}-{$relation->name}"; // TODO: also add tgt concept, because full signature must be unique
         $relationResource = $this->resource("app:{$relationUniqueName}", $type);
         $relationResource->set('rdfs:label', $relation->name);
@@ -101,7 +98,7 @@ class RDFGraph extends \EasyRdf\Graph
             $this->addCardinalityConstraint($range, $relationResource, $min, $max);
         } else {
             // TODO: add cardinality constraint... why did I skip this??
-            $relationResource->addResource('rdfs:range', $relation->tgtConcept->getDatatype('xml'));
+            $relationResource->addResource('rdfs:range', $relation->tgtConcept->type->getXmlTypeUri());
             // Skip cardinality constraints on range
         }
     }
@@ -121,7 +118,6 @@ class RDFGraph extends \EasyRdf\Graph
         }
 
         // owl:Restriction
-        /** @var \EasyRdf\Resource $restriction */
         $restriction = $this->newBNode('owl:Restriction');
         $restriction->addResource('owl:onProperty', $property);
         $class->addResource('rdfs:subClassOf', $restriction); // make the class a subclass of the new restriction class
@@ -144,9 +140,6 @@ class RDFGraph extends \EasyRdf\Graph
 
     /**
      * Perform content negotiation based on accept header parameter and return a response format
-     *
-     * @param string $acceptHeader A HTTP accept header string
-     * @return \EasyRdf\Format
      */
     public static function getResponseFormat(string $acceptHeader): \EasyRdf\Format
     {

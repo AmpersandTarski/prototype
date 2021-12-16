@@ -17,23 +17,16 @@ class Reporter
 {
     /**
      * Encoder
-     *
-     * @var \Symfony\Component\Serializer\Encoder\EncoderInterface
      */
-    protected $encoder;
+    protected EncoderInterface $encoder;
 
     /**
      * Stream to output the report(s) to
-     *
-     * @var \Psr\Http\Message\StreamInterface
      */
-    protected $stream;
+    protected StreamInterface $stream;
 
     /**
      * Constructor
-     *
-     * @param \Symfony\Component\Serializer\Encoder\EncoderInterface $encoder
-     * @param \Psr\Http\Message\StreamInterface $stream
      */
     public function __construct(EncoderInterface $encoder, StreamInterface $stream)
     {
@@ -44,22 +37,19 @@ class Reporter
     /**
      * Encode and write data to stream
      *
-     * @param string $format encoding format (must be supported by $this->encoder)
-     * @param mixed $data data to output
-     * @return void
+     * Note! The specified format must be supported by the encoder
      */
-    protected function write(string $format, $data)
+    protected function write(string $format, mixed $data): void
     {
         $this->stream->write($this->encoder->encode($data, $format));
     }
 
     /**
      * Write relation definition report
+     *
      * Specifies multiplicity constraints, related conjuncts and other aspects of provided relations
      *
      * @param \Ampersand\Core\Relation[] $relations
-     * @param string $format
-     * @return \Ampersand\Misc\Reporter
      */
     public function reportRelationDefinitions(array $relations, string $format): Reporter
     {
@@ -88,7 +78,7 @@ class Reporter
             foreach ($relation->getRelatedConjuncts() as $conjunct) {
                 $relArr['affectedConjuncts'][] = $conjunct->showInfo();
             }
-            $relArr['srcOrTgtTable'] = $relation->getMysqlTable()->inTableOf();
+            $relArr['srcOrTgtTable'] = $relation->getMysqlTable()->inTableOf()->value;
             
             return $relArr;
         }, $relations);
@@ -126,16 +116,15 @@ class Reporter
 
     /**
      * Write interface report
+     *
      * Inlcuding interface (sub) objects aspects like path, label, crud-rights, etc
      *
-     * @param string $format
-     * @return \Ampersand\Misc\Reporter
+     * @param \Ampersand\Interfacing\Ifc[] $interfaces
      */
-    public function reportInterfaceObjectDefinitions(array $interfaces, string $format): Reporter
+    public function reportInterfaceObjectDefinitions(array $interfaces, string $format): self
     {
         $content = [];
         foreach ($interfaces as $ifc) {
-            /** @var \Ampersand\Interfacing\Ifc $ifc */
             $content = array_merge($content, $ifc->getIfcObject()->getIfcObjFlattened());
         }
         
@@ -150,18 +139,16 @@ class Reporter
 
     /**
      * Write interface issue report
+     *
      * Currently focussed on CRUD rights
      *
-     * @param string $format
-     * @return \Ampersand\Misc\Reporter
+     * @param \Ampersand\Interfacing\Ifc[] $interfaces
      */
-    public function reportInterfaceIssues(array $interfaces, string $format): Reporter
+    public function reportInterfaceIssues(array $interfaces, string $format): self
     {
         $content = [];
         foreach ($interfaces as $interface) {
-            /** @var \Ampersand\Interfacing\Ifc $interface */
             foreach ($interface->getIfcObject()->getIfcObjFlattened() as $ifcObj) {
-                /** @var InterfaceObjectInterface $ifcObj */
                 $content = array_merge($content, $ifcObj->diagnostics());
             }
         }
@@ -177,17 +164,15 @@ class Reporter
 
     /**
      * Write conjunct usage report
+     *
      * Specifies which conjuncts are used by which rules, grouped by invariants, signals, and unused conjuncts
      *
      * @param \Ampersand\Rule\Conjunct[] $conjuncts
-     * @param string $format
-     * @return \Ampersand\Misc\Reporter
      */
-    public function reportConjunctUsage(array $conjuncts, string $format): Reporter
+    public function reportConjunctUsage(array $conjuncts, string $format): self
     {
         $content = [];
         foreach ($conjuncts as $conj) {
-            /** @var \Ampersand\Rule\Conjunct $conj */
             if ($conj->isInvConj()) {
                 $content['invConjuncts'][] = $conj->__toString();
             }
@@ -208,16 +193,13 @@ class Reporter
      * Write conjunct performance report
      *
      * @param \Ampersand\Rule\Conjunct[] $conjuncts
-     * @param string $format
-     * @return \Ampersand\Misc\Reporter
      */
-    public function reportConjunctPerformance(array $conjuncts, string $format): Reporter
+    public function reportConjunctPerformance(array $conjuncts, string $format): self
     {
         $content = [];
         
-        // run all conjuncts (from - to)
+        // Run all conjuncts (from - to)
         foreach ($conjuncts as $conjunct) {
-            /** @var \Ampersand\Rule\Conjunct $conjunct */
             $startTimeStamp = microtime(true); // true means get as float instead of string
             $conjunct->evaluate();
             $endTimeStamp = microtime(true);

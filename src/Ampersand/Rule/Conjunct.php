@@ -7,9 +7,10 @@
 
 namespace Ampersand\Rule;
 
-use Exception;
 use Ampersand\AmpersandApp;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
+use Exception;
+use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 
@@ -22,84 +23,68 @@ class Conjunct
 {
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app for which this conjunct is defined
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $app;
+    protected AmpersandApp $app;
 
     /**
      * Database to evaluate conjuncts and store violation cache
-     *
-     * @var \Ampersand\Plugs\MysqlDB\MysqlDB
      */
-    protected $database;
+    protected MysqlDB $database;
 
     /**
      * Undocumented variable
-     *
-     * @var \Psr\Cache\CacheItemPoolInterface
      */
-    protected $cachePool;
+    protected CacheItemPoolInterface $cachePool;
     
     /**
      * Undocumented variable
-     *
-     * @var \Psr\Cache\CacheItemInterface
      */
-    protected $cacheItem;
+    protected CacheItemInterface $cacheItem;
 
     /**
      * Conjunct identifier
-     *
-     * @var string
      */
-    protected $id;
+    protected string $id;
     
     /**
      * Query to evaluate conjunct (i.e. get violations)
-     *
-     * @var string
      */
-    protected $query;
+    protected string $query;
     
     /**
      * List invariant rules that use this conjunct
      *
      * @var string[]
      */
-    protected $invRuleNames;
+    protected array $invRuleNames;
     
     /**
      * List signal rules that use this conjunct
      *
      * @var string[]
      */
-    protected $sigRuleNames;
+    protected array $sigRuleNames;
     
     /**
      * Specifies if conjunct is already evaluated
-     *
-     * @var bool
      */
-    protected $isEvaluated = false;
+    protected bool $isEvaluated = false;
     
     /**
-     * Conjunct constructor
-     *
-     * @param array $conjDef
-     * @param \Ampersand\AmpersandApp $app
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Ampersand\Plugs\MysqlDB\MysqlDB $database
-     * @param \Psr\Cache\CacheItemPoolInterface $cachePool
+     * Constructor
      */
-    public function __construct(array $conjDef, AmpersandApp $app, LoggerInterface $logger, MysqlDB $database, CacheItemPoolInterface $cachePool)
+    public function __construct(
+        array $conjDef,
+        AmpersandApp $app,
+        LoggerInterface $logger,
+        MysqlDB $database,
+        CacheItemPoolInterface $cachePool
+    )
     {
         $this->logger = $logger;
         $this->app = $app;
@@ -116,8 +101,6 @@ class Conjunct
     
     /**
      * Function is called when object is treated as a string
-     *
-     * @return string identifier of conjunct
      */
     public function __toString(): string
     {
@@ -131,7 +114,6 @@ class Conjunct
     
     /**
      * Check is conjunct is used by/part of a signal rule
-     * @return bool
      */
     public function isSigConj(): bool
     {
@@ -140,7 +122,6 @@ class Conjunct
     
     /**
      * Check is conjunct is used by/part of a invariant rule
-     * @return bool
      */
     public function isInvConj(): bool
     {
@@ -159,8 +140,6 @@ class Conjunct
 
     /**
      * Get query to evaluate conjunct violations
-     *
-     * @return string
      */
     public function getQuery(): string
     {
@@ -169,10 +148,9 @@ class Conjunct
     
     /**
      * Specificies if conjunct is part of UNI or INJ rule
+     *
      * Temporary fuction to be able to skip uni and inj conj
      * TODO: remove after fix for issue #535
-     *
-     * @return bool
      */
     protected function isUniOrInjConj(): bool
     {
@@ -184,8 +162,7 @@ class Conjunct
     /**
      * Get violation pairs of this conjunct
      *
-     * @param boolean $forceReEvaluation
-     * @return array[] [['conjId' => '<conjId>', 'src' => '<srcAtomId>', 'tgt' => '<tgtAtomId>'], [], ..]
+     * @return array{conjId: string, src: string, tgt: string}[]
      */
     public function getViolations(bool $forceReEvaluation = false): array
     {
@@ -208,10 +185,8 @@ class Conjunct
     
     /**
      * Evaluate conjunct and return array with violation pairs
-     *
-     * @return $this
      */
-    public function evaluate(): Conjunct
+    public function evaluate(): self
     {
         $this->logger->debug("Evaluating conjunct '{$this->id}'");
         
@@ -240,7 +215,7 @@ class Conjunct
         }
     }
 
-    public function persistCacheItem()
+    public function persistCacheItem(): void
     {
         $this->cachePool->save($this->cacheItem);
     }

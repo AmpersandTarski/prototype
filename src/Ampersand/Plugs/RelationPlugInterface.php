@@ -10,6 +10,7 @@ namespace Ampersand\Plugs;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Link;
 use Ampersand\Core\Relation;
+use Ampersand\Core\SrcOrTgt;
 
 /**
  *
@@ -18,37 +19,36 @@ use Ampersand\Core\Relation;
  */
 interface RelationPlugInterface extends StorageInterface
 {
-    
-    public function linkExists(Link $link);
+    /**
+    * Check if link exists in storage
+    */
+    public function linkExists(Link $link): bool;
     
     /**
     * Get all links given a relation
-    * @param Relation $relation
-    * @param \Ampersand\Core\Atom|null $srcAtom if specified get all links with $srcAtom as source
-    * @param \Ampersand\Core\Atom|null $tgtAtom if specified get all links with $tgtAtom as tgt
-    * @return Link[]
+    *
+    * If src and/or tgt atom is specified only links are returned with these atoms
+    * @return \Ampersand\Core\Link[]
     */
-    public function getAllLinks(Relation $relation, Atom $srcAtom = null, Atom $tgtAtom = null);
-    
-    public function addLink(Link $link);
-    
-    public function deleteLink(Link $link);
+    public function getAllLinks(Relation $relation, ?Atom $srcAtom = null, ?Atom $tgtAtom = null): array;
     
     /**
-     * Delete all links in a relation with provided atom as src or target
-     *
-     * @param \Ampersand\Core\Relation $relation relation from which to delete all links
-     * @param \Ampersand\Core\Atom $atom atom for which to delete all links
-     * @param string $srcOrTgt specifies to delete all link with $atom as src or tgt
-     * @return void
+     * Add link (srcAtom,tgtAtom) in storage
      */
-    public function deleteAllLinks(Relation $relation, Atom $atom, string $srcOrTgt): void;
+    public function addLink(Link $link): void;
+    
+    /**
+     * Delete link (srcAtom,tgtAtom) from storage
+     */
+    public function deleteLink(Link $link): void;
+    
+    /**
+     * Delete all links in the specified relation with the specified atom as src or target
+     */
+    public function deleteAllLinks(Relation $relation, Atom $atom, SrcOrTgt $srcOrTgt): void;
 
     /**
      * Delete all links in a relation
-     *
-     * @param \Ampersand\Core\Relation $relation
-     * @return void
      */
     public function emptyRelation(Relation $relation): void;
 }

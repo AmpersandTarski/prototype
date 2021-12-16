@@ -15,6 +15,8 @@ use Ampersand\Core\Atom;
 use Ampersand\Core\Link;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
+use Ampersand\Core\SrcOrTgt;
+use Ampersand\Core\TType;
 use Ampersand\Interfacing\ViewSegment;
 use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Plugs\ConceptPlugInterface;
@@ -34,94 +36,69 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
 {
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
     
     /**
      * A connection to the mysql database
-     *
-     * @var \mysqli
      */
-    protected $dbLink;
+    protected \mysqli $dbLink;
     
     /**
      * Host/server of mysql database
-     *
-     * @var string
      */
-    protected $dbHost;
+    protected string $dbHost;
     
     /**
      * Username for mysql database
-     *
-     * @var string
      */
-    protected $dbUser;
+    protected string $dbUser;
     
     /**
      * Password for mysql database
-     *
-     * @var string
      */
-    protected $dbPass;
+    protected string $dbPass;
     
     /**
      * Database name
-     *
-     * @var string
      */
-    protected $dbName;
+    protected string $dbName;
     
     /**
      * Specifies if database transaction is active
-     *
-     * @var bool
      */
-    protected $dbTransactionActive = false;
+    protected bool $dbTransactionActive = false;
 
     /**
      * Specifies if this object is in debug mode
-     * Affects the database exception-/error messages that are returned for errors in queries
      *
-     * @var bool
+     * Affects the database exception-/error messages that are returned for errors in queries
      */
-    protected $debugMode = false;
+    protected bool $debugMode = false;
 
     /**
      * Specifies if this object is in production mode
      * Affects the database exception-/error messages that are returned for errors in schema constructs (database, tables, columns, etc)
      */
-    protected $productionMode = false;
+    protected bool $productionMode = false;
 
     /**
      * Contains the last executed query
-     *
-     * @var $string
      */
-    protected $lastQuery = null;
+    protected ?string $lastQuery = null;
 
     /**
      * Number of queries executed within a transaction
      *
      * Attribute is reset to 0 on start of (new) transaction
-     *
-     * @var integer
      */
-    protected $queryCount = 0;
+    protected int $queryCount = 0;
     
     /**
      * Constructor
      *
      * Constructor of StorageInterface implementation MUST not throw Errors/Exceptions
      * when application is not installed (yet).
-     *
-     * @param string $dbHost
-     * @param string $dbUser
-     * @param string $dbPass
-     * @param string $dbName
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(string $dbHost, string $dbUser, string $dbPass, string $dbName, LoggerInterface $logger, bool $debugMode = false, bool $productionMode = false)
     {
@@ -154,12 +131,12 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         }
     }
 
-    public function init()
+    public function init(): void
     {
         $this->selectDB();
     }
 
-    protected function selectDB()
+    protected function selectDB(): void
     {
         try {
             $this->dbLink->select_db($this->dbName);
@@ -179,10 +156,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Function to create new database. Drops database (and loose all data) if already exists
-     *
-     * @return void
      */
-    protected function createDB()
+    protected function createDB(): void
     {
         // Drop database
         $this->logger->info("Drop database if exists: '{$this->dbName}'");
@@ -197,11 +172,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
 
     /**
      * The database is dropped, created again and all tables are created
-     *
-     * @param \Ampersand\Model $model
-     * @return void
      */
-    public function reinstallStorage(Model $model)
+    public function reinstallStorage(Model $model): void
     {
         $this->createDB();
         $structure = file_get_contents($model->getFolder() . '/database.sql');
@@ -214,7 +186,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $this->doQuery($queries, true);
     }
 
-    public function addToModelVersionHistory(Model $model)
+    public function addToModelVersionHistory(Model $model): void
     {
         $this->doQuery("INSERT INTO \"__ampersand_model_history__\" (\"compilerVersion\", \"checksum\") VALUES ('{$model->compilerVersion}', '{$model->checksum}')");
     }
@@ -233,22 +205,21 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      * Return escaped mysql representation of Atom (identifier) according to Ampersand technical types (TTypes)
      *
      * @throws Exception when technical type is not (yet) supported
-     * @return mixed
      */
-    protected function getDBRepresentation(Atom $atom)
+    protected function getDBRepresentation(Atom $atom): mixed
     {
         if (is_null($atom->getId())) {
             throw new Exception("Atom identifier MUST NOT be NULL", 500);
         }
         
         switch ($atom->concept->type) {
-            case "ALPHANUMERIC":
-            case "BIGALPHANUMERIC":
-            case "HUGEALPHANUMERIC":
-            case "PASSWORD":
-            case "TYPEOFONE":
+            case TType::ALPHANUMERIC:
+            case TType::BIGALPHANUMERIC:
+            case TType::HUGEALPHANUMERIC:
+            case TType::PASSWORD:
+            case TType::TYPEOFONE:
                 return (string) $this->escape($atom->getId());
-            case "BOOLEAN":
+            case TType::BOOLEAN:
                 // Booleans are stored as tinyint(1) in the database. False = 0, True = 1
                 switch ($atom->getId()) {
                     case "True":
@@ -259,36 +230,34 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                         throw new Exception("Unsupported string boolean value '{$atom->getId()}'. Supported are 'True', 'False'", 500);
                 }
                 break;
-            case "DATE":
+            case TType::DATE:
                 $datetime = new DateTime($atom->getId());
                 return $datetime->format('Y-m-d'); // format to store in database
-            case "DATETIME":
+            case TType::DATETIME:
                 // DateTime atom(s) may contain a timezone, otherwise UTC is asumed.
                 $datetime = new DateTime($atom->getId());
                 $datetime->setTimezone(new DateTimeZone('UTC')); // convert to UTC to store in database
                 return $datetime->format('Y-m-d H:i:s'); // format to store in database (UTC)
-            case "FLOAT":
+            case TType::FLOAT:
                 return (float) $atom->getId();
-            case "INTEGER":
+            case TType::INTEGER:
                 return (int) $atom->getId();
-            case "OBJECT":
+            case TType::OBJECT:
                 return $this->escape($atom->getId());
             default:
-                throw new Exception("Unknown/unsupported representation type '{$atom->concept->type}' for concept '[{$atom->concept}]'", 501);
+                throw new Exception("Unknown/unsupported ttype '{$atom->concept->type->value}' for concept '[{$atom->concept}]'", 501);
         }
     }
     
     /**
      * Execute query on database. Function replaces reserved words by their corresponding value (e.g. _SESSION)
-     * @param string $query
-     * @return boolean|array
      *
      * TODO:
      * Create private equivalent that is used by addAtom(), addLink(), deleteLink() and deleteAtom() functions, to perform any INSERT, UPDATE, DELETE
      * The public version should be allowed to only do SELECT queries.
      * This is needed to prevent Extensions or ExecEngine functions to go around the functions in this class that keep track of the affectedConjuncts.
      */
-    public function execute($query)
+    public function execute(string $query): bool|array
     {
         $this->logger->debug($query);
         $result = $this->doQuery($query);
@@ -319,13 +288,9 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Execute query on database.
-     *
-     * @param string $query
-     * @param bool $multiQuery specifies if query is a single command or multiple commands concatenated by a semicolon
-     * @return mixed
-     * @throws Exception
+     * Set multiQuery if query is a single command or multiple commands concatenated by a semicolon
      */
-    protected function doQuery($query, $multiQuery = false)
+    protected function doQuery(string $query, bool $multiQuery = false): mixed
     {
         $this->lastQuery = $query;
         try {
@@ -388,13 +353,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     /**
      * Escape identifier for use in database queries
      *
-     * @param string $escapestr
-     * @return NULL|string
-     *
      * http://php.net/manual/en/language.types.string.php#language.types.string.parsing
      * http://php.net/manual/en/mysqli.real-escape-string.php
      */
-    public function escape($escapestr)
+    public function escape(string $escapestr): ?string
     {
         if (is_null($escapestr)) {
             return null;
@@ -411,20 +373,16 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Returns name of storage implementation
-     * @return string
      */
-    public function getLabel()
+    public function getLabel(): string
     {
         return "MySQL database {$this->dbHost} - {$this->dbName}";
     }
     
     /**
      * Function to start/open a database transaction to track of all changes and be able to rollback
-     *
-     * @param \Ampersand\Transaction $transaction
-     * @return void
      */
-    public function startTransaction(Transaction $transaction)
+    public function startTransaction(Transaction $transaction): void
     {
         if (!$this->dbTransactionActive) {
             $this->logger->info("Start mysql database transaction for {$transaction}");
@@ -436,11 +394,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Function to commit the open database transaction
-     *
-     * @param \Ampersand\Transaction $transaction
-     * @return void
      */
-    public function commitTransaction(Transaction $transaction)
+    public function commitTransaction(Transaction $transaction): void
     {
         $this->logger->info("Commit mysql database transaction for {$transaction}");
         $this->execute("COMMIT");
@@ -450,11 +405,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Function to rollback changes made in the open database transaction
-     *
-     * @param \Ampersand\Transaction $transaction
-     * @return void
      */
-    public function rollbackTransaction(Transaction $transaction)
+    public function rollbackTransaction(Transaction $transaction): void
     {
         $this->logger->info("Rollback mysql database transaction for {$transaction}");
         $this->execute("ROLLBACK");
@@ -470,14 +422,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
 
     /**
     * Check if atom exists in database
-
-    * @param \Ampersand\Core\Atom $atom
-    * @return bool
     */
-    public function atomExists(Atom $atom)
+    public function atomExists(Atom $atom): bool
     {
         $tableInfo = $atom->concept->getConceptTableInfo();
-        /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $firstCol */
         $firstCol = current($tableInfo->getCols());
         $atomId = $this->getDBRepresentation($atom);
         
@@ -494,10 +442,9 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     /**
      * Get all atoms for given concept
      *
-     * @param \Ampersand\Core\Concept $concept
      * @return \Ampersand\Core\Atom[]
      */
-    public function getAllAtoms(Concept $concept)
+    public function getAllAtoms(Concept $concept): array
     {
         $tableInfo = $concept->getConceptTableInfo();
         
@@ -505,7 +452,6 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         if (isset($tableInfo->allAtomsQuery)) {
             $query = $tableInfo->allAtomsQuery;
         } else {
-            /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $firstCol */
             $firstCol = current($tableInfo->getCols()); // We can query an arbitrary concept col for checking the existence of an atom
             $query = "SELECT DISTINCT \"{$firstCol->getName()}\" as \"atomId\" FROM \"{$tableInfo->getName()}\" WHERE \"{$firstCol->getName()}\" IS NOT NULL";
         }
@@ -521,11 +467,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Add atom to database
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
      */
-    public function addAtom(Atom $atom)
+    public function addAtom(Atom $atom): void
     {
         $atomId = $this->getDBRepresentation($atom);
                         
@@ -544,7 +487,6 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         
         $str = '';
         foreach ($conceptCols as $col) {
-            /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $col */
             $str .= ", \"{$col->getName()}\" = '{$atomId}'";
         }
         $duplicateStatement = substr($str, 1);
@@ -557,13 +499,9 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     }
     
     /**
-     * Removing an atom as member from a concept set.
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @throws \Exception
-     * @return void
+     * Removing an atom as member from a concept set
      */
-    public function removeAtom(Atom $atom)
+    public function removeAtom(Atom $atom): void
     {
         $atomId = $this->getDBRepresentation($atom);
         
@@ -589,11 +527,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Delete atom from concept table in the database
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
      */
-    public function deleteAtom(Atom $atom)
+    public function deleteAtom(Atom $atom): void
     {
         $atomId = $this->getDBRepresentation($atom);
         
@@ -606,7 +541,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $this->checkForAffectedRows();
     }
 
-    public function executeCustomSQLQuery(string $query)
+    public function executeCustomSQLQuery(string $query): bool|array
     {
         return $this->execute($query);
     }
@@ -619,11 +554,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
     * Check if link exists in database
-
-    * @param \Ampersand\Core\Link $link
-    * @return bool
     */
-    public function linkExists(Link $link)
+    public function linkExists(Link $link): bool
     {
         $relTable = $link->relation()->getMysqlTable();
         $srcAtomId = $this->getDBRepresentation($link->src());
@@ -640,13 +572,11 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
     * Get all links given a relation
-
-    * @param \Ampersand\Core\Relation $relation
-    * @param \Ampersand\Core\Atom|null $srcAtom if specified get all links with $srcAtom as source
-    * @param \Ampersand\Core\Atom|null $tgtAtom if specified get all links with $tgtAtom as tgt
+    *
+    * If src and/or tgt atom is specified only links are returned with these atoms
     * @return \Ampersand\Core\Link[]
     */
-    public function getAllLinks(Relation $relation, Atom $srcAtom = null, Atom $tgtAtom = null): array
+    public function getAllLinks(Relation $relation, ?Atom $srcAtom = null, ?Atom $tgtAtom = null): array
     {
         $relTable = $relation->getMysqlTable();
         
@@ -676,11 +606,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Add link (srcAtom,tgtAtom) into database table for relation r
-     *
-     * @param \Ampersand\Core\Link $link
-     * @return void
      */
-    public function addLink(Link $link)
+    public function addLink(Link $link): void
     {
         $relation = $link->relation();
         $srcAtomId = $this->getDBRepresentation($link->src());
@@ -692,17 +619,17 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $tgtCol = $relTable->tgtCol()->getName();
         
         switch ($relTable->inTableOf()) {
-            case null: // Relation is administrated in n-n table
+            case TableType::Binary: // Relation is administrated in n-n table
                 $this->execute("REPLACE INTO \"{$table}\" (\"{$srcCol}\", \"{$tgtCol}\") VALUES ('{$srcAtomId}', '{$tgtAtomId}')");
                 break;
-            case 'src': // Relation is administrated in concept table (wide) of source of relation
+            case TableType::Src: // Relation is administrated in concept table (wide) of source of relation
                 $this->execute("UPDATE \"{$table}\" SET \"{$tgtCol}\" = '{$tgtAtomId}' WHERE \"{$srcCol}\" = '{$srcAtomId}'");
                 break;
-            case 'tgt': //  Relation is administrated in concept table (wide) of target of relation
+            case TableType::Tgt: //  Relation is administrated in concept table (wide) of target of relation
                 $this->execute("UPDATE \"{$table}\" SET \"{$srcCol}\" = '{$srcAtomId}' WHERE \"{$tgtCol}\" = '{$tgtAtomId}'");
                 break;
             default:
-                throw new Exception("Unknown 'tableOf' option for relation '{$relation}'", 500);
+                throw new Exception("Unsupported TableType '{$relTable->inTableOf()->value}' to addLink for for relation '{$relation}'", 500);
         }
         
         // Check if query resulted in an affected row
@@ -711,11 +638,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Delete link (srcAtom,tgtAtom) into database table for relation r
-     *
-     * @param \Ampersand\Core\Link $link
-     * @return void
      */
-    public function deleteLink(Link $link)
+    public function deleteLink(Link $link): void
     {
         $relation = $link->relation();
         $srcAtomId = $this->getDBRepresentation($link->src());
@@ -727,17 +651,17 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $tgtCol = $relTable->tgtCol()->getName();
          
         switch ($relTable->inTableOf()) {
-            case null: // Relation is administrated in n-n table
+            case TableType::Binary: // Relation is administrated in n-n table
                 $this->execute("DELETE FROM \"{$table}\" WHERE \"{$srcCol}\" = '{$srcAtomId}' AND \"{$tgtCol}\" = '{$tgtAtomId}'");
                 break;
-            case 'src': // Relation is administrated in concept table (wide) of source of relation
+            case TableType::Src: // Relation is administrated in concept table (wide) of source of relation
                 if (!$relTable->tgtCol()->nullAllowed()) {
                     throw new Exception("Cannot delete link {$link} because target column '{$tgtCol}' in table '{$table}' may not be set to null", 500);
                 }
                 // Source atom can be used in WHERE statement
                 $this->execute("UPDATE \"{$table}\" SET \"{$tgtCol}\" = NULL WHERE \"{$srcCol}\" = '{$srcAtomId}'");
                 break;
-            case 'tgt': //  Relation is administrated in concept table (wide) of target of relation
+            case TableType::Tgt: //  Relation is administrated in concept table (wide) of target of relation
                 if (!$relTable->srcCol()->nullAllowed()) {
                     throw new Exception("Cannot delete link {$link} because source column '{$srcCol}' in table '{$table}' may not be set to null", 500);
                 }
@@ -745,51 +669,43 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                 $this->execute("UPDATE \"{$table}\" SET \"{$srcCol}\" = NULL WHERE \"{$tgtCol}\" = '{$tgtAtomId}'");
                 break;
             default:
-                throw new Exception("Unknown 'tableOf' option for relation '{$relation}'", 500);
+                throw new Exception("Unsupported TableType '{$relTable->inTableOf()->value}' to deleteLink for for relation '{$relation}'", 500);
         }
         
         $this->checkForAffectedRows(); // Check if query resulted in an affected row
     }
     
     /**
-     *
+     * Undocumented function
      *
      * @param \Ampersand\Core\Relation $relation relation from which to delete all links
      * @param \Ampersand\Core\Atom $atom atom for which to delete all links
-     * @param string $srcOrTgt specifies to delete all link with $atom as src or tgt
-     * @return void
+     * @param \Ampersand\Core\SrcOrTgt $srcOrTgt specifies to delete all link with $atom as src or tgt
      */
-    public function deleteAllLinks(Relation $relation, Atom $atom, string $srcOrTgt): void
+    public function deleteAllLinks(Relation $relation, Atom $atom, SrcOrTgt $srcOrTgt): void
     {
         $relationTable = $relation->getMysqlTable();
         $atomId = $this->getDBRepresentation($atom);
         
-        switch ($srcOrTgt) {
-            case 'src':
-                $whereCol = $relationTable->srcCol();
-                break;
-            case 'tgt':
-                $whereCol = $relationTable->tgtCol();
-                break;
-            default:
-                throw new Exception("Unknown/unsupported param option '{$srcOrTgt}'. Supported options are 'src' or 'tgt'", 500);
-                break;
-        }
+        $whereCol = match ($srcOrTgt) {
+            SrcOrTgt::SRC => $relationTable->srcCol(),
+            SrcOrTgt::TGT => $relationTable->tgtCol()
+        };
 
         switch ($relationTable->inTableOf()) {
-            case null: // n-n table -> remove entire row
+            case TableType::Binary: // n-n table -> remove entire row
                 $query = "DELETE FROM \"{$relationTable->getName()}\" WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
                 break;
-            case 'src': // administrated in table of src
+            case TableType::Src: // administrated in table of src
                 $setCol = $relationTable->tgtCol();
                 $query = "UPDATE \"{$relationTable->getName()}\" SET \"{$setCol->getName()}\" = NULL WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
                 break;
-            case 'tgt': // adminsitrated in table of tgt
+            case TableType::Tgt: // adminsitrated in table of tgt
                 $setCol = $relationTable->srcCol();
                 $query = "UPDATE \"{$relationTable->getName()}\" SET \"{$setCol->getName()}\" = NULL WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
                 break;
             default:
-                throw new Exception("Unknown 'tableOf' option for relation '{$relation}'", 500);
+                throw new Exception("Unsupported TableType '{$relationTable->inTableOf()->value}' to deleteAllLinks for for relation '{$relation}'", 500);
         }
         
         $this->execute($query);
@@ -797,9 +713,6 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
 
     /**
      * Delete all links in a relation
-     *
-     * @param \Ampersand\Core\Relation $relation
-     * @return void
      */
     public function emptyRelation(Relation $relation): void
     {
@@ -828,12 +741,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Execute query for given interface expression and source atom
-     *
-     * @param \Ampersand\Interfacing\InterfaceExprObject $ifc
-     * @param \Ampersand\Core\Atom $srcAtom
-     * @return mixed
      */
-    public function executeIfcExpression(InterfaceExprObject $ifc, Atom $srcAtom)
+    public function executeIfcExpression(InterfaceExprObject $ifc, Atom $srcAtom): mixed
     {
         $srcAtomId = $this->getDBRepresentation($srcAtom);
         $query = $ifc->getQuery();
@@ -848,10 +757,6 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     
     /**
      * Execute query for giver view segement and source atom
-     *
-     * @param \Ampersand\Interfacing\ViewSegment $view
-     * @param \Ampersand\Core\Atom $srcAtom
-     * @return array
      */
     public function executeViewExpression(ViewSegment $view, Atom $srcAtom): array
     {
@@ -874,12 +779,12 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
  *************************************************************************************************/
     
     /**
-     * Check if insert/update/delete function resulted in updated record(s). If not, report warning (or throw exception) to indicate that something is going wrong
+     * Check if insert/update/delete function resulted in updated record(s)
+     * If not, report warning (or throw exception) to indicate that something is going wrong
      *
      * @throws \Exception when no records are affected and application is not in production mode
-     * @return void
      */
-    protected function checkForAffectedRows()
+    protected function checkForAffectedRows(): void
     {
         if ($this->dbLink->affected_rows == 0) {
             if ($this->debugMode) {

@@ -265,7 +265,6 @@ ExecEngine::registerFunction('DelAtom', function ($concept, $atomId) {
      * @param Atom $srcAtomId     -- The atom to be made equal to $tgtAtomId
      * @param Concept $conceptB   -- The most specific concept B such that $tgtAtomId pop B
      * @param Atom $tgtAtomId     -- The atom to be made equal to $srcAtomId
-     * @return void
 */
 // Use: VIOLATION (TXT "{EX} MrgAtoms;<conceptA>;", SRC I, TXT ";<conceptB>;", TGT I )
 /**

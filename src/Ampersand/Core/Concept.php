@@ -11,11 +11,13 @@ use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTable;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 use Ampersand\Core\Atom;
+use Ampersand\Core\TType;
 use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
 use Ampersand\Event\AtomEvent;
 use Ramsey\Uuid\Uuid;
+use Ampersand\Interfacing\View;
 
 /**
  *
@@ -24,78 +26,53 @@ use Ramsey\Uuid\Uuid;
  */
 class Concept
 {
-    protected static $representTypes =
-        [ 'ALPHANUMERIC'        => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
-        , 'BIGALPHANUMERIC'     => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
-        , 'HUGEALPHANUMERIC'    => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
-        , 'PASSWORD'            => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
-        , 'BINARY'              => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
-        , 'BIGBINARY'           => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
-        , 'HUGEBINARY'          => ['datatype' => 'binary',     'xml' => 'http://www.w3.org/2001/XMLSchema#base64Binary']
-        , 'DATE'                => ['datatype' => 'date',       'xml' => 'http://www.w3.org/2001/XMLSchema#data']
-        , 'DATETIME'            => ['datatype' => 'datetime',   'xml' => 'http://www.w3.org/2001/XMLSchema#dateType']
-        , 'BOOLEAN'             => ['datatype' => 'boolean',    'xml' => 'http://www.w3.org/2001/XMLSchema#boolean']
-        , 'INTEGER'             => ['datatype' => 'integer',    'xml' => 'http://www.w3.org/2001/XMLSchema#integer']
-        , 'FLOAT'               => ['datatype' => 'float',      'xml' => 'http://www.w3.org/2001/XMLSchema#float']
-        , 'OBJECT'              => ['datatype' => 'object',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
-        , 'TYPEOFONE'           => ['datatype' => 'string',     'xml' => 'http://www.w3.org/2001/XMLSchema#string']
-        ];
-    
     /**
-     *
-     * @var \Psr\Log\LoggerInterface
+     * Logger
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app for which this concept is defined
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $app;
+    protected AmpersandApp $app;
     
     /**
      * Dependency injection of ConceptPlug implementation
+     *
      * There must at least be one plug for every concept
      *
      * @var \Ampersand\Plugs\ConceptPlugInterface[]
      */
-    protected $plugs = [];
+    protected array $plugs = [];
     
     /**
+     * Primairy implementation of ConceptPlug
      *
-     * @var \Ampersand\Plugs\ConceptPlugInterface
+     * This is e.g. where atom existance check is done
      */
-    protected $primaryPlug;
+    protected ConceptPlugInterface $primaryPlug;
     
     /**
      * Definition from which Concept object is created
-     *
-     * @var array
      */
-    private $def;
+    private array $def;
     
     /**
      * Name (and unique escaped identifier) of concept as defined in Ampersand script
-     * TODO: rename var to $id
      *
-     * @var string
+     * TODO: rename var to $id
      */
-    public $name;
+    public string $name;
     
     /**
      * Unescaped name of concept as defined in Ampersand script
-     *
-     * @var string
      */
-    public $label;
+    public string $label;
     
     /**
-     * Specifies technical representation of atoms of this concept (e.g. OBJECT, ALPHANUMERIC, INTERGER, BOOLEAN, etc)
-     *
-     * @var string
+     * Specifies technical representation of atoms of this concept
      */
-    public $type;
+    public TType $type;
 
     /**
      * Specifies if new atom identifiers must be prefixed with the concept name, e.g. 'ConceptA_<uuid>'
@@ -107,78 +84,69 @@ class Concept
      *
      * @var \Ampersand\Rule\Conjunct[]
      */
-    protected $relatedConjuncts = [];
+    protected array $relatedConjuncts = [];
     
     /**
      * List of concepts (name) that are specializations of this concept
      *
      * @var string[]
      */
-    private $specializations = [];
+    private array $specializations = [];
     
     /**
      * List of concepts (name) that are direct specializations of this concept
      *
      * @var string[]
      */
-    private $directSpecs = [];
+    private array $directSpecs = [];
     
     /**
      * List of concepts (name) that are generalizations of this concept
      *
      * @var string[]
      */
-    private $generalizations = [];
+    private array $generalizations = [];
     
     /**
      * List of concepts (name) that are direct generalizations of this concept
      *
      * @var string[]
      */
-    private $directGens = [];
+    private array $directGens = [];
     
     /**
      * Concept identifier of largest generalization for this concept
-     *
-     * @var string
      */
-    private $largestConceptId;
+    private string $largestConceptId;
     
     /**
      * List of interface identifiers that have this concept as src concept
      *
      * @var string[]
      */
-    protected $interfaceIds = [];
+    protected array $interfaceIds = [];
     
     /**
      * Default view object for atoms of this concept
-     *
-     * @var \Ampersand\Interfacing\View|NULL
      */
-    private $defaultView = null;
+    private ?View $defaultView = null;
 
     /**
      * Contains information about mysql table and columns in which this concept is administrated
-     *
-     * @var \Ampersand\Plugs\MysqlDB\MysqlDBTable
      */
-    private $mysqlConceptTable;
+    private MysqlDBTable $mysqlConceptTable;
     
     /**
      * List with atom identifiers that exist in the concept
-     * used to prevent unnecessary checks if atom exists in plug
+     *
+     * Used to prevent unnecessary checks if atom exists in plug
      *
      * @var string[]
      */
-    private $atomCache = [];
+    private array $atomCache = [];
     
     /**
-     * Concept constructor
-     *
-     * @param array $conceptDef
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Ampersand\AmpersandApp $app
+     * Constructor
      */
     public function __construct(array $conceptDef, LoggerInterface $logger, AmpersandApp $app)
     {
@@ -189,13 +157,9 @@ class Concept
         
         $this->name = $conceptDef['id'];
         $this->label = $conceptDef['label'];
-        $this->type = $conceptDef['type'];
+        $this->type = TType::from($conceptDef['type']);
 
         $this->prefixAtomIdWithConceptName = $app->getSettings()->get('core.concept.prefixAtomIdWithConceptName');
-
-        if (!array_key_exists($this->type, self::$representTypes)) {
-            throw new Exception("Unsupported represent type: '{$this->type}'. Supported are: " . implode(',', array_keys(self::$representTypes)), 500);
-        }
         
         foreach ((array)$conceptDef['affectedConjuncts'] as $conjId) {
             $conj = $app->getModel()->getConjunct($conjId);
@@ -227,12 +191,8 @@ class Concept
      * Temporary function to manually add a more optimize query for getting all atoms at once
      * Default view and query belong together
      * TODO: replace hack by proper implementation in Ampersand generator
-     *
-     * @param string $viewId
-     * @param string $query
-     * @return void
      */
-    public function setAllAtomsQuery(string $viewId, string $query)
+    public function setAllAtomsQuery(string $viewId, string $query): void
     {
         $this->defaultView = $this->app->getModel()->getView($viewId);
         $this->mysqlConceptTable->allAtomsQuery = $query;
@@ -240,8 +200,6 @@ class Concept
     
     /**
      * Function is called when object is treated as a string
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -250,8 +208,6 @@ class Concept
 
     /**
      * Get escaped name of concept
-     *
-     * @return string
      */
     public function getId(): string
     {
@@ -267,42 +223,17 @@ class Concept
     {
         return $this->app;
     }
-
-    /**
-     * Undocumented function
-     *
-     * @param string $serialization options are: 'datatype', 'xml'
-     * @return string
-     */
-    public function getDatatype($serialization = 'datatype'): string
-    {
-        return self::$representTypes[$this->type][$serialization];
-    }
-    
-    /**
-     * Specifies if concept representation is integer
-     *
-     * @return bool
-     */
-    public function isInteger(): bool
-    {
-        return $this->type === "INTEGER";
-    }
     
     /**
      * Specifies if concept is object
-     *
-     * @return bool
      */
     public function isObject(): bool
     {
-        return $this->type === "OBJECT";
+        return $this->type === TType::OBJECT;
     }
     
     /**
      * Check if concept is file object
-     *
-     * @return boolean
      */
     public function isFileObject(): bool
     {
@@ -316,8 +247,6 @@ class Concept
     
     /**
      * Returns if concept is the ampersand SESSION concept
-     *
-     * @return bool
      */
     public function isSession(): bool
     {
@@ -337,9 +266,7 @@ class Concept
     /**
      * Check if this concept is a generalization of another given concept
      *
-     * @param \Ampersand\Core\Concept $concept
-     * @param bool $thisIncluded specifies if $this concept is included in comparison
-     * @return bool
+     * Use thisIncluded to specify that this concept itself is included in the comparison
      */
     public function hasSpecialization(Concept $concept, bool $thisIncluded = false): bool
     {
@@ -353,9 +280,7 @@ class Concept
     /**
      * Check if this concept is a specialization of another given concept
      *
-     * @param \Ampersand\Core\Concept $concept
-     * @param bool $thisIncluded specifies if $this concept is included in comparison
-     * @return bool
+     * Use thisIncluded to specify that this concept itself is included in the comparison
      */
     public function hasGeneralization(Concept $concept, bool $thisIncluded = false): bool
     {
@@ -368,9 +293,6 @@ class Concept
     
     /**
      * Checks if this concept is in same classification branch as the provided concept
-     *
-     * @param \Ampersand\Core\Concept $concept
-     * @return bool
      */
     public function inSameClassificationBranch(Concept $concept): bool
     {
@@ -393,10 +315,9 @@ class Concept
     /**
      * Array of concepts of which this concept is a generalization.
      *
-     * @param bool $onlyDirectSpecializations (default=false)
      * @return \Ampersand\Core\Concept[]
      */
-    public function getSpecializations(bool $onlyDirectSpecializations = false)
+    public function getSpecializations(bool $onlyDirectSpecializations = false): array
     {
         $specizalizations = $onlyDirectSpecializations ? $this->directSpecs : $this->specializations;
         
@@ -410,10 +331,9 @@ class Concept
     /**
      * Array of concepts of which this concept is a specialization (exluding the concept itself).
      *
-     * @param bool $onlyDirectGeneralizations (default=false)
      * @return \Ampersand\Core\Concept[]
      */
-    public function getGeneralizations(bool $onlyDirectGeneralizations = false)
+    public function getGeneralizations(bool $onlyDirectGeneralizations = false): array
     {
         $generalizations = $onlyDirectGeneralizations ? $this->directGens : $this->generalizations;
 
@@ -429,7 +349,7 @@ class Concept
      *
      * @return \Ampersand\Core\Concept[]
      */
-    public function getSpecializationsIncl()
+    public function getSpecializationsIncl(): array
     {
         $specializations = $this->getSpecializations();
         $specializations[] = $this;
@@ -441,7 +361,7 @@ class Concept
      *
      * @return \Ampersand\Core\Concept[]
      */
-    public function getGeneralizationsIncl()
+    public function getGeneralizationsIncl(): array
     {
         $generalizations = $this->getGeneralizations();
         $generalizations[] = $this;
@@ -450,10 +370,8 @@ class Concept
     
     /**
      * Returns largest generalization concept (can be itself)
-     *
-     * @return \Ampersand\Core\Concept
      */
-    public function getLargestConcept()
+    public function getLargestConcept(): Concept
     {
         return $this->app->getModel()->getConcept($this->largestConceptId);
     }
@@ -463,7 +381,7 @@ class Concept
      *
      * @return \Ampersand\Rule\Conjunct[]
      */
-    public function getRelatedConjuncts()
+    public function getRelatedConjuncts(): array
     {
         return $this->relatedConjuncts;
     }
@@ -485,9 +403,8 @@ class Concept
      * Returns database table info for concept
      *
      * @throws \Exception if no database table is defined
-     * @return \Ampersand\Plugs\MysqlDB\MysqlDBTable
      */
-    public function getConceptTableInfo()
+    public function getConceptTableInfo(): MysqlDBTable
     {
         return $this->mysqlConceptTable;
     }
@@ -497,7 +414,7 @@ class Concept
      *
      * @return \Ampersand\Plugs\ConceptPlugInterface[]
      */
-    public function getPlugs()
+    public function getPlugs(): array
     {
         if (empty($this->plugs)) {
             throw new Exception("No plug(s) provided for concept {$this}", 500);
@@ -507,11 +424,8 @@ class Concept
 
     /**
      * Add plug for this concept
-     *
-     * @param \Ampersand\Plugs\ConceptPlugInterface $plug
-     * @return void
      */
-    public function addPlug(ConceptPlugInterface $plug)
+    public function addPlug(ConceptPlugInterface $plug): void
     {
         if (!in_array($plug, $this->plugs)) {
             $this->plugs[] = $plug;
@@ -523,25 +437,21 @@ class Concept
 
     /**
      * Clear atom cache
-     *
-     * @return void
      */
-    public function clearAtomCache()
+    public function clearAtomCache(): void
     {
         $this->atomCache = [];
     }
     
     /**
      * Generate a new atom identifier for this concept
-     * @return string
      */
     public function createNewAtomId(bool $prefixAtomIdWithConceptName = null): string
     {
         $prefixAtomIdWithConceptName ??= $this->prefixAtomIdWithConceptName;
 
         // TODO: remove this hack with _AI (autoincrement feature)
-        if (strpos($this->name, '_AI') !== false && $this->isInteger()) {
-            /** @var \Ampersand\Plugs\MysqlDB\MysqlDBTableCol $firstCol */
+        if (strpos($this->name, '_AI') !== false && $this->type === TType::INTEGER) {
             $firstCol = current($this->mysqlConceptTable->getCols());
             $query = "SELECT MAX(\"{$firstCol->getName()}\") as \"MAX\" FROM \"{$this->mysqlConceptTable->getName()}\"";
              
@@ -566,8 +476,6 @@ class Concept
     /**
      * Instantiate new Atom object in backend
      * NB! this does not result automatically in a database insert
-     *
-     * @return \Ampersand\Core\Atom
      */
     public function createNewAtom(): Atom
     {
@@ -576,9 +484,6 @@ class Concept
     
     /**
      * Check if atom exists
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return bool
      */
     public function atomExists(Atom $atom): bool
     {
@@ -615,8 +520,6 @@ class Concept
 
     /**
      * Returns view data for given atom
-     * @param \Ampersand\Core\Atom $atom
-     * @return array
      */
     public function getViewData(Atom $atom): array
     {
@@ -629,9 +532,6 @@ class Concept
 
     /**
      * Instantiate a new atom
-     *
-     * @param string $atomId
-     * @return \Ampersand\Core\Atom
      */
     public function makeAtom(string $atomId): Atom
     {
@@ -642,9 +542,7 @@ class Concept
      * Creating and adding a new atom to the plug
      * ór adding an existing atom to another concept set (making it a specialization)
      *
-     * @param \Ampersand\Core\Atom $atom
      * @param bool $populateDefaults specifies if default src/tgt values for relations must be populated also
-     * @return \Ampersand\Core\Atom
      */
     public function addAtom(Atom $atom, bool $populateDefaults = true): Atom
     {
@@ -690,11 +588,8 @@ class Concept
     
     /**
      * Remove an existing atom from a concept set (i.e. removing specialization)
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
      */
-    public function removeAtom(Atom $atom)
+    public function removeAtom(Atom $atom): void
     {
         if ($atom->concept != $this) {
             throw new Exception("Cannot remove {$atom} from concept {$this}, because concepts don't match", 500);
@@ -732,11 +627,8 @@ class Concept
     
     /**
      * Completely delete and atom and all connected links
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
      */
-    public function deleteAtom(Atom $atom)
+    public function deleteAtom(Atom $atom): void
     {
         if ($atom->exists()) {
             $this->logger->debug("Delete atom {$atom} from plug");
@@ -764,12 +656,8 @@ class Concept
      * Function to merge two atoms
      * All link from/to the $rightAtom are merged into the $leftAtom
      * The $rightAtom itself is deleted afterwards
-     *
-     * @param \Ampersand\Core\Atom $leftAtom
-     * @param \Ampersand\Core\Atom $rightAtom
-     * @return void
      */
-    public function mergeAtoms(Atom $leftAtom, Atom $rightAtom)
+    public function mergeAtoms(Atom $leftAtom, Atom $rightAtom): void
     {
         $this->logger->info("Request to merge '{$rightAtom}' into '{$leftAtom}'");
 
@@ -839,19 +727,15 @@ class Concept
 
     /**
      * Delete all links where $atom is used
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
      */
     protected function deleteAllLinksWithAtom(Atom $atom): void
     {
         foreach ($this->app->getModel()->getRelations() as $relation) {
-            /** @var \Ampersand\Core\Relation $relation */
             if ($atom->concept->inSameClassificationBranch($relation->srcConcept)) {
-                $relation->deleteAllLinks($atom, 'src');
+                $relation->deleteAllLinks($atom, SrcOrTgt::SRC);
             }
             if ($atom->concept->inSameClassificationBranch($relation->tgtConcept)) {
-                $relation->deleteAllLinks($atom, 'tgt');
+                $relation->deleteAllLinks($atom, SrcOrTgt::TGT);
             }
         }
     }
@@ -859,19 +743,15 @@ class Concept
     /**
      * Delete all links where $atom is used as src or tgt atom
      * from relations where $atom's concept (or any of its specializations) is used as src or tgt concept
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return void
      */
     protected function deleteAllSpecializationLinks(Atom $atom): void
     {
         foreach ($this->app->getModel()->getRelations() as $relation) {
-            /** @var \Ampersand\Core\Relation $relation */
             if ($atom->concept->hasSpecialization($relation->srcConcept, true)) {
-                $relation->deleteAllLinks($atom, 'src');
+                $relation->deleteAllLinks($atom, SrcOrTgt::SRC);
             }
             if ($atom->concept->hasSpecialization($relation->tgtConcept, true)) {
-                $relation->deleteAllLinks($atom, 'tgt');
+                $relation->deleteAllLinks($atom, SrcOrTgt::TGT);
             }
         }
     }

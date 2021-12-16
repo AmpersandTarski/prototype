@@ -27,72 +27,54 @@ class ExecEngine extends RuleEngine
      *
      * @var \Closure[]
      */
-    protected static $closures = [];
+    protected static array $closures = [];
 
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * Identifier (role id) of this exec engine
-     *
-     * @var string
      */
-    protected $id;
+    protected string $id;
 
     /**
      * Rules this ExecEngine maintains
      *
      * @var \Ampersand\Rule\Rule[]
      */
-    protected $maintainsRules;
+    protected array $maintainsRules;
 
     /**
      * Reference to the Transaction for which this ExecEngine is instantiated
-     *
-     * @var \Ampersand\Transaction
      */
-    protected $transaction;
+    protected Transaction $transaction;
 
     /**
      * Reference to Ampersand app for which this ExecEngine is instantiated
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $ampersandApp;
+    protected AmpersandApp $ampersandApp;
 
     /**
      * Number of runs this exec engine is called (i.e. the checkFixRules() method)
-     *
-     * @var int
      */
-    protected $runCount = 0;
+    protected int $runCount = 0;
     
     /**
-     * Specifies latest atom created by a Newstruct/InsAtom function call.
-     * Can be (re)used within the scope of one violation statement
+     * Specifies latest atom created by a Newstruct/InsAtom function call
      *
-     * @var \Ampersand\Core\Atom|null
+     * Can be (re)used within the scope of one violation statement
      */
-    protected $newAtom = null;
+    protected ?Atom $newAtom = null;
 
     /**
      * Specifies is this exec engine is terminated (i.e. it won't check-fix rules anymore)
-     *
-     * @var bool
      */
-    protected $isTerminated = false;
+    protected bool $isTerminated = false;
 
     /**
      * Constructor
-     *
-     * @param \Ampersand\Role $role
-     * @param \Ampersand\Transaction $transaction
-     * @param \Ampersand\AmpersandApp $app
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(Role $role, Transaction $transaction, AmpersandApp $app, LoggerInterface $logger)
     {
@@ -120,14 +102,8 @@ class ExecEngine extends RuleEngine
 
     /**
      * Logs with an arbitrary level.
-     *
-     * @param mixed  $level
-     * @param string $message
-     * @param array  $context
-     *
-     * @return void
      */
-    public function log($level, $message, array $context = [])
+    public function log(string $level, string $message, array $context = []): void
     {
         $this->logger->log($level, $message, $context);
     }
@@ -139,9 +115,8 @@ class ExecEngine extends RuleEngine
 
     /**
      * Get created atom by other ExecEngine function
-     * Only is available within the same violation: $newAtom is set to null at the start of each fixViolation run
      *
-     * @return \Ampersand\Core\Atom
+     * Only is available within the same violation: $newAtom is set to null at the start of each fixViolation run
      */
     public function getCreatedAtom(): Atom
     {
@@ -153,9 +128,6 @@ class ExecEngine extends RuleEngine
 
     /**
      * Set created atom so it can be (re)used within the scope of one violation statement
-     *
-     * @param \Ampersand\Core\Atom $atom
-     * @return \Ampersand\Core\Atom
      */
     public function setCreatedAtom(Atom $atom): Atom
     {
@@ -190,7 +162,6 @@ class ExecEngine extends RuleEngine
 
         $rulesFixed = [];
         foreach ($rulesToCheck as $rule) {
-            /** @var \Ampersand\Rule\Rule $rule */
             $violations = $rule->checkRule(true); // param true to force (re)evaluation of conjuncts
             
             if (empty($violations)) {
@@ -201,7 +172,6 @@ class ExecEngine extends RuleEngine
             $total = count($violations);
             $this->info("ExecEngine fixing {$total} violations for rule '{$rule}'");
             foreach ($violations as $key => $violation) {
-                /** @var \Ampersand\Rule\Violation $violation */
                 $num = $key + 1;
                 $this->info("Fixing violation {$num}/{$total}: ({$violation})");
                 $this->fixViolation($violation);
@@ -220,12 +190,9 @@ class ExecEngine extends RuleEngine
     }
     
     /**
-     * Fix violations
-     *
-     * @param \Ampersand\Rule\Violation $violation
-     * @return void
+     * Fix violation
      */
-    protected function fixViolation(Violation $violation)
+    protected function fixViolation(Violation $violation): void
     {
         // Reset reference to newly created atom (e.g. by NewStruct/InsAtom function)
         // See function getCreatedAtom() above
@@ -279,9 +246,8 @@ class ExecEngine extends RuleEngine
 
     /**
      * Terminate this exec engine
-     * It won't check-fix rules anymore (within the transaction the exec engine is instantiated)
      *
-     * @return void
+     * It won't check-fix rules anymore (within the transaction the exec engine is instantiated)
      */
     public function terminate(): void
     {
@@ -290,10 +256,8 @@ class ExecEngine extends RuleEngine
 
     /**
      * Trigger a run for a specific service
-     * This method allows an ExecEngine function to trigger a service run
      *
-     * @param string $serviceId
-     * @return void
+     * This method allows an ExecEngine function to trigger a service run
      */
     public function triggerService(string $serviceId): void
     {
@@ -306,9 +270,6 @@ class ExecEngine extends RuleEngine
 
     /**
      * Get registered ExecEngine function
-     *
-     * @param string $functionName
-     * @return \Closure
      */
     public static function getFunction(string $functionName): Closure
     {
@@ -321,12 +282,8 @@ class ExecEngine extends RuleEngine
 
     /**
      * Register functions that can be used by the ExecEngine to fix violations
-     *
-     * @param string $name
-     * @param \Closure $closure
-     * @return void
      */
-    public static function registerFunction(string $name, Closure $closure)
+    public static function registerFunction(string $name, Closure $closure): void
     {
         if (empty($name)) {
             throw new Exception("ExecEngine function must be given a name. Empty string/0/null provided", 500);

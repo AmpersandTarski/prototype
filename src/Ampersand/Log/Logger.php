@@ -25,9 +25,6 @@ class Logger
 
     /**
      * Get logger instance with specified channel name
-     *
-     * @param string $channel
-     * @return \Psr\Log\LoggerInterface
      */
     public static function getLogger(string $channel): LoggerInterface
     {

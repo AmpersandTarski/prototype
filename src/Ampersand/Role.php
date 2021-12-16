@@ -20,42 +20,35 @@ class Role
 {
     /**
      * Role identifier
-     * @var string
      */
-    protected $id;
+    protected string $id;
     
     /**
      * Name of the role
-     * @var string
      */
-    protected $label;
+    protected string $label;
     
     /**
      * List of all rules that are maintained by this role
      * @var \Ampersand\Rule\Rule[]
      */
-    protected $maintains = [];
+    protected array $maintains = [];
     
     /**
      * List of all interfaces that are accessible by this role
      * @var \Ampersand\Interfacing\Ifc[]
      */
-    protected $interfaces = null;
+    protected ?array $interfaces = null;
 
     /**
      * Reference to Ampersand model
-     *
-     * @var \Ampersand\Model
      */
-    protected $model;
+    protected Model $model;
     
     /**
-     * Constructor of role
-     *
-     * @param array $roleDef
-     * @param \Ampersand\Model $model
+     * Constructor
      */
-    public function __construct($roleDef, Model $model)
+    public function __construct(array $roleDef, Model $model)
     {
         $this->model = $model;
 
@@ -69,8 +62,6 @@ class Role
     
     /**
      * Function is called when object is treated as a string
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -87,7 +78,7 @@ class Role
         return $this->id;
     }
 
-    public function getLabel()
+    public function getLabel(): string
     {
         return $this->label;
     }

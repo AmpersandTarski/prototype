@@ -18,22 +18,26 @@ jobs:
     # Don't use GITHUB_REF in docker tag, because it can be an invalid tag format (e.g. a branch that starts with #)
     - name: Build
       run: docker build . # --tag ${DOCKER_AMPERSAND_IMAGE}:${GITHUB_REF##*/}
-  
-  # https://hub.docker.com/r/jakzal/phpqa/ docker-image with a lot of php tools
+
   static-analyzer:
     name: PHP static analyzer
-    needs: []
     runs-on: ubuntu-latest
-    container: ampersandtarski/prototype-framework-ci-runner
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v2
     
-    - name: Composer install
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        # extensions: # allows to install php extensions with PECL
+        tools: phan:v5.3 # allows to install other tools, see: https://github.com/shivammathur/setup-php
+
+    - name: Install dependencies
       run: composer install --prefer-dist --no-dev --profile --optimize-autoloader --no-scripts --ignore-platform-reqs
-    
+
     - name: Phan version
       run: phan --version
-    
-    - name: Phan static analysis
+
+    - name: Run Phan
       run: phan -p --color --config-file ./.phan/config.php

@@ -28,87 +28,79 @@ class Transaction
 {
     /**
      * Points to the current open transaction
-     *
-     * @var \Ampersand\Transaction|null
      */
-    private static $currentTransaction = null;
+    private static ?Transaction $currentTransaction = null;
     
     /**
      * Transaction number (random int)
-     *
-     * @var int
      */
-    private $id;
+    private int $id;
     
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app for which this transaction is instantiated
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $app;
+    protected AmpersandApp $app;
     
     /**
      * Contains all affected Concepts during a transaction
      *
      * @var \Ampersand\Core\Concept[]
      */
-    private $affectedConcepts = [];
+    private array $affectedConcepts = [];
     
     /**
      * Contains all affected relations during a transaction
      *
      * @var \Ampersand\Core\Relation[]
      */
-    private $affectedRelations = [];
+    private array $affectedRelations = [];
     
     /**
-     * Specifies if invariant rules hold. Null if no transaction has occurred (yet)
+     * Specifies if invariant rules hold
      *
-     * @var bool|NULL
+     * Null if no transaction has occurred (yet)
      */
-    private $invariantRulesHold = null;
+    private ?bool $invariantRulesHold = null;
     
     /**
      * Specifies if the transaction is committed or rolled back
      *
-     * @var bool
+     * Null if transaction is still open (i.e. not committed nor rolled back)
      */
-    private $isCommitted = null;
+    private ?bool $isCommitted = null;
     
     /**
      * List with storages that are affected in this transaction
+     *
      * Used to commit/rollback all storages when this transaction is closed
      *
      * @var \Ampersand\Plugs\StorageInterface[] $storages
      */
-    private $storages = [];
+    private array $storages = [];
 
     /**
      * List of exec engines
      *
      * @var \Ampersand\Rule\ExecEngine[]
      */
-    protected $execEngines = [];
+    protected array $execEngines = [];
 
     /**
      * List of services (i.e. role names) for which a run is requested
      *
      * @var string[]
      */
-    protected $requestedServiceIds = [];
+    protected array $requestedServiceIds = [];
     
     /**
      * Constructor
-     * Note! Don't use this constructor. Use AmpersandApp::newTransaction of AmpersandApp::getCurrentTransaction instead
      *
-     * @param \Ampersand\AmpersandApp $app
+     * Note! Don't use this constructor. Use AmpersandApp::newTransaction of AmpersandApp::getCurrentTransaction instead
      */
     public function __construct(AmpersandApp $app, LoggerInterface $logger)
     {
@@ -129,15 +121,13 @@ class Transaction
 
     /**
      * Function is called when object is treated as a string
-     *
-     * @return string
      */
     public function __toString(): string
     {
         return 'Transaction ' . $this->id;
     }
 
-    protected function initExecEngines()
+    protected function initExecEngines(): void
     {
         $execEngineRoleNames = $this->app->getSettings()->get('execengine.execEngineRoleNames');
         foreach ((array) $execEngineRoleNames as $roleName) {
@@ -153,8 +143,7 @@ class Transaction
     /**
      * Run exec engines
      *
-     * @param bool $checkAllRules specifies if all rules must be evaluated (true) or only the affected rules in this transaction (false)
-     * @return \Ampersand\Transaction
+     * CheckAllRules specifies if all rules must be evaluated (true) or only the affected rules in this transaction (false)
      */
     public function runExecEngine(bool $checkAllRules = false): Transaction
     {
@@ -211,9 +200,6 @@ class Transaction
 
     /**
      * Run exec engine for affected rules in this transaction
-     *
-     * @param string $id
-     * @return \Ampersand\Transaction
      */
     public function singleRunForExecEngine(string $id): Transaction
     {
@@ -267,8 +253,6 @@ class Transaction
 
     /**
      * Cancel (i.e. rollback) the transaction
-     *
-     * @return \Ampersand\Transaction
      */
     public function cancel(): Transaction
     {
@@ -286,9 +270,8 @@ class Transaction
 
     /**
      * Alias for closing the transaction with the intention to rollback
-     * Affected conjuncts are evaluated and invariant rule violations are reported
      *
-     * @return Transaction
+     * Affected conjuncts are evaluated and invariant rule violations are reported
      */
     public function dryRun(): Transaction
     {
@@ -297,12 +280,8 @@ class Transaction
     
     /**
      * Close transaction
-     *
-     * @param bool $dryRun
-     * @param bool $ignoreInvariantViolations
-     * @return \Ampersand\Transaction $this
      */
-    public function close(bool $dryRun = false, bool $ignoreInvariantViolations = false): Transaction
+    public function close(bool $dryRun = false, bool $ignoreInvariantViolations = false): self
     {
         $this->logger->info("Request to close transaction: {$this->id}");
         
@@ -341,10 +320,8 @@ class Transaction
 
     /**
      * Commit transaction
-     *
-     * @return void
      */
-    protected function commit()
+    protected function commit(): void
     {
         // Cache conjuncts
         foreach ($this->getAffectedConjuncts() as $conj) {
@@ -363,10 +340,8 @@ class Transaction
 
     /**
      * Rollback transaction
-     *
-     * @return void
      */
-    protected function rollback()
+    protected function rollback(): void
     {
         // Rollback transaction for each registered storage
         foreach ($this->storages as $storage) {
@@ -385,11 +360,8 @@ class Transaction
     
     /**
      * Add storage implementation to this transaction
-     *
-     * @param \Ampersand\Plugs\StorageInterface $storage
-     * @return void
      */
-    private function addAffectedStorage(StorageInterface $storage)
+    private function addAffectedStorage(StorageInterface $storage): void
     {
         if (!in_array($storage, $this->storages)) {
             $this->logger->debug("Add storage: " . $storage->getLabel());
@@ -401,22 +373,30 @@ class Transaction
      * KEEPING TRACK OF AFFECTED CONCEPTS, RELATIONS, CONJUNCTS and RULES
      *********************************************************************************************/
     
-    public function getAffectedConcepts()
+    /**
+     * Undocumented function
+     *
+     * @return \Ampersand\Core\Concept[]
+     */
+    public function getAffectedConcepts(): array
     {
         return $this->affectedConcepts;
     }
     
-    public function getAffectedRelations()
+    /**
+     * Undocumented function
+     *
+     * @return \Ampersand\Core\Relation[]
+     */
+    public function getAffectedRelations(): array
     {
         return $this->affectedRelations;
     }
     
     /**
      * Mark a concept as affected within the open transaction
-     * @param Concept $concept
-     * @return void
      */
-    public function addAffectedConcept(Concept $concept)
+    public function addAffectedConcept(Concept $concept): void
     {
         if (!in_array($concept, $this->affectedConcepts)) {
             $this->logger->debug("Mark concept '{$concept}' as affected concept");
@@ -432,10 +412,8 @@ class Transaction
     
     /**
      * Mark a relation as affected within the open transaction
-     * @param Relation $relation
-     * @return void
      */
-    public function addAffectedRelations(Relation $relation)
+    public function addAffectedRelations(Relation $relation): void
     {
         if (!in_array($relation, $this->affectedRelations)) {
             $this->logger->debug("Mark relation '{$relation}' as affected relation");
@@ -454,7 +432,7 @@ class Transaction
      *
      * @return \Ampersand\Rule\Conjunct[]
      */
-    public function getAffectedConjuncts()
+    public function getAffectedConjuncts(): array
     {
         $affectedConjuncts = [];
         
@@ -490,9 +468,8 @@ class Transaction
 
     /**
      * Returns if invariant rules hold and notifies user of violations (if any)
-     * Note! Only checks affected invariant rules
      *
-     * @return bool
+     * Note! Only checks affected invariant rules
      */
     public function checkInvariantRules(): bool
     {
@@ -511,27 +488,27 @@ class Transaction
         return $rulesHold;
     }
     
-    public function invariantRulesHold()
+    public function invariantRulesHold(): ?bool
     {
         return $this->invariantRulesHold;
     }
     
-    public function isCommitted()
+    public function isCommitted(): bool
     {
         return $this->isCommitted === true;
     }
     
-    public function isRolledBack()
+    public function isRolledBack(): bool
     {
         return $this->isCommitted === false;
     }
     
-    public function isOpen()
+    public function isOpen(): bool
     {
         return $this->isCommitted === null;
     }
     
-    public function isClosed()
+    public function isClosed(): bool
     {
         return $this->isCommitted !== null;
     }

@@ -26,14 +26,7 @@ namespace Ampersand\Misc;
  */
 class AcceptHeader extends \ArrayObject
 {
-    
-    /**
-     * Constructor
-     *
-     * @param string $header Value of the Accept header
-     * @return void
-     */
-    public function __construct($header)
+    public function __construct(string $header)
     {
         $acceptedTypes = $this->parse($header);
         usort($acceptedTypes, array($this, 'compare'));
@@ -41,13 +34,9 @@ class AcceptHeader extends \ArrayObject
     }
 
     /**
-     * Parse the accept header and return an array containing
-     * all the informations about the Accepted types
-     *
-     * @param string $data Value of the Accept header
-     * @return array
+     * Parse the accept header and return an array containing all the informations about the Accepted types
      */
-    private function parse(string $data)
+    private function parse(string $data): array
     {
         $array = array();
         $items = explode(',', $data);
@@ -70,14 +59,9 @@ class AcceptHeader extends \ArrayObject
     }
 
     /**
-     * Compare two Accepted types with their parameters to know
-     * if one media type should be used instead of an other
-     *
-     * @param array $a The first media type and its parameters
-     * @param array $b The second media type and its parameters
-     * @return int
+     * Compare two Accepted types with their parameters to know if one media type should be used instead of an other
      */
-    private function compare($a, $b): int
+    private function compare(array $a, array $b): int
     {
         $a_q = isset($a['params']['q']) ? floatval($a['params']['q']) : 1.0;
         $b_q = isset($b['params']['q']) ? floatval($b['params']['q']) : 1.0;
@@ -100,12 +84,8 @@ class AcceptHeader extends \ArrayObject
 
     /**
      * Compare two subtypes
-     *
-     * @param string $a First subtype to compare
-     * @param string $b Second subtype to compare
-     * @return int
      */
-    private function compareSubType($a, $b): int
+    private function compareSubType(string $a, string $b): int
     {
         if ($a === '*' && $b !== '*') {
             return 1;

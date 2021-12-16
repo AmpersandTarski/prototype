@@ -20,15 +20,11 @@ class Installer
 {
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * Constructor
-     *
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(LoggerInterface $logger)
     {
@@ -37,9 +33,6 @@ class Installer
 
     /**
      * Add/import meta population
-     *
-     * @param \Ampersand\Model $model
-     * @return \Ampersand\Misc\Installer
      */
     public function reinstallMetaPopulation(Model $model): Installer
     {
@@ -61,9 +54,6 @@ class Installer
 
     /**
      * Add/import initial population as defined in generated Ampersand model file
-     *
-     * @param \Ampersand\Model $model
-     * @return \Ampersand\Misc\Installer
      */
     public function addInitialPopulation(Model $model): Installer
     {
@@ -76,9 +66,6 @@ class Installer
 
     /**
      * Add menu items for navigation menus
-     *
-     * @param \Ampersand\Model $model
-     * @return \Ampersand\Misc\Installer
      */
     public function reinstallNavigationMenus(Model $model): Installer
     {
@@ -93,7 +80,6 @@ class Installer
         $mainMenu->link($mainMenu, ProtoContext::REL_NAV_IS_PART_OF)->add();
         $i = '0';
         foreach ($model->getAllInterfaces() as $ifc) {
-            /** @var \Ampersand\Interfacing\Ifc $ifc */
             // Skip API and non-readable interfaces
             if ($ifc->isAPI() || !$ifc->getIfcObject()->crudR()) {
                 continue;

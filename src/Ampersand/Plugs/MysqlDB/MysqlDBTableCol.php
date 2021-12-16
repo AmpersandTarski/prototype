@@ -18,30 +18,21 @@ class MysqlDBTableCol
 {
     /**
      * Name/header of database column
-     *
-     * @var string
      */
-    protected $name;
+    protected string $name;
 
     /**
      * Specifies if value in this database column can be NULL
-     *
-     * @var bool
      */
-    protected $null;
+    protected bool $null;
 
     /**
      * Specifies if this database column has uniquness constraint (i.e. no duplicates may exist in all rows)
-     * @var bool
      */
-    protected $unique;
+    protected bool $unique;
 
     /**
-     * Constructor of Database table column
-     *
-     * @param string $name
-     * @param bool $null
-     * @param bool $unique
+     * Constructor
      */
     public function __construct(string $name, bool $null = false, bool $unique = true)
     {

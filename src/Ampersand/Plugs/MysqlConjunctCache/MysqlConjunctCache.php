@@ -20,10 +20,8 @@ class MysqlConjunctCache implements CacheItemPoolInterface
 {
     /**
      * Mysql database where conjunct violations are cached
-     *
-     * @var \Ampersand\Plugs\MysqlDB\MysqlDB
      */
-    protected $database;
+    protected MysqlDB $database;
 
     /**
      * Name of table where conjunct violations are cached.
@@ -32,21 +30,16 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * "conjId" VARCHAR(255) NOT NULL,
      * "src" VARCHAR(255) NOT NULL,
      * "tgt" VARCHAR(255) NOT NULL
-     *
-     * @var string
      */
-    protected $tableName;
+    protected string $tableName;
 
     /**
-     * @var \Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCacheItem[] deferred
+     * @var \Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCacheItem[]
      */
-    protected $deferred = [];
+    protected array $deferred = [];
 
     /**
      * Constructor
-     *
-     * @param \Ampersand\Plugs\MysqlDB\MysqlDB $database
-     * @param string $tableName
      */
     public function __construct(MysqlDB $database, string $tableName = '__conj_violation_cache__')
     {
@@ -74,7 +67,7 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * @return \Psr\Cache\CacheItemInterface
      *   The corresponding Cache Item.
      */
-    public function getItem($key)
+    public function getItem($key): CacheItemInterface
     {
         if (isset($this->deferred[$key])) {
             return $this->deferred[$key];
@@ -99,7 +92,7 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      *   key is not found. However, if no keys are specified then an empty
      *   traversable MUST be returned instead.
      */
-    public function getItems(array $keys = [])
+    public function getItems(array $keys = []): array|\Traversable
     {
         // Query conjunct cache for given keys, group by conjId
         $violations = [];
@@ -131,7 +124,7 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * @return bool
      *   True if item exists in the cache, false otherwise.
      */
-    public function hasItem($key)
+    public function hasItem($key): bool
     {
         return true; // Always return true, because a CacheItem for each conjunct always exists, even when there are no violations.
     }
@@ -142,7 +135,7 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * @return bool
      *   True if the pool was successfully cleared. False if there was an error.
      */
-    public function clear()
+    public function clear(): bool
     {
         $this->deferred = [];
 
@@ -159,7 +152,7 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * @return bool
      *   True if the item was successfully removed. False if there was an error.
      */
-    public function deleteItem($key)
+    public function deleteItem($key): bool
     {
         return $this->deleteItems([$key]);
     }
@@ -173,7 +166,7 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * @return bool
      *   True if the items were successfully removed. False if there was an error.
      */
-    public function deleteItems(array $keys)
+    public function deleteItems(array $keys): bool
     {
         // Delete form deferred
         foreach ($keys as $key) {
@@ -196,7 +189,7 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * @return bool
      *   True if the item was successfully persisted. False if there was an error.
      */
-    public function save(CacheItemInterface $item)
+    public function save(CacheItemInterface $item): bool
     {
         $this->deleteItem($item->getKey());
 
@@ -224,7 +217,7 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * @return bool
      *   False if the item could not be queued or if a commit was attempted and failed. True otherwise.
      */
-    public function saveDeferred(CacheItemInterface $item)
+    public function saveDeferred(CacheItemInterface $item): bool
     {
         $this->deferred[$item->getKey()] = $item;
 
@@ -237,7 +230,7 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * @return bool
      *   True if all not-yet-saved items were successfully saved or there were none. False otherwise.
      */
-    public function commit()
+    public function commit(): bool
     {
         $saved = true;
         foreach ($this->deferred as $item) {
@@ -254,7 +247,6 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      * Undocumented function
      *
      * @param string[] $conjunctIds
-     * @return array
      */
     public function getConjunctViolations(array $conjunctIds = []): array
     {

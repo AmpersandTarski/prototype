@@ -12,6 +12,8 @@ use DateTime;
 use DateTimeZone;
 use JsonSerializable;
 use Ampersand\Core\Link;
+use Ampersand\Core\TType;
+use Ampersand\Core\Concept;
 
 /**
  *
@@ -22,27 +24,19 @@ class Atom implements JsonSerializable
 {
     /**
      * Ampersand identifier of the atom
-     * @var string
      */
-    protected $id;
+    protected string $id;
     
     /**
      * Specifies the concept of which this atom is an instance
-     * @var Concept
      */
-    public $concept;
+    public Concept $concept;
     
     /**
-     * @var array|null $queryData the row data (from database query) from which this resource is created
+     * Row data (from database query) from which this resource is created
      */
-    protected $queryData = null;
+    protected ?array $queryData = null;
     
-    /**
-     * Atom constructor
-     * @param string $atomId
-     * @param Concept $concept
-     * @return void
-     */
     public function __construct(string $atomId, Concept $concept)
     {
         $this->concept = $concept;
@@ -51,25 +45,23 @@ class Atom implements JsonSerializable
     
     /**
      * Function is called when object is treated as a string
-     * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         // if atom id is longer than 40 chars, display first and last 20 chars
         $id = strlen($this->id) > 40 ? substr($this->id, 0, 20) . '...' . substr($this->id, -20) : $this->id;
         return "{$id}[{$this->concept}]";
     }
 
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
 
     /**
      * Return label of atom to be displayed in user interfaces
-     * When no default view is defined for its Concept, the Atom identifier is returned
      *
-     * @return string
+     * When no default view is defined for its Concept, the Atom identifier is returned
      */
     public function getLabel(): string
     {
@@ -82,7 +74,7 @@ class Atom implements JsonSerializable
         }
     }
 
-    protected function setId($atomId)
+    protected function setId($atomId): self
     {
         // TODO: check can be removed when _NEW is replaced by other mechanism
         if ($atomId === '_NEW') {
@@ -90,33 +82,33 @@ class Atom implements JsonSerializable
         }
         
         switch ($this->concept->type) {
-            case "ALPHANUMERIC":
-            case "BIGALPHANUMERIC":
-            case "HUGEALPHANUMERIC":
-            case "PASSWORD":
-            case "TYPEOFONE":
-            case "BOOLEAN":
+            case TType::ALPHANUMERIC:
+            case TType::BIGALPHANUMERIC:
+            case TType::HUGEALPHANUMERIC:
+            case TType::PASSWORD:
+            case TType::TYPEOFONE:
+            case TType::BOOLEAN:
                 $this->id = $atomId;
                 break;
-            case "DATE":
+            case TType::DATE:
                 // In php backend, all Dates are kept in ISO-8601 format
                 $datetime = new DateTime($atomId);
                 $this->id = $datetime->format('Y-m-d'); // format in ISO-8601 standard
                 break;
-            case "DATETIME":
+            case TType::DATETIME:
                 // In php backend, all DateTimes are kept in DateTimeZone::UTC and DateTime::ATOM format
                 // $atomId may contain a timezone, otherwise UTC is asumed.
                 $datetime = new DateTime($atomId, new DateTimeZone('UTC')); // The $timezone parameter is ignored when the $time parameter either is a UNIX timestamp (e.g. @946684800) or specifies a timezone (e.g. 2010-01-28T15:00:00+02:00).
                 $datetime->setTimezone(new DateTimeZone('UTC')); // if not yet UTC, convert to UTC
                 $this->id = $datetime->format(DateTime::ATOM); // format in ISO-8601 standard, i.e. 2005-08-15T15:52:01+00:00 (DateTime::ATOM)
                 break;
-            case "FLOAT":
-            case "INTEGER":
-            case "OBJECT":
+            case TType::FLOAT:
+            case TType::INTEGER:
+            case TType::OBJECT:
                 $this->id = $atomId;
                 break;
             default:
-                throw new Exception("Unknown/unsupported representation type '{$this->concept->type}' for concept '[{$this->concept}]'", 501);
+                throw new Exception("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'", 501);
         }
         return $this;
     }
@@ -125,51 +117,47 @@ class Atom implements JsonSerializable
      * Returns json representation of Atom (identifier) according to Ampersand technical types (TTypes)
      * Function is called when object encoded to json with json_encode()
      * @throws Exception when technical type is not (yet) supported
-     * @return mixed
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         switch ($this->concept->type) {
-            case "ALPHANUMERIC":
-            case "BIGALPHANUMERIC":
-            case "HUGEALPHANUMERIC":
-            case "PASSWORD":
-            case "TYPEOFONE":
+            case TType::ALPHANUMERIC:
+            case TType::BIGALPHANUMERIC:
+            case TType::HUGEALPHANUMERIC:
+            case TType::PASSWORD:
+            case TType::TYPEOFONE:
                 return (string) $this->id;
-            case "BOOLEAN":
+            case TType::BOOLEAN:
                 return (bool) $this->id;
-            case "DATE":
+            case TType::DATE:
                 $datetime = new DateTime($this->id);
                 return $datetime->format('Y-m-d'); // format in ISO-8601 standard
-            case "DATETIME":
+            case TType::DATETIME:
                 // DateTime(s) may contain a timezone, otherwise UTC is asumed.
                 $datetime = new DateTime($this->id, new DateTimeZone('UTC')); // The $timezone parameter is ignored when the $time parameter either is a UNIX timestamp (e.g. @946684800) or specifies a timezone (e.g. 2010-01-28T15:00:00+02:00).
                 $datetime->setTimezone(new DateTimeZone(date_default_timezone_get())); // convert back to systemtime
                 return $datetime->format(DateTime::ATOM); // format in ISO-8601 standard, i.e. 2005-08-15T15:52:01+00:00 (DateTime::ATOM)
-            case "FLOAT":
+            case TType::FLOAT:
                 return (float) $this->id;
-            case "INTEGER":
+            case TType::INTEGER:
                 return (int) $this->id;
-            case "OBJECT":
+            case TType::OBJECT:
                 return rawurlencode($this->id);
             default:
-                throw new Exception("Unknown/unsupported representation type '{$this->concept->type}' for concept '[{$this->concept}]'", 501);
+                throw new Exception("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'", 501);
         }
     }
     
     /**
      * Checks if atom exists in storage
-     * @return boolean
      */
-    public function exists()
+    public function exists(): bool
     {
         return $this->concept->atomExists($this);
     }
 
     /**
      * Get the most specific version of this atom (i.e. with the smallest concept)
-     *
-     * @return \Ampersand\Core\Atom
      */
     public function getSmallest(): Atom
     {
@@ -186,9 +174,8 @@ class Atom implements JsonSerializable
     
     /**
      * Add atom to concept
-     * @return Atom $this
      */
-    public function add(bool $populateDefaults = true)
+    public function add(bool $populateDefaults = true): self
     {
         $this->concept->addAtom($this, $populateDefaults);
         return $this;
@@ -196,9 +183,8 @@ class Atom implements JsonSerializable
     
     /**
      * Delete atom from concept
-     * @return Atom $this
      */
-    public function delete()
+    public function delete(): self
     {
         $this->concept->deleteAtom($this);
         return $this;
@@ -206,11 +192,8 @@ class Atom implements JsonSerializable
     
     /**
      * Merge another atom into this atom
-     *
-     * @param Atom $anotherAtom
-     * @return Atom $this
      */
-    public function merge(Atom $anotherAtom)
+    public function merge(Atom $anotherAtom): self
     {
         $this->concept->mergeAtoms($this, $anotherAtom);
         return $this;
@@ -218,11 +201,8 @@ class Atom implements JsonSerializable
 
     /**
      * Rename an atom identifier
-     *
-     * @param string $newAtomId
-     * @return \Ampersand\Core\Atom
      */
-    public function rename($newAtomId): Atom
+    public function rename(string $newAtomId): Atom
     {
         $newAtom = new Atom($newAtomId, $this->concept);
         if ($newAtom->exists()) {
@@ -234,12 +214,13 @@ class Atom implements JsonSerializable
     }
     
     /**
+     * Undocumented function
+     *
      * @param string|Atom $tgtAtom
      * @param string|Relation $relation when provided as string, use relation signature
-     * @param boolean $isFlipped specifies if $this and $tgtAtom must be flipped to match the relation
-     * @return Link
+     * @param bool $isFlipped specifies if $this and $tgtAtom must be flipped to match the relation
      */
-    public function link($tgtAtom, $relation, $isFlipped = false)
+    public function link(string|Atom $tgtAtom, string|Relation $relation, bool $isFlipped = false): Link
     {
         if (!($relation instanceof Relation)) {
             $relation = $this->concept->getApp()->getRelation($relation);
@@ -256,11 +237,13 @@ class Atom implements JsonSerializable
     }
     
     /**
+     * Undocumented function
+     *
      * @param string|Relation $relation when provided as string, use relation signature
      * @param boolean $isFlipped specifies if relation must be flipped
-     * @return Link[]
+     * @return \Ampersand\Core\Link[]
      */
-    public function getLinks($relation, $isFlipped = false)
+    public function getLinks(string|Relation $relation, bool $isFlipped = false): array
     {
         if (!($relation instanceof Relation)) {
             $relation = $this->concept->getApp()->getRelation($relation);
@@ -277,10 +260,10 @@ class Atom implements JsonSerializable
      * Undocumented function
      *
      * @param string|\Ampersand\Core\Relation $relation when provided as string, use relation signature
-     * @param boolean $flip specifies if relation must be flipped
+     * @param bool $flip specifies if relation must be flipped
      * @return \Ampersand\Core\Atom[]
      */
-    public function getTargetAtoms($relation, $flip = false)
+    public function getTargetAtoms(string|Relation $relation, bool $flip = false): array
     {
         return array_map(function (Link $link) use ($flip) {
             return $flip ? $link->src() : $link->tgt();
@@ -289,11 +272,8 @@ class Atom implements JsonSerializable
     
     /**
      * Save query row data (can be used for subinterfaces)
-     *
-     * @param array|null $data
-     * @return \Ampersand\Core\Atom
      */
-    public function setQueryData(array $data = null): Atom
+    public function setQueryData(?array $data = null): Atom
     {
         $this->queryData = $data;
         return $this;
@@ -302,11 +282,9 @@ class Atom implements JsonSerializable
     /**
      * Get (column of) query data
      *
-     * @param string|null $colName
      * @param bool|null $exists reference var that returns if column exists
-     * @return string|array
      */
-    public function getQueryData(string $colName = null, bool &$exists = null)
+    public function getQueryData(?string $colName = null, ?bool &$exists = null): mixed
     {
         if (is_null($colName)) {
             return (array) $this->queryData;

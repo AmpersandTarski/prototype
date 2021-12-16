@@ -20,40 +20,28 @@ class Violation
 
     /**
      * Rule to which this violation belongs to
-     *
-     * @var \Ampersand\Rule\Rule
      */
-    protected $rule;
+    protected Rule $rule;
 
     /**
      * The source atom of the violation
-     *
-     * @var \Ampersand\Core\Atom
      */
-    protected $src;
+    protected Atom $src;
 
     /**
      * The target atom of the violation
-     *
-     * @var \Ampersand\Core\Atom
      */
-    protected $tgt;
+    protected Atom $tgt;
 
     /**
      * The violation message
-     *
-     * @var string
      */
-    protected $message;
+    protected string $message;
 
     /**
      * Constructor of violation
-     *
-     * @param \Ampersand\Rule\Rule $rule
-     * @param string $srcAtomId
-     * @param string $tgtAtomId
      */
-    public function __construct(Rule $rule, $srcAtomId, $tgtAtomId)
+    public function __construct(Rule $rule, string $srcAtomId, string $tgtAtomId)
     {
         $this->rule = $rule;
         $this->src = new Atom($srcAtomId, $rule->srcConcept);
@@ -62,10 +50,8 @@ class Violation
     
     /**
      * Function is called when object is treated as a string
-     *
-     * @return string role label
      */
-    public function __toString()
+    public function __toString(): string
     {
         return "({$this->src},{$this->tgt})";
     }
@@ -87,8 +73,6 @@ class Violation
     
     /**
      * Get violation message
-     *
-     * @return string
      */
     public function getViolationMessage(): string
     {
@@ -104,8 +88,6 @@ class Violation
 
     /**
      * Get violation message prepared for ExecEngine
-     *
-     * @return string
      */
     public function getExecEngineViolationMessage(): string
     {

@@ -27,31 +27,23 @@ class MysqlConjunctCacheItem implements CacheItemInterface
 {
     /**
      * Undocumented variable
-     *
-     * @var string
      */
-    protected $key;
+    protected string $key;
 
     /**
      * Callback function to get the current value of this item from the CachePool
-     *
-     * @var callable
      */
-    protected $callable;
+    protected \callable $callable;
 
     /**
      * Undocumented variable
-     *
-     * @var boolean
      */
-    protected $hasValue = false;
+    protected bool $hasValue = false;
 
     /**
      * Undocumented variable
-     *
-     * @var array
      */
-    protected $value;
+    protected array $value;
 
     /**
      * Undocumented function
@@ -74,7 +66,7 @@ class MysqlConjunctCacheItem implements CacheItemInterface
      * @return string
      *   The key string for this cache item.
      */
-    public function getKey()
+    public function getKey(): string
     {
         return $this->key;
     }
@@ -91,7 +83,7 @@ class MysqlConjunctCacheItem implements CacheItemInterface
      * @return mixed
      *   The value corresponding to this cache item's key, or null if not found.
      */
-    public function get()
+    public function get(): mixed
     {
         if ($this->hasValue) {
             return $this->value;
@@ -110,7 +102,7 @@ class MysqlConjunctCacheItem implements CacheItemInterface
      * @return bool
      *   True if the request resulted in a cache hit. False otherwise.
      */
-    public function isHit()
+    public function isHit(): bool
     {
         return true; // Always return true, for each conjunct we cache violations (even if no violations exists)
     }
@@ -128,7 +120,7 @@ class MysqlConjunctCacheItem implements CacheItemInterface
      * @return static
      *   The invoked object.
      */
-    public function set($value)
+    public function set($value): self
     {
         $this->value = $value;
         $this->hasValue = true;
@@ -148,7 +140,7 @@ class MysqlConjunctCacheItem implements CacheItemInterface
      * @return static
      *   The called object.
      */
-    public function expiresAt($expiration)
+    public function expiresAt($expiration): static
     {
         throw new \Exception("Functionality not implemented", 501);
     }
@@ -166,7 +158,7 @@ class MysqlConjunctCacheItem implements CacheItemInterface
      * @return static
      *   The called object.
      */
-    public function expiresAfter($time)
+    public function expiresAfter($time): static
     {
         throw new \Exception("Functionality not implemented", 501);
     }

@@ -17,14 +17,30 @@ use Ampersand\Core\Concept;
  */
 interface ConceptPlugInterface extends StorageInterface
 {
+    /**
+    * Check if atom exists in storage
+    */
+    public function atomExists(Atom $atom): bool;
     
-    public function atomExists(Atom $atom);
+    /**
+     * Get all atoms for given concept
+     *
+     * @return \Ampersand\Core\Atom[]
+     */
+    public function getAllAtoms(Concept $concept): array;
     
-    public function getAllAtoms(Concept $concept);
+    /**
+     * Add atom to storage
+     */
+    public function addAtom(Atom $atom): void;
     
-    public function addAtom(Atom $atom);
+    /**
+     * Remove an atom as member from a concept set
+     */
+    public function removeAtom(Atom $atom): void;
     
-    public function removeAtom(Atom $atom);
-    
-    public function deleteAtom(Atom $atom);
+    /**
+     * Delete atom from storage
+     */
+    public function deleteAtom(Atom $atom): void;
 }

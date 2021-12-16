@@ -8,10 +8,8 @@ use Throwable;
 
 /**
  * Get the filesnames from a folder
- * @param $dirPath
- * @return array
  */
-function getDirectoryList($dirPath)
+function getDirectoryList(string $dirPath): array
 {
     $results = []; // create an array to hold directory list
     $handler = opendir($dirPath); // create a handler for the directory
@@ -30,21 +28,16 @@ function getDirectoryList($dirPath)
 
 /**
  * Check if array is sequential (i.e. numeric keys, starting with 0, without gaps)
- * @param array $arr the array to check
- * @return boolean
  */
-function isSequential(array $arr)
+function isSequential(array $arr): bool
 {
     return array_keys($arr) === range(0, count($arr) - 1);
 }
 
 /**
  * Returns a file path that does not exists yet
- * Filename is appended with '_i' just before the extension (e.g. dir/file_1.txt)
  *
- * @param \League\Flysystem\FilesystemInterface $fileSystem
- * @param string $filePath
- * @return string
+ * Filename is appended with '_i' just before the extension (e.g. dir/file_1.txt)
  */
 function getSafeFileName(FilesystemInterface $fileSystem, string $filePath): string
 {
@@ -102,12 +95,9 @@ function stackTrace(Throwable $throwable): string
  * Function returns a full URL (protocol + host + ..., e.g. https://example.com/test)
  * The $baseUrl is prepended if the $url is not yet a valid URL
  *
- * @param string $url
- * @param string|null $baseUrl
- * @return string
  * @throws Exception when resulting url is not valid
  */
-function makeValidURL(string $url, string $baseUrl = null): string
+function makeValidURL(string $url, ?string $baseUrl = null): string
 {
     if (filter_var($url, FILTER_VALIDATE_URL) === true) {
         return $url;
@@ -127,11 +117,8 @@ function makeValidURL(string $url, string $baseUrl = null): string
  *
  * This is a utility function to work with php's shorthand notation 'G', 'M' and 'K'
  * See: https://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
- *
- * @param string|int $value
- * @return int
  */
-function returnBytes($value): int
+function returnBytes(string|int $value): int
 {
     $value = trim($value);
 

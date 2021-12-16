@@ -11,6 +11,8 @@ use Exception;
 use Ampersand\AmpersandApp;
 use Ampersand\Plugs\ViewPlugInterface;
 use Psr\Log\LoggerInterface;
+use Ampersand\Rule\RuleType;
+use Ampersand\Core\Concept;
 
 /**
  *
@@ -21,109 +23,88 @@ class Rule
 {
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Reference to Ampersand app for which this rule is defined
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $ampersandApp;
+    protected AmpersandApp $ampersandApp;
 
     /**
      * Dependency injection of an ViewPlug implementation
-     *
-     * @var \Ampersand\Plugs\ViewPlugInterface
      */
-    protected $plug;
+    protected ViewPlugInterface $plug;
 
     /**
      * Rule identifier
-     *
-     * @var string
      */
-    protected $id;
+    protected string $id;
     
     /**
      * The file and line number of the Ampersand script where this rule is defined
-     *
-     * @var string
      */
-    protected $origin;
+    protected string $origin;
     
     /**
      * The formalized rule in adl
-     *
-     * @var string
      */
-    protected $ruleAdl;
+    protected string $ruleAdl;
     
     /**
      * The source concept of this rule
-     *
-     * @var \Ampersand\Core\Concept
      */
-    public $srcConcept;
+    public Concept $srcConcept;
     
     /**
      * The target concept of this rule
-     *
-     * @var \Ampersand\Core\Concept
      */
-    public $tgtConcept;
+    public Concept $tgtConcept;
     
     /**
      * The meaning of this rule (provided in natural language by the Ampersand engineer)
-     *
-     * @var string
      */
-    protected $meaning;
+    protected string $meaning;
     
     /**
      * The violation message to display (provided in natural language by the Ampersand engineer)
-     *
-     * @var string
      */
-    protected $message;
+    protected string $message;
     
     /**
      * List of conjuncts of which this rule is made of
      *
      * @var \Ampersand\Rule\Conjunct[]
      */
-    protected $conjuncts = [];
+    protected array $conjuncts = [];
     
     /**
      * List with segments to build violation messages
      *
      * @var \Ampersand\Rule\ViolationSegment[]
      */
-    protected $violationSegments = [];
+    protected array $violationSegments = [];
     
     /**
-     * Specifies the type of rule (signal or invariant)
-     *
-     * @var string
+     * Specifies the type of rule
      */
-    protected $type;
+    protected RuleType $type;
     
     /**
-     * Rule constructor
-     *
-     * @param array $ruleDef
-     * @param \Ampersand\Plugs\ViewPlugInterface $plug
-     * @param string $type specifies if it is a signal (sig) or invariant (inv) rule
-     * @param \Ampersand\AmpersandApp $app
-     * @param \Psr\Log\LoggerInterface $logger
+     * Constructor
     */
-    public function __construct(array $ruleDef, ViewPlugInterface $plug, string $type, AmpersandApp $app, LoggerInterface $logger)
+    public function __construct(
+        array $ruleDef,
+        ViewPlugInterface $plug,
+        RuleType $type,
+        AmpersandApp $app,
+        LoggerInterface $logger
+    )
     {
         $this->logger = $logger;
         $this->ampersandApp = $app;
         $this->plug = $plug;
+        $this->type = $type;
         
         $this->id = $ruleDef['name'];
         
@@ -145,18 +126,10 @@ class Rule
         foreach ((array)$ruleDef['pairView'] as $segment) {
             $this->violationSegments[] = new ViolationSegment($segment, $this);
         }
-        
-        // Set type of rule
-        if (!in_array($type, ['signal', 'invariant'])) {
-            throw new Exception("Unsupported rule type. Allowed types are signal or invariant", 500);
-        }
-        $this->type = $type;
     }
     
     /**
      * Function is called when object is treated as a string
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -185,28 +158,22 @@ class Rule
 
     /**
      * Specifies if rule is a signal rule
-     *
-     * @return boolean
      */
     public function isSignalRule(): bool
     {
-        return $this->type === 'signal';
+        return $this->type === RuleType::SIG;
     }
 
     /**
      * Specifies is rule is a invariant rule
-     *
-     * @return boolean
      */
     public function isInvariantRule(): bool
     {
-        return $this->type === 'invariant';
+        return $this->type === RuleType::INV;
     }
     
     /**
      * Get message to tell that a rule is broken
-     *
-     * @return string
      */
     public function getViolationMessage(): string
     {
@@ -226,7 +193,6 @@ class Rule
     /**
      * Check rule and return violations
      *
-     * @param bool $forceReEvaluation
      * @return \Ampersand\Rule\Violation[]
      */
     public function checkRule(bool $forceReEvaluation = true): array

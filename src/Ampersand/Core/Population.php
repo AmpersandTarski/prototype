@@ -22,31 +22,27 @@ class Population
 {
     /**
      * Logger
-     *
-     * @var \Psr\Log\LoggerInterface
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * Ampersand model
-     *
-     * @var \Ampersand\Model
      */
-    protected $model;
+    protected Model $model;
 
     /**
      * List of atoms in this population
      *
      * @var \Ampersand\Core\Atom[]
      */
-    protected $atoms = [];
+    protected array $atoms = [];
 
     /**
      * List of links in this population
      *
      * @var \Ampersand\Core\Link[]
      */
-    protected $links = [];
+    protected array $links = [];
 
     public function __construct(Model $model, LoggerInterface $logger)
     {
@@ -82,23 +78,20 @@ class Population
      *
      * @param \Ampersand\Core\Concept[] $concepts
      * @param \Ampersand\Core\Relation[] $relations
-     * @return \Ampersand\Core\Population
      */
     public function loadExistingPopulation(array $concepts, array $relations): Population
     {
         foreach (array_unique($concepts) as $concept) {
-            /** @var \Ampersand\Core\Concept $concept */
             $this->atoms = array_merge($this->atoms, $concept->getAllAtomObjects());
         }
         foreach (array_unique($relations) as $rel) {
-            /** @var \Ampersand\Core\Relation $rel */
             $this->links = array_merge($this->links, $rel->getAllLinks());
         }
 
         return $this;
     }
 
-    public function export(EncoderInterface $encoder, string $format)
+    public function export(EncoderInterface $encoder, string $format): string
     {
         $conceptPop = [];
         foreach ($this->atoms as $atom) {

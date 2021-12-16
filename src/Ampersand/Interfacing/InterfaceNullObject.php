@@ -27,23 +27,16 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 {
     /**
      * The target concept of this interface object
-     *
-     * @var \Ampersand\Core\Concept
      */
-    protected $tgtConcept;
+    protected Concept $tgtConcept;
 
     /**
      * Reference to Ampersand app
-     *
-     * @var \Ampersand\AmpersandApp
      */
-    protected $app;
+    protected AmpersandApp $app;
 
     /**
      * Constructor
-     *
-     * @param \Ampersand\Core\Concept $tgtConcept
-     * @param \Ampersand\AmpersandApp $app
      */
     public function __construct(Concept $tgtConcept, AmpersandApp $app)
     {
@@ -66,7 +59,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         return "InterfaceNullObject";
     }
 
-    public function getEditableConcepts()
+    public function getEditableConcepts(): array
     {
         return [];
     }
@@ -99,7 +92,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
         // Allow when there is at least an interface accesible for the user to create a new tgt
         foreach ($this->app->getAccessibleInterfaces() as $ifc) {
-            /** @var \Ampersand\Interfacing\Ifc $ifc */
             $ifcObj = $ifc->getIfcObject();
             if ($ifcObj->crudC() && $ifc->getTgtConcept() === $this->tgtConcept) {
                 return true;
@@ -141,7 +133,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     /**
      * Returns list of target atoms
      *
-     * @param \Ampersand\Core\Atom $src
      * @return \Ampersand\Core\Atom[]
      */
     public function getTgtAtoms(Atom $src, string $selectTgt = null): array
@@ -171,10 +162,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Returns path for given tgt atom
-     *
-     * @param \Ampersand\Core\Atom $tgt
-     * @param string $pathToSrc
-     * @return string
      */
     public function buildResourcePath(Atom $tgt, string $pathToSrc): string
     {
@@ -192,7 +179,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     /**
      * Undocumented function
      *
-     * @param int $options
      * @return \Ampersand\Interfacing\InterfaceObjectInterface[]
      */
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS): array
@@ -217,7 +203,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         foreach ($this->getSubinterfaces($options) as $ifcobj) {
-            /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
             if ($ifcobj->getIfcId() === $ifcId) {
                 return $ifcobj;
             }
@@ -230,7 +215,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         foreach ($this->getSubinterfaces($options) as $ifcobj) {
-            /** @var \Ampersand\Interfacing\InterfaceObjectInterface $ifcobj */
             if ($ifcobj->getIfcLabel() === $ifcLabel) {
                 return $ifcobj;
             }
@@ -268,7 +252,13 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         return $tgtAtom->add();
     }
 
-    public function read(Atom $src, string $pathToSrc, string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = [])
+    public function read(
+        Atom $src,
+        string $pathToSrc,
+        string $tgtId = null,
+        int $options = Options::DEFAULT_OPTIONS,
+        int $depth = null, array $recursionArr = []
+    ): mixed
     {
         if (!$this->crudR()) {
             throw new AccessDeniedException("Access denied to read with InterfaceNullObject");
@@ -278,7 +268,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         $result = [];
 
         foreach ($this->getTgtAtoms($src, $tgtId) as $tgt) {
-            /** @var \Ampersand\Core\Atom $tgt */
             // Basic UI data of a resource
             if ($options & Options::INCLUDE_UI_DATA) {
                 $resource = [];
@@ -339,8 +328,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Return properties of interface object
-     *
-     * @return array
      */
     public function getTechDetails(): array
     {
@@ -349,8 +336,6 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     /**
      * Return diagnostic information of interface object
-     *
-     * @return array
      */
     public function diagnostics(): array
     {

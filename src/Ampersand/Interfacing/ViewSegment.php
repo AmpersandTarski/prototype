@@ -9,6 +9,7 @@ namespace Ampersand\Interfacing;
 
 use Ampersand\Core\Atom;
 use Exception;
+use Ampersand\Interfacing\View;
 
 /**
  *
@@ -20,51 +21,25 @@ class ViewSegment
 
     /**
      * The view to which this segment belongs to
-     * @var View $view
      */
-    protected $view;
+    protected View $view;
     
-    /**
-     *
-     * @var int
-     */
-    protected $seqNr;
+    protected int $seqNr;
+
+    protected string $label;
+
+    protected string $segType;
+
+    protected string $text;
+
+    protected string $expADL;
+
+    protected string $expSQL;
 
     /**
-     *
-     * @var string
+     * Constructor
      */
-    protected $label;
-
-    /**
-     *
-     * @var string
-     */
-    protected $segType;
-
-    /**
-     *
-     * @var string
-     */
-    protected $text;
-
-    /**
-     *
-     * @var string
-     */
-    protected $expADL;
-
-    /**
-     *
-     * @var string
-     */
-    protected $expSQL;
-
-    /**
-     * Constructor of view segments
-     * @param array $viewSegmentDef
-     */
-    public function __construct($viewSegmentDef, View $view)
+    public function __construct(array $viewSegmentDef, View $view)
     {
         $this->view = $view;
         $this->seqNr = $viewSegmentDef['seqNr'];
@@ -79,26 +54,22 @@ class ViewSegment
         }
     }
     
-    public function __toString()
+    public function __toString(): string
     {
         return $this->view->getLabel() . ":{$this->label}";
     }
 
-    public function getLabel()
+    public function getLabel(): string
     {
         return $this->label;
     }
 
-    public function getType()
+    public function getType(): string
     {
         return $this->segType;
     }
     
-    /**
-     * @param Atom $srcAtom
-     * @return mixed
-     */
-    public function getData(Atom $srcAtom)
+    public function getData(Atom $srcAtom): mixed
     {
         switch ($this->segType) {
             case "Text":
@@ -122,20 +93,16 @@ class ViewSegment
 
     /**
      * Returns query of view segment
-     * @return string
      */
-    public function getQuery()
+    public function getQuery(): string
     {
         return str_replace('_SESSION', session_id(), $this->expSQL); // Replace _SESSION var with current session id.
     }
 
     /**
      * Function to manually set optimized query expression
-     *
-     * @param string $query
-     * @return void
      */
-    public function setQuery(string $query)
+    public function setQuery(string $query): void
     {
         $this->segType = 'Exp';
         $this->expSQL = $query;
