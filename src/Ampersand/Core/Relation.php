@@ -315,12 +315,12 @@ class Relation
 
     public function getDefaultSrcValues(): array
     {
-        return array_map('self::resolveDefaultValue', $this->defaultSrc);
+        return array_map([self::class, 'resolveDefaultValue'], $this->defaultSrc);
     }
 
     public function getDefaultTgtValues(): array
     {
-        return array_map('self::resolveDefaultValue', $this->defaultTgt);
+        return array_map([self::class, 'resolveDefaultValue'], $this->defaultTgt);
     }
 
     protected static function resolveDefaultValue(string $value): string
