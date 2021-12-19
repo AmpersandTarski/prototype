@@ -195,7 +195,7 @@ class Resource extends Atom
     /**
      * Get resource data according to provided interface
      */
-    public function get(int $options = Options::DEFAULT_OPTIONS, ?int $depth = null): array|string
+    public function get(int $options = Options::DEFAULT_OPTIONS, ?int $depth = null): mixed
     {
         return $this->parentList->getOne($this->id, $options, $depth);
     }

@@ -73,11 +73,7 @@ class MysqlConjunctCache implements CacheItemPoolInterface
             return $this->deferred[$key];
         }
 
-        $func = function () use ($key) {
-            return $this->getConjunctViolations([$key]);
-        };
-
-        return new MysqlConjunctCacheItem($key, $func);
+        return new MysqlConjunctCacheItem($key, $this->getConjunctViolations(...));
     }
 
     /**
@@ -106,7 +102,8 @@ class MysqlConjunctCache implements CacheItemPoolInterface
                 yield $this->deferred[$key];
             } else {
                 // Yield new CacheItem, set conjunct cache
-                yield (new MysqlConjunctCacheItem($key))->set($violations[$key] ?? []);
+                $func = $this->getConjunctViolations(...);
+                yield (new MysqlConjunctCacheItem($key, $func))->set($violations[$key] ?? []);
             }
         }
     }

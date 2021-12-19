@@ -2,6 +2,7 @@
 
 namespace Ampersand\Plugs\MysqlConjunctCache;
 
+use Closure;
 use Psr\Cache\CacheItemInterface;
 
 /**
@@ -33,7 +34,7 @@ class MysqlConjunctCacheItem implements CacheItemInterface
     /**
      * Callback function to get the current value of this item from the CachePool
      */
-    protected \callable $callable;
+    protected Closure $callable;
 
     /**
      * Undocumented variable
@@ -46,12 +47,9 @@ class MysqlConjunctCacheItem implements CacheItemInterface
     protected array $value;
 
     /**
-     * Undocumented function
-     *
-     * @param string $conjunctId
-     * @param callable|null $callable
+     * Constructor
      */
-    public function __construct(string $conjunctId, callable $callable = null)
+    public function __construct(string $conjunctId, Closure $callable)
     {
         $this->key = $conjunctId;
         $this->callable = $callable;
@@ -89,7 +87,7 @@ class MysqlConjunctCacheItem implements CacheItemInterface
             return $this->value;
         } else {
             $this->hasValue = true;
-            return $this->value = ($this->callable)();
+            return $this->value = ($this->callable)([$this->key]);
         }
     }
 

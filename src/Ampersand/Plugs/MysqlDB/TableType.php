@@ -15,7 +15,7 @@ enum TableType: string
     case Tgt = 'tgt';
     case Binary = 'binary';
 
-    public static function fromCompiler(string $tableOf, string $relationName): self
+    public static function fromCompiler(?string $tableOf, string $relationName): self
     {
         switch ($tableOf) {
             case 'src':

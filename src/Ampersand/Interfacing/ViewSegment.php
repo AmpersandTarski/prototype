@@ -8,8 +8,8 @@
 namespace Ampersand\Interfacing;
 
 use Ampersand\Core\Atom;
-use Exception;
 use Ampersand\Interfacing\View;
+use Exception;
 
 /**
  *
@@ -30,11 +30,11 @@ class ViewSegment
 
     protected string $segType;
 
-    protected string $text;
+    protected ?string $text;
 
-    protected string $expADL;
+    protected ?string $expADL;
 
-    protected string $expSQL;
+    protected ?string $expSQL;
 
     /**
      * Constructor
@@ -43,7 +43,7 @@ class ViewSegment
     {
         $this->view = $view;
         $this->seqNr = $viewSegmentDef['seqNr'];
-        $this->label = is_null($viewSegmentDef['label']) ? $viewSegmentDef['seqNr'] : $viewSegmentDef['label'];
+        $this->label = $viewSegmentDef['label'] ?? (string) $viewSegmentDef['seqNr'];
         $this->segType = $viewSegmentDef['segType'];
         $this->text = $viewSegmentDef['text'];
         $this->expADL = $viewSegmentDef['expADL'];
@@ -96,6 +96,10 @@ class ViewSegment
      */
     public function getQuery(): string
     {
+        if (is_null($this->expSQL)) {
+            throw new Exception("Query not specified for view segment '{$this}'", 500);
+        }
+        
         return str_replace('_SESSION', session_id(), $this->expSQL); // Replace _SESSION var with current session id.
     }
 

@@ -79,7 +79,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     protected ?View $view;
     protected ?BoxHeader $boxHeader = null;
     
-    protected string $refInterfaceId;
+    protected ?string $refInterfaceId = null;
     protected bool $isLinkTo = false;
     
     /**
@@ -142,6 +142,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
              * 2) BOX with subinterfaces
              */
             // Case 1: reference to other interface
+            // TODO: refactor. Make RefInterface a separate sub class
             if (isset($subIfcsDef['refSubInterfaceId'])) {
                 /* Reference to other interface
                 * e.g.:
@@ -278,7 +279,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      */
     protected function getRefToIfc(): Ifc
     {
-        if ($this->isRef()) {
+        if (!is_null($this->refInterfaceId)) {
             return $this->rootIfc->getModel()->getInterface($this->refInterfaceId);
         } else {
             throw new Exception("Interface is not a reference interface: " . $this->getPath(), 500);
@@ -555,7 +556,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // Prevent infinite loops for reference interfaces when no depth is provided
         // We only need to check LINKTO ref interfaces, because cycles may not exist in regular references (enforced by Ampersand generator)
         // If $depth is provided, no check is required, because recursion is finite
-        if ($this->isLinkTo && is_null($depth)) {
+        if ($this->isLinkTo && is_null($depth) && !is_null($this->refInterfaceId)) {
             if (in_array($tgt->getId(), $recursionArr[$this->refInterfaceId] ?? [])) {
                 throw new Exception("Infinite loop detected for {$tgt} in " . $this->getPath(), 500);
             } else {
