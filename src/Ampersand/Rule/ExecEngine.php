@@ -103,7 +103,7 @@ class ExecEngine extends RuleEngine
     /**
      * Logs with an arbitrary level.
      */
-    public function log(string $level, string $message, array $context = []): void
+    public function log($level, $message, array $context = [])
     {
         $this->logger->log($level, $message, $context);
     }
