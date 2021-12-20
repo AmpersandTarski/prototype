@@ -7,17 +7,18 @@
 
 namespace Ampersand\Interfacing;
 
-use Ampersand\Interfacing\InterfaceObjectInterface;
-use Ampersand\Plugs\IfcPlugInterface;
-use Exception;
-use Ampersand\Core\Concept;
-use Ampersand\Model;
-use Ampersand\Interfacing\InterfaceNullObject;
-use Ampersand\Interfacing\InterfaceExprObject;
-use Ampersand\Interfacing\InterfaceTxtObject;
 use Ampersand\AmpersandApp;
 use Ampersand\Core\Atom;
+use Ampersand\Core\Concept;
+use Ampersand\Interfacing\InterfaceExprObject;
+use Ampersand\Interfacing\InterfaceExprObjectRef;
+use Ampersand\Interfacing\InterfaceNullObject;
+use Ampersand\Interfacing\InterfaceObjectInterface;
+use Ampersand\Interfacing\InterfaceTxtObject;
 use Ampersand\Misc\ProtoContext;
+use Ampersand\Model;
+use Ampersand\Plugs\IfcPlugInterface;
+use Exception;
 
 /**
  *
@@ -137,7 +138,11 @@ class Ifc
     {
         switch ($objectDef['type']) {
             case 'ObjExpression':
-                return new InterfaceExprObject($objectDef, $defaultPlug, $this, $parent);
+                if (isset($objectDef['subinterfaces']['refSubInterfaceId'])) {
+                    return new InterfaceExprObjectRef($objectDef, $defaultPlug, $this, $parent);
+                } else {
+                    return new InterfaceExprObject($objectDef, $defaultPlug, $this, $parent);
+                }
                 break;
             case 'ObjText':
                 return new InterfaceTxtObject($objectDef, $parent);
@@ -154,7 +159,11 @@ class Ifc
             throw new Exception("Interface expression object definition required, but '{$objectDef['type']}' provided.", 500);
         }
 
-        return new InterfaceExprObject($objectDef, $defaultPlug, $this, $parent);
+        if (isset($objectDef['subinterfaces']['refSubInterfaceId'])) {
+            return new InterfaceExprObjectRef($objectDef, $defaultPlug, $this, $parent);
+        } else {
+            return new InterfaceExprObject($objectDef, $defaultPlug, $this, $parent);
+        }
     }
     
     public static function getNullObject(Concept $concept, AmpersandApp $app): InterfaceObjectInterface

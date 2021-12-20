@@ -18,10 +18,13 @@ class BoxHeader
 
     protected $keyVals = [];
 
-    public function __construct(string $type, array $keyVals)
+    public function __construct(array $boxHeaderDef)
     {
-        $this->type = $type;
-        $this->keyVals = $keyVals;
+        $this->type = $boxHeaderDef['type'];
+
+        foreach ($boxHeaderDef['keyVals'] as $keyVal) {
+            $this->keyVals[$keyVal['key']] = $keyVal['value']; // Unpack keyVals list
+        }
     }
 
     public function isSortable(): bool

@@ -12,7 +12,6 @@ use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Core\SrcOrTgt;
 use Ampersand\Core\TType;
-use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Interfacing\AbstractIfcObject;
 use Ampersand\Interfacing\BoxHeader;
 use Ampersand\Interfacing\Ifc;
@@ -52,10 +51,10 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      */
     protected string $label;
     
-    protected ?bool $crudC;
-    protected ?bool $crudR;
-    protected ?bool $crudU;
-    protected ?bool $crudD;
+    protected bool $crudC;
+    protected bool $crudR;
+    protected bool $crudU;
+    protected bool $crudD;
     
     protected ?Relation $relation;
     protected ?bool $relationIsFlipped;
@@ -78,9 +77,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     protected ?View $view;
     protected ?BoxHeader $boxHeader = null;
-    
-    protected ?string $refInterfaceId = null;
-    protected bool $isLinkTo = false;
     
     /**
      * @var \Ampersand\Interfacing\InterfaceObjectInterface[]
@@ -108,7 +104,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $this->id = $ifcDef['id'];
         $this->label = $ifcDef['label'];
         $this->view = is_null($ifcDef['viewId']) ? null : $rootIfc->getModel()->getView($ifcDef['viewId']);
-        
         $this->path = is_null($parent) ? $this->label : "{$parent->getPath()}/{$this->label}"; // Use label, because path is only used for human readable purposes (e.g. Exception messages)
         
         // Information about the (editable) relation if applicable
@@ -116,75 +111,46 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $this->relationIsFlipped = $ifcDef['relationIsFlipped'];
         
         // Interface expression information
-        if (!is_null($ifcDef['expr'])) {
-            $this->srcConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['srcConceptId']);
-            $this->tgtConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['tgtConceptId']);
-            $this->isUni = $ifcDef['expr']['isUni'];
-            $this->isTot = $ifcDef['expr']['isTot'];
-            $this->isIdent = $ifcDef['expr']['isIdent'];
-            $this->query = $ifcDef['expr']['query'];
-        } else {
+        if (!isset($ifcDef['expr'])) {
             throw new Exception("Expression information not defined for interface object {$this->path}", 500);
         }
-
+        $this->srcConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['srcConceptId']);
+        $this->tgtConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['tgtConceptId']);
+        $this->isUni = $ifcDef['expr']['isUni'];
+        $this->isTot = $ifcDef['expr']['isTot'];
+        $this->isIdent = $ifcDef['expr']['isIdent'];
+        $this->query = $ifcDef['expr']['query'];
         $this->queryContainsSubData = strpos($this->query, 'ifc_') !== false;
         
         // Subinterfacing
-        $subIfcsDef = $ifcDef['subinterfaces'];
-        if (!is_null($subIfcsDef)) {
+        if (isset($ifcDef['subinterfaces'])) {
+            $subIfcsDef = $ifcDef['subinterfaces'];
+
             // Subinterfacing is not supported/possible for tgt concepts with a scalar representation type (i.e. non-objects)
             if (!$this->tgtConcept->isObject()) {
                 throw new Exception("Subinterfacing is not supported for concepts with a scalar representation type (i.e. non-objects). (Sub)Interface '{$this->path}' with target {$this->tgtConcept} (ttype:{$this->tgtConcept->type->value}) has subinterfaces specified", 501);
             }
 
-            /* Subinterfaces can be one of:
-             * 1) reference to other interface
-             * 2) BOX with subinterfaces
-             */
-            // Case 1: reference to other interface
-            // TODO: refactor. Make RefInterface a separate sub class
-            if (isset($subIfcsDef['refSubInterfaceId'])) {
-                /* Reference to other interface
-                * e.g.:
-                * INTERFACE "A" : expr1 INTERFACE "B"
-                * INTERFACE "B" : expr2 BOX ["label" : expr3]
-                *
-                * is interpreted as:
-                * INTERFACE "A" : expr1;epxr2 BOX ["label" : expr3]
-                */
-                $this->refInterfaceId = $subIfcsDef['refSubInterfaceId'];
-                $this->isLinkTo = $subIfcsDef['refIsLinkTo'];
+            // Process boxheader information
+            if (isset($subIfcsDef['boxHeader'])) {
+                $this->boxHeader = new BoxHeader($subIfcsDef['boxHeader']);
+            }
             
-            // Case 2: BOX with subinterface
-            } else {
-                // Process boxheader information
-                $boxHeader = $subIfcsDef['boxHeader'];
-                $list = [];
-                foreach ($boxHeader['keyVals'] as $keyVal) {
-                    $list[$keyVal['key']] = $keyVal['value']; // Unpack keyVals list
-                }
-                $this->boxHeader = new BoxHeader($boxHeader['type'], $list);
-                
-                // Inline subinterface definitions
-                foreach ($subIfcsDef['ifcObjects'] as $subIfcDef) {
-                    $subifc = $rootIfc->newObject($subIfcDef, $this->plug, $this);
-                    $this->subInterfaces[$subifc->getIfcId()] = $subifc;
-                }
+            // Inline subinterface definitions
+            foreach ((array) $subIfcsDef['ifcObjects'] as $subIfcDef) {
+                $subifc = $rootIfc->newObject($subIfcDef, $this->plug, $this);
+                $this->subInterfaces[$subifc->getIfcId()] = $subifc;
             }
         }
         
         // CRUD rights
-        if ($this->isRef()) {
-            // TODO: refactor so that nullable crud rights are not necessary
-            $this->crudC = $this->crudR = $this->crudU = $this->crudD = null;
-        } elseif (!is_null($ifcDef['crud'])) {
-            $this->crudC = $ifcDef['crud']['create'];
-            $this->crudR = $ifcDef['crud']['read'];
-            $this->crudU = $ifcDef['crud']['update'];
-            $this->crudD = $ifcDef['crud']['delete'];
-        } else {
+        if (!isset($ifcDef['crud'])) {
             throw new Exception("Cannot determine crud rights for interface object {$this->path}", 500);
         }
+        $this->crudC = $ifcDef['crud']['create'];
+        $this->crudR = $ifcDef['crud']['read'];
+        $this->crudU = $ifcDef['crud']['update'];
+        $this->crudD = $ifcDef['crud']['delete'];
     }
     
     /**
@@ -263,29 +229,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     {
         return is_null($this->relation) ? false : ($this->relation->isProp && !$this->isIdent());
     }
-    
-    /**
-     * Returns if interface is a reference to another interface
-     */
-    protected function isRef(): bool
-    {
-        return !is_null($this->refInterfaceId);
-    }
-    
-    /**
-     * Returns referenced interface object
-     *
-     * @throws Exception when $this is not a reference interface
-     */
-    protected function getRefToIfc(): Ifc
-    {
-        if (!is_null($this->refInterfaceId)) {
-            return $this->rootIfc->getModel()->getInterface($this->refInterfaceId);
-        } else {
-            throw new Exception("Interface is not a reference interface: " . $this->getPath(), 500);
-        }
-    }
-    
+
     /**
      * Returns if interface object is a leaf node
      */
@@ -321,57 +265,21 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     public function crudC(): bool
     {
-        // If crudC not specified during object construction (e.g. in case of ref interface)
-        if (is_null($this->crudC)) {
-            if ($this->isRef()) {
-                $this->crudC = $this->getRefToIfc()->getIfcObject()->crudC();
-            } else {
-                throw new Exception("Create rights not specified for interface " . $this->getPath(), 500);
-            }
-        }
-        
         return $this->crudC;
     }
     
     public function crudR(): bool
     {
-        // If crudR not specified during object construction (e.g. in case of ref interface)
-        if (is_null($this->crudR)) {
-            if ($this->isRef()) {
-                $this->crudR = $this->getRefToIfc()->getIfcObject()->crudR();
-            } else {
-                throw new Exception("Read rights not specified for interface " . $this->getPath(), 500);
-            }
-        }
-        
         return $this->crudR;
     }
     
     public function crudU(): bool
     {
-        // If crudU not specified during object construction (e.g. in case of ref interface)
-        if (is_null($this->crudU)) {
-            if ($this->isRef()) {
-                $this->crudU = $this->getRefToIfc()->getIfcObject()->crudU();
-            } else {
-                throw new Exception("Update rights not specified for interface " . $this->getPath(), 500);
-            }
-        }
-        
         return $this->crudU;
     }
     
     public function crudD(): bool
     {
-        // If crudD not specified during object construction (e.g. in case of ref interface)
-        if (is_null($this->crudD)) {
-            if ($this->isRef()) {
-                $this->crudD = $this->getRefToIfc()->getIfcObject()->crudD();
-            } else {
-                throw new Exception("Delete rights not specified for interface " . $this->getPath(), 500);
-            }
-        }
-        
         return $this->crudD;
     }
 
@@ -425,20 +333,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
      */
     public function getSubinterfaces(int $options = Options::DEFAULT_OPTIONS): array
     {
-        if ($this->isRef() && ($options & Options::INCLUDE_REF_IFCS) // if ifc is reference to other root ifc, option to include refs must be set (= default)
-            && (!$this->isLinkTo || ($options & Options::INCLUDE_LINKTO_IFCS))) { // this ref ifc must not be a LINKTO ór option is set to explicitly include linkto ifcs
-        /* Return the subinterfaces of the reference interface. This skips the referenced toplevel interface.
-             * e.g.:
-             * INTERFACE "A" : expr1 INTERFACE "B"
-             * INTERFACE "B" : expr2 BOX ["label" : expr3]
-             *
-             * is interpreted as:
-             * INTERFACE "A" : expr1;epxr2 BOX ["label" : expr3]
-             */
-            return $this->getRefToIfc()->getIfcObject()->getSubinterfaces($options);
-        } else {
-            return $this->subInterfaces;
-        }
+        return $this->subInterfaces;
     }
     
     /**
@@ -448,23 +343,13 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
-        $ifcs = [];
-        if ($this->isLinkTo) {
-            $refIfc = $this->getRefToIfc();
-
-            // Check if referenced interface is accessible for current session
-            if (!$ampersandApp->isAccessibleIfc($refIfc)) {
-                throw new AccessDeniedException("Specified interface '{$this->getPath()}/{$refIfc->getLabel()}' is not accessible");
-            }
-            
-            $ifcs[] = $refIfc;
-        } else {
-            $ifcs = $ampersandApp->getInterfacesToReadConcept($this->tgtConcept);
-        }
         
-        return array_filter($ifcs, function (Ifc $ifc) {
-            return !$ifc->isAPI();
-        });
+        return array_filter(
+            $ampersandApp->getInterfacesToReadConcept($this->tgtConcept),
+            function (Ifc $ifc) {
+                return !$ifc->isAPI();
+            }
+        );
     }
 
     /**
@@ -553,17 +438,6 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
     protected function getResourceContent(Atom $tgt, string $pathToSrc, $options, $depth, $recursionArr): string|array
     {
-        // Prevent infinite loops for reference interfaces when no depth is provided
-        // We only need to check LINKTO ref interfaces, because cycles may not exist in regular references (enforced by Ampersand generator)
-        // If $depth is provided, no check is required, because recursion is finite
-        if ($this->isLinkTo && is_null($depth) && !is_null($this->refInterfaceId)) {
-            if (in_array($tgt->getId(), $recursionArr[$this->refInterfaceId] ?? [])) {
-                throw new Exception("Infinite loop detected for {$tgt} in " . $this->getPath(), 500);
-            } else {
-                $recursionArr[$this->refInterfaceId][] = $tgt->getId();
-            }
-        }
-
         $tgtPath = $this->buildResourcePath($tgt, $pathToSrc);
         
         // Init content array
@@ -807,12 +681,12 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
         // If interface isIdent (i.e. expr = I[Concept]), and no epsilon is required (i.e. srcConcept equals tgtConcept of parent ifc) we can return the src
         // However, if query for this expression contains sub data, it is more efficient to evaluate the query (see Issue #217)
-        if ($this->isIdent() && !$this->isRef() && $this->srcConcept === $src->concept && !$this->queryContainsSubData) {
+        if ($this->isIdent() && $this->srcConcept === $src->concept && !$this->queryContainsSubData) {
             $tgts[] = $src;
         } else {
             // Try to get tgt atom from src query data (in case of uni relation in same table)
             $tgtId = $src->getQueryData('ifc_' . $this->id, $exists); // column is prefixed with ifc_ in query data
-            if ($exists && !$this->queryContainsSubData && !$this->isRef()) {
+            if ($exists && !$this->queryContainsSubData) {
                 if (!is_null($tgtId)) {
                     $tgts[] = new Atom($tgtId, $this->tgtConcept);
                 }
@@ -855,7 +729,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             , 'view' => $this->view->label ?? ''
             , 'relation' => $this->relation?->signature
             , 'flipped' => $this->relationIsFlipped
-            , 'ref' => $this->refInterfaceId
+            , 'ref' => null
             ];
     }
 
