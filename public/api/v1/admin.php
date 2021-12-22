@@ -1,17 +1,19 @@
 <?php
 
+/** @phan-file-suppress PhanInvalidFQSENInCallable */
+
 use Ampersand\Log\Logger;
-use Ampersand\Rule\RuleEngine;
 use Ampersand\IO\ExcelImporter;
-use Ampersand\Misc\Reporter;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Ampersand\Session;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Ampersand\Core\Population;
 use Ampersand\Exception\UploadException;
+use Ampersand\Controller\ExecEngineController;
+use Ampersand\Controller\ReportController;
+use Ampersand\Controller\RuleEngineController;
 
 /**
  * @var \Slim\App $api
@@ -100,59 +102,9 @@ $api->group('/admin', function () {
         return $response->withJson($list, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     });
 
-    /**
-     * @phan-closure-scope \Slim\Container
-     */
-    $this->get('/execengine/run', function (Request $request, Response $response, $args = []) {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['ampersand_app'];
+    $this->get('/execengine/run', ExecEngineController::class . ':run');
 
-        // Check for required role
-        $allowedRoles = $ampersandApp->getSettings()->get('rbac.adminRoles');
-        if (!$ampersandApp->hasRole($allowedRoles)) {
-            throw new Exception("You do not have access to run the exec engine", 403);
-        }
-        
-        $transaction = $ampersandApp->newTransaction()->runExecEngine(true)->close();
-
-        if ($transaction->isCommitted()) {
-            $ampersandApp->userLog()->notice("Run completed");
-        } else {
-            $ampersandApp->userLog()->warning("Run completed but transaction not committed");
-        }
-
-        $ampersandApp->checkProcessRules(); // Check all process rules that are relevant for the activate roles
-        
-        return $response->withJson($ampersandApp->userLog()->getAll(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    });
-
-    /**
-     * @phan-closure-scope \Slim\Container
-     */
-    $this->get('/ruleengine/evaluate/all', function (Request $request, Response $response, $args = []) {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['ampersand_app'];
-        
-        // Check for required role
-        $allowedRoles = $ampersandApp->getSettings()->get('rbac.adminRoles');
-        if (!$ampersandApp->hasRole($allowedRoles)) {
-            throw new Exception("You do not have access to evaluate all rules", 403);
-        }
-
-        foreach ($ampersandApp->getModel()->getAllConjuncts() as $conj) {
-            /** @var \Ampersand\Rule\Conjunct $conj */
-            $conj->evaluate()->persistCacheItem();
-        }
-        
-        foreach (RuleEngine::getViolations($ampersandApp->getModel()->getAllRules('invariant')) as $violation) {
-            $ampersandApp->userLog()->invariant($violation);
-        }
-        foreach (RuleEngine::getViolations($ampersandApp->getModel()->getAllRules('signal')) as $violation) {
-            $ampersandApp->userLog()->signal($violation);
-        }
-        
-        return $response->withJson($ampersandApp->userLog()->getAll(), 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    });
+    $this->get('/ruleengine/evaluate/all', RuleEngineController::class . ':evaluateAllRules');
 
     /**
      * @phan-closure-scope \Slim\Container
@@ -229,106 +181,13 @@ $api->group('/admin/report', function () {
     // Inside group closure, $this is bound to the instance of Slim\App
     /** @var \Slim\App $this */
 
-    /**
-     * @phan-closure-scope \Slim\Container
-     */
-    $this->get('/relations', function (Request $request, Response $response, $args = []) {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['ampersand_app'];
+    $this->get('/relations', ReportController::class . ':reportRelations');
 
-        // Get report
-        $reporter = new Reporter(new JsonEncoder(), $response->getBody());
-        $reporter->reportRelationDefinitions($ampersandApp->getModel()->getRelations(), 'json');
+    $this->get('/conjuncts/usage', ReportController::class . ':conjunctUsage');
 
-        // Return reponse
-        return $response->withHeader('Content-Type', 'application/json;charset=utf-8');
-    });
+    $this->get('/conjuncts/performance', ReportController::class . ':conjunctPerformance');
 
-    /**
-     * @phan-closure-scope \Slim\Container
-     */
-    $this->get('/conjuncts/usage', function (Request $request, Response $response, $args = []) {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['ampersand_app'];
+    $this->get('/interfaces', ReportController::class . ':interfaces');
 
-        // Get report
-        $reporter = new Reporter(new JsonEncoder(), $response->getBody());
-        $reporter->reportConjunctUsage($ampersandApp->getModel()->getAllConjuncts(), 'json');
-
-        // Return reponse
-        return $response->withHeader('Content-Type', 'application/json;charset=utf-8');
-    });
-
-    /**
-     * @phan-closure-scope \Slim\Container
-     */
-    $this->get('/conjuncts/performance', function (Request $request, Response $response, $args = []) {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['ampersand_app'];
-
-        // Get report
-        $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
-        $reporter->reportConjunctPerformance($ampersandApp->getModel()->getAllConjuncts(), 'csv');
-        
-        // Set response headers
-        $filename = $ampersandApp->getName() . "_conjunct-performance_" . date('Y-m-d\TH-i-s') . ".csv";
-        return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
-                        ->withHeader('Content-Type', 'text/csv; charset=utf-8');
-    });
-
-    /**
-     * @phan-closure-scope \Slim\Container
-     */
-    $this->get('/interfaces', function (Request $request, Response $response, $args = []) {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['ampersand_app'];
-
-        // Input
-        $details = $request->getQueryParam('details', false);
-
-        // Get report
-        $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
-        if ($details) {
-            $reporter->reportInterfaceObjectDefinitions($ampersandApp->getModel()->getAllInterfaces(), 'csv');
-        } else {
-            $reporter->reportInterfaceDefinitions($ampersandApp->getModel()->getAllInterfaces(), 'csv');
-        }
-
-        // Set response headers
-        $filename = $ampersandApp->getName() . "_interface-definitions_" . date('Y-m-d\TH-i-s') . ".csv";
-        return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
-                        ->withHeader('Content-Type', 'text/csv; charset=utf-8');
-    });
-
-    /**
-     * @phan-closure-scope \Slim\Container
-     */
-    $this->get('/interfaces/issues', function (Request $request, Response $response, $args = []) {
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['ampersand_app'];
-
-        // Get report
-        $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
-        $reporter->reportInterfaceIssues($ampersandApp->getModel()->getAllInterfaces(), 'csv');
-
-        // Set response headers
-        $filename = $ampersandApp->getName() . "_interface-issues_" . date('Y-m-d\TH-i-s') . ".csv";
-        return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
-                        ->withHeader('Content-Type', 'text/csv; charset=utf-8');
-    });
-})->add($middleWare1)->add(
-    /**
-     * @phan-closure-scope \Slim\Container
-     */
-    function (Request $req, Response $res, callable $next) {
-        /** @var \Slim\Container $this */
-        /** @var \Ampersand\AmpersandApp $ampersandApp */
-        $ampersandApp = $this['ampersand_app'];
-
-        if ($ampersandApp->getSettings()->get('global.productionEnv')) {
-            throw new Exception("Reports are not allowed in production environment", 403);
-        }
-
-        return $next($req, $res);
-    }
-);
+    $this->get('/interfaces/issues', ReportController::class . ':interfaceIssues');
+});
