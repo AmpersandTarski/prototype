@@ -2,9 +2,11 @@
 
 namespace Ampersand\Controller;
 
+use Ampersand\Exception\AccessDeniedException;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Ampersand\Frontend\MenuType;
+use Ampersand\Session;
 
 class SessionController extends AbstractController
 {
@@ -57,6 +59,21 @@ class SessionController extends AbstractController
 
     public function getNotifications(Request $request, Response $response, array $args): Response
     {
+        return $this->success($response);
+    }
+
+    public function deleteExpiredSessions(Request $request, Response $response, array $args): Response
+    {
+        if ($this->app->getSettings()->get('global.productionEnv')) {
+            throw new AccessDeniedException("Not allowed in production environment", 403);
+        }
+        
+        $transaction = $this->app->newTransaction();
+
+        Session::deleteExpiredSessions($this->app);
+
+        $transaction->runExecEngine()->close();
+
         return $this->success($response);
     }
 }
