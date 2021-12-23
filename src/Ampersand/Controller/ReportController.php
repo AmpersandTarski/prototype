@@ -2,7 +2,7 @@
 
 namespace Ampersand\Controller;
 
-use Ampersand\Exception\AccessDeniedException;
+use Ampersand\IO\RDFGraph;
 use Ampersand\Misc\Reporter;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -13,8 +13,33 @@ class ReportController extends AbstractController
 {
     protected function guard(): void
     {
-        if ($this->app->getSettings()->get('global.productionEnv')) {
-            throw new AccessDeniedException("Reports are not allowed in production environment", 403);
+        $this->preventProductionMode();
+        $this->requireAdminRole();
+    }
+
+    public function exportMetaModel(Request $request, Response $response, array $args): Response
+    {
+        $this->guard();
+
+        // Content negotiation
+        $acceptHeader = $request->getParam('format') ?? $request->getHeaderLine('Accept');
+        $rdfFormat = RDFGraph::getResponseFormat($acceptHeader);
+
+        $graph = new RDFGraph($this->app->getModel(), $this->app->getSettings());
+
+        // Output
+        $mimetype = $rdfFormat->getDefaultMimeType();
+        switch ($mimetype) {
+            case 'text/html':
+                return $response->withHeader('Content-Type', 'text/html')->write($graph->dump('html'));
+            case 'text/plain':
+                return $response->withHeader('Content-Type', 'text/plain')->write($graph->dump('text'));
+            default:
+                $filename = $this->app->getName() . "_meta-model_" . date('Y-m-d\TH-i-s') . "." . $rdfFormat->getDefaultExtension();
+                return $response
+                    ->withHeader('Content-Type', $rdfFormat->getDefaultMimeType())
+                    ->withHeader('Content-Disposition', "attachment; filename=\"{$filename}\"")
+                    ->write($graph->serialise($rdfFormat));
         }
     }
 

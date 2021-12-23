@@ -42,4 +42,11 @@ abstract class AbstractController
             throw new AccessDeniedException("You do not have admin role access", 403);
         }
     }
+
+    protected function preventProductionMode(): void
+    {
+        if ($this->app->getSettings()->get('global.productionEnv')) {
+            throw new AccessDeniedException("Not allowed in production environment", 403);
+        }
+    }
 }

@@ -61,6 +61,18 @@ $api->group('/admin/report', function () {
 /**
  * @phan-closure-scope \Slim\App
  */
+$api->group('/admin/exporter', function () {
+    // Inside group closure, $this is bound to the instance of Slim\App
+    /** @var \Slim\App $this */
+    
+    $this->get('/export/all', PopulationController::class . ':exportAllPopulation');
+    $this->post('/export/selection', PopulationController::class . ':exportSelectionOfPopulation');
+    $this->get('/export/metamodel', ReportController::class . ':exportMetaModel');
+})->add($middleWare1);
+
+/**
+ * @phan-closure-scope \Slim\App
+ */
 $api->group('/admin/utils', function () {
     // Inside group closure, $this is bound to the instance of Slim\App
     /** @var \Slim\App $this */

@@ -73,4 +73,50 @@ class PopulationController extends AbstractController
             JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
         );
     }
+
+    public function exportAllPopulation(Request $request, Response $response, array $args): Response
+    {
+        $this->preventProductionMode();
+        $this->requireAdminRole();
+
+        $model = $this->app->getModel();
+
+        // Export population to response body
+        $population = new Population($model, Logger::getLogger('IO'));
+        $population->loadExistingPopulation($model->getAllConcepts(), $model->getRelations());
+        $response->getBody()->write($population->export(new JsonEncoder(), 'json'));
+
+        // Return response
+        $filename = $this->app->getName() . "_population_" . date('Y-m-d\TH-i-s') . ".json";
+        return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
+                        ->withHeader('Content-Type', 'application/json;charset=utf-8');
+    }
+
+    public function exportSelectionOfPopulation(Request $request, Response $response, array $args): Response
+    {
+        $this->preventProductionMode();
+        $this->requireAdminRole();
+        
+        // Process input
+        $body = $request->reparseBody()->getParsedBody();
+        $model = $this->app->getModel();
+        
+        $concepts = array_map(function (string $conceptLabel) use ($model) {
+            return $model->getConceptByLabel($conceptLabel);
+        }, $body->concepts);
+
+        $relations = array_map(function (string $relSignature) use ($model) {
+            return $model->getRelation($relSignature);
+        }, $body->relations);
+
+        // Export population to response body
+        $population = new Population($model, Logger::getLogger('IO'));
+        $population->loadExistingPopulation($concepts, $relations);
+        $response->getBody()->write($population->export(new JsonEncoder(), 'json'));
+
+        // Return response
+        $filename = $this->app->getName() . "_population-subset_" . date('Y-m-d\TH-i-s') . ".json";
+        return $response->withHeader('Content-Disposition', "attachment; filename={$filename}")
+                        ->withHeader('Content-Type', 'application/json;charset=utf-8');
+    }
 }
