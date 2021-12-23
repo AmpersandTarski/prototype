@@ -19,20 +19,6 @@ class InstallerController extends AbstractController
         }
     }
 
-    protected function success(Response $response): Response
-    {
-        $this->guard();
-
-        // Check all process rules that are relevant for the activate roles
-        $this->app->checkProcessRules();
-
-        return $response->withJson(
-            $this->app->userLog()->getAll(), // Return all notifications
-            200,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-        );
-    }
-
     public function install(Request $request, Response $response, array $args): Response
     {
         // $this->guard(); // skip generic access control check

@@ -57,12 +57,6 @@ class SessionController extends AbstractController
 
     public function getNotifications(Request $request, Response $response, array $args): Response
     {
-        $this->app->checkProcessRules();
-
-        return $response->withJson(
-            $this->app->userLog()->getAll(),
-            200,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-        );
+        return $this->success($response);
     }
 }

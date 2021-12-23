@@ -5,6 +5,7 @@ namespace Ampersand\Controller;
 use Ampersand\AmpersandApp;
 use Ampersand\AngularApp;
 use Psr\Container\ContainerInterface;
+use Slim\Http\Response;
 
 abstract class AbstractController
 {
@@ -19,5 +20,17 @@ abstract class AbstractController
         $this->container = $container;
         $this->app = $this->container->get('ampersand_app');
         $this->angularApp = $this->container->get('angular_app');
+    }
+
+    protected function success(Response $response): Response
+    {
+        // Check all process rules that are relevant for the activate roles
+        $this->app->checkProcessRules();
+
+        return $response->withJson(
+            $this->app->userLog()->getAll(), // Return all notifications
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
     }
 }

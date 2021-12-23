@@ -24,12 +24,6 @@ class ExecEngineController extends AbstractController
             $this->app->userLog()->warning("Run completed but transaction not committed");
         }
 
-        $this->app->checkProcessRules(); // Check all process rules that are relevant for the activate roles
-        
-        return $response->withJson(
-            $this->app->userLog()->getAll(),
-            200,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-        );
+        return $this->success($response);
     }
 }
