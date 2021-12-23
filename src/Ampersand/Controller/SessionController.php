@@ -64,7 +64,7 @@ class SessionController extends AbstractController
 
     public function deleteExpiredSessions(Request $request, Response $response, array $args): Response
     {
-        $this->preventProductionMode();
+        $this->requireAdminRole();
         
         $transaction = $this->app->newTransaction();
 

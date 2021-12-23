@@ -14,7 +14,7 @@ class ResourceController extends AbstractController
 {
     public function renameAtoms(Request $request, Response $response, array $args): Response
     {
-        $this->preventProductionMode();
+        $this->requireAdminRole();
         
         $resourceType = $args['resourceType'];
         if (!$this->app->getModel()->getConcept($resourceType)->isObject()) {
