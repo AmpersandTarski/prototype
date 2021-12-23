@@ -64,9 +64,7 @@ class SessionController extends AbstractController
 
     public function deleteExpiredSessions(Request $request, Response $response, array $args): Response
     {
-        if ($this->app->getSettings()->get('global.productionEnv')) {
-            throw new AccessDeniedException("Not allowed in production environment", 403);
-        }
+        $this->preventProductionMode();
         
         $transaction = $this->app->newTransaction();
 

@@ -23,10 +23,7 @@ class InstallerController extends AbstractController
     {
         // $this->guard(); // skip generic access control check
 
-        // Access control check. Reinstalling the whole application is not allowed in production environment
-        if ($this->app->getSettings()->get('global.productionEnv')) {
-            throw new AccessDeniedException("Reinstallation of application not allowed in production environment", 403);
-        }
+        $this->preventProductionMode(); // Reinstalling the whole application is not allowed in production environment
         
         $defaultPop = filter_var($request->getQueryParam('defaultPop'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
         $ignoreInvariantRules = filter_var($request->getQueryParam('ignoreInvariantRules'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;

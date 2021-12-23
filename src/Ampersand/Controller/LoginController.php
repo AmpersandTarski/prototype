@@ -12,9 +12,7 @@ class LoginController extends AbstractController
 {
     public function loginTest(Request $request, Response $response, array $args): Response
     {
-        if ($this->app->getSettings()->get('global.productionEnv')) {
-            throw new AccessDeniedException("Not allowed in production environment", 403);
-        }
+        $this->preventProductionMode();
 
         if (!$this->app->getSettings()->get('session.loginEnabled')) {
             throw new AmpersandException("Testing login feature not applicable. Login functionality is not enabled", 400);
