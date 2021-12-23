@@ -2,8 +2,8 @@
 
 namespace Ampersand\Exception;
 
-use Ampersand\Exception\AmpersandException;
+use Ampersand\Exception\NotDefinedException;
 
-class RelationNotDefined extends AmpersandException
+class RelationNotDefined extends NotDefinedException
 {
 }
