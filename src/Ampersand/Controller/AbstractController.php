@@ -4,6 +4,7 @@ namespace Ampersand\Controller;
 
 use Ampersand\AmpersandApp;
 use Ampersand\AngularApp;
+use Ampersand\Exception\AccessDeniedException;
 use Psr\Container\ContainerInterface;
 use Slim\Http\Response;
 
@@ -32,5 +33,13 @@ abstract class AbstractController
             200,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
         );
+    }
+
+    protected function requireAdminRole(): void
+    {
+        // Access check
+        if (!$this->app->hasRole($this->app->getSettings()->get('rbac.adminRoles'))) {
+            throw new AccessDeniedException("You do not have admin role access", 403);
+        }
     }
 }

@@ -43,3 +43,13 @@ $api->group('/admin/report', function () {
     $this->get('/interfaces', ReportController::class . ':interfaces');
     $this->get('/interfaces/issues', ReportController::class . ':interfaceIssues');
 });
+
+/**
+ * @phan-closure-scope \Slim\App
+ */
+$api->group('/admin/utils', function () {
+    // Inside group closure, $this is bound to the instance of Slim\App
+    /** @var \Slim\App $this */
+
+    $this->get('/regenerate-all-atom-ids[/{concept}]', ResourceController::class . ':regenerateAtomIds');
+});
