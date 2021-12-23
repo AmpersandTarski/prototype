@@ -47,6 +47,7 @@ class ResourceController extends AbstractController
     public function regenerateAtomIds(Request $request, Response $response, array $args): Response
     {
         $this->requireAdminRole();
+        
         // Input
         $cptName = isset($args['concept']) ? $args['concept'] : null;
         $prefix = $request->getQueryParam('prefix');

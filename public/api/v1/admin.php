@@ -3,6 +3,7 @@
 /** @phan-file-suppress PhanInvalidFQSENInCallable */
 
 use Ampersand\Controller\ExecEngineController;
+use Ampersand\Controller\InstallerController;
 use Ampersand\Controller\LoginController;
 use Ampersand\Controller\PopulationController;
 use Ampersand\Controller\ReportController;
@@ -28,6 +29,19 @@ $api->group('/admin', function () {
     $this->get('/execengine/run', ExecEngineController::class . ':run');
     $this->get('/ruleengine/evaluate/all', RuleEngineController::class . ':evaluateAllRules');
     $this->post('/import', PopulationController::class . ':importPopulationFromUpload');
+})->add($middleWare1);
+
+/**
+ * @phan-closure-scope \Slim\App
+ */
+$api->group('/admin/installer', function () {
+    // Inside group closure, $this is bound to the instance of Slim\App
+    /** @var \Slim\App $this */
+
+    $this->get('', InstallerController::class . ':install')->setName('applicationInstaller');
+    $this->get('/metapopulation', InstallerController::class . ':installMetaPopulation');
+    $this->get('/navmenu', InstallerController::class . ':installNavmenu');
+    $this->get('/checksum/update', InstallerController::class . ':updateChecksum')->setName('updateChecksum');
 })->add($middleWare1);
 
 /**
