@@ -6,12 +6,179 @@ use Ampersand\Core\Concept;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\ConceptNotDefined;
+use Ampersand\Interfacing\Options;
+use Ampersand\Interfacing\ResourceList;
+use Ampersand\Interfacing\ResourcePath;
 use Ampersand\Misc\ProtoContext;
+use Exception;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
 class ResourceController extends AbstractController
 {
+    public function listResourceTypes(Request $request, Response $response, array $args): Response
+    {
+        $this->requireAdminRole();
+        
+        $content = array_values(
+            array_map(function ($cpt) {
+                return $cpt->label; // only show label of resource types
+            }, array_filter($this->app->getModel()->getAllConcepts(), function ($cpt) {
+                return $cpt->isObject(); // filter concepts without a representation (i.e. resource types)
+            }))
+        );
+        
+        return $response->withJson($content, 200, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    }
+
+    public function getAllResourcesForType(Request $request, Response $response, array $args): Response
+    {
+        // TODO: refactor when resources (e.g. for update field in UI) can be requested with interface definition
+        $resources = ResourceList::makeWithoutInterface($this->app->getModel()->getConcept($args['resourceType']));
+        
+        return $response->withJson(
+            $resources->get(),
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
+    }
+
+    public function createNewResourceId(Request $request, Response $response, array $args): Response
+    {
+        $resource = ResourceList::makeWithoutInterface($this->app->getModel()->getConcept($args['resourceType']))->post();
+        
+        // Don't save/commit new resource (yet)
+        // Transaction is not closed
+
+        return $response->withJson(
+            ['_id_' => $resource->getId()],
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
+    }
+
+    public function getResource(Request $request, Response $response, array $args): Response
+    {
+        // Input
+        $pathList = ResourcePath::makePathList($args['resourcePath']);
+        $options = Options::getFromRequestParams($request->getQueryParams());
+        $depth = $request->getQueryParam('depth');
+
+        // Prepare
+        $resource = ResourceList::makeWithoutInterface($this->app->getModel()->getConcept($args['resourceType']))->one($args['resourceId']);
+
+        // Output
+        return $response->withJson(
+            $resource->walkPath($pathList)->get($options, $depth),
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
+    }
+
+    public function putPatchPostResource(Request $request, Response $response, array $args): Response
+    {
+        // Input
+        $pathList = ResourcePath::makePathList($args['ifcPath']);
+        $options = Options::getFromRequestParams($request->getQueryParams());
+        $depth = $request->getQueryParam('depth');
+        $body = $request->reparseBody()->getParsedBody();
+
+        // Prepare
+        $transaction = $this->app->newTransaction();
+        $entry = ResourceList::makeWithoutInterface($this->app->getModel()->getConcept($args['resourceType']))->one($args['resourceId']);
+
+        // Perform action
+        switch ($request->getMethod()) {
+            case 'PUT':
+                $resource = $entry->walkPathToResource($pathList)->put($body);
+                $successMessage = "{$resource->getLabel()} updated";
+                break;
+            case 'PATCH':
+                $resource = $entry->walkPathToResource($pathList)->patch($body);
+                $successMessage = "{$resource->getLabel()} updated";
+                break;
+            case 'POST':
+                $resource = $entry->walkPathToList($pathList)->post($body);
+                $successMessage = "{$resource->getLabel()} created";
+                break;
+            default:
+                throw new Exception("Unsupported HTTP method", 500);
+        }
+
+        // Run ExecEngine
+        $transaction->runExecEngine();
+
+        // Get content to return
+        try {
+            $content = $resource->get($options, $depth);
+        } catch (AccessDeniedException $e) { // Access denied (e.g. PATCH on root node there is no interface specified)
+            $content = $request->getMethod() === 'PATCH' ? null : $body;
+        } catch (Exception $e) {
+            switch ($e->getCode()) {
+                case 405: // Method not allowed (e.g. when read is not allowed)
+                    $content = $request->getMethod() === 'PATCH' ? null : $body;
+                    break;
+                default:
+                    throw $e;
+                    break;
+            }
+        }
+        
+        // Close transaction
+        $transaction->close();
+        if ($transaction->isCommitted()) {
+            $this->app->userLog()->notice($successMessage);
+        }
+        $this->app->checkProcessRules(); // Check all process rules that are relevant for the activate roles
+
+        // Output
+        return $response->withJson(
+            [ 'content'               => $content
+            , 'patches'               => $request->getMethod() === 'PATCH' ? $body : []
+            , 'notifications'         => $this->app->userLog()->getAll()
+            , 'invariantRulesHold'    => $transaction->invariantRulesHold()
+            , 'isCommitted'           => $transaction->isCommitted()
+            , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()
+            , 'navTo'                 => $this->angularApp->getNavToResponse($transaction->isCommitted() ? 'COMMIT' : 'ROLLBACK')
+            ],
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
+    }
+
+    public function deleteResource(Request $request, Response $response, array $args): Response
+    {
+        // Input
+        $pathList = ResourcePath::makePathList($args['ifcPath']);
+
+        // Prepare
+        $transaction = $this->app->newTransaction();
+        $entry = ResourceList::makeWithoutInterface($this->app->getModel()->getConcept($args['resourceType']))->one($args['resourceId']);
+        
+        // Perform delete
+        $entry->walkPathToResource($pathList)->delete();
+        
+        // Close transaction
+        $transaction->runExecEngine()->close();
+        if ($transaction->isCommitted()) {
+            $this->app->userLog()->notice("Resource deleted");
+        }
+        
+        $this->app->checkProcessRules(); // Check all process rules that are relevant for the activate roles
+        
+        // Return result
+        return $response->withJson(
+            [ 'notifications'         => $this->app->userLog()->getAll()
+            , 'invariantRulesHold'    => $transaction->invariantRulesHold()
+            , 'isCommitted'           => $transaction->isCommitted()
+            , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()
+            , 'navTo'                 => $this->angularApp->getNavToResponse($transaction->isCommitted() ? 'COMMIT' : 'ROLLBACK')
+            ],
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
+    }
+
     public function renameAtoms(Request $request, Response $response, array $args): Response
     {
         $this->requireAdminRole();
