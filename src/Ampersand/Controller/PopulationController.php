@@ -48,7 +48,7 @@ class PopulationController extends AbstractController
                 $importer->parseFile($fileInfo['tmp_name']);
                 break;
             default:
-                throw new BadRequestException("Unsupported file extension", 400);
+                throw new BadRequestException("Unsupported file extension");
                 break;
         }
 

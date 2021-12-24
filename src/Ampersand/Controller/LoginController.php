@@ -2,9 +2,8 @@
 
 namespace Ampersand\Controller;
 
-use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\AmpersandException;
-use Ampersand\Exception\AtomNotFoundException;
+use Ampersand\Exception\BadRequestException;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
@@ -15,11 +14,11 @@ class LoginController extends AbstractController
         $this->preventProductionMode();
 
         if (!$this->app->getSettings()->get('session.loginEnabled')) {
-            throw new AmpersandException("Testing login feature not applicable. Login functionality is not enabled", 400);
+            throw new AmpersandException("Testing login feature not applicable. Login functionality is not enabled", 500);
         }
 
         if (!isset($args['accountId'])) {
-            throw new AtomNotFoundException("No account identifier 'accountId' provided", 400);
+            throw new BadRequestException("No account identifier 'accountId' provided");
         }
 
         $account = $this->app->getModel()->getConceptByLabel('Account')->makeAtom($args['accountId']);

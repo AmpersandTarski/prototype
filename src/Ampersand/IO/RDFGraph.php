@@ -9,6 +9,7 @@ namespace Ampersand\IO;
 
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
+use Ampersand\Exception\BadRequestException;
 use Ampersand\Misc\AcceptHeader;
 use Ampersand\Misc\Settings;
 use Ampersand\Model;
@@ -158,7 +159,7 @@ class RDFGraph extends \EasyRdf\Graph
         }
 
         if ($rdfFormat === null) {
-            throw new Exception("No supported formats in accept header. Supported: " . \EasyRdf\Format::getHttpAcceptHeader(), 400);
+            throw new BadRequestException("No supported formats in accept header. Supported: " . \EasyRdf\Format::getHttpAcceptHeader());
         }
         return $rdfFormat;
     }

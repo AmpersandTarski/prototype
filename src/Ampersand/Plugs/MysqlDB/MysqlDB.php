@@ -17,6 +17,7 @@ use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Core\SrcOrTgt;
 use Ampersand\Core\TType;
+use Ampersand\Exception\BadRequestException;
 use Ampersand\Interfacing\ViewSegment;
 use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Plugs\ConceptPlugInterface;
@@ -335,14 +336,14 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                     case 1054: // Error: 1054 SQLSTATE: 42S22 (ER_BAD_FIELD_ERROR)
                         throw new NotInstalledException("{$e->getMessage()}. Try reinstalling the application");
                     case 1406: // Error: 1406 Data too long
-                        throw new Exception("Data entry is too long ", 400);
+                        throw new BadRequestException("Data entry is too long ");
                     default:
                         throw new Exception("MYSQL error " . $e->getCode() . ": " . $e->getMessage() . " in query:" . $query, 500);
                 }
             } else {
                 switch ($e->getCode()) {
                     case 1406: // Error: 1406 Data too long
-                        throw new Exception("Data entry is too long", 400);
+                        throw new BadRequestException("Data entry is too long");
                     default:
                         throw new Exception("Error in database query", 500);
                 }

@@ -12,6 +12,8 @@ use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Core\SrcOrTgt;
 use Ampersand\Core\TType;
+use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\InterfaceNotDefined;
 use Ampersand\Interfacing\AbstractIfcObject;
 use Ampersand\Interfacing\BoxHeader;
 use Ampersand\Interfacing\Ifc;
@@ -324,7 +326,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             }
         }
         
-        throw new Exception("Subinterface '{$ifcLabel}' does not exist in interface '{$this->path}'", 500);
+        throw new InterfaceNotDefined("Subinterface '{$ifcLabel}' does not exist in interface '{$this->path}'", 500);
     }
     
     /**
@@ -530,7 +532,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         if (isset($tgtId)) {
             $tgtAtom = new Atom($tgtId, $this->tgtConcept);
             if ($tgtAtom->exists()) {
-                throw new Exception("Cannot create resource that already exists", 400);
+                throw new BadRequestException("Cannot create resource that already exists");
             }
         } else {
             $tgtAtom = $this->tgtConcept->createNewAtom();
@@ -553,11 +555,11 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function set(Atom $src, mixed $value = null): ?Atom
     {
         if (!$this->isUni()) {
-            throw new Exception("Cannot use set() for non-univalent interface " . $this->getPath() . ". Use add or remove instead", 400);
+            throw new BadRequestException("Cannot use set() for non-univalent interface " . $this->getPath() . ". Use add or remove instead");
         }
 
         if (is_array($value)) {
-            throw new Exception("Non-array expected but array provided while updating " . $this->getPath(), 400);
+            throw new BadRequestException("Non-array expected but array provided while updating " . $this->getPath());
         }
         
         // Handle Ampersand properties [PROP]
@@ -568,7 +570,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
                 $this->remove($src, $src->getId());
                 return null;
             } else {
-                throw new Exception("Boolean expected, non-boolean provided.", 400);
+                throw new BadRequestException("Boolean expected, non-boolean provided.");
             }
         } elseif ($this->isIdent()) { // Ident object => no need to set
             return $src;
@@ -588,10 +590,10 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function add(Atom $src, mixed $value, bool $skipCrudUCheck = false): Atom
     {
         if (!isset($value)) {
-            throw new Exception("Cannot add item. Value not provided", 400);
+            throw new BadRequestException("Cannot add item. Value not provided");
         }
         if (is_object($value) || is_array($value)) {
-            throw new Exception("Literal expected but " . gettype($value) . " provided while updating " . $this->getPath(), 400);
+            throw new BadRequestException("Literal expected but " . gettype($value) . " provided while updating " . $this->getPath());
         }
         
         if (!$this->isEditable()) {
@@ -618,10 +620,10 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function remove(Atom $src, mixed $value): void
     {
         if (!isset($value)) {
-            throw new Exception("Cannot remove item. Value not provided", 400);
+            throw new BadRequestException("Cannot remove item. Value not provided");
         }
         if (is_object($value) || is_array($value)) {
-            throw new Exception("Literal expected but " . gettype($value) . " provided while updating " . $this->getPath(), 400);
+            throw new BadRequestException("Literal expected but " . gettype($value) . " provided while updating " . $this->getPath());
         }
         
         if (!$this->isEditable()) {

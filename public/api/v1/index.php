@@ -2,6 +2,7 @@
 
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\AtomNotFoundException;
+use Ampersand\Exception\BadRequestException;
 use Ampersand\Log\Logger;
 use Slim\App;
 use Slim\Http\Request;
@@ -277,19 +278,6 @@ $api->add(function (Request $req, Response $res, callable $next) {
         }
     }
 })
-// Add middleware to transform Ampersand exceptions
-/**
- * @phan-closure-scope \Slim\Container
- */
-->add(function (Request $req, Response $res, callable $next) {
-    try {
-        return $next($req, $res);
-    } catch (AccessDeniedException $e) {
-        throw new Exception($e->getMessage(), 403, $e); // Map to HTTP 403 - Forbidden
-    } catch (AtomNotFoundException $e) {
-        throw new Exception($e->getMessage(), 404, $e); // Map to HTTP 404 - Resource not found
-    }
-})
 // Add middleware to catch when post_max_size is exceeded
 /**
  * @phan-closure-scope \Slim\Container
@@ -302,7 +290,7 @@ $api->add(function (Request $req, Response $res, callable $next) {
         if (isset($_SERVER['CONTENT_LENGTH'])) {
             $maxBytes = returnBytes(ini_get('post_max_size'));
             if ($_SERVER['CONTENT_LENGTH'] > $maxBytes) {
-                throw new Exception("The request exceeds the maximum request size of " . humanFileSize($maxBytes), 400);
+                throw new BadRequestException("The request exceeds the maximum request size of " . humanFileSize($maxBytes));
             }
         }
     }
@@ -319,10 +307,25 @@ $api->add(function (Request $req, Response $res, callable $next) {
             // Set accoc param to false, this will return php stdClass object instead of array for json objects {}
             return json_decode($input, false, flags: JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
-            throw new Exception("JSON error: {$e->getMessage()}", 400, $e);
+            throw new Exception("JSON error: {$e->getMessage()}", previous: $e);
         }
     });
     return $next($request, $response);
+})
+// Add middleware to transform Ampersand exceptions
+/**
+ * @phan-closure-scope \Slim\Container
+ */
+->add(function (Request $req, Response $res, callable $next) {
+    try {
+        return $next($req, $res);
+    } catch (BadRequestException | JsonException $e) {
+        throw new Exception ($e->getMessage(), 400, $e); // Map to HTTP 400 - Bad request
+    } catch (AccessDeniedException $e) {
+        throw new Exception($e->getMessage(), 403, $e); // Map to HTTP 403 - Forbidden
+    } catch (AtomNotFoundException $e) {
+        throw new Exception($e->getMessage(), 404, $e); // Map to HTTP 404 - Resource not found
+    }
 })
 ->run();
 

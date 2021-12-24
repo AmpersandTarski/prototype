@@ -190,7 +190,7 @@ class ResourceController extends AbstractController
         
         $list = $request->reparseBody()->getParsedBody();
         if (!is_array($list)) {
-            throw new BadRequestException("Body must be array. Non-array provided", 400);
+            throw new BadRequestException("Body must be array. Non-array provided");
         }
 
         $transaction = $this->app->newTransaction();
@@ -222,7 +222,7 @@ class ResourceController extends AbstractController
         if (!is_null($cptName)) {
             $cpt = $this->app->getModel()->getConcept($cptName);
             if (!$cpt->isObject()) {
-                throw new BadRequestException("Regenerate atom ids is not allowed for scalar concept types (alphanumeric, decimal, date, ..)", 400);
+                throw new BadRequestException("Regenerate atom ids is not allowed for scalar concept types (alphanumeric, decimal, date, ..)");
             }
             $conceptList = [$cpt];
         } else {

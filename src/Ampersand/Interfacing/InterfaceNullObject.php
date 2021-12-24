@@ -17,6 +17,7 @@ use Ampersand\Interfacing\AbstractIfcObject;
 use Ampersand\Core\Concept;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\AccessDeniedException;
+use Ampersand\Exception\BadRequestException;
 
 /**
  *
@@ -242,7 +243,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         if (isset($tgtId)) {
             $tgtAtom = new Atom($tgtId, $this->tgtConcept);
             if ($tgtAtom->exists()) {
-                throw new Exception("Cannot create resource that already exists", 400);
+                throw new BadRequestException("Cannot create resource that already exists");
             }
         } else {
             $tgtAtom = $this->tgtConcept->createNewAtom();

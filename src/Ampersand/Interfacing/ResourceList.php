@@ -13,6 +13,7 @@ use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Concept;
 use Ampersand\Exception\AtomNotFoundException;
+use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\UploadException;
 use Exception;
 use stdClass;
@@ -115,7 +116,7 @@ class ResourceList
     public function walkPathToResource(array $pathList): Resource
     {
         if (empty($pathList) && $this->tgtIdInPath()) {
-            throw new Exception("Provided path MUST end with a resource identifier", 400);
+            throw new BadRequestException("Provided path MUST end with a resource identifier");
         }
 
         $tgtId = $this->tgtIdInPath() ? array_shift($pathList) : $this->srcAtom->getId();
@@ -172,7 +173,7 @@ class ResourceList
             // Check if file is specified. This is not the case e.g. when post_max_size is exceeded
             // Maximum post size is checked in generic API middleware function
             if (!isset($_FILES['file'])) {
-                throw new Exception("No file(s) provided to upload", 400);
+                throw new BadRequestException("No file(s) provided to upload");
             }
 
             $fileInfo = $_FILES['file'];
