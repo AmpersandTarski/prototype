@@ -15,7 +15,7 @@ class InstallerController extends AbstractController
     {
         $allowedRoles = $this->app->getSettings()->get('rbac.adminRoles');
         if (!$this->app->hasRole($allowedRoles)) {
-            throw new AccessDeniedException("You do not have access to /admin/installer", 403);
+            throw new AccessDeniedException("You do not have access to run the installer");
         }
     }
 

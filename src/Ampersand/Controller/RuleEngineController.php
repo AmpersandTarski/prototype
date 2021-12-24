@@ -2,8 +2,8 @@
 
 namespace Ampersand\Controller;
 
+use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Rule\RuleEngine;
-use Exception;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
@@ -14,7 +14,7 @@ class RuleEngineController extends AbstractController
         // Check for required role
         $allowedRoles = $this->app->getSettings()->get('rbac.adminRoles');
         if (!$this->app->hasRole($allowedRoles)) {
-            throw new Exception("You do not have access to evaluate all rules", 403);
+            throw new AccessDeniedException("You do not have access to evaluate all rules");
         }
 
         foreach ($this->app->getModel()->getAllConjuncts() as $conj) {

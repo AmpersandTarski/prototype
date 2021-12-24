@@ -2,7 +2,7 @@
 
 namespace Ampersand\Controller;
 
-use Exception;
+use Ampersand\Exception\AccessDeniedException;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
@@ -13,7 +13,7 @@ class ExecEngineController extends AbstractController
         // Check for required role
         $allowedRoles = $this->app->getSettings()->get('rbac.adminRoles');
         if (!$this->app->hasRole($allowedRoles)) {
-            throw new Exception("You do not have access to run the exec engine", 403);
+            throw new AccessDeniedException("You do not have access to run the exec engine");
         }
         
         $transaction = $this->app->newTransaction()->runExecEngine(true)->close();

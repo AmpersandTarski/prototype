@@ -19,7 +19,7 @@ class PopulationController extends AbstractController
     {
         // Check for required role
         if (!$this->app->hasRole($this->app->getSettings()->get('rbac.importerRoles'))) {
-            throw new AccessDeniedException("You do not have access to import population", 403);
+            throw new AccessDeniedException("You do not have access to import population");
         }
         
         $fileInfo = $_FILES['file'];

@@ -39,14 +39,14 @@ abstract class AbstractController
     {
         // Access check
         if (!$this->app->hasRole($this->app->getSettings()->get('rbac.adminRoles'))) {
-            throw new AccessDeniedException("You do not have admin role access", 403);
+            throw new AccessDeniedException("You do not have admin role access");
         }
     }
 
     protected function preventProductionMode(): void
     {
         if ($this->app->getSettings()->get('global.productionEnv')) {
-            throw new AccessDeniedException("Not allowed in production environment", 403);
+            throw new AccessDeniedException("Not allowed in production environment");
         }
     }
 }
