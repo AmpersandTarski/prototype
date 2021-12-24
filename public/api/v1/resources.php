@@ -26,4 +26,4 @@ $api->group('/resource', function () {
     $this->get('/{resourceType}/{resourceId}[/{resourcePath:.*}]', ResourceController::class . ':getResource');
     $this->map(['PUT', 'PATCH', 'POST'], '/{resourceType}/{resourceId}[/{ifcPath:.*}]', ResourceController::class . ':putPatchPostResource');
     $this->delete('/{resourceType}/{resourceId}[/{ifcPath:.*}]', ResourceController::class . ':deleteResource');
-})->add($middleWare1);
+});

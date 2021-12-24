@@ -167,37 +167,6 @@ $api->add(function (Request $req, Response $res, callable $next) {
     return $newResponse;
 });
 
-$middleWare1 = function (Request $request, Response $response, callable $next) {
-    // Overwrite default media type parser for application/json
-    $request->registerMediaTypeParser('application/json', function ($input) {
-        $data = json_decode($input, false); // set accoc param to false, this will return php stdClass object instead of array for json objects {}
-        switch (json_last_error()) {
-            case JSON_ERROR_NONE:
-                return $data;
-                break;
-            case JSON_ERROR_DEPTH:
-                throw new Exception("JSON error: Maximum stack depth exceeded", 400);
-                break;
-            case JSON_ERROR_STATE_MISMATCH:
-                throw new Exception("JSON error: Underflow or the modes mismatch", 400);
-                break;
-            case JSON_ERROR_CTRL_CHAR:
-                throw new Exception("JSON error: Unexpected control character found", 400);
-                break;
-            case JSON_ERROR_SYNTAX:
-                throw new Exception("JSON error: Syntax error, malformed JSON", 400);
-                break;
-            case JSON_ERROR_UTF8:
-                throw new Exception("JSON error: Malformed UTF-8 characters, possibly incorrectly encoded", 400);
-                break;
-            default:
-                throw new Exception("JSON error: Unknown error in JSON content", 400);
-                break;
-        }
-    });
-    return $next($request, $response);
-};
-
 require_once(__DIR__ . '/resources.php'); // API calls starting with '/resource/'
 require_once(__DIR__ . '/admin.php'); // API calls starting with '/admin/'
 require_once(__DIR__ . '/app.php'); // API calls starting with '/app/'
@@ -339,7 +308,23 @@ $api->add(function (Request $req, Response $res, callable $next) {
     }
 
     return $next($req, $res);
-})->run();
+})
+// Add middleware to overwrite default media type parser for application/json
+/**
+ * @phan-closure-scope \Slim\Container
+ */
+->add(function (Request $request, Response $response, callable $next) {
+    $request->registerMediaTypeParser('application/json', function ($input) {
+        try {
+            // Set accoc param to false, this will return php stdClass object instead of array for json objects {}
+            return json_decode($input, false, flags: JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            throw new Exception("JSON error: {$e->getMessage()}", 400, $e);
+        }
+    });
+    return $next($request, $response);
+})
+->run();
 
 $executionTime = round(microtime(true) - $scriptStartTime, 2);
 $peakMemory = round(memory_get_peak_usage() / 1024 / 1024, 2); // Mb

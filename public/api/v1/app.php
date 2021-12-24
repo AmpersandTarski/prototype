@@ -15,8 +15,6 @@ $api->group('/app', function () {
     /** @var \Slim\App $this */
 
     $this->patch('/roles', SessionController::class . ':updateRoles');
-
     $this->get('/navbar', SessionController::class . ':getNavMenu');
-
     $this->get('/notifications', SessionController::class . ':getNotifications');
-})->add($middleWare1);
+});

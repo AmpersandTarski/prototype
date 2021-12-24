@@ -29,7 +29,7 @@ $api->group('/admin', function () {
     $this->get('/execengine/run', ExecEngineController::class . ':run');
     $this->get('/ruleengine/evaluate/all', RuleEngineController::class . ':evaluateAllRules');
     $this->post('/import', PopulationController::class . ':importPopulationFromUpload');
-})->add($middleWare1);
+});
 
 /**
  * @phan-closure-scope \Slim\App
@@ -42,7 +42,7 @@ $api->group('/admin/installer', function () {
     $this->get('/metapopulation', InstallerController::class . ':installMetaPopulation');
     $this->get('/navmenu', InstallerController::class . ':installNavmenu');
     $this->get('/checksum/update', InstallerController::class . ':updateChecksum')->setName('updateChecksum');
-})->add($middleWare1);
+});
 
 /**
  * @phan-closure-scope \Slim\App
@@ -68,7 +68,7 @@ $api->group('/admin/exporter', function () {
     $this->get('/export/all', PopulationController::class . ':exportAllPopulation');
     $this->post('/export/selection', PopulationController::class . ':exportSelectionOfPopulation');
     $this->get('/export/metamodel', ReportController::class . ':exportMetaModel');
-})->add($middleWare1);
+});
 
 /**
  * @phan-closure-scope \Slim\App
