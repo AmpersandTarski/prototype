@@ -2,8 +2,8 @@
 
 namespace Ampersand\Exception;
 
-use Ampersand\Exception\AmpersandException;
+use Ampersand\Exception\NotFoundException;
 
-class AtomNotFoundException extends AmpersandException
+class AtomNotFoundException extends NotFoundException
 {
 }

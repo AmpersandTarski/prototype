@@ -185,7 +185,7 @@ class ResourceController extends AbstractController
         
         $resourceType = $args['resourceType'];
         if (!$this->app->getModel()->getConcept($resourceType)->isObject()) {
-            throw new ConceptNotDefined("Resource type not found", 404);
+            throw new ConceptNotDefined("Resource type '{$resourceType}' not found");
         }
         
         $list = $request->reparseBody()->getParsedBody();

@@ -1,8 +1,8 @@
 <?php
 
 use Ampersand\Exception\AccessDeniedException;
-use Ampersand\Exception\AtomNotFoundException;
 use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\NotFoundException;
 use Ampersand\Log\Logger;
 use Slim\App;
 use Slim\Http\Request;
@@ -323,7 +323,7 @@ $api->add(function (Request $req, Response $res, callable $next) {
         throw new Exception ($e->getMessage(), 400, $e); // Map to HTTP 400 - Bad request
     } catch (AccessDeniedException $e) {
         throw new Exception($e->getMessage(), 403, $e); // Map to HTTP 403 - Forbidden
-    } catch (AtomNotFoundException $e) {
+    } catch (NotFoundException $e) {
         throw new Exception($e->getMessage(), 404, $e); // Map to HTTP 404 - Resource not found
     }
 })

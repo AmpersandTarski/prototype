@@ -2,6 +2,7 @@
 
 namespace Ampersand\Controller;
 
+use Ampersand\Exception\NotFoundException;
 use Exception;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -16,7 +17,7 @@ class FileObjectController extends AbstractController
         
         // Check if filePath exists
         if (!$fs->has($filePath)) {
-            throw new Exception("File not found", 404);
+            throw new NotFoundException("File not found");
         }
 
         $fileResource = $fs->readStream($filePath);
