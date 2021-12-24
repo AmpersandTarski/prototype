@@ -2,6 +2,7 @@
 
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Exception\NotFoundException;
 use Ampersand\Log\Logger;
 use Slim\App;
@@ -325,6 +326,8 @@ $api->add(function (Request $req, Response $res, callable $next) {
         throw new Exception($e->getMessage(), 403, $e); // Map to HTTP 403 - Forbidden
     } catch (NotFoundException $e) {
         throw new Exception($e->getMessage(), 404, $e); // Map to HTTP 404 - Resource not found
+    } catch (MethodNotAllowedException $e) {
+        throw new Exception($e->getMessage(), 405, $e); // Map to HTTP 405 - Method not allowed
     }
 })
 ->run();

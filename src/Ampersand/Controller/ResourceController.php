@@ -6,6 +6,7 @@ use Ampersand\Core\Concept;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\ConceptNotDefined;
+use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\Interfacing\ResourcePath;
@@ -111,17 +112,8 @@ class ResourceController extends AbstractController
         // Get content to return
         try {
             $content = $resource->get($options, $depth);
-        } catch (AccessDeniedException $e) { // Access denied (e.g. PATCH on root node there is no interface specified)
+        } catch (AccessDeniedException | MethodNotAllowedException $e) {
             $content = $request->getMethod() === 'PATCH' ? null : $body;
-        } catch (Exception $e) {
-            switch ($e->getCode()) {
-                case 405: // Method not allowed (e.g. when read is not allowed)
-                    $content = $request->getMethod() === 'PATCH' ? null : $body;
-                    break;
-                default:
-                    throw $e;
-                    break;
-            }
         }
         
         // Close transaction

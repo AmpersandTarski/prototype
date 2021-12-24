@@ -14,6 +14,7 @@ use Ampersand\Core\SrcOrTgt;
 use Ampersand\Core\TType;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\InterfaceNotDefined;
+use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Interfacing\AbstractIfcObject;
 use Ampersand\Interfacing\BoxHeader;
 use Ampersand\Interfacing\Ifc;
@@ -395,7 +396,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     ): mixed
     {
         if (!$this->crudR()) {
-            throw new Exception("Read not allowed for ". $this->getPath(), 405);
+            throw new MethodNotAllowedException("Read not allowed for ". $this->getPath());
         }
 
         // Initialize result
@@ -525,7 +526,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
 
         if (!$this->crudC()) {
-            throw new Exception("Create not allowed for ". $this->getPath(), 405);
+            throw new MethodNotAllowedException("Create not allowed for ". $this->getPath());
         }
         
         // Make new resource
@@ -597,15 +598,15 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
         
         if (!$this->isEditable()) {
-            throw new Exception("Interface is not editable " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Interface is not editable " . $this->getPath());
         }
         if (!$this->crudU() && !$skipCrudUCheck) {
-            throw new Exception("Update not allowed for " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Update not allowed for " . $this->getPath());
         }
         
         $tgt = new Atom($value, $this->tgtConcept);
         if ($tgt->concept->isObject() && !$this->crudC() && !$tgt->exists()) {
-            throw new Exception("Create not allowed for " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Create not allowed for " . $this->getPath());
         }
         
         $tgt->add();
@@ -627,10 +628,10 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
         
         if (!$this->isEditable()) {
-            throw new Exception("Interface is not editable " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Interface is not editable " . $this->getPath());
         }
         if (!$this->crudU()) {
-            throw new Exception("Update not allowed for " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Update not allowed for " . $this->getPath());
         }
         
         $tgt = new Atom($value, $this->tgtConcept);
@@ -645,10 +646,10 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function removeAll(Atom $src): void
     {
         if (!$this->isEditable()) {
-            throw new Exception("Interface is not editable " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Interface is not editable " . $this->getPath());
         }
         if (!$this->crudU()) {
-            throw new Exception("Update not allowed for " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Update not allowed for " . $this->getPath());
         }
         
         $this->relation->deleteAllLinks($src, ($this->relationIsFlipped ? SrcOrTgt::TGT : SrcOrTgt::SRC));
@@ -659,7 +660,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function delete(Resource $tgtAtom): void
     {
         if (!$this->crudD()) {
-            throw new Exception("Delete not allowed for ". $this->getPath(), 405);
+            throw new MethodNotAllowedException("Delete not allowed for ". $this->getPath());
         }
         
         // Perform delete
@@ -676,7 +677,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function getTgtAtoms(Atom $src, ?string $selectTgt = null): array
     {
         if (!$this->crudR()) {
-            throw new Exception("Read not allowed for " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Read not allowed for " . $this->getPath());
         }
 
         $tgts = [];

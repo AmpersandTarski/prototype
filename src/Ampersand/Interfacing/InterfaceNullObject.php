@@ -18,6 +18,7 @@ use Ampersand\Core\Concept;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\MethodNotAllowedException;
 
 /**
  *
@@ -300,27 +301,27 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     public function set(Atom $src, $value = null): ?Atom
     {
-        throw new Exception("No interface specified", 405);
+        throw new MethodNotAllowedException("No interface specified");
     }
 
     public function add(Atom $src, $value): Atom
     {
-        throw new Exception("No interface specified", 405);
+        throw new MethodNotAllowedException("No interface specified");
     }
 
     public function remove(Atom $src, $value): void
     {
-        throw new Exception("No interface specified", 405);
+        throw new MethodNotAllowedException("No interface specified");
     }
 
     public function removeAll(Atom $src): void
     {
-        throw new Exception("No interface specified", 405);
+        throw new MethodNotAllowedException("No interface specified");
     }
 
     public function delete(Resource $tgtAtom): void
     {
-        throw new Exception("No interface specified", 405);
+        throw new MethodNotAllowedException("No interface specified");
     }
 
     /**********************************************************************************************

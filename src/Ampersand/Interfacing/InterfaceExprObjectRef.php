@@ -16,6 +16,7 @@ namespace Ampersand\Interfacing;
 
 use Ampersand\Core\Atom;
 use Ampersand\Exception\AccessDeniedException;
+use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Interfacing\InterfaceObjectInterface;
@@ -109,7 +110,7 @@ class InterfaceExprObjectRef extends InterfaceExprObject implements InterfaceObj
     public function getTgtAtoms(Atom $src, ?string $selectTgt = null): array
     {
         if (!$this->crudR()) {
-            throw new Exception("Read not allowed for " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Read not allowed for " . $this->getPath());
         }
         
         // Evaluate interface expression
