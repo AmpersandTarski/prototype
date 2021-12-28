@@ -3,7 +3,7 @@
 namespace Ampersand\Controller;
 
 use Ampersand\Exception\AccessDeniedException;
-use Exception;
+use Ampersand\Exception\MetaModelException;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Ampersand\Misc\Installer;
@@ -46,7 +46,7 @@ class InstallerController extends AbstractController
         
         $transaction->runExecEngine()->close(false, false);
         if ($transaction->isRolledBack()) {
-            throw new Exception("Meta population does not satisfy invariant rules. See log files", 500);
+            throw new MetaModelException("Meta population does not satisfy invariant rules. See log files");
         }
 
         return $this->success($response);
@@ -63,7 +63,7 @@ class InstallerController extends AbstractController
 
         $transaction->runExecEngine()->close(false, false);
         if ($transaction->isRolledBack()) {
-            throw new Exception("Nav menu population does not satisfy invariant rules. See log files", 500);
+            throw new MetaModelException("Nav menu population does not satisfy invariant rules. See log files");
         }
 
         return $this->success($response);

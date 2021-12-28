@@ -7,7 +7,6 @@
 
 namespace Ampersand\Core;
 
-use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 use Ampersand\Plugs\MysqlDB\MysqlDBRelationTable;
 use Ampersand\Core\Concept;
@@ -17,6 +16,8 @@ use Ampersand\AmpersandApp;
 use Ampersand\Event\LinkEvent;
 use Ampersand\Plugs\MysqlDB\TableType;
 use Ampersand\Core\SrcOrTgt;
+use Ampersand\Exception\AmpersandException;
+use Ampersand\Exception\NotDefinedException;
 
 /**
  *
@@ -184,7 +185,7 @@ class Relation
     public function getPlugs(): array
     {
         if (empty($this->plugs)) {
-            throw new Exception("No plug(s) provided for relation {$this->getSignature()}", 500);
+            throw new NotDefinedException("No plug(s) provided for relation {$this->getSignature()}");
         }
         return $this->plugs;
     }
@@ -329,7 +330,7 @@ class Relation
             $code = 'return('.substr($value, 5).');';
             $result = eval($code);
             if (!is_scalar($result)) {
-                throw new Exception("Evaluation of '{$value}' does not resolve to a scalar", 500);
+                throw new AmpersandException("Evaluation of '{$value}' does not resolve to a scalar");
             }
             return (string) $result;
         }

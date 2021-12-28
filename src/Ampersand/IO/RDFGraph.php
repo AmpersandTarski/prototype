@@ -10,6 +10,7 @@ namespace Ampersand\IO;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\FatalException;
 use Ampersand\Misc\AcceptHeader;
 use Ampersand\Misc\Settings;
 use Ampersand\Model;
@@ -108,10 +109,10 @@ class RDFGraph extends \EasyRdf\Graph
     {
         // Checks
         if ($min < 0) {
-            throw new Exception("Unsupported value '{$min}' for minimal cardinality. Value must be >= 0.", 500);
+            throw new FatalException("Unsupported value '{$min}' for minimal cardinality. Value must be >= 0.");
         }
         if ($max < -1) {
-            throw new Exception("Unsupported value '{$max}' for maximum cardinality. Value must be >= 0 or -1 to specify unbounded", 500);
+            throw new FatalException("Unsupported value '{$max}' for maximum cardinality. Value must be >= 0 or -1 to specify unbounded");
         }
         if ($min === 0 && $max === -1) {
             // Default owl cardinalities, no rescriction is needed

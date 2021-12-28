@@ -14,6 +14,9 @@ use Ampersand\Core\Link;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\AmpersandApp;
+use Ampersand\Exception\AtomNotFoundException;
+use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\MetaModelException;
 use Ampersand\Exception\RelationNotDefined;
 use Ampersand\Exception\SessionExpiredException;
 use Ampersand\Misc\ProtoContext;
@@ -155,7 +158,7 @@ class Session
     {
         // Check/prevent unexisting role atoms
         if (!$roleAtom->exists()) {
-            throw new Exception("Role {$roleAtom} is not defined", 500);
+            throw new BadRequestException("Role {$roleAtom} is not defined");
         }
 
         $link = $this->sessionAtom->link($roleAtom, ProtoContext::REL_SESSION_ACTIVE_ROLES);
@@ -220,7 +223,7 @@ class Session
             try {
                 $sessionAccounts = $this->sessionAtom->getLinks('sessionAccount[SESSION*Account]');
             } catch (RelationNotDefined $e) {
-                throw new Exception("Relation sessionAccount[SESSION*Account] is not defined. You SHOULD include the SIAM module to use the login functionality.", 500, $e);
+                throw new MetaModelException("Relation sessionAccount[SESSION*Account] is not defined. You SHOULD include the SIAM module to use the login functionality.", previous: $e);
             }
             
             // Relation sessionAccount is UNI
@@ -242,7 +245,7 @@ class Session
     {
         try {
             if (!$accountAtom->exists()) {
-                throw new Exception("Account does not exist", 500);
+                throw new AtomNotFoundException("Account '{$accountAtom}' does not exist");
             }
 
             $this->sessionAtom->link($accountAtom, 'sessionAccount[SESSION*Account]')->add();
@@ -254,7 +257,7 @@ class Session
 
             return $accountAtom;
         } catch (RelationNotDefined $e) {
-            throw new Exception("Relation sessionAccount[SESSION*Account], accMostRecentLogin[Account*DateTime] and/or accLoginTimestamps[Account*DateTime] are not defined. You SHOULD include the SIAM module to use the login functionality.", 500, $e);
+            throw new MetaModelException("Required meta model for login functionality is not defined. You SHOULD include the SIAM module", previous: $e);
         }
     }
     

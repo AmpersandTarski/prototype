@@ -7,13 +7,13 @@
 
 namespace Ampersand\Log;
 
-use Exception;
 use Ampersand\Rule\Violation;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 use Psr\Log\LoggerInterface;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\AmpersandApp;
+use Ampersand\Exception\FatalException;
 
 /**
  *
@@ -96,7 +96,7 @@ class UserLogger extends AbstractLogger
                 }
                 break;
             default:
-                throw new Exception("Unsupported log level: {$level}", 500);
+                throw new FatalException("Unsupported log level: {$level}");
         }
     }
 

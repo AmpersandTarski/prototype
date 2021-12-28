@@ -7,7 +7,6 @@
 
 namespace Ampersand\Core;
 
-use Exception;
 use Ampersand\Plugs\MysqlDB\MysqlDBTable;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 use Ampersand\Core\Atom;
@@ -16,6 +15,9 @@ use Ampersand\Plugs\ConceptPlugInterface;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
 use Ampersand\Event\AtomEvent;
+use Ampersand\Exception\AtomNotFoundException;
+use Ampersand\Exception\NotDefinedException;
+use Ampersand\Exception\TypeCheckerException;
 use Ramsey\Uuid\Uuid;
 use Ampersand\Interfacing\View;
 
@@ -183,7 +185,7 @@ class Concept
                 $this->mysqlConceptTable->addCol(new MysqlDBTableCol($colName));
             }
         } else {
-            throw new Exception("Concept table information not defined for concept {$this->label}", 500);
+            throw new NotDefinedException("Concept table information not defined for concept {$this->label}");
         }
     }
 
@@ -401,8 +403,6 @@ class Concept
     
     /**
      * Returns database table info for concept
-     *
-     * @throws \Exception if no database table is defined
      */
     public function getConceptTableInfo(): MysqlDBTable
     {
@@ -417,7 +417,7 @@ class Concept
     public function getPlugs(): array
     {
         if (empty($this->plugs)) {
-            throw new Exception("No plug(s) provided for concept {$this}", 500);
+            throw new NotDefinedException("No plug(s) provided for concept {$this}");
         }
         return $this->plugs;
     }
@@ -490,7 +490,7 @@ class Concept
         // Convert atom to more generic/specific concept if needed
         if ($atom->concept !== $this) {
             if (!$this->inSameClassificationBranch($atom->concept)) {
-                throw new Exception("Concept of atom '{$atom}' not in same classifcation branch as {$this}. Try adding 'CLASSIFY {$atom->concept} ISA {$this}' or vice-versa", 500);
+                throw new TypeCheckerException("Concept of atom '{$atom}' not in same classifcation branch as {$this}. Try adding 'CLASSIFY {$atom->concept} ISA {$this}' or vice-versa");
             } else {
                 $atom = new Atom($atom->getId(), $this);
             }
@@ -573,12 +573,12 @@ class Concept
         } else {
             // Check if concept A and concept B are in the same classification tree
             if (!$this->inSameClassificationBranch($atom->concept)) {
-                throw new Exception("Cannot add {$atom} to concept {$this}, because neither concept includes the other. Try adding 'CLASSIFY {$atom->concept} ISA {$this}' or vice-versa", 500);
+                throw new TypeCheckerException("Cannot add {$atom} to concept {$this}, because neither concept includes the other. Try adding 'CLASSIFY {$atom->concept} ISA {$this}' or vice-versa");
             }
             
             // Check if atom[A] exists. Otherwise it may not be added to concept B
             if (!$atom->exists()) {
-                throw new Exception("Cannot add {$atom} to concept {$this}, because atom does not exist", 500);
+                throw new AtomNotFoundException("Cannot add {$atom} to concept {$this}, because atom does not exist");
             }
             
             $atom->concept = $this; // Change concept definition
@@ -592,15 +592,15 @@ class Concept
     public function removeAtom(Atom $atom): void
     {
         if ($atom->concept != $this) {
-            throw new Exception("Cannot remove {$atom} from concept {$this}, because concepts don't match", 500);
+            throw new TypeCheckerException("Cannot remove {$atom} from concept {$this}, because concepts don't match");
         }
         
         // Check if concept is a specialization of another concept
         if (empty($this->directGens)) {
-            throw new Exception("Cannot remove {$atom} from concept {$this}, because no generalizations exist", 500);
+            throw new TypeCheckerException("Cannot remove {$atom} from concept {$this}, because no generalizations exist");
         }
         if (count($this->directGens) > 1) {
-            throw new Exception("Cannot remove {$atom} from concept {$this}, because multiple generalizations exist", 500);
+            throw new TypeCheckerException("Cannot remove {$atom} from concept {$this}, because multiple generalizations exist");
         }
         
         // Check if atom exists
@@ -662,12 +662,12 @@ class Concept
         $this->logger->info("Request to merge '{$rightAtom}' into '{$leftAtom}'");
 
         if ($leftAtom->concept != $this) {
-            throw new Exception("Cannot merge atom '{$leftAtom}', because it does not match concept '{$this}'", 500);
+            throw new TypeCheckerException("Cannot merge atom '{$leftAtom}', because it does not match concept '{$this}'");
         }
         
         // Check that left and right atoms are in the same typology.
         if (!$leftAtom->concept->inSameClassificationBranch($rightAtom->concept)) {
-            throw new Exception("Cannot merge '{$rightAtom}' into '{$leftAtom}', because neither concept includes the other. Try adding 'CLASSIFY {$rightAtom->concept} ISA {$leftAtom->concept}' or vice-versa", 500);
+            throw new TypeCheckerException("Cannot merge '{$rightAtom}' into '{$leftAtom}', because neither concept includes the other. Try adding 'CLASSIFY {$rightAtom->concept} ISA {$leftAtom->concept}' or vice-versa");
         }
 
         // Skip when left and right atoms are the same
@@ -678,10 +678,10 @@ class Concept
 
         // Check if left and right atoms exist
         if (!$leftAtom->exists()) {
-            throw new Exception("Cannot merge '{$rightAtom}' into '{$leftAtom}', because '{$leftAtom}' does not exist", 500);
+            throw new AtomNotFoundException("Cannot merge '{$rightAtom}' into '{$leftAtom}', because '{$leftAtom}' does not exist");
         }
         if (!$rightAtom->exists()) {
-            throw new Exception("Cannot merge '{$rightAtom}' into '{$leftAtom}', because '{$rightAtom}' does not exist", 500);
+            throw new AtomNotFoundException("Cannot merge '{$rightAtom}' into '{$leftAtom}', because '{$rightAtom}' does not exist");
         }
 
         // Merge step 0: start with most specific versions of the atoms

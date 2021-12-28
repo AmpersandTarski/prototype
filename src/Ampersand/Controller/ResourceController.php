@@ -6,12 +6,12 @@ use Ampersand\Core\Concept;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\ConceptNotDefined;
+use Ampersand\Exception\FatalException;
 use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\Interfacing\ResourcePath;
 use Ampersand\Misc\ProtoContext;
-use Exception;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
@@ -103,7 +103,7 @@ class ResourceController extends AbstractController
                 $successMessage = "{$resource->getLabel()} created";
                 break;
             default:
-                throw new Exception("Unsupported HTTP method", 500);
+                throw new FatalException("Unsupported HTTP method");
         }
 
         // Run ExecEngine

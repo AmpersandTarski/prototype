@@ -2,6 +2,8 @@
 
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\FatalException;
+use Ampersand\Exception\InvalidConfigurationException;
 use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Exception\NotFoundException;
 use Ampersand\Log\Logger;
@@ -328,6 +330,10 @@ $api->add(function (Request $req, Response $res, callable $next) {
         throw new Exception($e->getMessage(), 404, $e); // Map to HTTP 404 - Resource not found
     } catch (MethodNotAllowedException $e) {
         throw new Exception($e->getMessage(), 405, $e); // Map to HTTP 405 - Method not allowed
+    } catch (FatalException $e) {
+        throw new Exception("A fatal exception occured. Please report to the Ampersand development team on Github", 500, $e); // Map to HTTP 500 - Internal server error
+    } catch (InvalidConfigurationException $e) {
+        throw new Exception($e->getMessage(), 500, $e); // Map to HTTP 500 - Internal server error
     }
 })
 ->run();

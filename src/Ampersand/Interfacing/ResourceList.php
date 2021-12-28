@@ -12,10 +12,10 @@ use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Concept;
+use Ampersand\Exception\AmpersandException;
 use Ampersand\Exception\AtomNotFoundException;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\UploadException;
-use Exception;
 use stdClass;
 use function Ampersand\Misc\getSafeFileName;
 
@@ -195,7 +195,7 @@ class ResourceList
                 }
                 
                 if (!$result) {
-                    throw new Exception("Error in file upload", 500);
+                    throw new AmpersandException("Error in file upload");
                 }
                 
                 // Populate filePath and originalFileName relations in database

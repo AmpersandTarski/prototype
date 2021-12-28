@@ -7,7 +7,7 @@
 
 namespace Ampersand\Plugs\MysqlDB;
 
-use Exception;
+use Ampersand\Exception\FatalException;
 
 /**
  *
@@ -37,7 +37,7 @@ class MysqlDBTableCol
     public function __construct(string $name, bool $null = false, bool $unique = true)
     {
         if ($name === '') {
-            throw new Exception("Database table column name is an empty string", 500);
+            throw new FatalException("Database table column name is an empty string");
         }
         $this->name = $name;
         $this->null = $null;

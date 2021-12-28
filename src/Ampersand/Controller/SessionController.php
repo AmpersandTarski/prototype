@@ -2,7 +2,6 @@
 
 namespace Ampersand\Controller;
 
-use Ampersand\Exception\AccessDeniedException;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Ampersand\Frontend\MenuType;

@@ -8,6 +8,7 @@
 namespace Ampersand\Interfacing;
 
 use Ampersand\Core\Atom;
+use Ampersand\Exception\NotDefinedException;
 use Ampersand\Interfacing\View;
 use Exception;
 
@@ -97,7 +98,7 @@ class ViewSegment
     public function getQuery(): string
     {
         if (is_null($this->expSQL)) {
-            throw new Exception("Query not specified for view segment '{$this}'", 500);
+            throw new NotDefinedException("Query not specified for view segment '{$this}'");
         }
         
         return str_replace('_SESSION', session_id(), $this->expSQL); // Replace _SESSION var with current session id.

@@ -7,7 +7,6 @@
 
 namespace Ampersand;
 
-use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
@@ -28,8 +27,16 @@ use Ampersand\Interfacing\View;
 use Ampersand\Core\Population;
 use Ampersand\Core\Link;
 use Ampersand\Core\Atom;
+use Ampersand\Exception\AmpersandException;
+use Ampersand\Exception\ConceptNotDefined;
+use Ampersand\Exception\ConjunctNotDefinedException;
+use Ampersand\Exception\FatalException;
 use Ampersand\Exception\RelationNotDefined;
 use Ampersand\Exception\InterfaceNotDefined;
+use Ampersand\Exception\InvalidConfigurationException;
+use Ampersand\Exception\RoleNotDefinedException;
+use Ampersand\Exception\RuleNotDefinedException;
+use Ampersand\Exception\ViewNotDefinedException;
 use Ampersand\Misc\ProtoContext;
 use Ampersand\Rule\RuleType;
 
@@ -134,7 +141,7 @@ class Model
         $fileSystem = new Filesystem;
 
         if (($this->folder = realpath($folder)) === false) {
-            throw new Exception("Specified folder for Ampersand model does not exist: '{$folder}'", 500);
+            throw new InvalidConfigurationException("Specified folder for Ampersand model does not exist: '{$folder}'");
         }
         
         // Ampersand model files
@@ -151,7 +158,7 @@ class Model
         ];
 
         if (!$fileSystem->exists($this->modelFiles)) {
-            throw new Exception("Not all Ampersand model files are provided. Check model folder '{$this->folder}'", 500);
+            throw new InvalidConfigurationException("Not all Ampersand model files are provided. Check model folder '{$this->folder}'");
         }
     }
 
@@ -326,7 +333,7 @@ class Model
     public function getAllConcepts(): array
     {
         if (!in_array('concepts', $this->initialized)) {
-            throw new Exception("Ampersand model is not yet initialized", 500);
+            throw new FatalException("Ampersand model is not yet initialized");
         }
         
         return $this->concepts;
@@ -338,7 +345,7 @@ class Model
     public function getConcept(string $conceptId): Concept
     {
         if (!array_key_exists($conceptId, $concepts = $this->getAllConcepts())) {
-            throw new Exception("Concept '{$conceptId}' is not defined", 500);
+            throw new ConceptNotDefined("Concept '{$conceptId}' is not defined");
         }
          
         return $concepts[$conceptId];
@@ -357,7 +364,7 @@ class Model
             }
         }
         
-        throw new Exception("Concept '{$conceptLabel}' is not defined", 500);
+        throw new ConceptNotDefined("Concept '{$conceptLabel}' is not defined");
     }
     
     public function getSessionConcept(): Concept
@@ -382,13 +389,13 @@ class Model
     /**
      * Returns list of all relation definitions
      *
-     * @throws \Exception when relations are not loaded (yet) because model is not initialized
+     * @throws \Ampersand\Exception\FatalException when relations are not loaded (yet) because model is not initialized
      * @return \Ampersand\Core\Relation[]
      */
     public function getRelations(): array
     {
         if (!in_array('relations', $this->initialized)) {
-            throw new Exception("Ampersand model is not yet initialized", 500);
+            throw new FatalException("Ampersand model is not yet initialized");
         }
          
         return $this->relations;
@@ -402,7 +409,7 @@ class Model
     public function getRelation(string $relationSignature, ?Concept $srcConcept = null, ?Concept $tgtConcept = null): Relation
     {
         if (!in_array('relations', $this->initialized)) {
-            throw new Exception("Ampersand model is not yet initialized", 500);
+            throw new FatalException("Ampersand model is not yet initialized");
         }
         
         // If relation can be found by its fullRelationSignature return the relation
@@ -411,10 +418,10 @@ class Model
             
             // If srcConceptName and tgtConceptName are provided, check that they match the found relation
             if (!is_null($srcConcept) && !in_array($srcConcept, $relation->srcConcept->getSpecializationsIncl())) {
-                throw new Exception("Provided src concept '{$srcConcept}' does not match the relation '{$relation}'", 500);
+                throw new AmpersandException("Provided src concept '{$srcConcept}' does not match the relation '{$relation}'");
             }
             if (!is_null($tgtConcept) && !in_array($tgtConcept, $relation->tgtConcept->getSpecializationsIncl())) {
-                throw new Exception("Provided tgt concept '{$tgtConcept}' does not match the relation '{$relation}'", 500);
+                throw new AmpersandException("Provided tgt concept '{$tgtConcept}' does not match the relation '{$relation}'");
             }
             
             return $relation;
@@ -433,7 +440,7 @@ class Model
         }
         
         // Else
-        throw new RelationNotDefined("Relation '{$relationSignature}[{$srcConcept}*{$tgtConcept}]' is not defined", 500);
+        throw new RelationNotDefined("Relation '{$relationSignature}[{$srcConcept}*{$tgtConcept}]' is not defined");
     }
 
     /**********************************************************************************************
@@ -447,7 +454,7 @@ class Model
     public function getAllInterfaces(): array
     {
         if (!in_array('interfaces', $this->initialized)) {
-            throw new Exception("Ampersand model is not yet initialized", 500);
+            throw new FatalException("Ampersand model is not yet initialized");
         }
         
         return $this->interfaces;
@@ -473,7 +480,7 @@ class Model
             if ($fallbackOnLabel) {
                 return $this->getInterfaceByLabel($ifcId);
             } else {
-                throw new InterfaceNotDefined("Interface '{$ifcId}' is not defined", 500);
+                throw new InterfaceNotDefined("Interface '{$ifcId}' is not defined");
             }
         }
 
@@ -493,7 +500,7 @@ class Model
             }
         }
         
-        throw new InterfaceNotDefined("Interface with label '{$ifcLabel}' is not defined", 500);
+        throw new InterfaceNotDefined("Interface with label '{$ifcLabel}' is not defined");
     }
 
     /**********************************************************************************************
@@ -507,7 +514,7 @@ class Model
     public function getAllViews(): array
     {
         if (!in_array('views', $this->initialized)) {
-            throw new Exception("Ampersand model is not yet initialized", 500);
+            throw new FatalException("Ampersand model is not yet initialized");
         }
          
         return $this->views;
@@ -520,11 +527,11 @@ class Model
     public function getView(string $viewLabel): View
     {
         if (!in_array('views', $this->initialized)) {
-            throw new Exception("Ampersand model is not yet initialized", 500);
+            throw new FatalException("Ampersand model is not yet initialized");
         }
 
         if (!array_key_exists($viewLabel, $this->views)) {
-            throw new Exception("View '{$viewLabel}' is not defined", 500);
+            throw new ViewNotDefinedException("View '{$viewLabel}' is not defined");
         }
     
         return $this->views[$viewLabel];
@@ -541,7 +548,7 @@ class Model
     public function getAllRules(string $type = null): array
     {
         if (!in_array('rules', $this->initialized)) {
-            throw new Exception("Ampersand model is not yet initialized", 500);
+            throw new FatalException("Ampersand model is not yet initialized");
         }
 
         switch ($type) {
@@ -559,7 +566,7 @@ class Model
                 }));
                 break;
             default:
-                throw new Exception("Specified rule type is wrong", 500);
+                throw new FatalException("Specified rule type '{$type}' is wrong");
                 break;
         }
     }
@@ -571,11 +578,11 @@ class Model
     public function getRule(string $ruleName): Rule
     {
         if (!in_array('rules', $this->initialized)) {
-            throw new Exception("Ampersand model is not yet initialized", 500);
+            throw new FatalException("Ampersand model is not yet initialized");
         }
 
         if (!array_key_exists($ruleName, $this->rules)) {
-            throw new Exception("Rule '{$ruleName}' is not defined", 500);
+            throw new RuleNotDefinedException("Rule '{$ruleName}' is not defined");
         }
 
         return $this->rules[$ruleName];
@@ -592,7 +599,7 @@ class Model
     public function getAllConjuncts(): array
     {
         if (!in_array('conjuncts', $this->initialized)) {
-            throw new Exception("Ampersand model is not yet initialized", 500);
+            throw new FatalException("Ampersand model is not yet initialized");
         }
          
         return $this->conjuncts;
@@ -605,11 +612,11 @@ class Model
     public function getConjunct(string $conjId): Conjunct
     {
         if (!in_array('conjuncts', $this->initialized)) {
-            throw new Exception("Ampersand model is not yet initialized", 500);
+            throw new FatalException("Ampersand model is not yet initialized");
         }
 
         if (!array_key_exists($conjId, $this->conjuncts)) {
-            throw new Exception("Conjunct '{$conjId}' is not defined", 500);
+            throw new ConjunctNotDefinedException("Conjunct '{$conjId}' is not defined");
         }
     
         return $this->conjuncts[$conjId];
@@ -626,7 +633,7 @@ class Model
     public function getAllRoles(): array
     {
         if (!in_array('roles', $this->initialized)) {
-            throw new Exception("Ampersand model is not yet initialized", 500);
+            throw new FatalException("Ampersand model is not yet initialized");
         }
          
         return $this->roles;
@@ -644,7 +651,7 @@ class Model
             }
         }
         
-        throw new Exception("Role with id '{$roleId}' is not defined", 500);
+        throw new RoleNotDefinedException("Role with id '{$roleId}' is not defined");
     }
     
     /**
@@ -654,7 +661,7 @@ class Model
     public function getRoleByName(string $roleName): Role
     {
         if (!array_key_exists($roleName, $roles = $this->getAllRoles())) {
-            throw new Exception("Role '{$roleName}' is not defined", 500);
+            throw new RoleNotDefinedException("Role '{$roleName}' is not defined");
         }
     
         return $roles[$roleName];
@@ -671,7 +678,7 @@ class Model
     public function getFilePath(string $filename): string
     {
         if (!array_key_exists($filename, $this->modelFiles)) {
-            throw new Exception("File '{$filename}' is not part of the specified Ampersand model files", 500);
+            throw new FatalException("File '{$filename}' is not part of the specified Ampersand model files");
         }
 
         return $this->modelFiles[$filename];
@@ -699,7 +706,7 @@ class Model
         $settings = $this->getFileContent('settings');
         
         if (!property_exists($settings, $setting)) {
-            throw new Exception("Undefined setting '{$setting}'", 500);
+            throw new FatalException("Undefined setting '{$setting}'");
         }
 
         return $settings->$setting;

@@ -7,7 +7,8 @@
 
 namespace Ampersand\Plugs\MysqlDB;
 
-use Exception;
+use Ampersand\Exception\FatalException;
+use Ampersand\Exception\NotDefinedException;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 
 /**
@@ -26,7 +27,7 @@ class MysqlDBTable
     public function __construct(string $name)
     {
         if ($name === '') {
-            throw new Exception("Database table name is an empty string", 500);
+            throw new FatalException("Database table name is an empty string");
         }
         $this->name = $name;
     }
@@ -47,13 +48,13 @@ class MysqlDBTable
     /**
      * Get all col objects for this table
      *
-     * @throws \Exception when no columns are defined for this table
+     * @throws \Ampersand\Exception\FatalException when no columns are defined for this table
      * @return \Ampersand\Plugs\MysqlDB\MysqlDBTableCol[]
      */
     public function getCols(): array
     {
         if (empty($this->cols)) {
-            throw new Exception("No column defined for table '{$this->name}'", 500);
+            throw new FatalException("No column defined for table '{$this->name}'");
         }
         return $this->cols;
     }
@@ -74,7 +75,7 @@ class MysqlDBTable
     public function getCol(string $colName): MysqlDBTableCol
     {
         if (!array_key_exists($colName, $this->getCols())) {
-            throw new Exception("Col '{$colName}' does not exist in table '{$this->name}'", 500);
+            throw new NotDefinedException("Col '{$colName}' does not exist in table '{$this->name}'");
         }
         return $this->getCols()[$colName];
     }

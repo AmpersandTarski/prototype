@@ -18,6 +18,11 @@ use Ampersand\Log\Logger;
 use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
 use Ampersand\Event\TransactionEvent;
+use Ampersand\Exception\AmpersandException;
+use Ampersand\Exception\FatalException;
+use Ampersand\Exception\InvalidConfigurationException;
+use Ampersand\Exception\MetaModelException;
+use Ampersand\Exception\NotDefinedException;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
@@ -172,12 +177,12 @@ class AmpersandApp
 
             // Check for default storage plug
             if (!in_array($this->defaultStorage, $this->storages)) {
-                throw new Exception("No default storage plug registered", 500);
+                throw new NotDefinedException("No default storage plug registered");
             }
 
             // Check for conjunct cache
             if (is_null($this->conjunctCache)) {
-                throw new Exception("No conjunct cache implementaion registered", 500);
+                throw new NotDefinedException("No conjunct cache implementaion registered");
             }
 
             // Initialize storage plugs
@@ -258,7 +263,7 @@ class AmpersandApp
     public function getDefaultStorage(): MysqlDB
     {
         if (is_null($this->defaultStorage)) {
-            throw new Exception("Default storage not set for Ampersand app", 500);
+            throw new NotDefinedException("Default storage not set for Ampersand app");
         }
 
         return $this->defaultStorage;
@@ -278,7 +283,7 @@ class AmpersandApp
     public function getConjunctCache(): CacheItemPoolInterface
     {
         if (is_null($this->conjunctCache)) {
-            throw new Exception("Conjunct cache not set for Ampersand app", 500);
+            throw new NotDefinedException("Conjunct cache not set for Ampersand app");
         }
 
         return $this->conjunctCache;
@@ -348,17 +353,17 @@ class AmpersandApp
         // Get accessible interfaces using defined INTERFACE
         if (!is_null($rbacIfcId)) {
             if (!$this->model->interfaceExists($rbacIfcId)) {
-                throw new Exception("Specified interface '{$rbacIfcId}' in setting '{$settingKey}' does not exist", 500);
+                throw new InvalidConfigurationException("Specified interface '{$rbacIfcId}' in setting '{$settingKey}' does not exist");
             }
             
             $rbacIfc = $this->model->getInterface($rbacIfcId);
 
             // Check for the right SRC and TGT concepts
             if ($rbacIfc->getSrcConcept() !== $this->model->getSessionConcept()) {
-                throw new Exception("Src concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getSessionConcept()->getId()}", 500);
+                throw new MetaModelException("Src concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getSessionConcept()->getId()}");
             }
             if ($rbacIfc->getTgtConcept() !== $this->model->getInterfaceConcept()) {
-                throw new Exception("Tgt concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getInterfaceConcept()->getId()}", 500);
+                throw new MetaModelException("Tgt concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getInterfaceConcept()->getId()}");
             }
 
             $this->logger->debug("Getting accessible interfaces using INTERFACE {$rbacIfc->getId()}");
@@ -403,7 +408,7 @@ class AmpersandApp
     public function getSession(): Session
     {
         if (is_null($this->session)) {
-            throw new Exception("Session not yet initialized", 500);
+            throw new FatalException("Session not yet initialized");
         }
         return $this->session;
     }
@@ -563,7 +568,7 @@ class AmpersandApp
                 $this->logger->warning("Invariant rules do not hold for meta population and/or navigation menu");
             }
         } catch (Exception $e) {
-            throw new Exception("Error while installing metapopulation and navigation menus: {$e->getMessage()}", 500, $e);
+            throw new AmpersandException("Error while installing metapopulation and navigation menus: {$e->getMessage()}", previous: $e);
         }
 
         // Initial population
@@ -576,7 +581,7 @@ class AmpersandApp
         // Close transaction
         $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
         if ($transaction->isRolledBack()) {
-            throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
+            throw new MetaModelException("Initial installation does not satisfy invariant rules. See log files");
         }
 
         // Evaluate all conjunct and save cache

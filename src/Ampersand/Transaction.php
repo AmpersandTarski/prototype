@@ -16,6 +16,8 @@ use Ampersand\Rule\ExecEngine;
 use Ampersand\Rule\Rule;
 use Ampersand\AmpersandApp;
 use Ampersand\Event\TransactionEvent;
+use Ampersand\Exception\FatalException;
+use Ampersand\Exception\InvalidOptionException;
 use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
 
@@ -109,7 +111,7 @@ class Transaction
 
         // Check to ensure only a single open transaction. AmpersandApp class is responsible for this.
         if (!is_null(self::$currentTransaction)) {
-            throw new Exception("Something is wrong in the code. Only a single open transaction is allowed.", 500);
+            throw new FatalException("Something is wrong in the code. Only a single open transaction is allowed.");
         } else {
             self::$currentTransaction = $this;
         }
@@ -259,7 +261,7 @@ class Transaction
         $this->logger->info("Request to cancel transaction: {$this->id}");
 
         if ($this->isClosed()) {
-            throw new Exception("Cannot cancel transaction, because transaction is already closed", 500);
+            throw new InvalidOptionException("Cannot cancel transaction, because transaction is already closed");
         }
 
         $this->rollback();
@@ -286,7 +288,7 @@ class Transaction
         $this->logger->info("Request to close transaction: {$this->id}");
         
         if ($this->isClosed()) {
-            throw new Exception("Cannot close transaction, because transaction is already closed", 500);
+            throw new InvalidOptionException("Cannot close transaction, because transaction is already closed");
         }
 
         // (Re)evaluate affected conjuncts

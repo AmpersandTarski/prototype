@@ -16,12 +16,13 @@ namespace Ampersand\Interfacing;
 
 use Ampersand\Core\Atom;
 use Ampersand\Exception\AccessDeniedException;
+use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\FatalException;
 use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Plugs\IfcPlugInterface;
-use Exception;
 
 /**
  *
@@ -40,11 +41,11 @@ class InterfaceExprObjectRef extends InterfaceExprObject implements InterfaceObj
         $subIfcsDef = $ifcDef['subinterfaces'];
 
         if (is_null($subIfcsDef)) {
-            throw new Exception("Sub interface definition is required to instantiate InterfaceExprObjectRef object", 500);
+            throw new FatalException("Sub interface definition is required to instantiate InterfaceExprObjectRef object");
         }
 
         if (!isset($subIfcsDef['refSubInterfaceId'])) {
-            throw new Exception("refSubInterfaceId not specified but required to instantiate InterfaceExprObjectRef", 500);
+            throw new FatalException("refSubInterfaceId not specified but required to instantiate InterfaceExprObjectRef");
         }
 
         $this->refInterfaceId = $subIfcsDef['refSubInterfaceId'];
@@ -120,7 +121,7 @@ class InterfaceExprObjectRef extends InterfaceExprObject implements InterfaceObj
 
         // Integrity check
         if ($this->isUni() && count($tgts) > 1) {
-            throw new Exception("Univalent (sub)interface returns more than 1 resource: " . $this->getPath(), 500);
+            throw new FatalException("Univalent (sub)interface returns more than 1 resource: " . $this->getPath());
         }
 
         // If specific target is specified, pick that one out
@@ -184,7 +185,7 @@ class InterfaceExprObjectRef extends InterfaceExprObject implements InterfaceObj
         // If $depth is provided, no check is required, because recursion is finite
         if ($this->isLinkTo && is_null($depth)) {
             if (in_array($tgt->getId(), $recursionArr[$this->refInterfaceId] ?? [])) {
-                throw new Exception("Infinite loop detected for {$tgt} in " . $this->getPath(), 500);
+                throw new BadRequestException("Infinite loop detected for {$tgt} in " . $this->getPath());
             } else {
                 $recursionArr[$this->refInterfaceId][] = $tgt->getId();
             }

@@ -13,6 +13,7 @@ use Ampersand\Core\Relation;
 use Ampersand\Core\SrcOrTgt;
 use Ampersand\Core\TType;
 use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\FatalException;
 use Ampersand\Exception\InterfaceNotDefined;
 use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Interfacing\AbstractIfcObject;
@@ -97,7 +98,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function __construct(array $ifcDef, IfcPlugInterface $plug, Ifc $rootIfc, ?InterfaceObjectInterface $parent = null)
     {
         if ($ifcDef['type'] != 'ObjExpression') {
-            throw new Exception("Provided interface definition is not of type ObjExpression", 500);
+            throw new FatalException("Provided interface definition is not of type ObjExpression");
         }
 
         $this->plug = $plug;
@@ -115,7 +116,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         
         // Interface expression information
         if (!isset($ifcDef['expr'])) {
-            throw new Exception("Expression information not defined for interface object {$this->path}", 500);
+            throw new FatalException("Expression information not defined for interface object {$this->path}");
         }
         $this->srcConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['srcConceptId']);
         $this->tgtConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['tgtConceptId']);
@@ -148,7 +149,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         
         // CRUD rights
         if (!isset($ifcDef['crud'])) {
-            throw new Exception("Cannot determine crud rights for interface object {$this->path}", 500);
+            throw new FatalException("Cannot determine crud rights for interface object {$this->path}");
         }
         $this->crudC = $ifcDef['crud']['create'];
         $this->crudR = $ifcDef['crud']['read'];
@@ -190,7 +191,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     protected function relation(): Relation
     {
         if (is_null($this->relation)) {
-            throw new Exception("Interface expression for '{$this->label}' is not an (editable) relation", 500);
+            throw new BadRequestException("Interface expression for '{$this->label}' is not an (editable) relation");
         } else {
             return $this->relation;
         }
@@ -313,7 +314,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         if (!array_key_exists($ifcId, $subifcs = $this->getSubinterfaces($options))) {
-            throw new Exception("Subinterface '{$ifcId}' does not exist in interface '{$this->path}'", 500);
+            throw new InterfaceNotDefined("Subinterface '{$ifcId}' does not exist in interface '{$this->path}'");
         }
     
         return $subifcs[$ifcId];
@@ -327,7 +328,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             }
         }
         
-        throw new InterfaceNotDefined("Subinterface '{$ifcLabel}' does not exist in interface '{$this->path}'", 500);
+        throw new InterfaceNotDefined("Subinterface '{$ifcLabel}' does not exist in interface '{$this->path}'");
     }
     
     /**
@@ -705,7 +706,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
         // Integrity check
         if ($this->isUni() && count($tgts) > 1) {
-            throw new Exception("Univalent (sub)interface returns more than 1 resource: " . $this->getPath(), 500);
+            throw new FatalException("Univalent (sub)interface returns more than 1 resource: " . $this->getPath());
         }
 
         // If specific target is specified, pick that one out

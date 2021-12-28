@@ -3,7 +3,6 @@
 namespace Ampersand\Controller;
 
 use Ampersand\Exception\NotFoundException;
-use Exception;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\Stream;

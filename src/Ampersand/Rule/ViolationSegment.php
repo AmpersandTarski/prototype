@@ -7,9 +7,9 @@
 
 namespace Ampersand\Rule;
 
-use Ampersand\Interfacing\ViewSegment;
-use Exception;
 use Ampersand\Core\Atom;
+use Ampersand\Exception\FatalException;
+use Ampersand\Interfacing\ViewSegment;
 use Ampersand\Rule\Rule;
 
 /**
@@ -52,7 +52,7 @@ class ViolationSegment extends ViewSegment
         $this->srcOrTgt = $segmentDef['srcOrTgt'];
         
         if (!($this->segType === 'Text' || $this->segType === 'Exp')) {
-            throw new Exception("Unsupported segmentType '{$this->segType}' in RULE segment '{$this}'", 501); // 501: Not implemented
+            throw new FatalException("Unsupported segmentType '{$this->segType}' in RULE segment '{$this}'");
         }
     }
     
@@ -69,7 +69,7 @@ class ViolationSegment extends ViewSegment
     public function getData(Atom $srcAtom, ?Atom $tgtAtom = null): array
     {
         if (is_null($tgtAtom)) {
-            throw new Exception("No target atom provided for ViolationSegment::getData()", 500);
+            throw new FatalException("No target atom provided for ViolationSegment::getData()");
         }
 
         switch ($this->segType) {
@@ -79,7 +79,7 @@ class ViolationSegment extends ViewSegment
             case "Exp":
                 // select starting atom depending on whether the segment uses the src of tgt atom.
                 if (is_null($this->srcOrTgt)) {
-                    throw new Exception("Cannot evaluate segment expression without SRC or TGT defined", 500);
+                    throw new FatalException("Cannot evaluate segment expression without SRC or TGT defined");
                 }
                 $atom = $this->srcOrTgt === 'Src' ? $srcAtom : $tgtAtom;
                 if ($this->expIsIdent) {
@@ -90,7 +90,7 @@ class ViolationSegment extends ViewSegment
                 }
                 break;
             default:
-                throw new Exception("Unsupported segmentType '{$this->segType}' in RULE segment '{$this}'", 501); // 501: Not implemented
+                throw new FatalException("Unsupported segmentType '{$this->segType}' in RULE segment '{$this}'");
                 break;
         }
     }

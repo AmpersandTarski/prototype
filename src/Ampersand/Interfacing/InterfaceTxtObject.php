@@ -12,6 +12,7 @@ use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Atom;
+use Ampersand\Exception\FatalException;
 use Ampersand\Interfacing\AbstractIfcObject;
 
 /**
@@ -47,7 +48,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     public function __construct(array $ifcDef, ?InterfaceObjectInterface $parent = null)
     {
         if ($ifcDef['type'] != 'ObjText') {
-            throw new Exception("Provided interface definition is not of type ObjText", 500);
+            throw new FatalException("Provided interface definition is not of type ObjText");
         }
         
         // Set attributes from $ifcDef
@@ -131,7 +132,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     
     public function getTgtAtoms(Atom $src, string $selectTgt = null): array
     {
-        throw new Exception("Method getTgtAtoms() is n.a. for InterfaceTxtObject and must not be called", 500);
+        throw new FatalException("Method getTgtAtoms() is n.a. for InterfaceTxtObject and must not be called");
     }
 
     /**
@@ -139,7 +140,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
      */
     public function buildResourcePath(Atom $tgt, string $pathToSrc): string
     {
-        throw new Exception("Method buildResourcePath() is n.a. for InterfaceTxtObject and must not be called", 500);
+        throw new FatalException("Method buildResourcePath() is n.a. for InterfaceTxtObject and must not be called");
     }
 
     /**********************************************************************************************
@@ -158,12 +159,12 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
-        throw new Exception("Method getSubinterface() is n.a. for InterfaceTxtObject and must not be called", 500);
+        throw new FatalException("Method getSubinterface() is n.a. for InterfaceTxtObject and must not be called");
     }
     
     public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
-        throw new Exception("Method getSubinterfaceByLabel() is n.a. for InterfaceTxtObject and must not be called", 500);
+        throw new FatalException("Method getSubinterfaceByLabel() is n.a. for InterfaceTxtObject and must not be called");
     }
 
     /**********************************************************************************************

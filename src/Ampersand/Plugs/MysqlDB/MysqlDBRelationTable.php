@@ -7,7 +7,7 @@
 
 namespace Ampersand\Plugs\MysqlDB;
 
-use Exception;
+use Ampersand\Exception\NotDefinedException;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 use Ampersand\Plugs\MysqlDB\TableType;
 
@@ -56,7 +56,7 @@ class MysqlDBRelationTable extends MysqlDBTable
     public function srcCol(): MysqlDBTableCol
     {
         if (is_null($this->srcCol)) {
-            throw new Exception("Src column for RelationTable {$this->name} not defined", 500);
+            throw new NotDefinedException("Src column for RelationTable {$this->name} not defined");
         }
         return $this->srcCol;
     }
@@ -64,7 +64,7 @@ class MysqlDBRelationTable extends MysqlDBTable
     public function tgtCol(): MysqlDBTableCol
     {
         if (is_null($this->tgtCol)) {
-            throw new Exception("Tgt column for RelationTable {$this->name} not defined", 500);
+            throw new NotDefinedException("Tgt column for RelationTable {$this->name} not defined");
         }
         return $this->tgtCol;
     }

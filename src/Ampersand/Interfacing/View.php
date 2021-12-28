@@ -7,8 +7,8 @@
 
 namespace Ampersand\Interfacing;
 
-use Exception;
 use Ampersand\Core\Atom;
+use Ampersand\Exception\NotDefinedException;
 use Ampersand\Interfacing\ViewSegment;
 use Ampersand\Plugs\ViewPlugInterface;
 
@@ -94,6 +94,6 @@ class View
                 return $segment;
             }
         }
-        throw new Exception("View segment '{$this->label}:{$label}' not found", 500);
+        throw new NotDefinedException("View segment '{$this->label}:{$label}' not found");
     }
 }

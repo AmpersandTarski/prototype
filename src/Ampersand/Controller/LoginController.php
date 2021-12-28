@@ -14,7 +14,7 @@ class LoginController extends AbstractController
         $this->preventProductionMode();
 
         if (!$this->app->getSettings()->get('session.loginEnabled')) {
-            throw new AmpersandException("Testing login feature not applicable. Login functionality is not enabled", 500);
+            throw new AmpersandException("Testing login feature not applicable. Login functionality is not enabled");
         }
 
         if (!isset($args['accountId'])) {

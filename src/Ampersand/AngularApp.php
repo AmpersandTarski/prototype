@@ -7,9 +7,10 @@
 
 namespace Ampersand;
 
-use Exception;
 use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
+use Ampersand\Exception\FatalException;
+use Ampersand\Exception\InvalidOptionException;
 use Ampersand\Frontend\MenuType;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\ResourceList;
@@ -64,7 +65,7 @@ class AngularApp
         match ($menu) {
             MenuType::EXT => $this->extMenu[] = ['url' => $itemUrl, 'function' => $function],
             MenuType::ROLE => $this->roleMenu[] = ['url' => $itemUrl, 'function' => $function],
-            MenuType::NEW => throw new Exception("Cannot add custom menu items to menu 'new'")
+            MenuType::NEW => throw new InvalidOptionException("Cannot add custom menu items to menu 'new'")
         };
     }
     
@@ -116,7 +117,7 @@ class AngularApp
                 }
                 break;
             default:
-                throw new Exception("Cannot get menu items. Unknown menu: '{$menu->value}'", 500);
+                throw new FatalException("Cannot get menu items. Unknown menu: '{$menu->value}'");
         }
 
         return array_values($result); // Make sure that a true numeric array is returned
@@ -139,7 +140,7 @@ class AngularApp
                 }
                 break;
             default:
-                throw new Exception("Unsupported case '{$case}' to getNavToResponse", 500);
+                throw new FatalException("Unsupported case '{$case}' to getNavToResponse");
         }
     }
     
@@ -151,7 +152,7 @@ class AngularApp
                 $this->navToResponse[$case] = $navTo;
                 break;
             default:
-                throw new Exception("Unsupported case '{$case}' to setNavToResponse", 500);
+                throw new InvalidOptionException("Unsupported case '{$case}' to setNavToResponse");
         }
     }
 
