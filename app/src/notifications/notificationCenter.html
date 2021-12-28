@@ -4,14 +4,16 @@
         <div id="infos" ng-show="localStorage.notify_showInfos">
             <div class="alert alert-info alert-dismissible" role="alert" ng-repeat="info in notifications.infos">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close" ng-click="closeAlert(notifications.infos, $index);"><span aria-hidden="true">&times;</span></button>
-                <span class="glyphicon glyphicon-info-sign"></span><span> {{info.message}}</span>
+                <span class="glyphicon glyphicon-info-sign"></span>
+                <span style="white-space: normal;"> {{info.message}}</span>
             </div>
         </div>
         
         <div id="warnings" ng-show="localStorage.notify_showWarnings">
             <div class="alert alert-warning alert-dismissible" role="alert" ng-repeat="warning in notifications.warnings">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close" ng-click="closeAlert(notifications.warnings, $index);"><span aria-hidden="true">&times;</span></button>
-                <span class="glyphicon glyphicon-warning-sign"></span><span> {{warning.message}}</span>
+                <span class="glyphicon glyphicon-warning-sign"></span>
+                <span style="white-space: normal;"> {{warning.message}}</span>
                 <span class="badge pull-right" ng-show="warning.count > 1">{{warning.count}}</span>
             </div>
         </div>
@@ -20,7 +22,8 @@
             <div class="panel panel-danger" id="error-panel-{{key}}" ng-repeat="(key, error) in notifications.errors">
                 <div class="panel-heading btn btn-block" data-toggle="collapse" data-target="#error-body-{{key}}">
                     <div class="text-left">
-                        <span class="glyphicon glyphicon-exclamation-sign"></span> <span ng-bind-html="error.message | unsafe"></span>
+                        <span class="glyphicon glyphicon-exclamation-sign"></span>
+                        <span ng-bind-html="error.message | unsafe" style="white-space: normal;"></span>
                         <button type="button" class="close" data-target="#error-panel-{{key}}" data-dismiss="alert" aria-label="Dismiss" ng-click="closeAlert(notifications.errors, $index);">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -38,7 +41,7 @@
                 <div class="panel-heading btn btn-block" data-toggle="collapse" data-target="#invariant-{{key}}">
                     <div class="text-left" style="display:flex; align-items:center;">
                         <span class="glyphicon glyphicon-warning-sign"></span>
-                        <div marked="val.ruleMessage" style="display:inline-block; margin: 0px 10px;"></div> <!-- uses angular-marked directive -->
+                        <div marked="val.ruleMessage" style="display:inline-block; margin: 0px 10px; white-space: normal;"></div> <!-- uses angular-marked directive -->
                         <span class="badge" style="margin-left:auto;">{{val.tuples.length}}</span>
                     </div>
                 </div>
@@ -55,7 +58,7 @@
                 <div class="panel-heading btn btn-block" data-toggle="collapse" data-target="#violation-{{key}}">
                     <div class="text-left" style="display:flex; align-items:center;">
                         <span class="glyphicon glyphicon-warning-sign"></span>
-                        <div marked="val.message" style="display:inline-block; margin: 0px 10px;"></div> <!-- uses angular-marked directive -->
+                        <div marked="val.message" style="display:inline-block; margin: 0px 10px; white-space: normal;"></div> <!-- uses angular-marked directive -->
                         <span class="badge" style="margin-left:auto;">{{val.violations.length}}</span>
                     </div>
                 </div>
@@ -80,7 +83,8 @@
         <div id="successes" ng-show="localStorage.notify_showSuccesses">
             <div class="alert alert-success alert-dismissible" role="alert" ng-repeat="success in notifications.successes">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close" ng-click="closeAlert(notifications.successes, $index);"><span aria-hidden="true">&times;</span></button>
-                <span class="glyphicon glyphicon-ok-sign"></span><span> {{success.message}}</span>
+                <span class="glyphicon glyphicon-ok-sign"></span>
+                <span style="white-space: normal;"> {{success.message}}</span>
             </div>
         </div>
     </div>
