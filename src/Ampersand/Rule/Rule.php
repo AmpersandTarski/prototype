@@ -146,6 +146,11 @@ class Rule
         return $this->plug;
     }
 
+    public function getOrigin(): string
+    {
+        return $this->origin;
+    }
+
     /**
      * List of conjuncts of which this rule is made of
      *

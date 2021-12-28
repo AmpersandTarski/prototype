@@ -19,6 +19,7 @@ use Ampersand\AmpersandApp;
 use Ampersand\Exception\InvalidConfigurationException;
 use Ampersand\Exception\InvalidExecEngineCallException;
 use Ampersand\Transaction;
+use Throwable;
 
 class ExecEngine extends RuleEngine
 {
@@ -237,11 +238,11 @@ class ExecEngine extends RuleEngine
             $functionName = trim(array_shift($params)); // first parameter is function name
             $closure = self::getFunction($functionName);
             try {
-                $this->info("{$functionName}(" . implode(',', $params) . ")");
+                $fnStr = "{$functionName}(" . implode(',', $params) . ")";
+                $this->info($fnStr);
                 $closure->call($this, ...$params);
-            // Catch exceptions from ExecEngine functions and log to user
-            } catch (Exception $e) {
-                $this->ampersandApp->userLog()->error("{$functionName}: {$e->getMessage()}");
+            } catch (Throwable $e) { // We also catch php Errors here because 
+                throw new InvalidExecEngineCallException("Invalid exec engine function call as defined in {$violation->getRule()->getOrigin()}. Function call '{$fnStr}'. {$e->getMessage()}", previous: $e);
             }
         }
     }
