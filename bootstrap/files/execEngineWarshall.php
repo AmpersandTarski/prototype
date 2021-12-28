@@ -30,6 +30,7 @@
 
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Core\Link;
+use Ampersand\Exception\InvalidExecEngineCallException;
 
 /**
  * @phan-closure-scope \Ampersand\Rule\ExecEngine
@@ -41,7 +42,7 @@ ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPl
 
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 4) {
-        throw new Exception("TransitiveClosure() expects 4 arguments, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("TransitiveClosure() expects 4 arguments, but you have provided " . func_num_args());
     }
     
     // Quit if a relation $r is already calculated in a specific exec-engine run

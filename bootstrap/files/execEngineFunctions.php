@@ -15,6 +15,7 @@
 
 use Ampersand\Core\Atom;
 use Ampersand\Rule\ExecEngine;
+use Ampersand\Exception\InvalidExecEngineCallException;
 
 /** @var \Ampersand\AngularApp $angularApp */
 global $angularApp;
@@ -34,7 +35,7 @@ global $angularApp;
 ExecEngine::registerFunction('InsPair', function ($relationName, $srcConceptName, $srcAtom, $tgtConceptName, $tgtAtom) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 5) {
-        throw new Exception("InsPair() expects 5 arguments, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("InsPair() expects 5 arguments, but you have provided " . func_num_args());
     }
 
     // Check if relation signature exists: $relationName[$srcConceptName*$tgtConceptName]
@@ -84,7 +85,7 @@ ExecEngine::registerFunction('InsPair', function ($relationName, $srcConceptName
 ExecEngine::registerFunction('DelPair', function ($relationName, $srcConceptName, $srcAtom, $tgtConceptName, $tgtAtom) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 5) {
-        throw new Exception("DelPair() expects 5 arguments, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("DelPair() expects 5 arguments, but you have provided " . func_num_args());
     }
         
     // Check if relation signature exists: $relationName[$srcConceptName*$tgtConceptName]
@@ -160,7 +161,7 @@ ExecEngine::registerFunction('NewStruct', function () {
         $atom = $c->makeAtom(func_get_arg(1)); // If so, we'll be using this to create the new atom
     // Check for valid number of arguments
     } elseif (func_num_args() % 5 != 1) {
-        throw new Exception("Wrong number of arguments supplied for function Newstruct(): ".func_num_args()." arguments", 500);
+        throw new InvalidExecEngineCallException("Wrong number of arguments supplied for function Newstruct(): " . func_num_args() . " arguments");
     }
     
     // Add atom to concept
@@ -178,18 +179,18 @@ ExecEngine::registerFunction('NewStruct', function () {
         $tgtAtomId    = func_get_arg($i+4);
         
         if ($srcAtomId === "NULL" or $tgtAtomId === "NULL") {
-            throw new Exception("NewStruct: use of keyword NULL is deprecated, use '_NEW'", 500);
+            throw new InvalidExecEngineCallException("NewStruct: use of keyword NULL is deprecated, use '_NEW'");
         }
         
         // NewStruct requires that atom $srcAtomId or $tgtAtomId must be _NEW
         // Note: when populating a [PROP] relation, both atoms can be new
         if (!($srcAtomId === '_NEW' or $tgtAtomId === '_NEW')) {
-            throw new Exception("NewStruct: relation '{$relation}' requires that atom '{$srcAtomId}' or '{$tgtAtomId}' must be '_NEW'", 500);
+            throw new InvalidExecEngineCallException("NewStruct: relation '{$relation}' requires that atom '{$srcAtomId}' or '{$tgtAtomId}' must be '_NEW'");
         }
         
         // NewStruct requires that concept $srcConcept or $tgtConcept must be concept $c
         if (!in_array($srcConcept, $c->getGeneralizationsIncl()) && !in_array($tgtConcept, $c->getGeneralizationsIncl())) {
-            throw new Exception("NewStruct: relation '{$relation}' requires that src or tgt concept must be '{$c}' (or any of its generalizations)", 500);
+            throw new InvalidExecEngineCallException("NewStruct: relation '{$relation}' requires that src or tgt concept must be '{$c}' (or any of its generalizations)");
         }
     
         // Replace atom by the newstruct atom if _NEW is used
@@ -215,7 +216,7 @@ ExecEngine::registerFunction('InsAtom', function (string $conceptName) {
     /** @var \Ampersand\Rule\ExecEngine $this */
 
     if (func_num_args() != 1) {
-        throw new Exception("InsAtom() expects 1 argument, but you have provided " . func_num_args(), 500);
+        throw new InvalidExecEngineCallException("InsAtom() expects 1 argument, but you have provided " . func_num_args());
     }
 
     $atom = $this->getApp()->getModel()->getConceptByLabel($conceptName)->createNewAtom();
@@ -242,7 +243,7 @@ ExecEngine::registerFunction('InsAtom', function (string $conceptName) {
 ExecEngine::registerFunction('DelAtom', function ($concept, $atomId) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 2) {
-        throw new Exception("DelAtom() expects 2 arguments, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("DelAtom() expects 2 arguments, but you have provided " . func_num_args());
     }
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
@@ -274,7 +275,7 @@ ExecEngine::registerFunction('DelAtom', function ($concept, $atomId) {
 ExecEngine::registerFunction('MrgAtoms', function ($conceptA, $srcAtomId, $conceptB, $tgtAtomId) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 4) {
-        throw new Exception("MrgAtoms() expects 4 arguments, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("MrgAtoms() expects 4 arguments, but you have provided " . func_num_args());
     }
     
     $model = $this->getApp()->getModel();
@@ -310,7 +311,7 @@ ExecEngine::registerFunction('MrgAtoms', function ($conceptA, $srcAtomId, $conce
 ExecEngine::registerFunction('SetConcept', function ($conceptA, $conceptB, $atomId) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 3) {
-        throw new Exception("SetConcept() expects 3 arguments, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("SetConcept() expects 3 arguments, but you have provided " . func_num_args());
     }
 
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
@@ -338,7 +339,7 @@ ExecEngine::registerFunction('SetConcept', function ($conceptA, $conceptB, $atom
 ExecEngine::registerFunction('ClearConcept', function ($concept, $atomId) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 2) {
-        throw new Exception("ClearConcept() expects 2 arguments, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("ClearConcept() expects 2 arguments, but you have provided " . func_num_args());
     }
 
     $concept = $this->getApp()->getModel()->getConceptByLabel($concept);
@@ -367,7 +368,7 @@ ExecEngine::registerFunction('ClearConcept', function ($concept, $atomId) {
 ExecEngine::registerFunction('InsPairCond', function ($relationName, $srcConceptName, $srcAtom, $tgtConceptName, $tgtAtom, $bool) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 6) {
-        throw new Exception("InsPairCond() expects 6 arguments, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("InsPairCond() expects 6 arguments, but you have provided " . func_num_args());
     }
     
     // Skip when $bool evaluates to false or equals '_NULL'.
@@ -388,7 +389,7 @@ ExecEngine::registerFunction('InsPairCond', function ($relationName, $srcConcept
 ExecEngine::registerFunction('SetConceptCond', function ($conceptA, $conceptB, $atom, $bool) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 4) {
-        throw new Exception("SetConceptCond() expects 4 arguments, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("SetConceptCond() expects 4 arguments, but you have provided " . func_num_args());
     }
     
     // Skip when $bool evaluates to false or equals '_NULL'.
@@ -408,7 +409,7 @@ ExecEngine::registerFunction('SetConceptCond', function ($conceptA, $conceptB, $
 ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angularApp) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 1) {
-        throw new Exception("SetNavToOnCommit() expects 1 argument, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("SetNavToOnCommit() expects 1 argument, but you have provided " . func_num_args());
     }
     if (strpos($navTo, '_NEW') !== false) {
         $navTo = str_replace('_NEW', $this->getCreatedAtom()->getId(), $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
@@ -430,7 +431,7 @@ ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angular
 ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($angularApp) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 1) {
-        throw new Exception("SetNavToOnRollback() expects 1 argument, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("SetNavToOnRollback() expects 1 argument, but you have provided " . func_num_args());
     }
     if (strpos($navTo, '_NEW') !== false) {
         $navTo = str_replace('_NEW', $this->getCreatedAtom()->getId(), $navTo); // Replace _NEW with latest atom created by NewStruct or InsAtom (in this VIOLATION)
@@ -452,7 +453,7 @@ ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($angul
 ExecEngine::registerFunction('TerminateThisExecEngine', function (string $userMessage = null) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() < 2) {
-        throw new Exception("TerminateThisExecEngine() expects at most 1 argument, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("TerminateThisExecEngine() expects at most 1 argument, but you have provided " . func_num_args());
     }
     $this->terminate();
     if (!empty($userMessage)) {
@@ -467,7 +468,7 @@ ExecEngine::registerFunction('TerminateThisExecEngine', function (string $userMe
 ExecEngine::registerFunction('TriggerService', function (string $roleName) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 1) {
-        throw new Exception("TriggerService() expects 1 argument, but you have provided ".func_num_args(), 500);
+        throw new InvalidExecEngineCallException("TriggerService() expects 1 argument, but you have provided " . func_num_args());
     }
     $this->triggerService($roleName);
 });

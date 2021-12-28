@@ -6,6 +6,7 @@ The date and time formats that can be used are pretty much arbitrary. A precise 
    http://www.php.net/manual/en/datetime.formats.time.php
 */
 
+use Ampersand\Exception\InvalidExecEngineCallException;
 use Ampersand\Rule\ExecEngine;
 
 /* sessionToday :: SESSION * Date -- or whatever the DateTime concept is called
@@ -54,7 +55,7 @@ ExecEngine::registerFunction('DateDifferencePlusOne', function ($relation, $srcC
     /** @var \Ampersand\Rule\ExecEngine $this the ExecEngine instance is bound to this closure */
     $datediff = strtotime($latestDate) - strtotime($earliestDate);
     if ($datediff < 0) {
-        throw new Exception("First arg (earliestDate) must be smaller than second arg (latestDate).", 500);
+        throw new InvalidExecEngineCallException("First arg (earliestDate) must be smaller than second arg (latestDate).");
     }
     
     $result = 1 + max(0, floor($datediff/(60*60*24)));
@@ -77,7 +78,7 @@ ExecEngine::registerFunction('DateDifference', function ($relation, $srcConcept,
     /** @var \Ampersand\Rule\ExecEngine $this the ExecEngine instance is bound to this closure */
     $datediff = strtotime($lastDate) - strtotime($firstDate);
     if ($datediff < 0) {
-        throw new Exception("First arg (earliestDate) must be smaller than second arg (latestDate).", 500);
+        throw new InvalidExecEngineCallException("First arg (earliestDate) must be smaller than second arg (latestDate).");
     }
     
     $result = max(0, floor($datediff/(60*60*24)));
@@ -121,10 +122,10 @@ ExecEngine::registerFunction('DateDifference', function ($relation, $srcConcept,
 ExecEngine::registerFunction('datimeEQL', function ($eqlRelation, $DateConcept, $srcAtom, $tgtAtom) {
     /** @var \Ampersand\Rule\ExecEngine $this the ExecEngine instance is bound to this closure */
     if (($dt1 = strtotime($srcAtom)) === false) {
-        throw new Exception("Illegal date '{$srcAtom}' specified in srcAtom (3rd arg)", 500);
+        throw new InvalidExecEngineCallException("Illegal date '{$srcAtom}' specified in srcAtom (3rd arg)");
     }
     if (($dt2 = strtotime($tgtAtom)) === false) {
-        throw new Exception("Illegal date '{$tgtAtom}' specified in tgtAtom (4th arg)", 500);
+        throw new InvalidExecEngineCallException("Illegal date '{$tgtAtom}' specified in tgtAtom (4th arg)");
     }
     
     if ($dt1 == $dt2) {
@@ -146,10 +147,10 @@ ExecEngine::registerFunction('datimeEQL', function ($eqlRelation, $DateConcept, 
 ExecEngine::registerFunction('datimeNEQ', function ($neqRelation, $DateConcept, $srcAtom, $tgtAtom) {
     /** @var \Ampersand\Rule\ExecEngine $this the ExecEngine instance is bound to this closure */
     if (($dt1 = strtotime($srcAtom)) === false) {
-        throw new Exception("Illegal date '{$srcAtom}' specified in srcAtom (3rd arg)", 500);
+        throw new InvalidExecEngineCallException("Illegal date '{$srcAtom}' specified in srcAtom (3rd arg)");
     }
     if (($dt2 = strtotime($tgtAtom)) === false) {
-        throw new Exception("Illegal date '{$tgtAtom}' specified in tgtAtom (4th arg)", 500);
+        throw new InvalidExecEngineCallException("Illegal date '{$tgtAtom}' specified in tgtAtom (4th arg)");
     }
     
     if ($dt1 != $dt2) {
@@ -167,10 +168,10 @@ ExecEngine::registerFunction('datimeNEQ', function ($neqRelation, $DateConcept, 
 ExecEngine::registerFunction('datimeLT', function ($ltRelation, $DateConcept, $srcAtom, $tgtAtom) {
     /** @var \Ampersand\Rule\ExecEngine $this the ExecEngine instance is bound to this closure */
     if (($dt1 = strtotime($srcAtom)) === false) {
-        throw new Exception("Illegal date '{$srcAtom}' specified in srcAtom (3rd arg)", 500);
+        throw new InvalidExecEngineCallException("Illegal date '{$srcAtom}' specified in srcAtom (3rd arg)");
     }
     if (($dt2 = strtotime($tgtAtom)) === false) {
-        throw new Exception("Illegal date '{$tgtAtom}' specified in tgtAtom (4th arg)", 500);
+        throw new InvalidExecEngineCallException("Illegal date '{$tgtAtom}' specified in tgtAtom (4th arg)");
     }
     if ($dt1 == $dt2) {
         return;
@@ -191,10 +192,10 @@ ExecEngine::registerFunction('datimeLT', function ($ltRelation, $DateConcept, $s
 ExecEngine::registerFunction('datimeGT', function ($gtRelation, $DateConcept, $srcAtom, $tgtAtom) {
     /** @var \Ampersand\Rule\ExecEngine $this the ExecEngine instance is bound to this closure */
     if (($dt1 = strtotime($srcAtom)) === false) {
-        throw new Exception("Illegal date '{$srcAtom}' specified in srcAtom (3rd arg)", 500);
+        throw new InvalidExecEngineCallException("Illegal date '{$srcAtom}' specified in srcAtom (3rd arg)");
     }
     if (($dt2 = strtotime($tgtAtom)) === false) {
-        throw new Exception("Illegal date '{$tgtAtom}' specified in tgtAtom (4th arg)", 500);
+        throw new InvalidExecEngineCallException("Illegal date '{$tgtAtom}' specified in tgtAtom (4th arg)");
     }
     if ($dt1 == $dt2) {
         return;
