@@ -1,17 +1,13 @@
 <?php
 
+/** @phan-file-suppress PhanInvalidFQSENInCallable */
+
 use Ampersand\Controller\FileObjectController;
 
 /**
  * @var \Slim\Slim $api
  */
 global $api;
-
-/**************************************************************************************************
- *
- * resource calls WITHOUT interfaces
- *
- *************************************************************************************************/
 
 /**
  * @phan-closure-scope \Slim\App

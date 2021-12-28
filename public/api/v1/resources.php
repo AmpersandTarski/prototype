@@ -1,5 +1,7 @@
 <?php
 
+/** @phan-file-suppress PhanInvalidFQSENInCallable */
+
 use Ampersand\Controller\ResourceController;
 
 /**
