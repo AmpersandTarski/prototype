@@ -14,7 +14,6 @@ use Ampersand\Exception\FatalException;
 use Ampersand\Misc\AcceptHeader;
 use Ampersand\Misc\Settings;
 use Ampersand\Model;
-use Exception;
 
 class RDFGraph extends \EasyRdf\Graph
 {
@@ -70,7 +69,7 @@ class RDFGraph extends \EasyRdf\Graph
                 return;
             } else {
                 // TODO: flip relation
-                throw new Exception("Case where SRC concept of relation is scalar is not yet supported: {$relation}", 501);
+                throw new FatalException("Case where SRC concept of relation is scalar is not yet supported: {$relation}");
             }
         }
 

@@ -8,9 +8,9 @@
 namespace Ampersand\Interfacing;
 
 use Ampersand\Core\Atom;
+use Ampersand\Exception\FatalException;
 use Ampersand\Exception\NotDefinedException;
 use Ampersand\Interfacing\View;
-use Exception;
 
 /**
  *
@@ -51,7 +51,7 @@ class ViewSegment
         $this->expSQL = $viewSegmentDef['expSQL'];
         
         if (!($this->segType === 'Text' || $this->segType === 'Exp')) {
-            throw new Exception("Unsupported segmentType '{$this->segType}' in VIEW segment <{$this}>", 501); // 501: Not implemented
+            throw new FatalException("Unsupported segmentType '{$this->segType}' in VIEW segment <{$this}>");
         }
     }
     
@@ -87,7 +87,7 @@ class ViewSegment
                 }
                 break;
             default:
-                throw new Exception("Unsupported segmentType '{$this->segType}' in VIEW segment <{$this}>", 501); // 501: Not implemented
+                throw new FatalException("Unsupported segmentType '{$this->segType}' in VIEW segment <{$this}>");
                 break;
         }
     }

@@ -15,6 +15,7 @@ use Ampersand\Core\TType;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\FatalException;
 use Ampersand\Exception\InterfaceNotDefined;
+use Ampersand\Exception\MetaModelException;
 use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Interfacing\AbstractIfcObject;
 use Ampersand\Interfacing\BoxHeader;
@@ -25,7 +26,6 @@ use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\View;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Plugs\MysqlDB\TableType;
-use Exception;
 use function Ampersand\Misc\isSequential;
 
 /**
@@ -132,7 +132,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
             // Subinterfacing is not supported/possible for tgt concepts with a scalar representation type (i.e. non-objects)
             if (!$this->tgtConcept->isObject()) {
-                throw new Exception("Subinterfacing is not supported for concepts with a scalar representation type (i.e. non-objects). (Sub)Interface '{$this->path}' with target {$this->tgtConcept} (ttype:{$this->tgtConcept->type->value}) has subinterfaces specified", 501);
+                throw new MetaModelException("Subinterfacing is not supported for concepts with a scalar representation type (i.e. non-objects). (Sub)Interface '{$this->path}' with target {$this->tgtConcept} (ttype:{$this->tgtConcept->type->value}) has subinterfaces specified");
             }
 
             // Process boxheader information
@@ -496,7 +496,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
                         case 'unknown type':
                         case 'resource (closed)':
                         case 'resource':
-                            throw new Exception("Unexpected error. Not implemented case for sortvalue", 501);
+                            throw new FatalException("Unexpected error. Not implemented case for sortvalue");
                             break;
                         default:
                             $sortValue = $value;

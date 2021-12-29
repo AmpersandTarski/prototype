@@ -7,12 +7,13 @@
 
 namespace Ampersand\Interfacing;
 
-use Exception;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Atom;
+use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\FatalException;
+use Ampersand\Exception\MetaModelException;
 use Ampersand\Interfacing\AbstractIfcObject;
 
 /**
@@ -177,7 +178,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
 
     public function create(Atom $src, $tgtId = null): Atom
     {
-        throw new Exception("Create operation not implemented for TXT interface object", 501);
+        throw new MetaModelException("Create operation not implemented for TXT interface object");
     }
     
     public function read(
@@ -194,27 +195,27 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
 
     public function set(Atom $src, $value = null): ?Atom
     {
-        throw new Exception("Set operation not implemented for TXT interface object", 501);
+        throw new BadRequestException("Set operation not implemented for fixed txt interface object");
     }
 
     public function add(Atom $src, $value): Atom
     {
-        throw new Exception("Add operation not implemented for TXT interface object", 501);
+        throw new BadRequestException("Add operation not implemented for fixed txt interface object");
     }
 
     public function remove(Atom $src, $value): void
     {
-        throw new Exception("Remove operation not implemented for TXT interface object", 501);
+        throw new BadRequestException("Remove operation not implemented for fixed txt interface object");
     }
 
     public function removeAll(Atom $src): void
     {
-        throw new Exception("Remove operation not implemented for TXT interface object", 501);
+        throw new BadRequestException("Remove operation not implemented for fixed txt interface object");
     }
 
     public function delete(Resource $tgtAtom): void
     {
-        throw new Exception("Detele operation not implemented for TXT interface object", 501);
+        throw new BadRequestException("Detele operation not implemented for fixed txt interface object");
     }
 
     /**********************************************************************************************

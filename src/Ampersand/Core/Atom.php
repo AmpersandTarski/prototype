@@ -7,7 +7,6 @@
 
 namespace Ampersand\Core;
 
-use Exception;
 use DateTime;
 use DateTimeZone;
 use JsonSerializable;
@@ -16,6 +15,7 @@ use Ampersand\Core\TType;
 use Ampersand\Core\Concept;
 use Ampersand\Exception\AmpersandException;
 use Ampersand\Exception\AtomAlreadyExistsException;
+use Ampersand\Exception\FatalException;
 
 /**
  *
@@ -110,7 +110,7 @@ class Atom implements JsonSerializable
                 $this->id = $atomId;
                 break;
             default:
-                throw new Exception("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'", 501);
+                throw new FatalException("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'");
         }
         return $this;
     }
@@ -118,7 +118,7 @@ class Atom implements JsonSerializable
     /**
      * Returns json representation of Atom (identifier) according to Ampersand technical types (TTypes)
      * Function is called when object encoded to json with json_encode()
-     * @throws Exception when technical type is not (yet) supported
+     * @throws \Ampersand\Exception\FatalException when technical type is not (yet) supported
      */
     public function jsonSerialize(): mixed
     {
@@ -146,7 +146,7 @@ class Atom implements JsonSerializable
             case TType::OBJECT:
                 return rawurlencode($this->id);
             default:
-                throw new Exception("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'", 501);
+                throw new FatalException("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'");
         }
     }
     

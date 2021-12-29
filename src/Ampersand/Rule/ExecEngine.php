@@ -7,7 +7,6 @@
 
 namespace Ampersand\Rule;
 
-use Exception;
 use Ampersand\Role;
 use Ampersand\Log\Logger;
 use Ampersand\Rule\Violation;
