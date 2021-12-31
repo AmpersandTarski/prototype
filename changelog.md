@@ -11,6 +11,7 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased changes
 * [Issue 70](https://github.com/AmpersandTarski/prototype/issues/70) Improve exec engine error message
+* [Issue 88](https://github.com/AmpersandTarski/prototype/issues/88) Initialize model before registering current ampersand model version during reinstall of application
 * UI Fix for longer notification (error) messages. Message now overflows on new line
 * Add missing parameter and return type declarations for all methods. Remove unneeded docblock comments
 * Add class property type declarations. Remove unneeded docblock comments

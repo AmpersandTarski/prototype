@@ -538,6 +538,8 @@ class AmpersandApp
         // Clear notifications
         $this->userLogger->clearAll();
 
+        $this->model->init($this);
+
         // Call reinstall method on every registered storage (e.g. for MysqlDB implementation this means (re)creating database structure)
         foreach ($this->storages as $storage) {
             $storage->reinstallStorage($this->model);
