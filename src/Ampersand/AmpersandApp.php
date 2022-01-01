@@ -170,9 +170,13 @@ class AmpersandApp
         return $this;
     }
 
+    public function inProductionMode(): bool
+    {
+        return $this->settings->get('global.productionEnv', true);
+    }
+
     public function init(): self
     {
-        try {
             $this->logger->info('Initialize Ampersand application');
 
             // Check for default storage plug
@@ -227,9 +231,6 @@ class AmpersandApp
             }
 
             return $this;
-        } catch (\Ampersand\Exception\NotInstalledException $e) {
-            throw $e;
-        }
     }
 
     /**

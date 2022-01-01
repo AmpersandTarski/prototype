@@ -148,14 +148,12 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         try {
             $this->dbLink->select_db($this->dbName);
         } catch (Exception $e) {
-            if (!$this->productionMode) {
-                switch ($e->getCode()) {
-                    case 1049: // Error: 1049 SQLSTATE: 42000 (ER_BAD_DB_ERROR) --> Database ($this->dbName) does not (yet) exist
-                        throw new NotInstalledException("Database {$this->dbName} does not exist");
-                }
+            switch ($e->getCode()) {
+                case 1049: // Error: 1049 SQLSTATE: 42000 (ER_BAD_DB_ERROR)
+                    throw new NotInstalledException("Database '{$this->dbName}' does not exist (yet)", previous: $e);
+                default:
+                    throw new MysqlConnectionException("Cannot connect to the databse: {$e->getMessage()}", previous: $e);
             }
-            
-            throw new MysqlConnectionException("Cannot connect to the databse: {$e->getMessage()}", previous: $e);
         }
     }
     
@@ -200,7 +198,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     {
         $result = $this->execute("SELECT * FROM \"__ampersand_model_history__\" ORDER BY \"id\" DESC LIMIT 1");
         if (!is_array($result) || empty($result)) {
-            throw new NotInstalledException("Cannot determine latest installed model version in {$this->getLabel()}. Try reinstalling the database");
+            throw new NotInstalledException("Cannot determine latest installed model version in {$this->getLabel()}");
         }
 
         return current($result)['checksum'];
@@ -336,7 +334,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                     throw new InvalidConfigurationException("Configured MYSQL database name '{$this->dbName}' does not comply with the MariaDB identifier rules. If not configured the Ampersand CONTEXT name is used by default", previous: $e);
                 case 1146: // Error: 1146 SQLSTATE: 42S02 (ER_NO_SUCH_TABLE)
                 case 1054: // Error: 1054 SQLSTATE: 42S22 (ER_BAD_FIELD_ERROR)
-                    throw new NotInstalledException("{$e->getMessage()}. Try reinstalling the application", previous: $e);
+                    throw new NotInstalledException("{$e->getMessage()}", previous: $e);
                 case 1406: // Error: 1406 Data too long
                     throw new BadRequestException("Data entry is too long", previous: $e);
                 default:

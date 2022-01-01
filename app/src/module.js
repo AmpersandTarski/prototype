@@ -77,8 +77,8 @@ angular.module('AmpersandApp', ['ngResource', 'ngRoute', 'ngSanitize', 'restangu
                 NotificationService.addInfo(response.data.msg || 'Resource not found');
             
             } else if(response.status == 401){ // 401: Unauthorized
-                if(response.data.data.loginPage) {
-                    LoginService.setLoginPage(response.data.data.loginPage);
+                if(response.data.loginPage) {
+                    LoginService.setLoginPage(response.data.loginPage);
                 }
                 LoginService.setSessionIsLoggedIn(false);
                 NavigationBarService.refreshNavBar();
