@@ -177,60 +177,60 @@ class AmpersandApp
 
     public function init(): self
     {
-            $this->logger->info('Initialize Ampersand application');
+        $this->logger->info('Initialize Ampersand application');
 
-            // Check for default storage plug
-            if (!in_array($this->defaultStorage, $this->storages)) {
-                throw new NotDefinedException("No default storage plug registered");
-            }
+        // Check for default storage plug
+        if (!in_array($this->defaultStorage, $this->storages)) {
+            throw new NotDefinedException("No default storage plug registered");
+        }
 
-            // Check for conjunct cache
-            if (is_null($this->conjunctCache)) {
-                throw new NotDefinedException("No conjunct cache implementaion registered");
-            }
+        // Check for conjunct cache
+        if (is_null($this->conjunctCache)) {
+            throw new NotDefinedException("No conjunct cache implementaion registered");
+        }
 
-            // Initialize storage plugs
-            foreach ($this->storages as $storagePlug) {
-                $storagePlug->init();
-            }
+        // Initialize storage plugs
+        foreach ($this->storages as $storagePlug) {
+            $storagePlug->init();
+        }
 
-            // Initialize Ampersand model (i.e. load all defintions from generated json files)
-            $this->model->init($this);
+        // Initialize Ampersand model (i.e. load all defintions from generated json files)
+        $this->model->init($this);
 
-            // Verify checksum
-            // Must be done after init of storages and init of model (see above)
-            if (!$this->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
-                $this->userLogger->warning("Generated model is changed. You SHOULD reinstall or migrate your application");
-            }
+        // Verify checksum
+        // Must be done after init of storages and init of model (see above)
+        if (!$this->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
+            $this->userLogger->warning("Generated model is changed. You SHOULD reinstall or migrate your application");
+        }
 
-            // Add concept plugs
-            foreach ($this->model->getAllConcepts() as $cpt) {
-                if (array_key_exists($cpt->label, $this->customConceptPlugs)) {
-                    foreach ($this->customConceptPlugs[$cpt->label] as $plug) {
-                        $cpt->addPlug($plug);
-                    }
-                } else {
-                    $cpt->addPlug($this->defaultStorage); // @phan-suppress-current-line PhanTypeMismatchArgumentSuperType
+        // Add concept plugs
+        foreach ($this->model->getAllConcepts() as $cpt) {
+            if (array_key_exists($cpt->label, $this->customConceptPlugs)) {
+                foreach ($this->customConceptPlugs[$cpt->label] as $plug) {
+                    $cpt->addPlug($plug);
                 }
+            } else {
+                $cpt->addPlug($this->defaultStorage); // @phan-suppress-current-line PhanTypeMismatchArgumentSuperType
             }
+        }
 
-            // Add relation plugs
-            foreach ($this->model->getRelations() as $rel) {
-                if (array_key_exists($rel->signature, $this->customRelationPlugs)) {
-                    foreach ($this->customRelationPlugs[$rel->signature] as $plug) {
-                        $rel->addPlug($plug);
-                    }
-                } else {
-                    $rel->addPlug($this->defaultStorage); // @phan-suppress-current-line PhanTypeMismatchArgumentSuperType
+        // Add relation plugs
+        foreach ($this->model->getRelations() as $rel) {
+            if (array_key_exists($rel->signature, $this->customRelationPlugs)) {
+                foreach ($this->customRelationPlugs[$rel->signature] as $plug) {
+                    $rel->addPlug($plug);
                 }
+            } else {
+                $rel->addPlug($this->defaultStorage); // @phan-suppress-current-line PhanTypeMismatchArgumentSuperType
             }
+        }
 
-            // Run registered initialization closures
-            foreach ($this->initClosures as $closure) {
-                $closure->call($this);
-            }
+        // Run registered initialization closures
+        foreach ($this->initClosures as $closure) {
+            $closure->call($this);
+        }
 
-            return $this;
+        return $this;
     }
 
     /**
