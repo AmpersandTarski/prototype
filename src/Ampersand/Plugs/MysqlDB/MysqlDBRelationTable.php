@@ -7,7 +7,7 @@
 
 namespace Ampersand\Plugs\MysqlDB;
 
-use Ampersand\Exception\NotDefinedException;
+use Ampersand\Exception\NotDefined\NotDefinedException;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 use Ampersand\Plugs\MysqlDB\TableType;
 

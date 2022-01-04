@@ -5,7 +5,7 @@ namespace Ampersand\Controller;
 use Ampersand\Core\Concept;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
-use Ampersand\Exception\ConceptNotDefined;
+use Ampersand\Exception\NotDefined\ConceptNotDefined;
 use Ampersand\Exception\FatalException;
 use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Interfacing\Options;

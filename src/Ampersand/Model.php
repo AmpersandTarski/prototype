@@ -28,15 +28,15 @@ use Ampersand\Core\Population;
 use Ampersand\Core\Link;
 use Ampersand\Core\Atom;
 use Ampersand\Exception\AmpersandException;
-use Ampersand\Exception\ConceptNotDefined;
-use Ampersand\Exception\ConjunctNotDefinedException;
+use Ampersand\Exception\NotDefined\ConceptNotDefined;
+use Ampersand\Exception\NotDefined\ConjunctNotDefinedException;
 use Ampersand\Exception\FatalException;
-use Ampersand\Exception\RelationNotDefined;
-use Ampersand\Exception\InterfaceNotDefined;
+use Ampersand\Exception\NotDefined\RelationNotDefined;
+use Ampersand\Exception\NotDefined\InterfaceNotDefined;
 use Ampersand\Exception\InvalidConfigurationException;
-use Ampersand\Exception\RoleNotDefinedException;
-use Ampersand\Exception\RuleNotDefinedException;
-use Ampersand\Exception\ViewNotDefinedException;
+use Ampersand\Exception\NotDefined\RoleNotDefinedException;
+use Ampersand\Exception\NotDefined\RuleNotDefinedException;
+use Ampersand\Exception\NotDefined\ViewNotDefinedException;
 use Ampersand\Misc\ProtoContext;
 use Ampersand\Rule\RuleType;
 
@@ -404,7 +404,7 @@ class Model
     /**
      * Return relation object
      *
-     * @throws \Ampersand\Exception\RelationNotDefined if relation is not defined
+     * @throws \Ampersand\Exception\NotDefined\RelationNotDefined if relation is not defined
      */
     public function getRelation(string $relationSignature, ?Concept $srcConcept = null, ?Concept $tgtConcept = null): Relation
     {
@@ -472,7 +472,7 @@ class Model
      * Returns toplevel interface object
      *
      * If fallbackOnLabel is set to true, the param $ifcId may also contain an interface label (i.e. name as defined in &-script)
-     * @throws \Ampersand\Exception\InterfaceNotDefined when interface does not exist
+     * @throws \Ampersand\Exception\NotDefined\InterfaceNotDefined when interface does not exist
      */
     public function getInterface(string $ifcId, bool $fallbackOnLabel = false): Ifc
     {
@@ -490,7 +490,7 @@ class Model
     /**
      * Undocumented function
      *
-     * @throws \Ampersand\Exception\InterfaceNotDefined when interface does not exist
+     * @throws \Ampersand\Exception\NotDefined\InterfaceNotDefined when interface does not exist
      */
     public function getInterfaceByLabel(string $ifcLabel): Ifc
     {

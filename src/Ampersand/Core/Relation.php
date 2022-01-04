@@ -17,7 +17,7 @@ use Ampersand\Event\LinkEvent;
 use Ampersand\Plugs\MysqlDB\TableType;
 use Ampersand\Core\SrcOrTgt;
 use Ampersand\Exception\AmpersandException;
-use Ampersand\Exception\NotDefinedException;
+use Ampersand\Exception\NotDefined\NotDefinedException;
 
 /**
  *

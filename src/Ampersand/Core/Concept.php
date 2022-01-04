@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
 use Ampersand\Event\AtomEvent;
 use Ampersand\Exception\AtomNotFoundException;
-use Ampersand\Exception\NotDefinedException;
+use Ampersand\Exception\NotDefined\NotDefinedException;
 use Ampersand\Exception\TypeCheckerException;
 use Ramsey\Uuid\Uuid;
 use Ampersand\Interfacing\View;

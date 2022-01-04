@@ -17,7 +17,7 @@ use Ampersand\AmpersandApp;
 use Ampersand\Exception\AtomNotFoundException;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\MetaModelException;
-use Ampersand\Exception\RelationNotDefined;
+use Ampersand\Exception\NotDefined\RelationNotDefined;
 use Ampersand\Exception\SessionExpiredException;
 use Ampersand\Misc\ProtoContext;
 use Ampersand\Misc\Settings;

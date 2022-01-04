@@ -9,7 +9,7 @@ namespace Ampersand\Interfacing;
 
 use Ampersand\Core\Atom;
 use Ampersand\Exception\FatalException;
-use Ampersand\Exception\NotDefinedException;
+use Ampersand\Exception\NotDefined\NotDefinedException;
 use Ampersand\Interfacing\View;
 
 /**

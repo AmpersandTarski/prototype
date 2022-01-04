@@ -8,7 +8,7 @@
 namespace Ampersand\Plugs\MysqlDB;
 
 use Ampersand\Exception\FatalException;
-use Ampersand\Exception\NotDefinedException;
+use Ampersand\Exception\NotDefined\NotDefinedException;
 use Ampersand\Plugs\MysqlDB\MysqlDBTableCol;
 
 /**

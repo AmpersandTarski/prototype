@@ -22,7 +22,7 @@ use Ampersand\Exception\AmpersandException;
 use Ampersand\Exception\FatalException;
 use Ampersand\Exception\InvalidConfigurationException;
 use Ampersand\Exception\MetaModelException;
-use Ampersand\Exception\NotDefinedException;
+use Ampersand\Exception\NotDefined\NotDefinedException;
 use Ampersand\Frontend\FrontendInterface;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;

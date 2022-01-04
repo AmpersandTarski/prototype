@@ -1,6 +1,6 @@
 <?php
 
-namespace Ampersand\Exception;
+namespace Ampersand\Exception\NotDefined;
 
 use Ampersand\Exception\AmpersandException;
 

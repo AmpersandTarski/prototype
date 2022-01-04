@@ -10,7 +10,7 @@ use Ampersand\Interfacing\ResourceList;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
-use Ampersand\Exception\NotDefinedException;
+use Ampersand\Exception\NotDefined\NotDefinedException;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;

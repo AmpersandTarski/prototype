@@ -14,7 +14,7 @@ use Ampersand\Core\SrcOrTgt;
 use Ampersand\Core\TType;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\FatalException;
-use Ampersand\Exception\InterfaceNotDefined;
+use Ampersand\Exception\NotDefined\InterfaceNotDefined;
 use Ampersand\Exception\MetaModelException;
 use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Interfacing\AbstractIfcObject;
