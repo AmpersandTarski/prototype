@@ -1,6 +1,6 @@
 <?php
 
-namespace Ampersand\API;
+namespace Ampersand\API\Handler;
 
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\AccessDeniedException;

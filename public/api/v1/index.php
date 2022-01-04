@@ -1,8 +1,8 @@
 <?php
 
-use Ampersand\API\ExceptionHandler;
-use Ampersand\API\NotFoundHandler;
-use Ampersand\API\PhpErrorHandler;
+use Ampersand\API\Handler\ExceptionHandler;
+use Ampersand\API\Handler\NotFoundHandler;
+use Ampersand\API\Handler\PhpErrorHandler;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\NotInstalledException;
 use Ampersand\Exception\SessionExpiredException;

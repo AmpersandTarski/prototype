@@ -1,6 +1,6 @@
 <?php
 
-namespace Ampersand\API;
+namespace Ampersand\API\Handler;
 
 use Slim\Http\Request;
 use Slim\Http\Response;
