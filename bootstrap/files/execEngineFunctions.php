@@ -17,9 +17,6 @@ use Ampersand\Core\Atom;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Exception\InvalidExecEngineCallException;
 
-/** @var \Ampersand\AngularApp $angularApp */
-global $angularApp;
-
 /*
    Example of rule that automatically inserts pairs into a relation (analogous stuff holds for DelPair):
    ROLE ExecEngine MAINTAINS "New Customers"
@@ -406,7 +403,7 @@ ExecEngine::registerFunction('SetConceptCond', function ($conceptA, $conceptB, $
  * @phan-closure-scope \Ampersand\Rule\ExecEngine
  * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
  */
-ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angularApp) {
+ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 1) {
         throw new InvalidExecEngineCallException("SetNavToOnCommit() expects 1 argument, but you have provided " . func_num_args());
@@ -421,14 +418,14 @@ ExecEngine::registerFunction('SetNavToOnCommit', function ($navTo) use ($angular
         return false;
     }
 
-    $angularApp->setNavToResponse($navTo, 'COMMIT');
+    $this->getApp()->frontend()->setNavToResponse($navTo, 'COMMIT');
 });
 
 /**
  * @phan-closure-scope \Ampersand\Rule\ExecEngine
  * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
  */
-ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($angularApp) {
+ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() != 1) {
         throw new InvalidExecEngineCallException("SetNavToOnRollback() expects 1 argument, but you have provided " . func_num_args());
@@ -443,7 +440,7 @@ ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) use ($angul
         return false;
     }
     
-    $angularApp->setNavToResponse($navTo, 'ROLLBACK');
+    $this->getApp()->frontend()->setNavToResponse($navTo, 'ROLLBACK');
 });
 
 /**
