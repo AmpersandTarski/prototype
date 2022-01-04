@@ -1,6 +1,13 @@
 <?php
 
 use Ampersand\AmpersandApp;
+use Ampersand\API\Handler\ExceptionHandler;
+use Ampersand\API\Handler\NotFoundHandler;
+use Ampersand\API\Handler\PhpErrorHandler;
+use Ampersand\API\Middleware\InitAmpersandAppMiddleware;
+use Ampersand\API\Middleware\JsonRequestParserMiddleware;
+use Ampersand\API\Middleware\LogPerformanceMiddleware;
+use Ampersand\API\Middleware\PostMaxSizeMiddleware;
 use Ampersand\Frontend\AngularJSApp;
 use Ampersand\Log\Logger;
 use Ampersand\Misc\Settings;
@@ -10,6 +17,8 @@ use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Cascade\Cascade;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use Slim\App;
+use Slim\Container;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 // Please be aware that this only captures uncaught exceptions that would otherwise terminate your application.
@@ -36,6 +45,8 @@ register_shutdown_function(function () {
         exit;
     }
 });
+
+$scriptStartTime = (float) microtime(true);
 
 /**************************************************************************************************
  * PHP SESSION (Start a new, or resume the existing, PHP session)
@@ -122,3 +133,60 @@ $ampersandApp->setConjunctCache(new MysqlConjunctCache($mysqlDB));
 foreach (glob(__DIR__ . '/files/*.php') as $filepath) {
     require_once($filepath);
 }
+
+/**************************************************************************************************
+ * API
+ *************************************************************************************************/
+$apiContainer = new Container();
+$apiContainer['ampersand_app'] = $ampersandApp; // add AmpersandApp object to API DI-container
+
+// Custom NotFound handler when API path-method is not found
+// The AmpersandApp can also return a NotFoundException, this is handled by the errorHandler below
+$apiContainer['notFoundHandler'] = function ($container) {
+    return new NotFoundHandler();
+};
+
+$apiContainer['errorHandler'] = function ($container) use ($ampersandApp) {
+    return new ExceptionHandler($ampersandApp);
+};
+
+$apiContainer['phpErrorHandler'] = function ($container) use ($ampersandApp) {
+    return new PhpErrorHandler($ampersandApp);
+};
+
+$apiContainer->get('settings')->replace(
+    [ 'displayErrorDetails' => $ampersandApp->getSettings()->get('global.debugMode') // when true, additional information about exceptions are displayed by the default error handler
+    , 'determineRouteBeforeAppMiddleware' => true // the route is calculated before any middleware is executed. This means that you can inspect route parameters in middleware if you need to.
+    ]
+);
+
+// Create and configure Slim app (version 3.x)
+// TODO: migrate to Slim v4
+$api = new App($apiContainer);
+
+require_once(__DIR__ . '/api/resources.php'); // API calls starting with '/resource/'
+require_once(__DIR__ . '/api/admin.php'); // API calls starting with '/admin/'
+require_once(__DIR__ . '/api/app.php'); // API calls starting with '/app/'
+require_once(__DIR__ . '/api/files.php'); // API calls starting with '/file/'
+
+
+/**************************************************************************************************
+ * BOOTSTRAP OTHER REGISTERED EXTENSIONS
+ *************************************************************************************************/
+foreach ($ampersandApp->getSettings()->getExtensions() as $ext) {
+    $ext->bootstrap();
+}
+
+
+/**************************************************************************************************
+ * HANDLE REQUEST
+ *************************************************************************************************/
+$logger = Logger::getLogger('API');
+
+$api
+->add(new LogPerformanceMiddleware($logger, 'PHASE-4 REQUEST | ')) // wrapper to log performance of request phase (PHASE-4)
+->add(new InitAmpersandAppMiddleware($ampersandApp, $logger)) // initialize the AmpersandApp (PHASE-2) and Session (PHASE-3)
+->add(new PostMaxSizeMiddleware()) // catch when post_max_size is exceeded
+->add(new JsonRequestParserMiddleware()) // overwrite default media type parser for application/json
+->add(new LogPerformanceMiddleware($logger, 'TOTAL PERFORMANCE | ', $scriptStartTime)) // wrapper to log total performance
+->run();
