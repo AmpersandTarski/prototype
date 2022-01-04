@@ -24,12 +24,8 @@ require_once(dirname(__FILE__, 4) . '/bootstrap/framework.php');
 /** @var \Ampersand\AmpersandApp $ampersandApp */
 global $ampersandApp;
 
-/** @var \Ampersand\AngularApp $angularApp */
-global $angularApp;
-
 $apiContainer = new Container();
 $apiContainer['ampersand_app'] = $ampersandApp; // add AmpersandApp object to API DI-container
-$apiContainer['angular_app'] = $angularApp; // add AngularApp object to API DI-container
 
 // Custom NotFound handler when API path-method is not found
 // The application can also return a Resource not found, this is handled by the errorHandler below
