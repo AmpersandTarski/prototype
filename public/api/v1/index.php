@@ -1,17 +1,14 @@
 <?php
 
-use Ampersand\Exception\AccessDeniedException;
+use Ampersand\API\ExceptionHandler;
+use Ampersand\API\NotFoundHandler;
+use Ampersand\API\PhpErrorHandler;
 use Ampersand\Exception\BadRequestException;
-use Ampersand\Exception\FatalException;
-use Ampersand\Exception\MethodNotAllowedException;
-use Ampersand\Exception\NotFoundException;
 use Ampersand\Exception\NotInstalledException;
 use Ampersand\Exception\SessionExpiredException;
-use Ampersand\Exception\UploadException;
 use Ampersand\Log\Logger;
 use function Ampersand\Misc\humanFileSize;
 use function Ampersand\Misc\returnBytes;
-use function Ampersand\Misc\stackTrace;
 use Slim\App;
 use Slim\Container;
 use Slim\Http\Request;
@@ -27,156 +24,18 @@ global $ampersandApp;
 $apiContainer = new Container();
 $apiContainer['ampersand_app'] = $ampersandApp; // add AmpersandApp object to API DI-container
 
-// Custom NotFound handler when API path-method is not found
-// The application can also return a Resource not found, this is handled by the errorHandler below
-$apiContainer['notFoundHandler'] = function ($c) {
-    return function (Request $request, Response $response) {
-        $msg = "API path not found: {$request->getMethod()} {$request->getUri()}. Path is case sensitive";
-        Logger::getLogger("API")->notice($msg);
-        return $response->withJson(
-            [ 'error' => 404
-            , 'msg' => $msg
-            ],
-            404,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-        );
-    };
+$apiContainer['notFoundHandler'] = function ($container) {
+    // Custom NotFound handler when API path-method is not found
+    // The application can also return a Resource not found, this is handled by the errorHandler below
+    return new NotFoundHandler();
 };
 
-$apiContainer['errorHandler'] = function ($c) {
-    return function (Request $request, Response $response, Exception $exception) use ($c) {
-        try {
-            /** @var \Ampersand\AmpersandApp $ampersandApp */
-            $ampersandApp = $c['ampersand_app'];
-            $logger = Logger::getLogger("API");
-            $debugMode = $ampersandApp->getSettings()->get('global.debugMode');
-            $data = []; // array for error context related data
-
-            switch (true) {
-                case $exception instanceof BadRequestException:
-                case $exception instanceof JsonException:
-                    $code = 400; // Bad request
-                    $message = $exception->getMessage();
-                    break;
-                case $exception instanceof SessionExpiredException:
-                    $code = 401; // Unauthorized
-                    $message = $exception->getMessage();
-                    if ($ampersandApp->getSettings()->get('session.loginEnabled')) {
-                        $data['loginPage'] = $ampersandApp->getSettings()->get('session.loginPage'); // picked up by frontend to nav to login page
-                    }
-                    break;
-                case $exception instanceof AccessDeniedException:
-                    // If not yet authenticated, return 401 Unauthorized
-                    if ($ampersandApp->getSettings()->get('session.loginEnabled') && !$ampersandApp->getSession()->sessionUserLoggedIn()) {
-                        $code = 401; // Unauthorized
-                        $message = "Please login to access this page";
-                        $data['loginPage'] = $ampersandApp->getSettings()->get('session.loginPage');
-                    // Else, return 403 Forbidden
-                    } else {
-                        $code = 403; // Forbidden
-                        $message = "You do not have access to this page";
-                    }
-                    break;
-                case $exception instanceof NotFoundException:
-                    $code = 404; // Not found
-                    $message = $exception->getMessage();
-                    break;
-                case $exception instanceof MethodNotAllowedException:
-                    $code = 405; // Method not allowed
-                    $message = $exception->getMessage();
-                    break;
-                case $exception instanceof UploadException:
-                    $code = $exception->getCode();
-                    if ($code < 500) {
-                        $message = $exception->getMessage();
-                    } else {
-                        $message = $debugMode ? $exception->getMessage() : "An error occured while uploading file. Please contact the application administrator";
-                    }
-                    break;
-                case $exception instanceof NotInstalledException:
-                    $code = 500; // Internal server error
-                    $message = $debugMode ? "{$exception->getMessage()}. Try reinstalling the application" : "An error occured. For more information see server log files";
-                    if ($debugMode) {
-                        $data['navTo'] = "/admin/installer";
-                    }
-                    break;
-                case $exception instanceof FatalException:
-                    $message = $debugMode ? "A fatal exception occured. Please report the full stacktrace to the Ampersand development team on Github: {$exception->getMessage()}" : "A fatal error occured. For more information see server log files";
-                    $code = 500; // Internal server error
-                // Map all other (Ampersand) exceptions to 500 - Internal server error
-                default:
-                    $code = 500; // Internal server error
-                    $message = $debugMode ? $exception->getMessage() : "An error occured. For more information see server log files";
-                    break;
-            }
-
-            // Convert invalid HTTP status code to 500
-            if (!is_integer($code) || $code < 100 || $code > 599) {
-                $code = 500;
-            }
-
-            // Logging
-            if ($code >= 500) {
-                $logger->error(stackTrace($exception)); // For internal server errors we want the stacktrace to understand what's happening
-            } else {
-                $logger->notice($exception->getMessage()); // For user errors a notice of the exception message is sufficient
-            }
-            
-            return $response->withJson(
-                [ 'error' => $code
-                , 'msg' => $message
-                , 'notifications' => $ampersandApp->userLog()->getAll()
-                , 'html' => $debugMode ? stackTrace($exception) : null
-                , ...$data // @phan-suppress-current-line PhanTypeMismatchUnpackKeyArraySpread
-                ],
-                $code,
-                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-            );
-        } catch (Throwable $throwable) { // catches both errors and exceptions
-            Logger::getLogger("API")->critical(stackTrace($throwable));
-            return $response->withJson(
-                [ 'error' => 500
-                , 'msg' => "Something went wrong in returning an error message. For more information see server log files"
-                , 'html' => "Please contact the application administrator"
-                ],
-                500,
-                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-            );
-        }
-    };
+$apiContainer['errorHandler'] = function ($container) use ($ampersandApp) {
+    return new ExceptionHandler($ampersandApp);
 };
 
-$apiContainer['phpErrorHandler'] = function ($c) {
-    return function (Request $request, Response $response, Error $error) use ($c) {
-        try {
-            Logger::getLogger("API")->critical(stackTrace($error));
-
-            /** @var \Ampersand\AmpersandApp $ampersandApp */
-            $ampersandApp = $c['ampersand_app'];
-            $debugMode = $ampersandApp->getSettings()->get('global.debugMode');
-
-            return $response->withJson(
-                [ 'error' => 500
-                , 'msg' => $debugMode ? $error->getMessage() : "An error occured. For more information see server log files"
-                , 'notifications' => $ampersandApp->userLog()->getAll()
-                , 'html' => $debugMode ? stackTrace($error) : "Please contact the application administrator"
-                ],
-                500,
-                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-            );
-        } catch (Throwable $throwable) { // catches both errors and exceptions
-            Logger::getLogger("API")->critical(stackTrace($throwable));
-
-            return $response->withJson(
-                [ 'error' => 500
-                , 'msg' => "Something went wrong in returning an error message. For more information see server log files"
-                , 'html' => "Please contact the application administrator"
-                ],
-                500,
-                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-            );
-        }
-    };
+$apiContainer['phpErrorHandler'] = function ($container) use ($ampersandApp) {
+    return new PhpErrorHandler($ampersandApp);
 };
 
 // Settings
@@ -219,11 +78,7 @@ $api->add(function (Request $req, Response $res, callable $next) {
 /**
  * @phan-closure-scope \Slim\Container
  */
-->add(function (Request $req, Response $res, callable $next) {
-    /** @var \Slim\App $this */
-    /** @var \Ampersand\AmpersandApp $ampersandApp */
-    $ampersandApp = $this['ampersand_app'];
-
+->add(function (Request $req, Response $res, callable $next) use ($ampersandApp) {
     $sessionIsResetFlag = false;
     
     try {
