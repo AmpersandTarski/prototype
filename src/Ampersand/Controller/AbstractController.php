@@ -3,8 +3,8 @@
 namespace Ampersand\Controller;
 
 use Ampersand\AmpersandApp;
-use Ampersand\AngularApp;
 use Ampersand\Exception\AccessDeniedException;
+use Ampersand\Frontend\FrontendInterface;
 use Psr\Container\ContainerInterface;
 use Slim\Http\Response;
 
@@ -14,13 +14,13 @@ abstract class AbstractController
 
     protected AmpersandApp $app;
 
-    protected AngularApp $angularApp;
+    protected FrontendInterface $frontend;
 
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
         $this->app = $this->container->get('ampersand_app');
-        $this->angularApp = $this->container->get('angular_app');
+        $this->frontend = $this->app->frontend();
     }
 
     protected function success(Response $response): Response

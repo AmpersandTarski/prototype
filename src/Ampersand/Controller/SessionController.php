@@ -28,10 +28,10 @@ class SessionController extends AbstractController
         $settings = $this->app->getSettings();
 
         $content =  ['home' => $this->app->getSettings()->get('frontend.homePage')
-                    ,'navs' => $this->angularApp->getNavMenuItems()
-                    ,'new' => $this->angularApp->getMenuItems(MenuType::NEW)
-                    ,'ext' => $this->angularApp->getMenuItems(MenuType::EXT)
-                    ,'role' => $this->angularApp->getMenuItems(MenuType::ROLE)
+                    ,'navs' => $this->frontend->getNavMenuItems()
+                    ,'new' => $this->frontend->getMenuItems(MenuType::NEW)
+                    ,'ext' => $this->frontend->getMenuItems(MenuType::EXT)
+                    ,'role' => $this->frontend->getMenuItems(MenuType::ROLE)
                     ,'defaultSettings' => ['notify_showSignals'        => $settings->get('notifications.defaultShowSignals')
                                           ,'notify_showInfos'          => $settings->get('notifications.defaultShowInfos')
                                           ,'notify_showSuccesses'      => $settings->get('notifications.defaultShowSuccesses')
