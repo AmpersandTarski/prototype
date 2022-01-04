@@ -193,13 +193,6 @@ $apiContainer->get('settings')->replace(
 // Create and configure Slim app (version 3.x)
 $api = new App($apiContainer);
 
-// Add middleware to set default content type for response
-$api->add(function (Request $req, Response $res, callable $next) {
-    $res = $res->withHeader('Content-Type', 'application/json;charset=utf-8');
-    $newResponse = $next($req, $res);
-    return $newResponse;
-});
-
 require_once(__DIR__ . '/resources.php'); // API calls starting with '/resource/'
 require_once(__DIR__ . '/admin.php'); // API calls starting with '/admin/'
 require_once(__DIR__ . '/app.php'); // API calls starting with '/app/'
