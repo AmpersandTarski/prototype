@@ -18,6 +18,7 @@ Additional labels for pre-release and build metadata are available as extensions
 * Refactor use enums for TableType, RuleType, SrcOrTgt, MenuType, concept TType
 * Simplify and unify exception handling
 * Remove default response Content-Type header (was 'application/json;charset=utf-8'). Must be set per API (group) seperately
+* Remove/refactor global variable $angularApp. Use MenuItemRegistry::addMenuItem() and AmpersandApp::frontend() instead
 
 ## v1.13.0 (10 dec 2021)
 * [Issue 68](https://github.com/AmpersandTarski/prototype/issues/68) Update Docker image to PHP v8.1. Make backend compatible with php 8.x
