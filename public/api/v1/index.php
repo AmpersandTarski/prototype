@@ -3,18 +3,15 @@
 use Ampersand\API\Handler\ExceptionHandler;
 use Ampersand\API\Handler\NotFoundHandler;
 use Ampersand\API\Handler\PhpErrorHandler;
-use Ampersand\Exception\BadRequestException;
-use Ampersand\Exception\NotInstalledException;
-use Ampersand\Exception\SessionExpiredException;
+use Ampersand\API\Middleware\InitAmpersandAppMiddleware;
+use Ampersand\API\Middleware\JsonRequestParserMiddleware;
+use Ampersand\API\Middleware\LogPerformanceMiddleware;
+use Ampersand\API\Middleware\PostMaxSizeMiddleware;
 use Ampersand\Log\Logger;
-use function Ampersand\Misc\humanFileSize;
-use function Ampersand\Misc\returnBytes;
 use Slim\App;
 use Slim\Container;
-use Slim\Http\Request;
-use Slim\Http\Response;
 
-$scriptStartTime = microtime(true);
+$scriptStartTime = (float) microtime(true);
 
 require_once(dirname(__FILE__, 4) . '/bootstrap/framework.php');
 
@@ -57,127 +54,12 @@ foreach ($ampersandApp->getSettings()->getExtensions() as $ext) {
     $ext->bootstrap();
 }
 
-// Add middleware to initialize the AmpersandApp
-/**
- * @phan-closure-scope \Slim\Container
- */
-$api->add(function (Request $req, Response $res, callable $next) {
-    $phase4StartTime = microtime(true);
+$logger = Logger::getLogger('API');
 
-    $response = $next($req, $res);
-
-    // Report performance until here (i.e. REQUEST phase)
-    $executionTime = round(microtime(true) - $phase4StartTime, 2);
-    $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
-    Logger::getLogger('PERFORMANCE')->debug("PHASE-4 REQUEST: Memory in use: {$memoryUsage} Mb");
-    Logger::getLogger('PERFORMANCE')->debug("PHASE-4 REQUEST: Execution time  : {$executionTime} Sec");
-
-    return $response;
-})
-// Add middleware to initialize the AmpersandApp
-/**
- * @phan-closure-scope \Slim\Container
- */
-->add(function (Request $req, Response $res, callable $next) use ($ampersandApp) {
-    $sessionIsResetFlag = false;
-    
-    try {
-        $logger = Logger::getLogger('PERFORMANCE');
-        
-        // Report performance until here (i.e. PHASE-1 CONFIG)
-        global $scriptStartTime;
-        $executionTime = round(microtime(true) - $scriptStartTime, 2);
-        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
-        $logger->debug("PHASE-1 CONFIG: Memory in use: {$memoryUsage} Mb");
-        $logger->debug("PHASE-1 CONFIG: Execution time  : {$executionTime} Sec");
-
-        // PHASE-2 INITIALIZATION OF AMPERSAND APP
-        $phase2StartTime = microtime(true);
-
-        $ampersandApp->init(); // initialize Ampersand application
-
-        $executionTime = round(microtime(true) - $phase2StartTime, 2);
-        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
-        $logger->debug("PHASE-2 INIT: Memory in use: {$memoryUsage} Mb");
-        $logger->debug("PHASE-2 INIT: Execution time  : {$executionTime} Sec");
-        
-        // PHASE-3 SESSION INITIALIZATION
-        $phase3StartTime = microtime(true);
-        
-        $ampersandApp->setSession(); // initialize session
-        
-        $executionTime = round(microtime(true) - $phase3StartTime, 2);
-        $memoryUsage = round(memory_get_usage() / 1024 / 1024, 2); // Mb
-        $logger->debug("PHASE-3 SESSION: Memory in use: {$memoryUsage} Mb");
-        $logger->debug("PHASE-3 SESSION: Execution time  : {$executionTime} Sec");
-    } catch (NotInstalledException $e) {
-        // Make sure to close any open transaction
-        $ampersandApp->getCurrentTransaction()->cancel();
-        
-        /** @var \Slim\Route $route */
-        $route = $req->getAttribute('route');
-        
-        // If application installer API ROUTE is called, continue
-        if (in_array($route->getName(), ['applicationInstaller', 'updateChecksum'], true)) {
-            return $next($req, $res);
-        } else {
-            throw $e;
-        }
-    } catch (SessionExpiredException $e) {
-        // Automatically reset session and continue the application
-        // This is more user-friendly then directly throwing a "Your session has expired" error to the user
-        $ampersandApp->resetSession();
-        $sessionIsResetFlag = true; // raise flag, which is used below
-    }
-
-    try {
-        return $next($req, $res);
-    } catch (Exception $e) {
-        // If an exception is thrown in the application after the session is automatically reset, it is probably caused by this session reset (e.g. logout)
-        if ($sessionIsResetFlag) {
-            throw new SessionExpiredException("Your session has expired", previous: $e);
-        } else {
-            throw $e;
-        }
-    }
-})
-// Add middleware to catch when post_max_size is exceeded
-/**
- * @phan-closure-scope \Slim\Container
- */
-->add(function (Request $req, Response $res, callable $next) {
-    // Only applies to POST requests with empty $_POST superglobal
-    // See: https://www.php.net/manual/en/ini.core.php#ini.post-max-size
-    if ($req->isPost() && empty($_POST)) {
-        // See if we can detect if post_max_size is exceeded
-        if (isset($_SERVER['CONTENT_LENGTH'])) {
-            $maxBytes = returnBytes(ini_get('post_max_size'));
-            if ($_SERVER['CONTENT_LENGTH'] > $maxBytes) {
-                throw new BadRequestException("The request exceeds the maximum request size of " . humanFileSize($maxBytes));
-            }
-        }
-    }
-
-    return $next($req, $res);
-})
-// Add middleware to overwrite default media type parser for application/json
-/**
- * @phan-closure-scope \Slim\Container
- */
-->add(function (Request $request, Response $response, callable $next) {
-    $request->registerMediaTypeParser('application/json', function ($input) {
-        try {
-            // Set accoc param to false, this will return php stdClass object instead of array for json objects {}
-            return json_decode($input, false, flags: JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            throw new Exception("JSON error: {$e->getMessage()}", previous: $e);
-        }
-    });
-    return $next($request, $response);
-})
+$api
+->add(new LogPerformanceMiddleware($logger, 'PHASE-4 REQUEST | ')) // wrapper to log performance of request phase (PHASE-4)
+->add(new InitAmpersandAppMiddleware($ampersandApp, $logger)) // initialize the AmpersandApp (PHASE-2) and Session (PHASE-3)
+->add(new PostMaxSizeMiddleware()) // catch when post_max_size is exceeded
+->add(new JsonRequestParserMiddleware()) // overwrite default media type parser for application/json
+->add(new LogPerformanceMiddleware($logger, 'TOTAL PERFORMANCE | ', $scriptStartTime)) // wrapper to log total performance
 ->run();
-
-$executionTime = round(microtime(true) - $scriptStartTime, 2);
-$peakMemory = round(memory_get_peak_usage() / 1024 / 1024, 2); // Mb
-Logger::getLogger('PERFORMANCE')->info("Peak memory used: {$peakMemory} Mb");
-Logger::getLogger('PERFORMANCE')->info("Execution time  : {$executionTime} Sec");
