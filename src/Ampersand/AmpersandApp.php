@@ -23,6 +23,7 @@ use Ampersand\Exception\FatalException;
 use Ampersand\Exception\InvalidConfigurationException;
 use Ampersand\Exception\MetaModelException;
 use Ampersand\Exception\NotDefinedException;
+use Ampersand\Frontend\FrontendInterface;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
@@ -50,6 +51,11 @@ class AmpersandApp
      * Ampersand application name (i.e. CONTEXT of ADL entry script)
      */
     protected string $name;
+
+    /**
+     * Reference to frontend implementation (e.g. AngularJSApp)
+     */
+    protected FrontendInterface $frontend;
 
     /**
      * Reference to generated Ampersand model
@@ -167,6 +173,17 @@ class AmpersandApp
     public function setFileSystem(FilesystemInterface $fs): self
     {
         $this->fileSystem = $fs;
+        return $this;
+    }
+
+    public function frontend(): FrontendInterface
+    {
+        return $this->frontend;
+    }
+
+    public function setFrontend(FrontendInterface $frontend): self
+    {
+        $this->frontend = $frontend;
         return $this;
     }
 

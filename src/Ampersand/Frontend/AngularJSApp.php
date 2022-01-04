@@ -5,12 +5,12 @@
  *
  */
 
-namespace Ampersand;
+namespace Ampersand\Frontend;
 
-use Psr\Log\LoggerInterface;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\FatalException;
 use Ampersand\Exception\InvalidOptionException;
+use Ampersand\Frontend\FrontendInterface;
 use Ampersand\Frontend\MenuType;
 use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\ResourceList;
@@ -22,24 +22,12 @@ use Ampersand\Misc\ProtoContext;
  * @author Michiel Stornebrink (https://github.com/Michiel-s)
  *
  */
-class AngularApp
+class AngularJSApp implements FrontendInterface
 {
-    private LoggerInterface $logger;
-
     /**
      * Reference to Ampersand app of which this frontend app (Angular) belongs to
      */
     protected AmpersandApp $ampersandApp;
-    
-    /**
-     * List of items for the extensions menu (in navbar)
-     */
-    protected array $extMenu = [];
-    
-    /**
-     * List of items for the role menu (in navbar)
-     */
-    protected array $roleMenu = [];
 
     /**
      * Contains information for the front-end to navigate the user in a certain case (e.g. after COMMIT)
@@ -49,24 +37,9 @@ class AngularApp
     /**
      * Constructor
      */
-    public function __construct(AmpersandApp $ampersandApp, LoggerInterface $logger)
+    public function __construct(AmpersandApp $ampersandApp)
     {
         $this->ampersandApp = $ampersandApp;
-        $this->logger = $logger;
-    }
-    
-    /**
-     * @param \Ampersand\Frontend\MenuType $menu specifies to which part of the menu (navbar) this item belongs to
-     * @param string $itemUrl location of html template to use as menu item
-     * @param callable $function function which returns true/false determining to add the menu item or not
-     */
-    public function addMenuItem(MenuType $menu, string $itemUrl, callable $function): void
-    {
-        match ($menu) {
-            MenuType::EXT => $this->extMenu[] = ['url' => $itemUrl, 'function' => $function],
-            MenuType::ROLE => $this->roleMenu[] = ['url' => $itemUrl, 'function' => $function],
-            MenuType::NEW => throw new InvalidOptionException("Cannot add custom menu items to menu 'new'")
-        };
     }
     
     public function getMenuItems(MenuType $menu): array
@@ -76,13 +49,13 @@ class AngularApp
         switch ($menu) {
             // Items for extension menu
             case MenuType::EXT:
-                $result = array_filter($this->extMenu, function ($item) use ($ampersandApp) {
+                $result = array_filter(MenuItemRegistry::$extMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
                 break;
             // Items for role menu
             case MenuType::ROLE:
-                $result = array_filter($this->roleMenu, function ($item) use ($ampersandApp) {
+                $result = array_filter(MenuItemRegistry::$roleMenu, function ($item) use ($ampersandApp) {
                     return call_user_func_array($item['function'], [$ampersandApp]); // execute function which determines if item must be added or not
                 });
                 break;
@@ -125,7 +98,10 @@ class AngularApp
 
     public function getNavMenuItems(): array
     {
-        return ResourceList::makeFromInterface($this->ampersandApp->getSession()->getSessionAtom()->getId(), ProtoContext::IFC_MENU_ITEMS)->get(Options::INCLUDE_NOTHING);
+        return ResourceList::makeFromInterface(
+            $this->ampersandApp->getSession()->getSessionAtom()->getId(),
+            ProtoContext::IFC_MENU_ITEMS
+        )->get(Options::INCLUDE_NOTHING);
     }
 
     public function getNavToResponse($case): ?string

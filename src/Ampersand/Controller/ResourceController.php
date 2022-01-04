@@ -130,8 +130,8 @@ class ResourceController extends AbstractController
             , 'notifications'         => $this->app->userLog()->getAll()
             , 'invariantRulesHold'    => $transaction->invariantRulesHold()
             , 'isCommitted'           => $transaction->isCommitted()
-            , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()
-            , 'navTo'                 => $this->angularApp->getNavToResponse($transaction->isCommitted() ? 'COMMIT' : 'ROLLBACK')
+            , 'sessionRefreshAdvice'  => $this->frontend->getSessionRefreshAdvice()
+            , 'navTo'                 => $this->frontend->getNavToResponse($transaction->isCommitted() ? 'COMMIT' : 'ROLLBACK')
             ],
             200,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
@@ -163,8 +163,8 @@ class ResourceController extends AbstractController
             [ 'notifications'         => $this->app->userLog()->getAll()
             , 'invariantRulesHold'    => $transaction->invariantRulesHold()
             , 'isCommitted'           => $transaction->isCommitted()
-            , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()
-            , 'navTo'                 => $this->angularApp->getNavToResponse($transaction->isCommitted() ? 'COMMIT' : 'ROLLBACK')
+            , 'sessionRefreshAdvice'  => $this->frontend->getSessionRefreshAdvice()
+            , 'navTo'                 => $this->frontend->getNavToResponse($transaction->isCommitted() ? 'COMMIT' : 'ROLLBACK')
             ],
             200,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES

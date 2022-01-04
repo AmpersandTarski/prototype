@@ -67,7 +67,7 @@ class PopulationController extends AbstractController
             , 'notifications'         => $this->app->userLog()->getAll()
             , 'invariantRulesHold'    => $transaction->invariantRulesHold()
             , 'isCommitted'           => $transaction->isCommitted()
-            , 'sessionRefreshAdvice'  => $this->angularApp->getSessionRefreshAdvice()
+            , 'sessionRefreshAdvice'  => $this->frontend->getSessionRefreshAdvice()
             ],
             $transaction->isCommitted() ? 200 : 400, // 400 'Bad request' is used to trigger error in file uploader interface
             JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES

@@ -1,7 +1,7 @@
 <?php
 
 use Ampersand\AmpersandApp;
-use Ampersand\AngularApp;
+use Ampersand\Frontend\AngularJSApp;
 use Ampersand\Log\Logger;
 use Ampersand\Misc\Settings;
 use Ampersand\Model;
@@ -99,7 +99,7 @@ $ampersandApp = new AmpersandApp(
         new Local($settings->getDataDirectory()) // local file system adapter
     )
 );
-$angularApp = new AngularApp($ampersandApp, Logger::getLogger('FRONTEND'));
+$ampersandApp->setFrontend(new AngularJSApp($ampersandApp));
 
 /**************************************************************************************************
  * DATABASE and PLUGS
