@@ -128,13 +128,6 @@ $ampersandApp->setDefaultStorage($mysqlDB);
 $ampersandApp->setConjunctCache(new MysqlConjunctCache($mysqlDB));
 
 /**************************************************************************************************
- * OTHER BOOTSTRAPPING FILES (e.g. ExecEngine functions)
- *************************************************************************************************/
-foreach (glob(__DIR__ . '/files/*.php') as $filepath) {
-    require_once($filepath);
-}
-
-/**************************************************************************************************
  * API
  *************************************************************************************************/
 $apiContainer = new Container();
@@ -164,19 +157,20 @@ $apiContainer->get('settings')->replace(
 // TODO: migrate to Slim v4
 $api = new App($apiContainer);
 
-require_once(__DIR__ . '/api/resources.php'); // API calls starting with '/resource/'
-require_once(__DIR__ . '/api/admin.php'); // API calls starting with '/admin/'
-require_once(__DIR__ . '/api/app.php'); // API calls starting with '/app/'
-require_once(__DIR__ . '/api/files.php'); // API calls starting with '/file/'
-
+foreach (glob(__DIR__ . '/api/*.php') as $filepath) {
+    require_once($filepath);
+}
 
 /**************************************************************************************************
- * BOOTSTRAP OTHER REGISTERED EXTENSIONS
+ * BOOTSTRAP OTHER FILES AND REGISTERED EXTENSIONS
  *************************************************************************************************/
+foreach (glob(__DIR__ . '/files/*.php') as $filepath) {
+    require_once($filepath);
+}
+
 foreach ($ampersandApp->getSettings()->getExtensions() as $ext) {
     $ext->bootstrap();
 }
-
 
 /**************************************************************************************************
  * HANDLE REQUEST
