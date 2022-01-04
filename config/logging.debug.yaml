@@ -19,10 +19,6 @@ loggers:
     handlers: [error_log, stdout, stderr]
   HOOKS:
     handlers: [error_log, stdout, stderr]
-  FRONTEND:
-    handlers: [error_log, stdout, stderr]
-  PERFORMANCE:
-    handlers: [error_log, stdout, stderr]
   EVALIDATOR:
     handlers: [error_log, stdout, stderr]
   ONIMEX:
