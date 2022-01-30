@@ -10,6 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+* **Note! Contains backward incompatible changes for projects that extend or customize the backend framework**
 * [Issue 70](https://github.com/AmpersandTarski/prototype/issues/70) Improve exec engine error message
 * [Issue 88](https://github.com/AmpersandTarski/prototype/issues/88) Initialize model before registering current ampersand model version during reinstall of application
 * UI Fix for longer notification (error) messages. Message now overflows on new line
