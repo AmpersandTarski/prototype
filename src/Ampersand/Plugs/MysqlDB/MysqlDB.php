@@ -17,6 +17,11 @@ use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Core\SrcOrTgt;
 use Ampersand\Core\TType;
+use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\FatalException;
+use Ampersand\Exception\InvalidConfigurationException;
+use Ampersand\Exception\InvalidOptionException;
+use Ampersand\Exception\MetaModelException;
 use Ampersand\Interfacing\ViewSegment;
 use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Plugs\ConceptPlugInterface;
@@ -26,6 +31,8 @@ use Ampersand\Plugs\ViewPlugInterface;
 use Ampersand\Transaction;
 use Psr\Log\LoggerInterface;
 use Ampersand\Exception\NotInstalledException;
+use Ampersand\Plugs\MysqlDB\Exception\MysqlConnectionException;
+use Ampersand\Plugs\MysqlDB\Exception\MysqlQueryException;
 
 /**
  *
@@ -126,8 +133,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             // Set sql_mode to ANSI
             $this->dbLink->query("SET SESSION sql_mode = 'ANSI,TRADITIONAL'");
         } catch (Exception $e) {
-            // Convert mysqli_sql_exceptions into 500 errors
-            throw new Exception("Cannot connect to the database", 500);
+            // Catch mysqli_sql_exceptions
+            throw new MysqlConnectionException("Cannot connect to the database: {$e->getMessage()}", previous: $e);
         }
     }
 
@@ -141,15 +148,11 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         try {
             $this->dbLink->select_db($this->dbName);
         } catch (Exception $e) {
-            if (!$this->productionMode) {
-                switch ($e->getCode()) {
-                    case 1049: // Error: 1049 SQLSTATE: 42000 (ER_BAD_DB_ERROR) --> Database ($this->dbName) does not (yet) exist
-                        throw new NotInstalledException("Database {$this->dbName} does not exist");
-                    default:
-                        throw $e;
-                }
-            } else {
-                throw new Exception("Cannot connect to the databse", 500);
+            switch ($e->getCode()) {
+                case 1049: // Error: 1049 SQLSTATE: 42000 (ER_BAD_DB_ERROR)
+                    throw new NotInstalledException("Database '{$this->dbName}' does not exist (yet)", previous: $e);
+                default:
+                    throw new MysqlConnectionException("Cannot connect to the databse: {$e->getMessage()}", previous: $e);
             }
         }
     }
@@ -195,7 +198,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     {
         $result = $this->execute("SELECT * FROM \"__ampersand_model_history__\" ORDER BY \"id\" DESC LIMIT 1");
         if (!is_array($result) || empty($result)) {
-            throw new NotInstalledException("Cannot determine latest installed model version in {$this->getLabel()}. Try reinstalling the database", 500);
+            throw new NotInstalledException("Cannot determine latest installed model version in {$this->getLabel()}");
         }
 
         return current($result)['checksum'];
@@ -209,7 +212,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     protected function getDBRepresentation(Atom $atom): mixed
     {
         if (is_null($atom->getId())) {
-            throw new Exception("Atom identifier MUST NOT be NULL", 500);
+            throw new InvalidOptionException("Atom identifier MUST NOT be NULL");
         }
         
         switch ($atom->concept->type) {
@@ -227,7 +230,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                     case "False":
                         return 0;
                     default:
-                        throw new Exception("Unsupported string boolean value '{$atom->getId()}'. Supported are 'True', 'False'", 500);
+                        throw new BadRequestException("Unsupported string boolean value '{$atom->getId()}'. Supported are 'True', 'False'");
                 }
                 break;
             case TType::DATE:
@@ -245,7 +248,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             case TType::OBJECT:
                 return $this->escape($atom->getId());
             default:
-                throw new Exception("Unknown/unsupported ttype '{$atom->concept->type->value}' for concept '[{$atom->concept}]'", 501);
+                throw new MetaModelException("Unknown/unsupported ttype '{$atom->concept->type->value}' for concept '[{$atom->concept}]'");
         }
     }
     
@@ -280,7 +283,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $statement = $this->dbLink->prepare($query);
 
         if ($statement === false) {
-            throw new Exception("Incorrect prepared statement in query: {$query}", 500);
+            throw new MysqlQueryException("Incorrect prepared statement in query: {$query}");
         }
 
         return $statement;
@@ -303,7 +306,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                 $i = 1;
                 // Execute multi query
                 if ($this->dbLink->multi_query($query) === false) { // when first query errors
-                    throw new Exception("Error in query {$i}: {$this->dbLink->error}", 500);
+                    throw new MysqlQueryException("Error in query {$i}: {$this->dbLink->error}");
                 }
 
                 // Flush results, otherwise a connection stays open
@@ -316,7 +319,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
 
                 // Return result
                 if ($next === false) { // when subsequent query errors
-                    throw new Exception("Error in query {$i}: {$this->dbLink->error}", 500);
+                    throw new MysqlQueryException("Error in query {$i}: {$this->dbLink->error}");
                 } else {
                     return true;
                 }
@@ -325,27 +328,17 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                 return $this->dbLink->query($query);
             }
         } catch (Exception $e) {
-            $this->logger->error($e->getMessage());
-            if (!$this->productionMode) {
-                // Convert mysqli_sql_exceptions into 500 errors
-                switch ($e->getCode()) {
-                    case 1102: // Error: 1102 Incorrect database name
-                        throw new Exception("Incorrect MYSQL database name '{$this->dbName}'. Configure a database name that complies with the MariaDB identifier rules. If not configured the Ampersand CONTEXT name is used by default", 500, $e);
-                    case 1146: // Error: 1146 SQLSTATE: 42S02 (ER_NO_SUCH_TABLE)
-                    case 1054: // Error: 1054 SQLSTATE: 42S22 (ER_BAD_FIELD_ERROR)
-                        throw new NotInstalledException("{$e->getMessage()}. Try reinstalling the application");
-                    case 1406: // Error: 1406 Data too long
-                        throw new Exception("Data entry is too long ", 400);
-                    default:
-                        throw new Exception("MYSQL error " . $e->getCode() . ": " . $e->getMessage() . " in query:" . $query, 500);
-                }
-            } else {
-                switch ($e->getCode()) {
-                    case 1406: // Error: 1406 Data too long
-                        throw new Exception("Data entry is too long", 400);
-                    default:
-                        throw new Exception("Error in database query", 500);
-                }
+            // Convert mysqli_sql_exceptions
+            switch ($e->getCode()) {
+                case 1102: // Error: 1102 Incorrect database name
+                    throw new InvalidConfigurationException("Configured MYSQL database name '{$this->dbName}' does not comply with the MariaDB identifier rules. If not configured the Ampersand CONTEXT name is used by default", previous: $e);
+                case 1146: // Error: 1146 SQLSTATE: 42S02 (ER_NO_SUCH_TABLE)
+                case 1054: // Error: 1054 SQLSTATE: 42S22 (ER_BAD_FIELD_ERROR)
+                    throw new NotInstalledException("{$e->getMessage()}", previous: $e);
+                case 1406: // Error: 1406 Data too long
+                    throw new BadRequestException("Data entry is too long", previous: $e);
+                default:
+                    throw new MysqlQueryException("MYSQL err{$e->getCode()}: '{$e->getMessage()}' in query: {$query}", previous: $e);
             }
         }
     }
@@ -629,7 +622,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                 $this->execute("UPDATE \"{$table}\" SET \"{$srcCol}\" = '{$srcAtomId}' WHERE \"{$tgtCol}\" = '{$tgtAtomId}'");
                 break;
             default:
-                throw new Exception("Unsupported TableType '{$relTable->inTableOf()->value}' to addLink for for relation '{$relation}'", 500);
+                throw new FatalException("Unsupported TableType '{$relTable->inTableOf()->value}' to addLink for for relation '{$relation}'");
         }
         
         // Check if query resulted in an affected row
@@ -656,20 +649,20 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                 break;
             case TableType::Src: // Relation is administrated in concept table (wide) of source of relation
                 if (!$relTable->tgtCol()->nullAllowed()) {
-                    throw new Exception("Cannot delete link {$link} because target column '{$tgtCol}' in table '{$table}' may not be set to null", 500);
+                    throw new FatalException("Cannot delete link {$link} because target column '{$tgtCol}' in table '{$table}' may not be set to null");
                 }
                 // Source atom can be used in WHERE statement
                 $this->execute("UPDATE \"{$table}\" SET \"{$tgtCol}\" = NULL WHERE \"{$srcCol}\" = '{$srcAtomId}'");
                 break;
             case TableType::Tgt: //  Relation is administrated in concept table (wide) of target of relation
                 if (!$relTable->srcCol()->nullAllowed()) {
-                    throw new Exception("Cannot delete link {$link} because source column '{$srcCol}' in table '{$table}' may not be set to null", 500);
+                    throw new FatalException("Cannot delete link {$link} because source column '{$srcCol}' in table '{$table}' may not be set to null");
                 }
                 // Target atom can be used in WHERE statement
                 $this->execute("UPDATE \"{$table}\" SET \"{$srcCol}\" = NULL WHERE \"{$tgtCol}\" = '{$tgtAtomId}'");
                 break;
             default:
-                throw new Exception("Unsupported TableType '{$relTable->inTableOf()->value}' to deleteLink for for relation '{$relation}'", 500);
+                throw new FatalException("Unsupported TableType '{$relTable->inTableOf()->value}' to deleteLink for for relation '{$relation}'");
         }
         
         $this->checkForAffectedRows(); // Check if query resulted in an affected row
@@ -705,7 +698,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                 $query = "UPDATE \"{$relationTable->getName()}\" SET \"{$setCol->getName()}\" = NULL WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
                 break;
             default:
-                throw new Exception("Unsupported TableType '{$relationTable->inTableOf()->value}' to deleteAllLinks for for relation '{$relation}'", 500);
+                throw new FatalException("Unsupported TableType '{$relationTable->inTableOf()->value}' to deleteAllLinks for for relation '{$relation}'");
         }
         
         $this->execute($query);
@@ -729,7 +722,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                 $this->execute("UPDATE \"{$relationTable->getName()}\" SET \"{$relationTable->srcCol()->getName()}\" = NULL");
                 break;
             default:
-                throw new Exception("Unknown 'tableOf' option for relation '{$relation}'", 500);
+                throw new FatalException("Unknown 'tableOf' option for relation '{$relation}'");
         }
     }
     
@@ -788,9 +781,9 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     {
         if ($this->dbLink->affected_rows == 0) {
             if ($this->debugMode) {
-                throw new Exception("Oops.. something went wrong. No records affected in database", 500);
+                throw new MysqlQueryException("Oops.. something went wrong. No records affected in database with query: {$this->lastQuery}");
             } else { // silent + warning in log
-                $this->logger->warning("No recors affected with query '{$this->lastQuery}'");
+                $this->logger->warning("No recors affected with query: {$this->lastQuery}");
             }
         }
     }

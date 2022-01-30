@@ -2,6 +2,7 @@
 
 namespace Ampersand\Plugs\MysqlConjunctCache;
 
+use Ampersand\Exception\FatalException;
 use Closure;
 use Psr\Cache\CacheItemInterface;
 
@@ -140,7 +141,7 @@ class MysqlConjunctCacheItem implements CacheItemInterface
      */
     public function expiresAt($expiration): static
     {
-        throw new \Exception("Functionality not implemented", 501);
+        throw new FatalException("Functionality not implemented");
     }
 
     /**
@@ -158,6 +159,6 @@ class MysqlConjunctCacheItem implements CacheItemInterface
      */
     public function expiresAfter($time): static
     {
-        throw new \Exception("Functionality not implemented", 501);
+        throw new FatalException("Functionality not implemented");
     }
 }

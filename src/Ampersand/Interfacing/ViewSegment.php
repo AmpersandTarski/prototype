@@ -8,8 +8,9 @@
 namespace Ampersand\Interfacing;
 
 use Ampersand\Core\Atom;
+use Ampersand\Exception\FatalException;
+use Ampersand\Exception\NotDefined\NotDefinedException;
 use Ampersand\Interfacing\View;
-use Exception;
 
 /**
  *
@@ -50,7 +51,7 @@ class ViewSegment
         $this->expSQL = $viewSegmentDef['expSQL'];
         
         if (!($this->segType === 'Text' || $this->segType === 'Exp')) {
-            throw new Exception("Unsupported segmentType '{$this->segType}' in VIEW segment <{$this}>", 501); // 501: Not implemented
+            throw new FatalException("Unsupported segmentType '{$this->segType}' in VIEW segment <{$this}>");
         }
     }
     
@@ -86,7 +87,7 @@ class ViewSegment
                 }
                 break;
             default:
-                throw new Exception("Unsupported segmentType '{$this->segType}' in VIEW segment <{$this}>", 501); // 501: Not implemented
+                throw new FatalException("Unsupported segmentType '{$this->segType}' in VIEW segment <{$this}>");
                 break;
         }
     }
@@ -97,7 +98,7 @@ class ViewSegment
     public function getQuery(): string
     {
         if (is_null($this->expSQL)) {
-            throw new Exception("Query not specified for view segment '{$this}'", 500);
+            throw new NotDefinedException("Query not specified for view segment '{$this}'");
         }
         
         return str_replace('_SESSION', session_id(), $this->expSQL); // Replace _SESSION var with current session id.

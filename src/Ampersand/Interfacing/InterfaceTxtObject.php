@@ -7,11 +7,13 @@
 
 namespace Ampersand\Interfacing;
 
-use Exception;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Atom;
+use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\FatalException;
+use Ampersand\Exception\MetaModelException;
 use Ampersand\Interfacing\AbstractIfcObject;
 
 /**
@@ -47,7 +49,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     public function __construct(array $ifcDef, ?InterfaceObjectInterface $parent = null)
     {
         if ($ifcDef['type'] != 'ObjText') {
-            throw new Exception("Provided interface definition is not of type ObjText", 500);
+            throw new FatalException("Provided interface definition is not of type ObjText");
         }
         
         // Set attributes from $ifcDef
@@ -131,7 +133,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     
     public function getTgtAtoms(Atom $src, string $selectTgt = null): array
     {
-        throw new Exception("Method getTgtAtoms() is n.a. for InterfaceTxtObject and must not be called", 500);
+        throw new FatalException("Method getTgtAtoms() is n.a. for InterfaceTxtObject and must not be called");
     }
 
     /**
@@ -139,7 +141,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
      */
     public function buildResourcePath(Atom $tgt, string $pathToSrc): string
     {
-        throw new Exception("Method buildResourcePath() is n.a. for InterfaceTxtObject and must not be called", 500);
+        throw new FatalException("Method buildResourcePath() is n.a. for InterfaceTxtObject and must not be called");
     }
 
     /**********************************************************************************************
@@ -158,12 +160,12 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
-        throw new Exception("Method getSubinterface() is n.a. for InterfaceTxtObject and must not be called", 500);
+        throw new FatalException("Method getSubinterface() is n.a. for InterfaceTxtObject and must not be called");
     }
     
     public function getSubinterfaceByLabel(string $ifcLabel, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
-        throw new Exception("Method getSubinterfaceByLabel() is n.a. for InterfaceTxtObject and must not be called", 500);
+        throw new FatalException("Method getSubinterfaceByLabel() is n.a. for InterfaceTxtObject and must not be called");
     }
 
     /**********************************************************************************************
@@ -176,7 +178,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
 
     public function create(Atom $src, $tgtId = null): Atom
     {
-        throw new Exception("Create operation not implemented for TXT interface object", 501);
+        throw new MetaModelException("Create operation not implemented for TXT interface object");
     }
     
     public function read(
@@ -193,27 +195,27 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
 
     public function set(Atom $src, $value = null): ?Atom
     {
-        throw new Exception("Set operation not implemented for TXT interface object", 501);
+        throw new BadRequestException("Set operation not implemented for fixed txt interface object");
     }
 
     public function add(Atom $src, $value): Atom
     {
-        throw new Exception("Add operation not implemented for TXT interface object", 501);
+        throw new BadRequestException("Add operation not implemented for fixed txt interface object");
     }
 
     public function remove(Atom $src, $value): void
     {
-        throw new Exception("Remove operation not implemented for TXT interface object", 501);
+        throw new BadRequestException("Remove operation not implemented for fixed txt interface object");
     }
 
     public function removeAll(Atom $src): void
     {
-        throw new Exception("Remove operation not implemented for TXT interface object", 501);
+        throw new BadRequestException("Remove operation not implemented for fixed txt interface object");
     }
 
     public function delete(Resource $tgtAtom): void
     {
-        throw new Exception("Detele operation not implemented for TXT interface object", 501);
+        throw new BadRequestException("Detele operation not implemented for fixed txt interface object");
     }
 
     /**********************************************************************************************

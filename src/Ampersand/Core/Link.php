@@ -7,10 +7,10 @@
 
 namespace Ampersand\Core;
 
-use Exception;
 use JsonSerializable;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Relation;
+use Ampersand\Exception\TypeCheckerException;
 
 /**
  *
@@ -42,10 +42,10 @@ class Link implements JsonSerializable
         
         // Checks
         if (!in_array($this->src->concept, $this->rel->srcConcept->getSpecializationsIncl())) {
-            throw new Exception("Cannot instantiate link {$this}, because source atom does not match relation source concept or any of its specializations", 500);
+            throw new TypeCheckerException("Cannot instantiate link {$this}, because source atom does not match relation source concept or any of its specializations");
         }
         if (!in_array($this->tgt->concept, $this->rel->tgtConcept->getSpecializationsIncl())) {
-            throw new Exception("Cannot instantiate link {$this}, because target atom does not match relation target concept or any of its specializations", 500);
+            throw new TypeCheckerException("Cannot instantiate link {$this}, because target atom does not match relation target concept or any of its specializations");
         }
     }
     

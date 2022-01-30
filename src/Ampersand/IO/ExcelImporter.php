@@ -9,6 +9,8 @@ use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\AccessDeniedException;
+use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\NotDefined\NotDefinedException;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
@@ -75,7 +77,7 @@ class ExcelImporter
     {
         // Source concept of interface MUST be SESSION
         if (!$ifc->getSrcConcept()->isSession()) {
-            throw new Exception("Source concept of interface '{$ifc->getLabel()}' must be SESSION in order to be used as import interface", 400);
+            throw new BadRequestException("Source concept of interface '{$ifc->getLabel()}' must be SESSION in order to be used as import interface");
         }
 
         if (!$this->ampersandApp->isAccessibleIfc($ifc)) {
@@ -85,7 +87,7 @@ class ExcelImporter
         // Determine $leftConcept from cell A1
         $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel((string)$worksheet->getCell('A1'));
         if ($leftConcept !== $ifc->getTgtConcept()) {
-            throw new Exception("Target concept of interface '{$ifc->getLabel()}' does not match concept specified in cell {$worksheet->getTitle()}!A1", 400);
+            throw new BadRequestException("Target concept of interface '{$ifc->getLabel()}' does not match concept specified in cell {$worksheet->getTitle()}!A1");
         }
 
         // The list to add/update items from
@@ -101,8 +103,8 @@ class ExcelImporter
                 try {
                     $subIfcObj = $ifc->getIfcObject()->getSubinterfaceByLabel($cellvalue);
                     $dataColumns[$columnLetter] = $subIfcObj;
-                } catch (Exception $e) {
-                    throw new Exception("Cannot process column {$columnLetter} '{$cellvalue}' in sheet {$worksheet->getTitle()}, because subinterface in undefined", 400, $e);
+                } catch (NotDefinedException $e) {
+                    throw new BadRequestException("Cannot process column {$columnLetter} '{$cellvalue}' in sheet {$worksheet->getTitle()}, because subinterface in undefined", previous: $e);
                 }
             } else {
                 $this->logger->notice("Skipping column {$columnLetter} in sheet {$worksheet->getTitle()}, because header is not provided");

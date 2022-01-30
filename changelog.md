@@ -10,9 +10,17 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+* **Note! Contains backward incompatible changes for projects that extend or customize the backend framework**
+* [Issue 70](https://github.com/AmpersandTarski/prototype/issues/70) Improve exec engine error message
+* [Issue 88](https://github.com/AmpersandTarski/prototype/issues/88) Initialize model before registering current ampersand model version during reinstall of application
+* UI Fix for longer notification (error) messages. Message now overflows on new line
 * Add missing parameter and return type declarations for all methods. Remove unneeded docblock comments
 * Add class property type declarations. Remove unneeded docblock comments
 * Refactor use enums for TableType, RuleType, SrcOrTgt, MenuType, concept TType
+* Simplify and unify exception handling
+* Remove default response Content-Type header (was 'application/json;charset=utf-8'). Must be set per API (group) seperately
+* Remove/refactor global variable $angularApp. Use MenuItemRegistry::addMenuItem() and AmpersandApp::frontend() instead
+* Refactor bootstrapping of framework, including API definitions. PHP files with API routes in './bootstrap/api' are bootstrapped automatically
 
 ## v1.13.0 (10 dec 2021)
 * [Issue 68](https://github.com/AmpersandTarski/prototype/issues/68) Update Docker image to PHP v8.1. Make backend compatible with php 8.x

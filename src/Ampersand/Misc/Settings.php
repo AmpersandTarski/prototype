@@ -7,7 +7,7 @@
 
 namespace Ampersand\Misc;
 
-use Exception;
+use Ampersand\Exception\InvalidConfigurationException;
 use Ampersand\Misc\Extension;
 use Ampersand\Model;
 use Symfony\Component\Filesystem\Filesystem;
@@ -107,7 +107,7 @@ class Settings
 
         $fileSystem = new Filesystem;
         if (!$fileSystem->exists($filePath)) {
-            throw new Exception("Cannot load settings file. Specified path does not exist: '{$filePath}'", 500);
+            throw new InvalidConfigurationException("Cannot load settings file. Specified path does not exist: '{$filePath}'");
         }
 
         $decoder = new JsonDecode(false);
@@ -131,7 +131,7 @@ class Settings
         $fileSystem = new Filesystem;
         if (!$fileSystem->exists($filePath)) {
             if ($fileMustExist) {
-                throw new Exception("Cannot load settings file. Specified path does not exist: '{$filePath}'", 500);
+                throw new InvalidConfigurationException("Cannot load settings file. Specified path does not exist: '{$filePath}'");
             } else {
                 $this->logger->info("Configuration file does not exist: '{$filePath}'");
                 return $this;
@@ -164,7 +164,7 @@ class Settings
                     }
                 // Extension config is provided
                 } else {
-                    throw new Exception("Unable to load config for extension '{$extName}' in '{$filePath}'", 500);
+                    throw new InvalidConfigurationException("Unable to load config for extension '{$extName}' in '{$filePath}'");
                 }
             }
 
@@ -174,7 +174,7 @@ class Settings
         // Process additional config files
         if (isset($file['config'])) {
             if (!is_array($file['config'])) {
-                throw new Exception("Unable to process additional config files in {$filePath}. List expected, non-list provided.", 500);
+                throw new InvalidConfigurationException("Unable to process additional config files in {$filePath}. List expected, non-list provided.");
             }
 
             foreach ($file['config'] as $path) {
@@ -210,7 +210,7 @@ class Settings
         $setting = strtolower($setting); // use lowercase
 
         if (!array_key_exists($setting, $this->settings) && is_null($defaultIfNotSet)) {
-            throw new Exception("Setting '{$setting}' is not specified", 500);
+            throw new InvalidConfigurationException("Setting '{$setting}' is not specified");
         }
 
         return $this->settings[$setting] ?? $defaultIfNotSet;
@@ -227,7 +227,7 @@ class Settings
         $setting = strtolower($setting); // use lowercase
         
         if (array_key_exists($setting, $this->settings) && !$overwriteAllowed) {
-            throw new Exception("Setting '{$setting}' is set already; overwrite is not allowed", 500);
+            throw new InvalidConfigurationException("Setting '{$setting}' is set already; overwrite is not allowed");
         }
 
         $this->settings[$setting] = $value;
@@ -271,7 +271,7 @@ class Settings
         if (!is_dir($path)) {
             // Try to create the directory
             if (!mkdir($path, 0777, true)) {
-                throw new Exception("Specified data directory '{$path}' is not a directory, cannot be created or is not accessible", 500);
+                throw new InvalidConfigurationException("Specified data directory '{$path}' is not a directory, cannot be created or is not accessible");
             }
         }
 

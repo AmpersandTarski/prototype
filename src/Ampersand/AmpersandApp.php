@@ -18,6 +18,12 @@ use Ampersand\Log\Logger;
 use Ampersand\Log\UserLogger;
 use Ampersand\Core\Relation;
 use Ampersand\Event\TransactionEvent;
+use Ampersand\Exception\AmpersandException;
+use Ampersand\Exception\FatalException;
+use Ampersand\Exception\InvalidConfigurationException;
+use Ampersand\Exception\MetaModelException;
+use Ampersand\Exception\NotDefined\NotDefinedException;
+use Ampersand\Frontend\FrontendInterface;
 use Closure;
 use Psr\Cache\CacheItemPoolInterface;
 use Ampersand\Interfacing\Ifc;
@@ -45,6 +51,11 @@ class AmpersandApp
      * Ampersand application name (i.e. CONTEXT of ADL entry script)
      */
     protected string $name;
+
+    /**
+     * Reference to frontend implementation (e.g. AngularJSApp)
+     */
+    protected FrontendInterface $frontend;
 
     /**
      * Reference to generated Ampersand model
@@ -165,66 +176,78 @@ class AmpersandApp
         return $this;
     }
 
+    public function frontend(): FrontendInterface
+    {
+        return $this->frontend;
+    }
+
+    public function setFrontend(FrontendInterface $frontend): self
+    {
+        $this->frontend = $frontend;
+        return $this;
+    }
+
+    public function inProductionMode(): bool
+    {
+        return $this->settings->get('global.productionEnv', true);
+    }
+
     public function init(): self
     {
-        try {
-            $this->logger->info('Initialize Ampersand application');
+        $this->logger->info('Initialize Ampersand application');
 
-            // Check for default storage plug
-            if (!in_array($this->defaultStorage, $this->storages)) {
-                throw new Exception("No default storage plug registered", 500);
-            }
-
-            // Check for conjunct cache
-            if (is_null($this->conjunctCache)) {
-                throw new Exception("No conjunct cache implementaion registered", 500);
-            }
-
-            // Initialize storage plugs
-            foreach ($this->storages as $storagePlug) {
-                $storagePlug->init();
-            }
-
-            // Initialize Ampersand model (i.e. load all defintions from generated json files)
-            $this->model->init($this);
-
-            // Verify checksum
-            // Must be done after init of storages and init of model (see above)
-            if (!$this->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
-                $this->userLogger->warning("Generated model is changed. You SHOULD reinstall or migrate your application");
-            }
-
-            // Add concept plugs
-            foreach ($this->model->getAllConcepts() as $cpt) {
-                if (array_key_exists($cpt->label, $this->customConceptPlugs)) {
-                    foreach ($this->customConceptPlugs[$cpt->label] as $plug) {
-                        $cpt->addPlug($plug);
-                    }
-                } else {
-                    $cpt->addPlug($this->defaultStorage); // @phan-suppress-current-line PhanTypeMismatchArgumentSuperType
-                }
-            }
-
-            // Add relation plugs
-            foreach ($this->model->getRelations() as $rel) {
-                if (array_key_exists($rel->signature, $this->customRelationPlugs)) {
-                    foreach ($this->customRelationPlugs[$rel->signature] as $plug) {
-                        $rel->addPlug($plug);
-                    }
-                } else {
-                    $rel->addPlug($this->defaultStorage); // @phan-suppress-current-line PhanTypeMismatchArgumentSuperType
-                }
-            }
-
-            // Run registered initialization closures
-            foreach ($this->initClosures as $closure) {
-                $closure->call($this);
-            }
-
-            return $this;
-        } catch (\Ampersand\Exception\NotInstalledException $e) {
-            throw $e;
+        // Check for default storage plug
+        if (!in_array($this->defaultStorage, $this->storages)) {
+            throw new NotDefinedException("No default storage plug registered");
         }
+
+        // Check for conjunct cache
+        if (is_null($this->conjunctCache)) {
+            throw new NotDefinedException("No conjunct cache implementaion registered");
+        }
+
+        // Initialize storage plugs
+        foreach ($this->storages as $storagePlug) {
+            $storagePlug->init();
+        }
+
+        // Initialize Ampersand model (i.e. load all defintions from generated json files)
+        $this->model->init($this);
+
+        // Verify checksum
+        // Must be done after init of storages and init of model (see above)
+        if (!$this->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
+            $this->userLogger->warning("Generated model is changed. You SHOULD reinstall or migrate your application");
+        }
+
+        // Add concept plugs
+        foreach ($this->model->getAllConcepts() as $cpt) {
+            if (array_key_exists($cpt->label, $this->customConceptPlugs)) {
+                foreach ($this->customConceptPlugs[$cpt->label] as $plug) {
+                    $cpt->addPlug($plug);
+                }
+            } else {
+                $cpt->addPlug($this->defaultStorage); // @phan-suppress-current-line PhanTypeMismatchArgumentSuperType
+            }
+        }
+
+        // Add relation plugs
+        foreach ($this->model->getRelations() as $rel) {
+            if (array_key_exists($rel->signature, $this->customRelationPlugs)) {
+                foreach ($this->customRelationPlugs[$rel->signature] as $plug) {
+                    $rel->addPlug($plug);
+                }
+            } else {
+                $rel->addPlug($this->defaultStorage); // @phan-suppress-current-line PhanTypeMismatchArgumentSuperType
+            }
+        }
+
+        // Run registered initialization closures
+        foreach ($this->initClosures as $closure) {
+            $closure->call($this);
+        }
+
+        return $this;
     }
 
     /**
@@ -258,7 +281,7 @@ class AmpersandApp
     public function getDefaultStorage(): MysqlDB
     {
         if (is_null($this->defaultStorage)) {
-            throw new Exception("Default storage not set for Ampersand app", 500);
+            throw new NotDefinedException("Default storage not set for Ampersand app");
         }
 
         return $this->defaultStorage;
@@ -278,7 +301,7 @@ class AmpersandApp
     public function getConjunctCache(): CacheItemPoolInterface
     {
         if (is_null($this->conjunctCache)) {
-            throw new Exception("Conjunct cache not set for Ampersand app", 500);
+            throw new NotDefinedException("Conjunct cache not set for Ampersand app");
         }
 
         return $this->conjunctCache;
@@ -348,17 +371,17 @@ class AmpersandApp
         // Get accessible interfaces using defined INTERFACE
         if (!is_null($rbacIfcId)) {
             if (!$this->model->interfaceExists($rbacIfcId)) {
-                throw new Exception("Specified interface '{$rbacIfcId}' in setting '{$settingKey}' does not exist", 500);
+                throw new InvalidConfigurationException("Specified interface '{$rbacIfcId}' in setting '{$settingKey}' does not exist");
             }
             
             $rbacIfc = $this->model->getInterface($rbacIfcId);
 
             // Check for the right SRC and TGT concepts
             if ($rbacIfc->getSrcConcept() !== $this->model->getSessionConcept()) {
-                throw new Exception("Src concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getSessionConcept()->getId()}", 500);
+                throw new MetaModelException("Src concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getSessionConcept()->getId()}");
             }
             if ($rbacIfc->getTgtConcept() !== $this->model->getInterfaceConcept()) {
-                throw new Exception("Tgt concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getInterfaceConcept()->getId()}", 500);
+                throw new MetaModelException("Tgt concept of interface '{$rbacIfcId}' in setting '{$settingKey}' MUST be {$this->model->getInterfaceConcept()->getId()}");
             }
 
             $this->logger->debug("Getting accessible interfaces using INTERFACE {$rbacIfc->getId()}");
@@ -403,7 +426,7 @@ class AmpersandApp
     public function getSession(): Session
     {
         if (is_null($this->session)) {
-            throw new Exception("Session not yet initialized", 500);
+            throw new FatalException("Session not yet initialized");
         }
         return $this->session;
     }
@@ -533,6 +556,8 @@ class AmpersandApp
         // Clear notifications
         $this->userLogger->clearAll();
 
+        $this->model->init($this);
+
         // Call reinstall method on every registered storage (e.g. for MysqlDB implementation this means (re)creating database structure)
         foreach ($this->storages as $storage) {
             $storage->reinstallStorage($this->model);
@@ -563,7 +588,7 @@ class AmpersandApp
                 $this->logger->warning("Invariant rules do not hold for meta population and/or navigation menu");
             }
         } catch (Exception $e) {
-            throw new Exception("Error while installing metapopulation and navigation menus: {$e->getMessage()}", 500, $e);
+            throw new AmpersandException("Error while installing metapopulation and navigation menus: {$e->getMessage()}", previous: $e);
         }
 
         // Initial population
@@ -576,7 +601,7 @@ class AmpersandApp
         // Close transaction
         $transaction->runExecEngine()->close(false, $ignoreInvariantRules);
         if ($transaction->isRolledBack()) {
-            throw new Exception("Initial installation does not satisfy invariant rules. See log files", 500);
+            throw new MetaModelException("Initial installation does not satisfy invariant rules. See log files");
         }
 
         // Evaluate all conjunct and save cache

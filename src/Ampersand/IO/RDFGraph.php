@@ -9,10 +9,11 @@ namespace Ampersand\IO;
 
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
+use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\FatalException;
 use Ampersand\Misc\AcceptHeader;
 use Ampersand\Misc\Settings;
 use Ampersand\Model;
-use Exception;
 
 class RDFGraph extends \EasyRdf\Graph
 {
@@ -68,7 +69,7 @@ class RDFGraph extends \EasyRdf\Graph
                 return;
             } else {
                 // TODO: flip relation
-                throw new Exception("Case where SRC concept of relation is scalar is not yet supported: {$relation}", 501);
+                throw new FatalException("Case where SRC concept of relation is scalar is not yet supported: {$relation}");
             }
         }
 
@@ -107,10 +108,10 @@ class RDFGraph extends \EasyRdf\Graph
     {
         // Checks
         if ($min < 0) {
-            throw new Exception("Unsupported value '{$min}' for minimal cardinality. Value must be >= 0.", 500);
+            throw new FatalException("Unsupported value '{$min}' for minimal cardinality. Value must be >= 0.");
         }
         if ($max < -1) {
-            throw new Exception("Unsupported value '{$max}' for maximum cardinality. Value must be >= 0 or -1 to specify unbounded", 500);
+            throw new FatalException("Unsupported value '{$max}' for maximum cardinality. Value must be >= 0 or -1 to specify unbounded");
         }
         if ($min === 0 && $max === -1) {
             // Default owl cardinalities, no rescriction is needed
@@ -158,7 +159,7 @@ class RDFGraph extends \EasyRdf\Graph
         }
 
         if ($rdfFormat === null) {
-            throw new Exception("No supported formats in accept header. Supported: " . \EasyRdf\Format::getHttpAcceptHeader(), 400);
+            throw new BadRequestException("No supported formats in accept header. Supported: " . \EasyRdf\Format::getHttpAcceptHeader());
         }
         return $rdfFormat;
     }

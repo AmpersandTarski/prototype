@@ -7,7 +7,6 @@
 
 namespace Ampersand\Rule;
 
-use Exception;
 use Ampersand\Role;
 use Ampersand\Log\Logger;
 use Ampersand\Rule\Violation;
@@ -16,7 +15,10 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 use Closure;
 use Ampersand\AmpersandApp;
+use Ampersand\Exception\InvalidConfigurationException;
+use Ampersand\Exception\InvalidExecEngineCallException;
 use Ampersand\Transaction;
+use Throwable;
 
 class ExecEngine extends RuleEngine
 {
@@ -121,7 +123,7 @@ class ExecEngine extends RuleEngine
     public function getCreatedAtom(): Atom
     {
         if (is_null($this->newAtom)) {
-            throw new Exception("No newly created atom (_NEW) available. To fix: first execute function InsAtom.", 500);
+            throw new InvalidExecEngineCallException("No newly created atom (_NEW) available. To fix: first execute function InsAtom.");
         }
         return $this->newAtom;
     }
@@ -235,11 +237,11 @@ class ExecEngine extends RuleEngine
             $functionName = trim(array_shift($params)); // first parameter is function name
             $closure = self::getFunction($functionName);
             try {
-                $this->info("{$functionName}(" . implode(',', $params) . ")");
+                $fnStr = "{$functionName}(" . implode(',', $params) . ")";
+                $this->info($fnStr);
                 $closure->call($this, ...$params);
-            // Catch exceptions from ExecEngine functions and log to user
-            } catch (Exception $e) {
-                $this->ampersandApp->userLog()->error("{$functionName}: {$e->getMessage()}");
+            } catch (Throwable $e) { // We also catch php Errors here because 
+                throw new InvalidExecEngineCallException("Invalid exec engine function call as defined in {$violation->getRule()->getOrigin()}. Function call '{$fnStr}'. {$e->getMessage()}", previous: $e);
             }
         }
     }
@@ -276,7 +278,7 @@ class ExecEngine extends RuleEngine
         if (array_key_exists($functionName, self::$closures)) {
             return self::$closures[$functionName];
         } else {
-            throw new Exception("Function '{$functionName}' does not exist. Register ExecEngine function.", 500);
+            throw new InvalidExecEngineCallException("Function '{$functionName}' does not exist. Register ExecEngine function");
         }
     }
 
@@ -286,10 +288,10 @@ class ExecEngine extends RuleEngine
     public static function registerFunction(string $name, Closure $closure): void
     {
         if (empty($name)) {
-            throw new Exception("ExecEngine function must be given a name. Empty string/0/null provided", 500);
+            throw new InvalidConfigurationException("ExecEngine function must be given a name. Empty string/0/null provided");
         }
         if (array_key_exists($name, self::$closures)) {
-            throw new Exception("ExecEngine function '{$name}' already exists", 500);
+            throw new InvalidConfigurationException("ExecEngine function '{$name}' already exists");
         }
         self::$closures[$name] = $closure;
         Logger::getLogger('EXECENGINE')->debug("ExecEngine function '{$name}' registered");

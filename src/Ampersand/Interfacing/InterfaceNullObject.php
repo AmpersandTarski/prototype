@@ -10,13 +10,14 @@ namespace Ampersand\Interfacing;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\Options;
 use Ampersand\Interfacing\Ifc;
-use Exception;
 use function Ampersand\Misc\isSequential;
 use Ampersand\Core\Atom;
 use Ampersand\Interfacing\AbstractIfcObject;
 use Ampersand\Core\Concept;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\AccessDeniedException;
+use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\MethodNotAllowedException;
 
 /**
  *
@@ -242,7 +243,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
         if (isset($tgtId)) {
             $tgtAtom = new Atom($tgtId, $this->tgtConcept);
             if ($tgtAtom->exists()) {
-                throw new Exception("Cannot create resource that already exists", 400);
+                throw new BadRequestException("Cannot create resource that already exists");
             }
         } else {
             $tgtAtom = $this->tgtConcept->createNewAtom();
@@ -299,27 +300,27 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
 
     public function set(Atom $src, $value = null): ?Atom
     {
-        throw new Exception("No interface specified", 405);
+        throw new MethodNotAllowedException("No interface specified");
     }
 
     public function add(Atom $src, $value): Atom
     {
-        throw new Exception("No interface specified", 405);
+        throw new MethodNotAllowedException("No interface specified");
     }
 
     public function remove(Atom $src, $value): void
     {
-        throw new Exception("No interface specified", 405);
+        throw new MethodNotAllowedException("No interface specified");
     }
 
     public function removeAll(Atom $src): void
     {
-        throw new Exception("No interface specified", 405);
+        throw new MethodNotAllowedException("No interface specified");
     }
 
     public function delete(Resource $tgtAtom): void
     {
-        throw new Exception("No interface specified", 405);
+        throw new MethodNotAllowedException("No interface specified");
     }
 
     /**********************************************************************************************

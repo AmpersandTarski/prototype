@@ -7,7 +7,7 @@
 
 namespace Ampersand\Plugs\MysqlDB;
 
-use Exception;
+use Ampersand\Exception\FatalException;
 
 enum TableType: string
 {
@@ -25,7 +25,7 @@ enum TableType: string
             case null:
                 return self::Binary;
             default:
-                throw new Exception("Unknown tableOf value '{$tableOf}' specified for relation table {$relationName}", 500);
+                throw new FatalException("Unknown tableOf value '{$tableOf}' specified for relation table {$relationName}");
         }
     }
 }

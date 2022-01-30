@@ -12,6 +12,11 @@ use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Core\SrcOrTgt;
 use Ampersand\Core\TType;
+use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\FatalException;
+use Ampersand\Exception\NotDefined\InterfaceNotDefined;
+use Ampersand\Exception\MetaModelException;
+use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Interfacing\AbstractIfcObject;
 use Ampersand\Interfacing\BoxHeader;
 use Ampersand\Interfacing\Ifc;
@@ -21,7 +26,6 @@ use Ampersand\Interfacing\Resource;
 use Ampersand\Interfacing\View;
 use Ampersand\Plugs\IfcPlugInterface;
 use Ampersand\Plugs\MysqlDB\TableType;
-use Exception;
 use function Ampersand\Misc\isSequential;
 
 /**
@@ -94,7 +98,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function __construct(array $ifcDef, IfcPlugInterface $plug, Ifc $rootIfc, ?InterfaceObjectInterface $parent = null)
     {
         if ($ifcDef['type'] != 'ObjExpression') {
-            throw new Exception("Provided interface definition is not of type ObjExpression", 500);
+            throw new FatalException("Provided interface definition is not of type ObjExpression");
         }
 
         $this->plug = $plug;
@@ -112,7 +116,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         
         // Interface expression information
         if (!isset($ifcDef['expr'])) {
-            throw new Exception("Expression information not defined for interface object {$this->path}", 500);
+            throw new FatalException("Expression information not defined for interface object {$this->path}");
         }
         $this->srcConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['srcConceptId']);
         $this->tgtConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['tgtConceptId']);
@@ -128,7 +132,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
             // Subinterfacing is not supported/possible for tgt concepts with a scalar representation type (i.e. non-objects)
             if (!$this->tgtConcept->isObject()) {
-                throw new Exception("Subinterfacing is not supported for concepts with a scalar representation type (i.e. non-objects). (Sub)Interface '{$this->path}' with target {$this->tgtConcept} (ttype:{$this->tgtConcept->type->value}) has subinterfaces specified", 501);
+                throw new MetaModelException("Subinterfacing is not supported for concepts with a scalar representation type (i.e. non-objects). (Sub)Interface '{$this->path}' with target {$this->tgtConcept} (ttype:{$this->tgtConcept->type->value}) has subinterfaces specified");
             }
 
             // Process boxheader information
@@ -145,7 +149,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         
         // CRUD rights
         if (!isset($ifcDef['crud'])) {
-            throw new Exception("Cannot determine crud rights for interface object {$this->path}", 500);
+            throw new FatalException("Cannot determine crud rights for interface object {$this->path}");
         }
         $this->crudC = $ifcDef['crud']['create'];
         $this->crudR = $ifcDef['crud']['read'];
@@ -187,7 +191,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     protected function relation(): Relation
     {
         if (is_null($this->relation)) {
-            throw new Exception("Interface expression for '{$this->label}' is not an (editable) relation", 500);
+            throw new BadRequestException("Interface expression for '{$this->label}' is not an (editable) relation");
         } else {
             return $this->relation;
         }
@@ -310,7 +314,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function getSubinterface(string $ifcId, int $options = Options::DEFAULT_OPTIONS): InterfaceObjectInterface
     {
         if (!array_key_exists($ifcId, $subifcs = $this->getSubinterfaces($options))) {
-            throw new Exception("Subinterface '{$ifcId}' does not exist in interface '{$this->path}'", 500);
+            throw new InterfaceNotDefined("Subinterface '{$ifcId}' does not exist in interface '{$this->path}'");
         }
     
         return $subifcs[$ifcId];
@@ -324,7 +328,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             }
         }
         
-        throw new Exception("Subinterface '{$ifcLabel}' does not exist in interface '{$this->path}'", 500);
+        throw new InterfaceNotDefined("Subinterface '{$ifcLabel}' does not exist in interface '{$this->path}'");
     }
     
     /**
@@ -393,7 +397,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     ): mixed
     {
         if (!$this->crudR()) {
-            throw new Exception("Read not allowed for ". $this->getPath(), 405);
+            throw new MethodNotAllowedException("Read not allowed for ". $this->getPath());
         }
 
         // Initialize result
@@ -492,7 +496,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
                         case 'unknown type':
                         case 'resource (closed)':
                         case 'resource':
-                            throw new Exception("Unexpected error. Not implemented case for sortvalue", 501);
+                            throw new FatalException("Unexpected error. Not implemented case for sortvalue");
                             break;
                         default:
                             $sortValue = $value;
@@ -523,14 +527,14 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         }
 
         if (!$this->crudC()) {
-            throw new Exception("Create not allowed for ". $this->getPath(), 405);
+            throw new MethodNotAllowedException("Create not allowed for ". $this->getPath());
         }
         
         // Make new resource
         if (isset($tgtId)) {
             $tgtAtom = new Atom($tgtId, $this->tgtConcept);
             if ($tgtAtom->exists()) {
-                throw new Exception("Cannot create resource that already exists", 400);
+                throw new BadRequestException("Cannot create resource that already exists");
             }
         } else {
             $tgtAtom = $this->tgtConcept->createNewAtom();
@@ -553,11 +557,11 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function set(Atom $src, mixed $value = null): ?Atom
     {
         if (!$this->isUni()) {
-            throw new Exception("Cannot use set() for non-univalent interface " . $this->getPath() . ". Use add or remove instead", 400);
+            throw new BadRequestException("Cannot use set() for non-univalent interface " . $this->getPath() . ". Use add or remove instead");
         }
 
         if (is_array($value)) {
-            throw new Exception("Non-array expected but array provided while updating " . $this->getPath(), 400);
+            throw new BadRequestException("Non-array expected but array provided while updating " . $this->getPath());
         }
         
         // Handle Ampersand properties [PROP]
@@ -568,7 +572,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
                 $this->remove($src, $src->getId());
                 return null;
             } else {
-                throw new Exception("Boolean expected, non-boolean provided.", 400);
+                throw new BadRequestException("Boolean expected, non-boolean provided.");
             }
         } elseif ($this->isIdent()) { // Ident object => no need to set
             return $src;
@@ -588,22 +592,22 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function add(Atom $src, mixed $value, bool $skipCrudUCheck = false): Atom
     {
         if (!isset($value)) {
-            throw new Exception("Cannot add item. Value not provided", 400);
+            throw new BadRequestException("Cannot add item. Value not provided");
         }
         if (is_object($value) || is_array($value)) {
-            throw new Exception("Literal expected but " . gettype($value) . " provided while updating " . $this->getPath(), 400);
+            throw new BadRequestException("Literal expected but " . gettype($value) . " provided while updating " . $this->getPath());
         }
         
         if (!$this->isEditable()) {
-            throw new Exception("Interface is not editable " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Interface is not editable " . $this->getPath());
         }
         if (!$this->crudU() && !$skipCrudUCheck) {
-            throw new Exception("Update not allowed for " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Update not allowed for " . $this->getPath());
         }
         
         $tgt = new Atom($value, $this->tgtConcept);
         if ($tgt->concept->isObject() && !$this->crudC() && !$tgt->exists()) {
-            throw new Exception("Create not allowed for " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Create not allowed for " . $this->getPath());
         }
         
         $tgt->add();
@@ -618,17 +622,17 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function remove(Atom $src, mixed $value): void
     {
         if (!isset($value)) {
-            throw new Exception("Cannot remove item. Value not provided", 400);
+            throw new BadRequestException("Cannot remove item. Value not provided");
         }
         if (is_object($value) || is_array($value)) {
-            throw new Exception("Literal expected but " . gettype($value) . " provided while updating " . $this->getPath(), 400);
+            throw new BadRequestException("Literal expected but " . gettype($value) . " provided while updating " . $this->getPath());
         }
         
         if (!$this->isEditable()) {
-            throw new Exception("Interface is not editable " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Interface is not editable " . $this->getPath());
         }
         if (!$this->crudU()) {
-            throw new Exception("Update not allowed for " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Update not allowed for " . $this->getPath());
         }
         
         $tgt = new Atom($value, $this->tgtConcept);
@@ -643,10 +647,10 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function removeAll(Atom $src): void
     {
         if (!$this->isEditable()) {
-            throw new Exception("Interface is not editable " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Interface is not editable " . $this->getPath());
         }
         if (!$this->crudU()) {
-            throw new Exception("Update not allowed for " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Update not allowed for " . $this->getPath());
         }
         
         $this->relation->deleteAllLinks($src, ($this->relationIsFlipped ? SrcOrTgt::TGT : SrcOrTgt::SRC));
@@ -657,7 +661,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function delete(Resource $tgtAtom): void
     {
         if (!$this->crudD()) {
-            throw new Exception("Delete not allowed for ". $this->getPath(), 405);
+            throw new MethodNotAllowedException("Delete not allowed for ". $this->getPath());
         }
         
         // Perform delete
@@ -674,7 +678,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function getTgtAtoms(Atom $src, ?string $selectTgt = null): array
     {
         if (!$this->crudR()) {
-            throw new Exception("Read not allowed for " . $this->getPath(), 405);
+            throw new MethodNotAllowedException("Read not allowed for " . $this->getPath());
         }
 
         $tgts = [];
@@ -702,7 +706,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
 
         // Integrity check
         if ($this->isUni() && count($tgts) > 1) {
-            throw new Exception("Univalent (sub)interface returns more than 1 resource: " . $this->getPath(), 500);
+            throw new FatalException("Univalent (sub)interface returns more than 1 resource: " . $this->getPath());
         }
 
         // If specific target is specified, pick that one out

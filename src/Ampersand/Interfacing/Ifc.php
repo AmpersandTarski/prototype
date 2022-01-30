@@ -10,6 +10,7 @@ namespace Ampersand\Interfacing;
 use Ampersand\AmpersandApp;
 use Ampersand\Core\Atom;
 use Ampersand\Core\Concept;
+use Ampersand\Exception\FatalException;
 use Ampersand\Interfacing\InterfaceExprObject;
 use Ampersand\Interfacing\InterfaceExprObjectRef;
 use Ampersand\Interfacing\InterfaceNullObject;
@@ -18,7 +19,6 @@ use Ampersand\Interfacing\InterfaceTxtObject;
 use Ampersand\Misc\ProtoContext;
 use Ampersand\Model;
 use Ampersand\Plugs\IfcPlugInterface;
-use Exception;
 
 /**
  *
@@ -148,7 +148,7 @@ class Ifc
                 return new InterfaceTxtObject($objectDef, $parent);
                 break;
             default:
-                throw new Exception("Unsupported/unknown InterfaceObject type specified: '{$objectDef['type']}' is not supported", 500);
+                throw new FatalException("Unsupported/unknown InterfaceObject type specified: '{$objectDef['type']}' is not supported");
                 break;
         }
     }
@@ -156,7 +156,7 @@ class Ifc
     public function newExprObject(array $objectDef, IfcPlugInterface $defaultPlug, InterfaceObjectInterface $parent = null): InterfaceExprObject
     {
         if ($objectDef['type'] !== 'ObjExpression') {
-            throw new Exception("Interface expression object definition required, but '{$objectDef['type']}' provided.", 500);
+            throw new FatalException("Interface expression object definition required, but '{$objectDef['type']}' provided.");
         }
 
         if (isset($objectDef['subinterfaces']['refSubInterfaceId'])) {

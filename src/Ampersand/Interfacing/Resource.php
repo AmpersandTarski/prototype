@@ -17,6 +17,7 @@ use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\ResourcePath;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\Exception\AtomNotFoundException;
+use Ampersand\Exception\BadRequestException;
 
 /**
  *
@@ -44,7 +45,7 @@ class Resource extends Atom
     public function __construct(string $resourceId, Concept $cpt, ResourceList $parentList)
     {
         // if (!$cpt->isObject()) {
-        //     throw new Exception("Cannot instantiate resource, because its type '{$cpt}' is a non-object concept", 400);
+        //     throw new BadRequestException("Cannot instantiate resource, because its type '{$cpt}' is a non-object concept");
         // }
         
         // Call Atom constructor
@@ -182,7 +183,7 @@ class Resource extends Atom
     public function walkPathToList(array $pathList): ResourceList
     {
         if (empty($pathList)) {
-            throw new Exception("Provided path MUST NOT end with a resource identifier", 400);
+            throw new BadRequestException("Provided path MUST NOT end with a resource identifier");
         } else {
             return $this->list(array_shift($pathList))->walkPathToList($pathList);
         }
@@ -231,11 +232,11 @@ class Resource extends Atom
                         $list->post($value);
                     }
                 } else {
-                    throw new Exception("Wrong datatype provided: expecting null, scalar or object for '{$list->getIfcObject()->getPath()}'", 400);
+                    throw new BadRequestException("Wrong datatype provided: expecting null, scalar or object for '{$list->getIfcObject()->getPath()}'");
                 }
             } else { // expect value to be array
                 if (!is_array($value)) {
-                    throw new Exception("Wrong datatype provided: expecting array for {$list->getIfcObject()->getPath()}", 400);
+                    throw new BadRequestException("Wrong datatype provided: expecting array for {$list->getIfcObject()->getPath()}");
                 }
                 
                 // First empty existing list
@@ -252,7 +253,7 @@ class Resource extends Atom
                             $list->post($item);
                         }
                     } else {
-                        throw new Exception("Wrong datatype provided: expecting scalar or object for '{$list->getIfcObject()->getPath()}'", 400);
+                        throw new BadRequestException("Wrong datatype provided: expecting scalar or object for '{$list->getIfcObject()->getPath()}'");
                     }
                 }
             }
@@ -273,10 +274,10 @@ class Resource extends Atom
     {
         foreach ($patches as $key => $patch) {
             if (!property_exists($patch, 'op')) {
-                throw new Exception("No 'op' (i.e. operation) specfied for patch #{$key}", 400);
+                throw new BadRequestException("No 'op' (i.e. operation) specfied for patch #{$key}");
             }
             if (!property_exists($patch, 'path')) {
-                throw new Exception("No 'path' specfied for patch #{$key}", 400);
+                throw new BadRequestException("No 'path' specfied for patch #{$key}");
             }
 
             $pathList = ResourcePath::makePathList($patch->path);
@@ -286,13 +287,13 @@ class Resource extends Atom
                 switch ($patch->op) {
                     case "replace":
                         if (!property_exists($patch, 'value')) {
-                            throw new Exception("No 'value' specfied", 400);
+                            throw new BadRequestException("No 'value' specfied");
                         }
                         $this->walkPathToList($pathList)->set($patch->value);
                         break;
                     case "add":
                         if (!property_exists($patch, 'value')) {
-                            throw new Exception("No 'value' specfied", 400);
+                            throw new BadRequestException("No 'value' specfied");
                         }
                         $this->walkPathToList($pathList)->add($patch->value);
                         break;
@@ -307,20 +308,16 @@ class Resource extends Atom
                         break;
                     case "create":
                         if (!property_exists($patch, 'value')) {
-                            throw new Exception("No 'value' specfied", 400);
+                            throw new BadRequestException("No 'value' specfied");
                         }
                         $this->walkPathToList($pathList)->create($patch->value);
                         break;
                     default:
-                        throw new Exception("Unknown patch operation '{$patch->op}'. Supported are: 'replace', 'add' and 'remove', 'create'", 400);
+                        throw new BadRequestException("Unknown patch operation '{$patch->op}'. Supported are: 'replace', 'add' and 'remove', 'create'");
                 }
-            } catch (Exception $e) {
-                if ($e->getCode() >= 400 && $e->getCode() < 500) {
-                    // Add patch # to all bad request (4xx) errors
-                    throw new Exception("Error in patch #{$key}: {$e->getMessage()}", $e->getCode(), $e);
-                } else {
-                    throw $e;
-                }
+            } catch (BadRequestException $e) {
+                // Add patch # to all bad request exceptions
+                throw new BadRequestException("Error in patch #{$key}: {$e->getMessage()}", previous: $e);
             }
         }
         

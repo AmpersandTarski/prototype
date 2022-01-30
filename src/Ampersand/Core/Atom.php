@@ -7,13 +7,15 @@
 
 namespace Ampersand\Core;
 
-use Exception;
 use DateTime;
 use DateTimeZone;
 use JsonSerializable;
 use Ampersand\Core\Link;
 use Ampersand\Core\TType;
 use Ampersand\Core\Concept;
+use Ampersand\Exception\AmpersandException;
+use Ampersand\Exception\AtomAlreadyExistsException;
+use Ampersand\Exception\FatalException;
 
 /**
  *
@@ -78,7 +80,7 @@ class Atom implements JsonSerializable
     {
         // TODO: check can be removed when _NEW is replaced by other mechanism
         if ($atomId === '_NEW') {
-            throw new Exception("Replace _NEW with intended atom id before instantiating Atom object", 500);
+            throw new AmpersandException("Replace _NEW with intended atom id before instantiating Atom object");
         }
         
         switch ($this->concept->type) {
@@ -108,7 +110,7 @@ class Atom implements JsonSerializable
                 $this->id = $atomId;
                 break;
             default:
-                throw new Exception("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'", 501);
+                throw new FatalException("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'");
         }
         return $this;
     }
@@ -116,7 +118,7 @@ class Atom implements JsonSerializable
     /**
      * Returns json representation of Atom (identifier) according to Ampersand technical types (TTypes)
      * Function is called when object encoded to json with json_encode()
-     * @throws Exception when technical type is not (yet) supported
+     * @throws \Ampersand\Exception\FatalException when technical type is not (yet) supported
      */
     public function jsonSerialize(): mixed
     {
@@ -144,7 +146,7 @@ class Atom implements JsonSerializable
             case TType::OBJECT:
                 return rawurlencode($this->id);
             default:
-                throw new Exception("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'", 501);
+                throw new FatalException("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'");
         }
     }
     
@@ -206,7 +208,7 @@ class Atom implements JsonSerializable
     {
         $newAtom = new Atom($newAtomId, $this->concept);
         if ($newAtom->exists()) {
-            throw new Exception("Cannot change atom identifier, because id is already used by another atom of the same concept", 500);
+            throw new AtomAlreadyExistsException("Cannot change atom identifier, because id is already used by another atom of the same concept");
         } else {
             $newAtom->add(false);
             return $newAtom->merge($this);

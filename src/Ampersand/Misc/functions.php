@@ -2,6 +2,7 @@
 
 namespace Ampersand\Misc;
 
+use Ampersand\Exception\FatalException;
 use Exception;
 use League\Flysystem\FilesystemInterface;
 use Throwable;
@@ -138,7 +139,7 @@ function returnBytes(string|int $value): int
         case 'K':
             return $val * 1024**1;
         default:
-            throw new Exception("Unsupported shorthand notation for number of bytes: '{$value}'", 500);
+            throw new FatalException("Unsupported shorthand notation for number of bytes: '{$value}'");
     }
 }
 
