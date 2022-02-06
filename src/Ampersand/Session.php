@@ -233,7 +233,7 @@ class Session
             } else {
                 $account = current($sessionAccounts);
                 $this->logger->debug("Session account is: '{$account}'");
-                return $account;
+                return $account->tgt();
             }
         }
     }

@@ -10,6 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+* Bugfix wrong return type of method Session::getSessionAccount()
 
 ## v1.14.0 (30 jan 2022)
 * **Note! Contains backward incompatible changes for projects that extend or customize the backend framework**
