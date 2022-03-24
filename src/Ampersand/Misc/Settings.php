@@ -144,31 +144,43 @@ class Settings
         $file = $encoder->decode(file_get_contents($filePath), YamlEncoder::FORMAT);
 
         // Process specified settings
-        foreach ((array)$file['settings'] as $setting => $value) {
-            $this->set($setting, $value, $overwriteAllowed);
+        if (isset($file['settings'])) {
+            if (!is_array($file['settings'])) {
+                throw new InvalidConfigurationException("Unable to process settings in {$filePath}. List expected, non-list provided.");
+            }
+
+            foreach ($file['settings'] as $setting => $value) {
+                $this->set($setting, $value, $overwriteAllowed);
+            }
         }
 
         // Process specified extensions
-        foreach ((array)$file['extensions'] as $extName => $data) {
-            $bootstrapFile = isset($data['bootstrap']) ? $this->get('global.absolutePath') . "/" . $data['bootstrap'] : null;
-            
-            if (isset($data['config'])) {
-                // Reference to another config file
-                if (is_string($data['config'])) {
-                    $configFile = $this->get('global.absolutePath') . "/" . $data['config'];
-                    $this->loadSettingsYamlFile($configFile, false); // extensions settings are not allowed to overwrite existing settings
-                // Extension config is provided
-                } elseif (is_array($data['config'])) {
-                    foreach ($data['config'] as $setting => $value) {
-                        $this->set($setting, $value, false);
-                    }
-                // Extension config is provided
-                } else {
-                    throw new InvalidConfigurationException("Unable to load config for extension '{$extName}' in '{$filePath}'");
-                }
+        if (isset($file['extensions'])) {
+            if (!is_array($file['extensions'])) {
+                throw new InvalidConfigurationException("Unable to process extensions in {$filePath}. List expected, non-list provided.");
             }
 
-            $this->extensions[] = new Extension($extName, $bootstrapFile);
+            foreach ($file['extensions'] as $extName => $data) {
+                $bootstrapFile = isset($data['bootstrap']) ? $this->get('global.absolutePath') . "/" . $data['bootstrap'] : null;
+                
+                if (isset($data['config'])) {
+                    // Reference to another config file
+                    if (is_string($data['config'])) {
+                        $configFile = $this->get('global.absolutePath') . "/" . $data['config'];
+                        $this->loadSettingsYamlFile($configFile, false); // extensions settings are not allowed to overwrite existing settings
+                    // Extension config is provided
+                    } elseif (is_array($data['config'])) {
+                        foreach ($data['config'] as $setting => $value) {
+                            $this->set($setting, $value, false);
+                        }
+                    // Extension config is provided
+                    } else {
+                        throw new InvalidConfigurationException("Unable to load config for extension '{$extName}' in '{$filePath}'");
+                    }
+                }
+
+                $this->extensions[] = new Extension($extName, $bootstrapFile);
+            }
         }
 
         // Process additional config files
