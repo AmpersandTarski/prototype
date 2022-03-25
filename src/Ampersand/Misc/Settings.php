@@ -243,7 +243,8 @@ class Settings
         }
 
         $this->settings[$setting] = $value;
-        $this->logger->debug("Setting '{$setting}' to '{$value}'");
+
+        $this->logger->debug("Setting '{$setting}' to " . var_export($value, true));
     }
 
     /**

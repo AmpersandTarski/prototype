@@ -10,6 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+* [Issue 90](https://github.com/AmpersandTarski/prototype/issues/90) Bugfix php warning when logging non-string setting value
 * Bugfix undefined parts (settings and/or extensions) of a settings.yaml file
 
 ## v1.14.1 (6 feb 2022)
