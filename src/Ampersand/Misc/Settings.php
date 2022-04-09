@@ -285,6 +285,8 @@ class Settings
             }
         }
 
+        $path = rtrim($path, '\\/') . DIRECTORY_SEPARATOR;
+
         return $path;
     }
 }
