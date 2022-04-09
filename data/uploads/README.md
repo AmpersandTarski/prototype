@@ -1,1 +1,0 @@
-Folder to which files will be uploaded by the application.

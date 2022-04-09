@@ -27,6 +27,7 @@ These are loaded last and overwrite previous set settings.
 * AMPERSAND_DEBUG_MODE -> global.debugMode
 * AMPERSAND_PRODUCTION_MODE -> global.productionEnv
 * AMPERSAND_SERVER_URL -> global.serverURL
+* AMPERSAND_DATA_DIR -> global.dataPath
 * AMPERSAND_DBHOST -> mysql.dbHost
 * AMPERSAND_DBNAME -> mysql.dbName
 * AMPERSAND_DBUSER -> mysql.dbUser

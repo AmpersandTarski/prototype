@@ -56,6 +56,10 @@ class Settings
         'AMPERSAND_SERVER_URL' => [
             'key' => 'global.serverURL',
             'bool' => false
+        ],
+        'AMPERSAND_DATA_DIR' => [
+            'key' => 'global.dataPath',
+            'bool' => false
         ]
     ];
 
@@ -261,23 +265,20 @@ class Settings
      * TYPED GETTERS FOR CERTAIN SETTINGS
      *********************************************************************************************/
     
+    /**
+     * Return path to data directory including trailing directory separator
+     */
     public function getDataDirectory(): string
     {
-        $configValue = $this->get('global.dataPath');
-        $appDir = $this->get('global.absolutePath');
+        $path = $this->get('global.dataPath');
 
-        // Defaults to [global.absolutePath]/data
-        if (is_null($configValue)) {
-            return $appDir . '/data';
+        if (is_null($path)) {
+            throw new InvalidConfigurationException("Undefined data directory. Please set value for 'global.dataPath'");
         }
 
-        // If specified as absolute path -> return it
-        // Otherwise append to default application path
         $fs = new Filesystem();
-        if ($fs->isAbsolutePath($configValue)) {
-            $path = $configValue;
-        } else {
-            $path = "{$appDir}/data/{$configValue}";
+        if (!$fs->isAbsolutePath($path)) {
+            throw new InvalidConfigurationException("Data path must be an absolute path to a directory. Configured value for 'global.dataPath' is '{$path}'");
         }
 
         // Check that path is really a directory and exists
@@ -287,6 +288,8 @@ class Settings
                 throw new InvalidConfigurationException("Specified data directory '{$path}' is not a directory, cannot be created or is not accessible");
             }
         }
+
+        $path = rtrim($path, '\\/') . DIRECTORY_SEPARATOR;
 
         return $path;
     }
