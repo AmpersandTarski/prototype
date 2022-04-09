@@ -11,8 +11,11 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased changes
 * [Issue 90](https://github.com/AmpersandTarski/prototype/issues/90) Bugfix php warning when logging non-string setting value
-* Remove Ampersand specific RotatingFileHandler for logger. Logs are written to stderr and stdout by default. Projects can add their own handlers
+* **Backward incompatible changes**
+  * Remove Ampersand specific RotatingFileHandler for logger. Logs are written to stderr and stdout by default. Projects can add their own handlers
+  * Config 'global.dataPath' must now be an absolute path. Method Settings::getDataDirectory() now returns trailing directory separator
 * Bugfix undefined parts (settings and/or extensions) of a settings.yaml file
+* Add env variable AMPERSAND_DATA_DIR to set global.dataPath config
 
 ## v1.14.1 (6 feb 2022)
 * Bugfix wrong return type of method Session::getSessionAccount()
