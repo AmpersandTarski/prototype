@@ -1,28 +1,28 @@
 loggers:
   EXECENGINE:
-    handlers: [error_log, stdout, stderr]
+    handlers: [stdout, stderr]
   IO:
-    handlers: [error_log, stdout, stderr]
+    handlers: [stdout, stderr]
   API:
-    handlers: [error_log, stdout, stderr]
+    handlers: [stdout, stderr]
   APPLICATION:
-    handlers: [error_log, stdout, stderr]
+    handlers: [stdout, stderr]
   DATABASE:
-    handlers: [error_log, stdout, stderr]
+    handlers: [stdout, stderr]
   CORE:
-    handlers: [error_log, stdout, stderr]
+    handlers: [stdout, stderr]
   RULEENGINE:
-    handlers: [error_log, stdout, stderr]
+    handlers: [stdout, stderr]
   TRANSACTION:
-    handlers: [error_log, stdout, stderr]
+    handlers: [stdout, stderr]
   INTERFACING:
-    handlers: [error_log, stdout, stderr]
+    handlers: [stdout, stderr]
   HOOKS:
-    handlers: [error_log, stdout, stderr]
+    handlers: [stdout, stderr]
   EVALIDATOR:
-    handlers: [error_log, stdout, stderr]
+    handlers: [stdout, stderr]
   ONIMEX:
-    handlers: [error_log, stdout, stderr]
+    handlers: [stdout, stderr]
 formatters:
 handlers:
   stderr:
@@ -30,25 +30,16 @@ handlers:
     level: WARNING
     processors: [request_id_processor, web_processor]
     stream: php://stderr
-  stdout:
+  stdout-stream:
     class: Monolog\Handler\StreamHandler
-    level: INFO
+    level: DEBUG
     processors: [request_id_processor, web_processor]
     stream: php://stdout
-  error_log_file:
-    class: Ampersand\Log\RotatingFileHandler
-    level: DEBUG
-    maxFiles: 5
-    filename: ./log/error.log
-    processors: [request_id_processor, web_processor]
-  error_log:
+  stdout:
     class: Monolog\Handler\FingersCrossedHandler
-    handler: error_log_file
+    handler: stdout-stream
+    passthruLevel: NOTICE
     activationStrategy: ERROR
-    bufferSize: 0
-    bubble: true
-    stopBuffering: true
-    passthruLevel: WARNING
 processors:
   web_processor:
     class: Monolog\Processor\WebProcessor

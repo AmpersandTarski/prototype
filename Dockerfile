@@ -52,8 +52,6 @@ RUN chmod +x /usr/local/bin/ampersand
 # Add folders that Apache can write to
 RUN mkdir /var/www/data \
  && chown -R www-data:www-data /var/www/data \
- && mkdir /var/www/log \
- && chown -R www-data:www-data /var/www/log \
  && mkdir /var/www/generics \
  && chown -R www-data:www-data /var/www/generics
 

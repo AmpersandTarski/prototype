@@ -11,6 +11,7 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased changes
 * [Issue 90](https://github.com/AmpersandTarski/prototype/issues/90) Bugfix php warning when logging non-string setting value
+* Remove Ampersand specific RotatingFileHandler for logger. Logs are written to stderr and stdout by default. Projects can add their own handlers
 * Bugfix undefined parts (settings and/or extensions) of a settings.yaml file
 
 ## v1.14.1 (6 feb 2022)
