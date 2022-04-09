@@ -49,11 +49,8 @@ RUN npm install \
 COPY --from=ampersandtarski/ampersand:v4.6 /bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
 
-# Add folders that Apache can write to
-RUN mkdir /var/www/data \
- && chown -R www-data:www-data /var/www/data \
- && mkdir /var/www/generics \
- && chown -R www-data:www-data /var/www/generics
+# Add default data folder that Apache can write to
+RUN mkdir /var/www/data && chown -R www-data:www-data /var/www/data
 
 # Change doc root. Let's move to apache conf file when more configuration is needed
 ENV APACHE_DOCUMENT_ROOT /var/www/public
