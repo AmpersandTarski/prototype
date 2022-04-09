@@ -44,7 +44,7 @@ $fs->read('path/to/file.txt');
 Other methods of the file system interface include `put()`, `has()`, `listContents()` and others. For API documentation see: https://flysystem.thephpleague.com/v1/docs/usage/filesystem-api/
 
 ## Using another file system implementation
-By default a 'Local' file system adapter is added to the AmpersandApp. This read/writes files to the '`./data`' folder.
+By default a 'Local' file system adapter is added to the AmpersandApp. This read/writes files to the data directory.
 
 If you want to use another file system adapter you can use the setter method during bootstrap phase of the application. E.g. to use a SFTP file system:
 
