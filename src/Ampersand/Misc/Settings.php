@@ -56,6 +56,10 @@ class Settings
         'AMPERSAND_SERVER_URL' => [
             'key' => 'global.serverURL',
             'bool' => false
+        ],
+        'AMPERSAND_DATA_DIR' => [
+            'key' => 'global.dataPath',
+            'bool' => false
         ]
     ];
 
