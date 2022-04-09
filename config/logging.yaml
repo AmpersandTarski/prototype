@@ -17,12 +17,6 @@ loggers:
     handlers: [stdout, stderr]
   INTERFACING:
     handlers: [stdout, stderr]
-  HOOKS:
-    handlers: [stdout, stderr]
-  EVALIDATOR:
-    handlers: [stdout, stderr]
-  ONIMEX:
-    handlers: [stdout, stderr]
 formatters:
 handlers:
   stderr:
