@@ -10,6 +10,8 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+
+## v1.15.1 (5 may 2022)
 * Bugfix default values for new atom
 
 ## v1.15.0 (9 apr 2022)
