@@ -562,12 +562,13 @@ class Concept
 
                 $this->app->eventDispatcher()->dispatch(new AtomEvent($atom, $transaction), AtomEvent::ADDED);
                 $this->logger->info("Atom added to concept: {$atom}");
-            }
 
-            // Add default values in related relations
-            if ($populateDefaults) {
-                $this->addDefaultsFor($atom);
+                // Add default values in related relations
+                if ($populateDefaults) {
+                    $this->addDefaultsFor($atom);
+                }
             }
+            
             return $atom;
         // Adding atom[A] to another concept [B] ($this)
         } else {
