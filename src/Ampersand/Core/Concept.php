@@ -677,7 +677,12 @@ class Concept
         }
 
         // Skip when one of the atoms does not exist
-        if (!$leftAtom->exists() || !$rightAtom->exists()) {
+        if (!$leftAtom->exists()) {
+            $this->logger->warning("Merge not needed, because leftAtom '{$leftAtom}' no longer exists");
+            return;
+        }
+        if (!$rightAtom->exists()) {
+            $this->logger->warning("Merge not needed, because rightAtom '{$rightAtom}' no longer exists");
             return;
         }
 
