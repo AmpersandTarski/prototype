@@ -676,12 +676,13 @@ class Concept
             return;
         }
 
-        // Skip when one of the atoms does not exist
-        if (!$leftAtom->exists() || !$rightAtom->exists()) {
-            return;
+        // Check if left and right atoms exist
+        if (!$leftAtom->exists()) {
+            throw new AtomNotFoundException("Cannot merge '{$rightAtom}' into '{$leftAtom}', because '{$leftAtom}' does not exist");
         }
-
-        // From this point onwards, both atoms are of the correct type, they exist and are different. So merging makes sense.
+        if (!$rightAtom->exists()) {
+            throw new AtomNotFoundException("Cannot merge '{$rightAtom}' into '{$leftAtom}', because '{$rightAtom}' does not exist");
+        }
 
         // Merge step 0: start with most specific versions of the atoms
         $leftAtom = $leftAtom->getSmallest();
