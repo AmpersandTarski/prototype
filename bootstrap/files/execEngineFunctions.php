@@ -288,7 +288,8 @@ ExecEngine::registerFunction('MrgAtoms', function ($conceptA, $srcAtomId, $conce
     }
 
     if (!$srcAtom->exists() || !$tgtAtom->exists()) {
-        $this->info("Skipping MrgAtoms function of {$srcAtom} and {$tgtAtom}, because one or both of them not exist (anymore)");
+        $this->notice("Skipping MrgAtoms function of {$srcAtom} and {$tgtAtom}, because one or both of them not exist (anymore)");
+        return;
     }
     
     $srcAtom->merge($tgtAtom); // union of two records plus substitution in all occurences in binary relations.
