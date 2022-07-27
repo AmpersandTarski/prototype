@@ -10,6 +10,8 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+
+## v1.16.0 (27 july 2022)
 * [Issue 92](https://github.com/AmpersandTarski/prototype/issues/92) Bugfix issue with exec-engine function to merge atoms that not exist (anymore)
 * Update to Ampersand compiler v4.7.z
 
