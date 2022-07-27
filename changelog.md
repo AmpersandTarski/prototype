@@ -11,6 +11,7 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased changes
 * [Issue 92](https://github.com/AmpersandTarski/prototype/issues/92) Bugfix issue with exec-engine function to merge atoms that not exist (anymore)
+* Update to Ampersand compiler v4.7.z
 
 ## v1.15.1 (5 may 2022)
 * Bugfix default values for new atom
