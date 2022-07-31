@@ -10,6 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+* [Issue 100](https://github.com/AmpersandTarski/prototype/issues/100) Add admin API to cleanup metapopulation (i.e. removing interfaces that don't exists anymore)
 
 ## v1.16.0 (27 july 2022)
 * [Issue 92](https://github.com/AmpersandTarski/prototype/issues/92) Bugfix issue with exec-engine function to merge atoms that not exist (anymore)

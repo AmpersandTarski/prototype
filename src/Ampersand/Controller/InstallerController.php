@@ -8,9 +8,18 @@ use Slim\Http\Request;
 use Slim\Http\Response;
 use Ampersand\Misc\Installer;
 use Ampersand\Log\Logger;
+use Psr\Container\ContainerInterface;
 
 class InstallerController extends AbstractController
 {
+    protected Installer $installer;
+
+    public function __construct(ContainerInterface $container)
+    {
+        parent::__construct($container);
+        $this->installer = new Installer(Logger::getLogger('APPLICATION'));
+    }
+
     protected function guard(): void
     {
         $allowedRoles = $this->app->getSettings()->get('rbac.adminRoles');
@@ -41,8 +50,7 @@ class InstallerController extends AbstractController
 
         $transaction = $this->app->newTransaction();
 
-        $installer = new Installer(Logger::getLogger('APPLICATION'));
-        $installer->reinstallMetaPopulation($this->app->getModel());
+        $this->installer->reinstallMetaPopulation($this->app->getModel());
         
         $transaction->runExecEngine()->close(false, false);
         if ($transaction->isRolledBack()) {
@@ -58,13 +66,25 @@ class InstallerController extends AbstractController
 
         $transaction = $this->app->newTransaction();
 
-        $installer = new Installer(Logger::getLogger('APPLICATION'));
-        $installer->reinstallNavigationMenus($this->app->getModel());
+        $this->installer->reinstallNavigationMenus($this->app->getModel());
 
         $transaction->runExecEngine()->close(false, false);
         if ($transaction->isRolledBack()) {
             throw new MetaModelException("Nav menu population does not satisfy invariant rules. See log files");
         }
+
+        return $this->success($response);
+    }
+
+    public function cleanupMetaPopulation(Request $request, Response $response, array $args): Response
+    {
+        $this->guard();
+
+        $trasaction = $this->app->newTransaction();
+
+        $this->installer->cleanupMetaPopulation($this->app->getModel());
+
+        $trasaction->runExecEngine()->close(dryRun: false, ignoreInvariantViolations: false);
 
         return $this->success($response);
     }

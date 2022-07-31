@@ -39,7 +39,8 @@ $api->group('/admin/installer', function () {
     /** @var \Slim\App $this */
 
     $this->get('', InstallerController::class . ':install')->setName('applicationInstaller');
-    $this->get('/metapopulation', InstallerController::class . ':installMetaPopulation');
+    $this->get('/metapopulation/install', InstallerController::class . ':installMetaPopulation');
+    $this->get('/metapopulation/cleanup', InstallerController::class . ':cleanupMetaPopulation');
     $this->get('/navmenu', InstallerController::class . ':installNavmenu');
     $this->get('/checksum/update', InstallerController::class . ':updateChecksum')->setName('updateChecksum');
 });
