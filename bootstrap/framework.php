@@ -21,11 +21,24 @@ use Slim\App;
 use Slim\Container;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
+use function Ampersand\Misc\stackTrace;
+
 // Please be aware that this only captures uncaught exceptions that would otherwise terminate your application.
 // It does not run for every exception that is raised in the application if they are caught.
 // This is unlike the error handler which will execute for every triggered error (but errors aren't caught).
 set_exception_handler(function (Throwable $exception) {
     Logger::getLogger('APPLICATION')->critical("Uncaught exception/error: '{$exception->getMessage()}' Stacktrace: {$exception->getTraceAsString()}");
+
+    global $debugMode; // $debugMode is set below after loading setting files
+
+    $protocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0';
+    http_response_code(500);
+    header("{$protocol} 500 Internal server error");
+    print json_encode([
+        'error' => 500,
+        'msg' => $debugMode ? $exception->getMessage() : "An error occurred",
+        'html' => $debugMode ? stackTrace($exception) : "See log for more information"
+    ]);
 });
 
 register_shutdown_function(function () {
