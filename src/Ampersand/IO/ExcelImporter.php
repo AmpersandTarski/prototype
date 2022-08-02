@@ -327,7 +327,7 @@ class ExcelImporter
 
         // Overwrite $cellvalue in case of datetime
         // the @ is a php indicator for a unix timestamp (http://php.net/manual/en/datetime.formats.compound.php), later used for typeConversion
-        if (Date::isDateTime($cell) && !empty($cellvalue)) {
+        if (Date::isDateTime($cell) && $cellvalue !== '') {
             $cellvalue = '@'.(string)Date::excelToTimestamp((int)$cellvalue);
         }
 
