@@ -217,56 +217,71 @@ class ExcelImporter
             // Header line 1 specifies relation names
             if ($i === 1) {
                 foreach ($row->getCellIterator() as $cell) {
-                    // No leading/trailing spaces allowed
-                    $line1[$cell->getColumn()] = trim((string) $cell->getCalculatedValue());
+                    try {
+                        // No leading/trailing spaces allowed
+                        $line1[$cell->getColumn()] = trim((string) $cell->getCalculatedValue());
+                    } catch (Exception $e) {
+                        $this->throwException($e, $cell);
+                    }
                 }
             // Header line 2 specifies concept names
             } elseif ($i === 2) {
                 $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue());
 
                 foreach ($row->getCellIterator() as $cell) {
-                    $col = $cell->getColumn();
-                    $line2[$col] = trim((string) $cell->getCalculatedValue()); // no leading/trailing spaces allowed
-                
-                    // Import header can be determined now using line 1 and line 2
-                    if ($col === 'A') {
-                        $header[$col] = ['concept' => $leftConcept, 'relation' => null, 'flipped' => null];
-                    } else {
-                        if ($line1[$col] === '' || $line2[$col] === '') { // @phan-suppress-current-line PhanTypeInvalidDimOffset
-                            // Skipping column
-                            $this->logger->notice("Skipping column {$col} in sheet {$worksheet->getTitle()}, because header is not complete");
-                        // Relation is flipped when last character is a tilde (~)
-                        } elseif (substr($line1[$col], -1) === '~') { // @phan-suppress-current-line PhanTypeInvalidDimOffset
-                            $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
-                            
-                            $header[$col] = ['concept' => $rightConcept
-                                            ,'relation' => $this->ampersandApp->getRelation(substr($line1[$col], 0, -1), $rightConcept, $leftConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
-                                            ,'flipped' => true
-                                            ];
+                    try {
+                        $col = $cell->getColumn();
+                        $line2[$col] = trim((string) $cell->getCalculatedValue()); // no leading/trailing spaces allowed
+                    
+                        // Import header can be determined now using line 1 and line 2
+                        if ($col === 'A') {
+                            $header[$col] = ['concept' => $leftConcept, 'relation' => null, 'flipped' => null];
                         } else {
-                            $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
-                            $header[$col] = ['concept' => $rightConcept
-                                            ,'relation' => $this->ampersandApp->getRelation($line1[$col], $leftConcept, $rightConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
-                                            ,'flipped' => false
-                                            ];
+                            if ($line1[$col] === '' || $line2[$col] === '') { // @phan-suppress-current-line PhanTypeInvalidDimOffset
+                                // Skipping column
+                                $this->logger->notice("Skipping column {$col} in sheet {$worksheet->getTitle()}, because header is not complete");
+                            // Relation is flipped when last character is a tilde (~)
+                            } elseif (substr($line1[$col], -1) === '~') { // @phan-suppress-current-line PhanTypeInvalidDimOffset
+                                $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
+                                
+                                $header[$col] = ['concept' => $rightConcept
+                                                ,'relation' => $this->ampersandApp->getRelation(substr($line1[$col], 0, -1), $rightConcept, $leftConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
+                                                ,'flipped' => true
+                                                ];
+                            } else {
+                                $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
+                                $header[$col] = ['concept' => $rightConcept
+                                                ,'relation' => $this->ampersandApp->getRelation($line1[$col], $leftConcept, $rightConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
+                                                ,'flipped' => false
+                                                ];
+                            }
                         }
+                    } catch (Exception $e) {
+                        $this->throwException($e, $cell);
                     }
                 }
             // Data lines
             } else {
-                $col = 'A';
-                $cellA = $this->getCalculatedValueAsAtomId($worksheet->getCell($col . $row->getRowIndex()));
+                $cellA = $worksheet->getCell('A' . $row->getRowIndex());
 
-                // If cell Ax is empty, skip complete row
-                if ($cellA === '') {
-                    $this->logger->notice("Skipping row {$row->getRowIndex()}, because column A is empty");
-                    continue; // proceed to next row
-                // If cell Ax contains '_NEW', this means to automatically create a new atom
-                } elseif ($cellA === '_NEW') {
-                    $leftAtom = $header[$col]['concept']->createNewAtom()->add(); // @phan-suppress-current-line PhanTypeInvalidDimOffset
-                // Else instantiate atom with given atom identifier
-                } else {
-                    $leftAtom = (new Atom($cellA, $header[$col]['concept']))->add(); // @phan-suppress-current-line PhanTypeInvalidDimOffset
+                try {
+                    $srcAtomId = $this->getCalculatedValueAsAtomId($cellA);
+                    /** @var \Ampersand\Core\Concept $srcConcept */
+                    $srcConcept = $header['A']['concept']; // @phan-suppress-current-line PhanTypeInvalidDimOffset
+
+                    // If cell Ax is empty, skip complete row
+                    if ($srcAtomId === '') {
+                        $this->logger->notice("Skipping row {$row->getRowIndex()}, because column A is empty");
+                        continue; // proceed to next row
+                    // If cell Ax contains '_NEW', this means to automatically create a new atom
+                    } elseif ($srcAtomId === '_NEW') {
+                        $leftAtom = $srcConcept->createNewAtom()->add();
+                    // Else instantiate atom with given atom identifier
+                    } else {
+                        $leftAtom = (new Atom($srcAtomId, $srcConcept))->add();
+                    }
+                } catch (Exception $e) {
+                    $this->throwException($e, $cellA);
                 }
 
                 $this->processDataRow($leftAtom, $row, $header);
@@ -280,25 +295,29 @@ class ExcelImporter
     protected function processDataRow(Atom $leftAtom, Row $row, array $headerInfo): void
     {
         foreach ($row->getCellIterator('B') as $cell) {
-            $col = $cell->getColumn();
+            try {
+                $col = $cell->getColumn();
 
-            // Skip cell if column must not be imported
-            if (!array_key_exists($col, $headerInfo)) {
-                continue; // continue to next cell
+                // Skip cell if column must not be imported
+                if (!array_key_exists($col, $headerInfo)) {
+                    continue; // continue to next cell
+                }
+
+                $cellvalue = $this->getCalculatedValueAsAtomId($cell); // @phan-suppress-current-line PhanTypeMismatchArgumentNullable
+
+                // If cell is empty, skip column
+                if ($cellvalue === '') {
+                    continue; // continue to next cell
+                } elseif ($cellvalue === '_NEW') {
+                    $rightAtom = $leftAtom;
+                } else {
+                    $rightAtom = (new Atom($cellvalue, $headerInfo[$col]['concept']))->add();
+                }
+
+                $leftAtom->link($rightAtom, $headerInfo[$col]['relation'], $headerInfo[$col]['flipped'])->add();
+            } catch (Exception $e) {
+                $this->throwException($e, $cell);
             }
-
-            $cellvalue = $this->getCalculatedValueAsAtomId($cell); // @phan-suppress-current-line PhanTypeMismatchArgumentNullable
-
-            // If cell is empty, skip column
-            if ($cellvalue === '') {
-                continue; // continue to next cell
-            } elseif ($cellvalue === '_NEW') {
-                $rightAtom = $leftAtom;
-            } else {
-                $rightAtom = (new Atom($cellvalue, $headerInfo[$col]['concept']))->add();
-            }
-
-            $leftAtom->link($rightAtom, $headerInfo[$col]['relation'], $headerInfo[$col]['flipped'])->add();
         }
     }
 
@@ -313,5 +332,20 @@ class ExcelImporter
         }
 
         return $cellvalue;
+    }
+
+    protected function throwException(Exception $e, ?Cell $cell): void
+    {
+        if (is_null($cell)) {
+            throw new BadRequestException(
+                message: "Error while importing excelsheet without cell location: {$e->getMessage()}",
+                previous: $e
+            );
+        }
+
+        throw new BadRequestException(
+            message: "Error in cell '{$cell->getWorksheet()->getTitle()}!{$cell->getCoordinate()}': {$e->getMessage()}",
+            previous: $e
+        );
     }
 }
