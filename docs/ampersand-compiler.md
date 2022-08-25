@@ -1,19 +1,19 @@
 # Ampersand compiler
 The prototype framework depends on a compatible [Ampersand compiler](https://github.com/AmpersandTarski/Ampersand) to takes your Ampersand script (ADL files) and transform it into model files for the backend and generate a UI for the frontend.
 
-Backend model files are generated in the [generics folder](https://github.com/AmpersandTarski/prototype/generics). These are picked up by the backend implementation. See [README](https://github.com/AmpersandTarski/prototype/generics/README.md) for more information about which files are generated.
+Backend model files are generated in the [generics folder](https://github.com/AmpersandTarski/prototype/tree/main/generics). These are picked up by the backend implementation. See [README](https://github.com/AmpersandTarski/prototype/tree/main/generics/README.md) for more information about which files are generated.
 
-Frontend UI is generated using the HTML and JS templates specified in [templates folder](https://github.com/AmpersandTarski/prototype/templates/). These output components consisting of HTML views and JS controllers are put into [public/app/project folder](https://github.com/AmpersandTarski/prototype/public/app/project/). These are picked up by the frontend application.
+Frontend UI is generated using the HTML and JS templates specified in [templates folder](https://github.com/AmpersandTarski/prototype/tree/main/templates/). These output components consisting of HTML views and JS controllers are put into [public/app/project folder](https://github.com/AmpersandTarski/prototype/tree/main/public/app/project/). These are picked up by the frontend application.
 
 Together with the prototype framework, the backend model files and the generated frontend files provide for a complete prototype application.
 
 ## Compiler version constraints
-As of Ampersand compiler version 5.x, the compiler checks if its version is compatible with the deployed prototype framework. The prototype framework specifies the compatible compiler version(s) by means of semantic versioning constraints specified in [compiler-version.txt](https://github.com/AmpersandTarski/prototype/generics/compiler-version.txt).
+As of Ampersand compiler version 5.x, the compiler checks if its version is compatible with the deployed prototype framework. The prototype framework specifies the compatible compiler version(s) by means of semantic versioning constraints specified in [compiler-version.txt](https://github.com/AmpersandTarski/prototype/tree/main/generics/compiler-version.txt).
 
 The compiler uses Haskell package [Salve](https://hackage.haskell.org/package/salve) to check the constraints. See documentation of Salve to understand the contraint language.
 
 ## On-board Ampersand compiler
-The [Docker file](https://github.com/AmpersandTarski/prototype/Dockerfile) of the prototype framework includes a compatible Ampersand compiler in the container. Somewhere in the build script the following line is specified
+The [Docker file](https://github.com/AmpersandTarski/prototype/tree/main/Dockerfile) of the prototype framework includes a compatible Ampersand compiler in the container. Somewhere in the build script the following line is specified
 > `COPY --from=ampersandtarski/ampersand:v4.6 /bin/ampersand /usr/local/bin`
 
 This copies a pre-compiled and released Ampersand compiler from related image from Docker Hub.
@@ -39,7 +39,7 @@ WORKDIR /var/www
 For a complete example and template folder for your project take a look at the [project-template repository](https://github.com/AmpersandTarski/project-template)
 
 ## Adding custom HTML templates
-If you are using your own `VIEW` definitions and custom `BOX` specifications with custom HTML templates in your Ampersand script files, you need to copy them to the [templates folder](https://github.com/AmpersandTarski/prototype/templates/) BEFORE running the compiler.
+If you are using your own `VIEW` definitions and custom `BOX` specifications with custom HTML templates in your Ampersand script files, you need to copy them to the [templates folder](https://github.com/AmpersandTarski/prototype/tree/main/templates/) BEFORE running the compiler.
 
 You can add the following line to your Docker file:
 ```Dockerfile
@@ -73,7 +73,7 @@ COPY /path/to/bin/ampersand /usr/local/bin
 ```
 
 ### Option B: locally build prototype-framework image
-For option A: replace the following line in the [Docker file](https://github.com/AmpersandTarski/prototype/Dockerfile) of this repo:
+For option A: replace the following line in the [Docker file](https://github.com/AmpersandTarski/prototype/tree/main/Dockerfile) of this repo:
 > `COPY --from=ampersandtarski/ampersand:v4.6 /bin/ampersand /usr/local/bin`
 
 Copy the compiler from a locally build Ampersand image ór from local bin directly instead of the `ampersandtarski/ampersand` image.
