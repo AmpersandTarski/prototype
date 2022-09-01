@@ -1,3 +1,7 @@
+---
+title: The Prototype Framework
+---
+
 # Ampersand prototype framework
 
 **NOTE! This documentation is work in progress**
