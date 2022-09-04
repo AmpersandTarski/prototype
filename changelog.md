@@ -13,6 +13,7 @@ Additional labels for pre-release and build metadata are available as extensions
 * [Issue 91](https://github.com/AmpersandTarski/prototype/issues/91) Display errors/exceptions in the frontend that occur before the API ExceptionHandler is initialized. E.g. database connection failure
 * [Issue 97](https://github.com/AmpersandTarski/prototype/issues/97) Fix issue with Excel importer date value 0. Improve error message with cell location
 * [Issue 100](https://github.com/AmpersandTarski/prototype/issues/100) Add admin API to cleanup metapopulation (i.e. removing interfaces that don't exists anymore)
+* Add workflow to automatically trigger documentation update for our landingpage
 
 ## v1.16.0 (27 july 2022)
 * [Issue 92](https://github.com/AmpersandTarski/prototype/issues/92) Bugfix issue with exec-engine function to merge atoms that not exist (anymore)

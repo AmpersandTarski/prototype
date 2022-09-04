@@ -1,4 +1,4 @@
-# Templates
+# Interface templates
 Templates are used to generate prototype user interfaces based on Ampersand INTERFACE definitions.
 There are 3 types of templates:
 1. Box template -> 
