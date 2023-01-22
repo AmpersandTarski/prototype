@@ -4,7 +4,7 @@
 	"name": "PHP",
 	"build": {
 		"dockerfile": "Dockerfile",
-		"args": { 
+		"args": {
 			// Update VARIANT to pick a PHP version: 8, 8.1, 8.0, 7, 7.4
 			// Append -bullseye or -buster to pin to an OS version.
 			// Use -bullseye variants on local on arm64/Apple Silicon.
@@ -12,16 +12,13 @@
 			"NODE_VERSION": "none"
 		}
 	},
-
 	"mounts": [
 		"source=${localWorkspaceFolder}/.devcontainer/php.ini,target=/usr/local/etc/php/php.ini,type=bind,consistency=cached"
 	],
-	
 	// Set *default* container specific settings.json values on container create.
-	"settings": { 
+	"settings": {
 		"php.validate.executablePath": "/usr/local/bin/php"
 	},
-
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
 		// "felixfbecker.php-debug",
@@ -30,14 +27,15 @@
 		"mehedidracula.php-namespace-resolver",
 		"neilbrayfield.php-docblocker",
 		"ikappas.phpcs",
+		"mhutchie.git-graph",
+		"donjayamanne.githistory"
 	],
-
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	"forwardPorts": [8080],
-
+	"forwardPorts": [
+		8080
+	],
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "sudo chmod a+x \"$(pwd)\" && sudo rm -rf /var/www/html && sudo ln -s \"$(pwd)\" /var/www/html"
-
 	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode"
 }
