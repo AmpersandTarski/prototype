@@ -4,16 +4,8 @@ module.exports = {
     prototypeGuideSidebar: [
         {
             label: 'How to create a prototype',
-            type: 'category',
-            items: [
-                'prototype/README',
-                'prototype/config',
-                'prototype/file-system',
-                'prototype/event-dispatcher',
-                'prototype/interface-templates',
-                'prototype/generics',
-                'prototype/ampersand-compiler',
-            ]
+            type: 'doc',
+            id: 'prototype/guides/how-to-create-a-prototype'
         },
     ],
     prototypeReferenceSidebar: [
