@@ -469,7 +469,12 @@ where:
 ## Generics folder
 A compiled Ampersand script results in different model files that configure the prototype framework and must be placed in a specific. This folder is historically called 'generics'.
 
+::: tip
+
 More about the Ampersand compiler can be found [here](#ampersand-compiler).
+
+:::
+
 
 ### Generated files by Ampersand compiler
 The generated config and ampersand model files include:
