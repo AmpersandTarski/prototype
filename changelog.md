@@ -10,9 +10,11 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+
+## v1.17.1 (24 may 2023)
 * Build docker images for both linux/amd64 and linux/arm64 platforms
 
-## v1.17.0 (24 may 2022)
+## v1.17.0 (24 may 2023)
 * [Issue 91](https://github.com/AmpersandTarski/prototype/issues/91) Display errors/exceptions in the frontend that occur before the API ExceptionHandler is initialized. E.g. database connection failure
 * [Issue 97](https://github.com/AmpersandTarski/prototype/issues/97) Fix issue with Excel importer date value 0. Improve error message with cell location
 * [Issue 100](https://github.com/AmpersandTarski/prototype/issues/100) Add admin API to cleanup metapopulation (i.e. removing interfaces that don't exists anymore)
