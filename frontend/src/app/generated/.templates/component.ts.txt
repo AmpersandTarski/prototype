@@ -1,0 +1,45 @@
+/*
+ * Generated code by Ampersand compiler
+ * File:        $targetFilePath$
+ * Template:    $templateFilePath$
+ * Context:     $contextName$
+ */
+
+// Imports
+import { HttpClient } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute, ParamMap } from '@angular/router';
+import { from, map, Observable, switchMap, tap } from 'rxjs';
+import { AmpersandInterface } from 'src/app/shared/interfacing/ampersand-interface.class';
+import { BackendService } from '../backend.service';
+
+import { $ifcNamePascal$Interface } from './$ifcNameKebab$.interface';
+
+@Component({
+  selector: 'app-$ifcNameKebab$',
+  templateUrl: './$ifcNameKebab$.component.html',
+  // styleUrls: ['./$ifcNameKebab$.component.scss'],
+})
+export class $ifcNamePascal$Component extends AmpersandInterface<$ifcNamePascal$Interface> implements OnInit {
+  constructor(
+    private route: ActivatedRoute,
+    protected service: BackendService,
+    private router: Router,
+    http: HttpClient
+  ) {
+    super(http);
+  }
+
+  ngOnInit(): void {
+    $if(isSessionInterface)$this.data\$ = this.service.get$ifcNamePascal$();$else$this.data\$ = this.route.paramMap.pipe(
+      switchMap((params: ParamMap) => {
+        let resourceId = params.get('id')!;
+        if (resourceId === null) {
+          this.router.navigate(['/404'], { skipLocationChange: true });
+        }
+        return this.service.get$ifcNamePascal$(resourceId);
+      }),
+    );$endif$
+  }
+}
+

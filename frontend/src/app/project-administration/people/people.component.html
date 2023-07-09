@@ -1,0 +1,56 @@
+<h3>People</h3>
+<div *ngIf="data$ | async as data; else loading">
+    <app-box-table [data]="data" crud="CRuD" [interfaceComponent]="this">
+        <ng-template boxTableHeader>
+            <th>Person</th>
+            <th>Email</th>
+            <th>Projects</th>
+        </ng-template>
+        <ng-template [boxTableRow]="data" let-row>
+            <td>
+                <app-atomic-object
+                    [resource]="row"
+                    [interfaceComponent]="this"
+                    [property]="row.Person"
+                    propertyName="Person"
+                    label="Person"
+                    isUni
+                    isTot
+                    crud="cRud"
+                >
+                </app-atomic-object>
+            </td>
+            <td>
+                <app-atomic-alphanumeric
+                    [resource]="row"
+                    [interfaceComponent]="this"
+                    [property]="row.Email"
+                    propertyName="Email"
+                    label="Email"
+                    isUni
+                    isTot
+                    crud="cRud"
+                >
+                </app-atomic-alphanumeric>
+            </td>
+            <td>
+                <app-atomic-object
+                    [resource]="row"
+                    [interfaceComponent]="this"
+                    [property]="row.Projects"
+                    propertyName="Projects"
+                    label="Project"
+                    isUni
+                    isTot
+                    crud="cRud"
+                >
+                </app-atomic-object>
+            </td>
+        </ng-template>
+    </app-box-table>
+    <button (click)="newPerson()" class="p-button">New Person</button>
+</div>
+
+<ng-template #loading>
+    <app-box-table-loading [nrOfRows]="10"> </app-box-table-loading>
+</ng-template>
