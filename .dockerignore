@@ -12,5 +12,10 @@ phpcs.xml
 .git
 lib/
 app/lib/
-node_modules/
-angular-app/node_modules/
+
+# Node
+**/node_modules
+
+# Miscellaneous
+**/.angular/cache
+**/.sass-cache/
