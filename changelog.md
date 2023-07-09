@@ -10,6 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+* Add codebase of new developed frontend. Not integrated in building image yet.
 
 ## v1.17.0 (24 may 2023)
 * [Issue 91](https://github.com/AmpersandTarski/prototype/issues/91) Display errors/exceptions in the frontend that occur before the API ExceptionHandler is initialized. E.g. database connection failure
