@@ -41,8 +41,13 @@ RUN composer install --prefer-dist --no-dev --profile
 # Install frontend dependencies using NPM package specification (package.json)
 COPY package.json package-lock.json /var/www/
 WORKDIR /var/www
-RUN npm install \
- && npm audit fix
+RUN npm install
+
+# We suppress any issues here, this is due to a cascading list of issues with old libraries used here.
+# Soon we'll have the new frontend, so let's not spent any time fixing these issues for the old frontend.
+# We set --audit-level=none to suppress
+# Don't use --force as it will downgrade amongst others Gulp to v3. We need v4.
+RUN npm audit fix --audit-level=none
 
 # Copy Ampersand compiler
 # NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
