@@ -1,0 +1,25 @@
+<div *ngIf="canRead() && isUni">
+    <ng-container *ngTemplateOutlet="cRUdUni"> </ng-container>
+</div>
+
+<div *ngIf="canRead() && !isUni">
+    <ng-container *ngTemplateOutlet="cRUd"> </ng-container>
+</div>
+
+<div *ngIf="!canRead()">
+    <ng-container *ngTemplateOutlet="crud"> </ng-container>
+</div>
+
+<ng-template #cRUdUni>
+    <p-inputSwitch [formControl]="formControl" (click)="getState()"></p-inputSwitch>
+</ng-template>
+
+<ng-template #cRUd>
+    <div *ngFor="let name of data; let i = index">
+        <p-inputSwitch [formControl]="formControlArray[i]" (click)="getState()"></p-inputSwitch>
+    </div>
+</ng-template>
+
+<ng-template #crud>
+    <span><i>Boolean is not readable</i></span>
+</ng-template>
