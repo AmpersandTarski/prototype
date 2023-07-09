@@ -1,5 +1,5 @@
 # To run generated prototypes we require a apache webserver with php
-FROM php:8.1-apache
+FROM php:8.1-apache-bullseye
 
 RUN apt-get update \
  && apt-get install -y \
@@ -25,7 +25,7 @@ RUN php  -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 ENV COMPOSER_HOME /usr/local/bin/
 
 # Install NodeJs with NPM
-RUN curl -sL https://deb.nodesource.com/setup_12.x  | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
   && apt-get install -y nodejs \
   && node -v \
   && npm -v
