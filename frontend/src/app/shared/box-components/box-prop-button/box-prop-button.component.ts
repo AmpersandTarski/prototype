@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { BaseBoxComponent } from '../BaseBoxComponent.class';
 import { ObjectBase } from '../../objectBase.interface';
 type PropButtonItem = ObjectBase & {
@@ -11,9 +11,26 @@ type PropButtonItem = ObjectBase & {
   styleUrls: ['./box-prop-button.component.scss'],
 })
 export class BoxPropButtonComponent<TItem extends PropButtonItem, I> extends BaseBoxComponent<TItem, I> {
-  toggleProperty(item: TItem) {
+  @Input() action?: 'toggle' | 'set' | 'clear' = 'toggle';
+
+  handleClick(item: TItem) {
+    let value: boolean;
+
+    switch (this.action) {
+      case 'set':
+        value = true;
+        break;
+      case 'clear':
+        value = false;
+        break;
+      case 'toggle':
+      default:
+        value = !item.property;
+        break;
+    }
+
     this.interfaceComponent
-      .patch<TItem>(item._path_, [{ op: 'replace', path: 'property', value: !item.property }])
+      .patch<TItem>(item._path_, [{ op: 'replace', path: 'property', value: value }])
       .subscribe((x) => {
         if (x.isCommitted) {
           this.data = [x.content];

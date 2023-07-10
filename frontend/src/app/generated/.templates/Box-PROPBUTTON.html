@@ -2,7 +2,8 @@
 <div $if(isRoot)$*ngIf="data\$ | async as data" $endif$>
     <app-box-prop-button
         crud="$crud$"
-        [interfaceComponent]="this"
+        $if(action)$action="$action$"
+        $endif$[interfaceComponent]="this"
         [data]="$if(isRoot)$$if(exprIsUni)$[data]$else$data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
     >
     </app-box-prop-button>
