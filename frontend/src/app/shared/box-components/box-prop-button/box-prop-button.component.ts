@@ -13,7 +13,11 @@ type PropButtonItem = ObjectBase & {
 export class BoxPropButtonComponent<TItem extends PropButtonItem, I> extends BaseBoxComponent<TItem, I> {
   toggleProperty(item: TItem) {
     this.interfaceComponent
-      .patch(item._path_, [{ op: 'replace', path: 'property', value: !item.property }])
-      .subscribe();
+      .patch<TItem>(item._path_, [{ op: 'replace', path: 'property', value: !item.property }])
+      .subscribe((x) => {
+        if (x.isCommitted) {
+          this.data = [x.content];
+        }
+      });
   }
 }
