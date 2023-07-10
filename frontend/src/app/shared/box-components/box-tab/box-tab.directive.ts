@@ -5,7 +5,6 @@ import { Directive, Input, TemplateRef } from '@angular/core';
   selector: '[tab]',
 })
 export class BoxTabDirective {
-  @Input() tab!: string;
-  @Input('tabName') name?: string;
+  @Input() label?: string;
   constructor(public readonly template: TemplateRef<unknown>) {}
 }

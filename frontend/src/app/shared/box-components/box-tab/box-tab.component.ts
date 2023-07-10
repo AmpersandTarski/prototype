@@ -10,10 +10,4 @@ import { BoxTabDirective } from './box-tab.directive';
 })
 export class BoxTabComponent<TItem extends ObjectBase, I> extends BaseBoxComponent<TItem, I> {
   @ContentChildren(BoxTabDirective) tabs!: QueryList<BoxTabDirective>;
-
-  // TODO: fix this ugly any type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public asObjectBase(val: any, name: string): ObjectBase {
-    return val[name] as ObjectBase;
-  }
 }

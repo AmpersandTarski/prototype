@@ -1,5 +1,5 @@
 <p-tabView *ngFor="let item of data; let i = index">
-    <p-tabPanel *ngFor="let tab of tabs" header="{{ tab.name }}">
+    <p-tabPanel *ngFor="let tab of tabs" header="{{ tab.label }}">
         <div style="float: right">
             <span
                 *ngIf="canCreate()"
@@ -26,8 +26,7 @@
                 (click)="deleteItem(i)"
             ></span>
         </div>
-        <ng-container *ngTemplateOutlet="tab.template; context: { $implicit: asObjectBase(item, tab.tab) }">
-        </ng-container>
+        <ng-container *ngTemplateOutlet="tab.template || defaultTemplate; context: { $implicit: item }"> </ng-container>
     </p-tabPanel>
 </p-tabView>
 
@@ -46,4 +45,8 @@
 
 <ng-template #defaultDropdownMenu>
     <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder"> </p-dropdown>
+</ng-template>
+
+<ng-template #defaultTemplate let-item>
+    <span>No template provided</span>
 </ng-template>
