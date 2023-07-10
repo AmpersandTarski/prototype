@@ -1,1 +1,9 @@
-<p>box-prop-button works!</p>
+<div *ngFor="let item of data; let i = index">
+    <button
+        pButton
+        (click)="toggleProperty(item)"
+        label="{{ item.label }}"
+        type="button"
+        class="p-button-text"
+    ></button>
+</div>
