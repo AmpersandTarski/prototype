@@ -1,6 +1,6 @@
 <!-- Box-TABS.html -->
 <div $if(isRoot)$*ngIf="data\$ | async as data; else loading"$endif$>
-    <app-box-tab
+    <app-box-tabs
       crud="$crud$"
       [interfaceComponent]="this"
       $if(!isRoot)$[resource]="resource" propertyName="$name$" $endif$
@@ -11,7 +11,7 @@
         <ng-template tab label="$subObj.subObjLabel$" let-resource>
             $subObj.subObjContents$
         </ng-template>}$
-    </app-box-tab>
+    </app-box-tabs>
 </div>$if(isRoot)$
 
 
