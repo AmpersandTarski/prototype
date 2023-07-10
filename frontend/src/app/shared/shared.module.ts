@@ -17,8 +17,8 @@ import { BoxTableComponent } from './box-components/box-table/box-table.componen
 import { BoxTableHeaderTemplateDirective } from './box-components/box-table/box-table-header-template.directive';
 import { BoxTableRowTemplateDirective } from './box-components/box-table/box-table-row-template.directive';
 import { BoxTableLoadingComponent } from './box-components/box-table-loading/box-table-loading.component';
-import { BoxTabComponent } from './box-components/box-tab/box-tab.component';
-import { BoxTabDirective } from './box-components/box-tab/box-tab.directive';
+import { BoxTabsComponent } from './box-components/box-tabs/box-tabs.component';
+import { BoxTabsDirective } from './box-components/box-tabs/box-tabs.directive';
 import { BoxFormComponent } from './box-components/box-form/box-form.component';
 import { BoxFormTemplateDirective } from './box-components/box-form/box-form-template.directive';
 import { BoxFormLoadingComponent } from './box-components/box-form-loading/box-form-loading.component';
@@ -55,8 +55,8 @@ import { ButtonModule } from 'primeng/button';
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
     BoxTableLoadingComponent,
-    BoxTabComponent,
-    BoxTabDirective,
+    BoxTabsComponent,
+    BoxTabsDirective,
     BoxFormComponent,
     BoxFormTemplateDirective,
     BoxFormLoadingComponent,
@@ -95,8 +95,8 @@ import { ButtonModule } from 'primeng/button';
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
     BoxTableLoadingComponent,
-    BoxTabComponent,
-    BoxTabDirective,
+    BoxTabsComponent,
+    BoxTabsDirective,
     BoxFormComponent,
     BoxFormTemplateDirective,
     BoxFormLoadingComponent,
