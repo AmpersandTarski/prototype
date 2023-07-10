@@ -14,8 +14,8 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I> implements O
   @Input() data!: TItem[];
   @Input() interfaceComponent!: AmpersandInterface<I>;
   @Input() crud: string = 'cRud';
-  @Input() getPath!: string;
   @Input() placeholder: string = '';
+  @Input() tgtResourceType!: string;
   dropdownMenuObjects$: Observable<Array<ObjectBase>> = of();
   newItemControl!: FormControl<string | boolean | number | ObjectBase>;
 
@@ -24,7 +24,7 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I> implements O
   ngOnInit(): void {
     if (this.canUpdate()) {
       this.newItemControl = new FormControl<ObjectBase>({} as ObjectBase, { nonNullable: true, updateOn: 'change' });
-      this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.getPath);
+      this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
     }
   }
 
@@ -96,7 +96,7 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I> implements O
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           this.data = (x.content as any)[this.propertyName] as TItem[];
 
-          this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.getPath);
+          this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
         }
       });
   }
@@ -109,8 +109,10 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I> implements O
     });
   }
 
-  private getDropdownMenuItems(path: string): Observable<Array<ObjectBase>> {
-    let objects: Observable<Array<ObjectBase>> = this.interfaceComponent.fetchDropdownMenuData(path);
+  private getDropdownMenuItems(resourceType: string): Observable<Array<ObjectBase>> {
+    let objects: Observable<Array<ObjectBase>> = this.interfaceComponent.fetchDropdownMenuData(
+      `resource/${resourceType}`,
+    );
     objects = objects.pipe(
       map((dropdownobjects) => dropdownobjects.filter((object) => !this.data.map((y) => y._id_).includes(object._id_))),
     );
