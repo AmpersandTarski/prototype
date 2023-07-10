@@ -17,7 +17,7 @@ export class AtomicObjectComponent<I> extends BaseAtomicComponent<ObjectBase, I>
   public menuItems: { [index: string]: Array<MenuItem> } = {};
   public dropdownMenuObjects$!: Observable<ObjectBase[]>;
   @Input() public placeholder!: string;
-  @Input() getPath!: string;
+  @Input() tgtResourceType!: string;
 
   constructor(
     private router: Router,
@@ -41,7 +41,7 @@ export class AtomicObjectComponent<I> extends BaseAtomicComponent<ObjectBase, I>
         this.newItemControl.disable(); // disables dropdown when univalent and already has a value
       }
 
-      this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.getPath);
+      this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
     }
   }
 
@@ -125,8 +125,8 @@ export class AtomicObjectComponent<I> extends BaseAtomicComponent<ObjectBase, I>
   }
 
   // Find which entities are able to be added to the dropdown menu
-  private getDropdownMenuItems(path: string): Observable<ObjectBase[]> {
-    let objects: Observable<ObjectBase[]> = this.interfaceComponent.fetchDropdownMenuData(path);
+  private getDropdownMenuItems(resourceType: string): Observable<ObjectBase[]> {
+    let objects: Observable<ObjectBase[]> = this.interfaceComponent.fetchDropdownMenuData(`resource/${resourceType}`);
     // grab only the elements for the dropdown menu when they don't exist yet
     objects = objects.pipe(
       map((dropdownobjects) => dropdownobjects.filter((object) => !this.data.map((y) => y._id_).includes(object._id_))),
