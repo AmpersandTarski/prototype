@@ -25,7 +25,7 @@ export class AmpersandInterface<T> {
     return this.http.post<CreateResponse>(path, {});
   }
 
-  public patch(path: string, patches: Array<Patch | PatchValue>): Observable<PatchResponse<T>> {
+  public patch<T>(path: string, patches: Array<Patch | PatchValue>): Observable<PatchResponse<T>> {
     return this.http.patch<PatchResponse<T>>(path, patches);
 
     // return this.http.patch<PatchResponse<T>>(resource._path_, patches).pipe(

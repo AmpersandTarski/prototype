@@ -24,6 +24,7 @@ import { BoxFormTemplateDirective } from './box-components/box-form/box-form-tem
 import { BoxFormLoadingComponent } from './box-components/box-form-loading/box-form-loading.component';
 import { BoxRawComponent } from './box-components/box-raw/box-raw.component';
 import { BoxRawTemplateDirective } from './box-components/box-raw/box-raw-template.directive';
+import { BoxPropButtonComponent } from './box-components/box-prop-button/box-prop-button.component';
 
 // PrimeNG modules
 import { CalendarModule } from 'primeng/calendar';
@@ -62,6 +63,7 @@ import { ButtonModule } from 'primeng/button';
     BoxFormLoadingComponent,
     BoxRawComponent,
     BoxRawTemplateDirective,
+    BoxPropButtonComponent,
   ],
   imports: [
     CommonModule,
@@ -102,6 +104,7 @@ import { ButtonModule } from 'primeng/button';
     BoxFormLoadingComponent,
     BoxRawComponent,
     BoxRawTemplateDirective,
+    BoxPropButtonComponent,
   ],
 })
 export class SharedModule {}
