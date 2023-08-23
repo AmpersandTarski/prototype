@@ -1,6 +1,6 @@
 # The Prototype Framework
 
-The prototype framework provides the [runtime environment for Ampersand applications](https://github.com/AmpersandTarski/Prototype "Link to the github repository"). 
+The prototype framework provides the [runtime environment for Ampersand applications](https://github.com/AmpersandTarski/Prototype## "Link to the GitHub repository"). 
 This documentation is intended for developers of the framework and more advanced users of Ampersand. It explains the key concepts, classes and project setup.
 
 Please take note that this part of the documentation is under construction.
@@ -10,7 +10,7 @@ Please take note that this part of the documentation is under construction.
 
 #### Logging configuration
 * The logging configuration is loaded from a `logging.yaml` file in the config folder
-* The specification of the logging file is defined in [Monolog Cascade](https://github.com/theorchard/monolog-cascade "Link to the GitHub repo")
+* The specification of the logging file is defined in [Monolog Cascade](https://github.com/theorchard/monolog-cascade## "Link to Monolog's GitHub repo")
 * The file should be located at: `config/logging.yaml` (default/production)
 * A debug logging configuration is available at: `config/logging.debug.yaml`
 * You can specify the log configuration via ENV variable `AMPERSAND_LOG_CONFIG`. Set it to 'logging.yaml' (default) or 'logging.debug.yaml'
@@ -82,7 +82,7 @@ VIEW FileObject : FileObject DEFAULT {
 The template `View-FILEOBJECT.html` is a built-in template, but you can substitute this with your own template.
 
 #### The Flysystem component
-In the prototype framework backend we've implemented the [Flysystem library](https://flysystem.thephpleague.com/v1/docs/ "link to the documentation of the Flysystem library), which is a file system abstraction for PHP.
+In the prototype framework backend we've implemented the [Flysystem library](https://flysystem.thephpleague.com/v1/docs/ "link to the documentation of the Flysystem library"), which is a file system abstraction for PHP.
 
 > "Flysystem is a filesystem abstraction library for PHP. By providing a unified interface for many different filesystems you’re able to swap out filesystems without application wide rewrites."
 
@@ -96,12 +96,12 @@ $fs = $app->fileSystem();
 $fs->read('path/to/file.txt');
 ```
 
-Other [methods](https://flysystem.thephpleague.com/v1/docs/usage/filesystem-api/ "Link to the API documentation of Flysystem") of the file system interface include `put()`, `has()`, `listContents()` and others. see: 
+Other [methods](https://flysystem.thephpleague.com/v1/docs/usage/filesystem-api/## "Link to the API documentation of Flysystem") of the file system interface include `put()`, `has()`, `listContents()` and others. see: 
 
 #### Using another file system implementation
 By default a 'Local' file system adapter is added to the AmpersandApp. This read/writes files to the data directory.
 
-If you want to use [another file system adapter](https://github.com/thephpleague/flysystem "more file system adapter implementations") you can use the setter method during bootstrap phase of the application. E.g. to use a SFTP file system:
+If you want to use [another file system adapter](https://github.com/thephpleague/flysystem## "Link to more file system adapter implementations") you can use the setter method during bootstrap phase of the application. E.g. to use a SFTP file system:
 
 ```php
 <?php
@@ -137,7 +137,7 @@ $dispatcher->dispatch();
 ```
 
 #### The Symfony event dispatcher component
-Currently we use the Symfony event dispatcher component as implementatation. Documentation can be found [here](https://symfony.com/doc/master/components/event_dispatcher.html#introduction).
+Currently we use the [Symfony event dispatcher](https://symfony.com/doc/master/components/event_dispatcher.html#introduction## "Link to the documentation of Symfony") component as implementatation.
 
 > "The Symfony EventDispatcher component implements the Mediator and Observer design patterns to make all these things possible and to make your projects truly extensible."
 
@@ -155,9 +155,7 @@ Below a list of dispatched events. More events will be added upon request. Pleas
 | TransactionEvent | ROLLEDBACK | When an Ampersand transaction is rolled back (i.e. invariant rules do not hold)
 
 #### Adding a listener
-You can easily connect a listener to the dispatcher so that it can be notified/called when certain events are dispatched. A listener can be any valid [PHP callable](https://www.php.net/manual/en/language.types.callable.php).
-
-See [documentation of Symfony](https://symfony.com/doc/master/components/event_dispatcher.html#connecting-listeners)
+You can easily [connect a listener](https://symfony.com/doc/master/components/event_dispatcher.html#connecting-listeners## "Link to the documentation of connecting listeners") to the dispatcher so that it can be notified/called when certain events are dispatched. A listener can be any valid [PHP callable](https://www.php.net/manual/en/language.types.callable.php).
 
 Below two examples of connecting a listener to the atom added event
 ```php
