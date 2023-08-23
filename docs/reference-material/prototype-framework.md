@@ -1,4 +1,4 @@
-# The prototype framework
+# The Prototype Framework
 
 The prototype framework provides the [runtime environment for Ampersand applications](https://github.com/AmpersandTarski/Prototype "Link to the github repository"). 
 This documentation is intended for developers of the framework and more advanced users of Ampersand. It explains the key concepts, classes and project setup.
