@@ -8,14 +8,14 @@ Please take note that this part of the documentation is under construction.
 
 ## Configuration of the prototpye
 
-### Logging configuration
+#### Logging configuration
 * The logging configuration is loaded from a `logging.yaml` file in the config folder
 * The specification of the logging file is defined in [Monolog Cascade](https://github.com/theorchard/monolog-cascade "Link to the GitHub repo")
 * The file should be located at: `config/logging.yaml` (default/production)
 * A debug logging configuration is available at: `config/logging.debug.yaml`
 * You can specify the log configuration via ENV variable `AMPERSAND_LOG_CONFIG`. Set it to 'logging.yaml' (default) or 'logging.debug.yaml'
 
-### Project configuration
+#### Project configuration
 The prototype framework automatically loads the following configuration files, in the following order:
 This order allows to have different environments with the same base project configuration
 Configuration values overwrite each other, when specified in multiple files
@@ -29,7 +29,7 @@ The configuration file has the following components:
 * config: list of other config files that must be imported
 * extensions: named list of extensions to be included, its bootstrapping and config files
 
-### Environment variables
+#### Environment variables
 Finally certain settings can be set using environment variables.
 These are loaded last and overwrite previous set settings.
 * AMPERSAND_DEBUG_MODE -> global.debugMode
@@ -41,7 +41,7 @@ These are loaded last and overwrite previous set settings.
 * AMPERSAND_DBUSER -> mysql.dbUser
 * AMPERSAND_DBPASS -> mysql.dbPass
 
-### Explanation of settings
+#### Explanation of settings
 
 * global.debugMode (env AMPERSAND_DEBUG_MODE)
   
@@ -57,11 +57,11 @@ These are loaded last and overwrite previous set settings.
 
 ## File System
 
-### Introduction
+#### Introduction
 **Currently we have limited support for working with files**
 
 
-### Usage in Ampersand application and prototype
+#### Usage in Ampersand application and prototype
 To work with files and uploads you need to add a FileObject model and view to your ADL script:
 ```adl
 CONCEPT FileObject ""
@@ -81,14 +81,12 @@ VIEW FileObject : FileObject DEFAULT {
 
 The template `View-FILEOBJECT.html` is a built-in template, but you can substitute this with your own template.
 
-### The Flysystem component
-In the prototype framework backend we've implemented the Flysystem library, which is a file system abstraction for PHP.
+#### The Flysystem component
+In the prototype framework backend we've implemented the [Flysystem library](https://flysystem.thephpleague.com/v1/docs/ "link to the documentation of the Flysystem library), which is a file system abstraction for PHP.
 
 > "Flysystem is a filesystem abstraction library for PHP. By providing a unified interface for many different filesystems you’re able to swap out filesystems without application wide rewrites."
 
-Read more about this library here: https://flysystem.thephpleague.com/v1/docs/
-
-### File system property of AmpersandApp object
+#### File system property of AmpersandApp object
 A concrete implementation of a file system is set as property of the AmpersandApp object. You can access the file system like this to perform e.g. a read:
 
 ```php
@@ -98,12 +96,12 @@ $fs = $app->fileSystem();
 $fs->read('path/to/file.txt');
 ```
 
-Other methods of the file system interface include `put()`, `has()`, `listContents()` and others. For API documentation see: https://flysystem.thephpleague.com/v1/docs/usage/filesystem-api/
+Other [methods](https://flysystem.thephpleague.com/v1/docs/usage/filesystem-api/ "Link to the API documentation of Flysystem") of the file system interface include `put()`, `has()`, `listContents()` and others. see: 
 
-### Using another file system implementation
+#### Using another file system implementation
 By default a 'Local' file system adapter is added to the AmpersandApp. This read/writes files to the data directory.
 
-If you want to use another file system adapter you can use the setter method during bootstrap phase of the application. E.g. to use a SFTP file system:
+If you want to use [another file system adapter](https://github.com/thephpleague/flysystem "more file system adapter implementations") you can use the setter method during bootstrap phase of the application. E.g. to use a SFTP file system:
 
 ```php
 <?php
@@ -125,12 +123,9 @@ $filesystem = new Filesystem(new SftpAdapter([
 $app->setFileSystem($filesystem);
 ```
 
-For more file system adapter implementations see: https://github.com/thephpleague/flysystem
-
-
 ## Event Dispatcher
 
-### Introduction
+#### Introduction
 The prototype framework dispatches important events in order for other software projects to extend the framework. An example of such an event is the AtomEvent that is dispatched upon added and deleted atoms. 
 
 The event dispatcher is the central object in the event dispatching system and is set as a property of the AmpersandApp class which is everywhere available in the codebase. You can access the event dispatcher like so:
@@ -141,12 +136,12 @@ $dispatcher = $app->eventDispatcher();
 $dispatcher->dispatch();
 ```
 
-### The Symfony event dispatcher component
+#### The Symfony event dispatcher component
 Currently we use the Symfony event dispatcher component as implementatation. Documentation can be found [here](https://symfony.com/doc/master/components/event_dispatcher.html#introduction).
 
 > "The Symfony EventDispatcher component implements the Mediator and Observer design patterns to make all these things possible and to make your projects truly extensible."
 
-### Dispatched events
+#### Dispatched events
 Below a list of dispatched events. More events will be added upon request. Please create an issue for that in the repository.
 
 | Event class | Event name | Comment |
@@ -159,7 +154,7 @@ Below a list of dispatched events. More events will be added upon request. Pleas
 | TransactionEvent | COMMITTED | When an Ampersand transaction is committed (i.e. invariant rules hold)
 | TransactionEvent | ROLLEDBACK | When an Ampersand transaction is rolled back (i.e. invariant rules do not hold)
 
-### Adding a listener
+#### Adding a listener
 You can easily connect a listener to the dispatcher so that it can be notified/called when certain events are dispatched. A listener can be any valid [PHP callable](https://www.php.net/manual/en/language.types.callable.php).
 
 See [documentation of Symfony](https://symfony.com/doc/master/components/event_dispatcher.html#connecting-listeners)
@@ -197,7 +192,7 @@ More about the Ampersand compiler can be found [here](#ampersand-compiler).
 :::
 
 
-### Generated files by Ampersand compiler
+#### Generated files by Ampersand compiler
 The generated config and ampersand model files include:
 * concepts.json
 * conjuncts.json
@@ -218,12 +213,12 @@ Frontend UI is generated using the HTML and JS templates specified in [templates
 
 Together with the prototype framework, the backend model files and the generated frontend files provide for a complete prototype application.
 
-### Compiler version constraints
+#### Compiler version constraints
 As of Ampersand compiler version 5.x, the compiler checks if its version is compatible with the deployed prototype framework. The prototype framework specifies the compatible compiler version(s) by means of semantic versioning constraints specified in [compiler-version.txt](https://github.com/AmpersandTarski/prototype/tree/main/generics/compiler-version.txt).
 
 The compiler uses Haskell package [Salve](https://hackage.haskell.org/package/salve) to check the constraints. See documentation of Salve to understand the contraint language.
 
-### On-board Ampersand compiler
+#### On-board Ampersand compiler
 The [Docker file](https://github.com/AmpersandTarski/prototype/tree/main/Dockerfile) of the prototype framework includes a compatible Ampersand compiler in the container. Somewhere in the build script the following line is specified
 > `COPY --from=ampersandtarski/ampersand:v4.6 /bin/ampersand /usr/local/bin`
 
@@ -249,7 +244,7 @@ WORKDIR /var/www
 
 For a complete example and template folder for your project take a look at the [project-template repository](https://github.com/AmpersandTarski/project-template)
 
-### Adding custom HTML templates
+#### Adding custom HTML templates
 If you are using your own `VIEW` definitions and custom `BOX` specifications with custom HTML templates in your Ampersand script files, you need to copy them to the [templates folder](https://github.com/AmpersandTarski/prototype/tree/main/templates/) BEFORE running the compiler.
 
 You can add the following line to your Docker file:
@@ -258,7 +253,7 @@ You can add the following line to your Docker file:
 RUN cp -r -v /usr/local/project/shared/templates /var/www/
 ```
 
-### Build with custom Ampersand compiler
+#### Build with custom Ampersand compiler
 For developers that work on the Ampersand compiler itself it may be convenient to copy a locally build Ampersand compiler into the prototype-framework. You can do this by
 a) injecting the custom Ampersand compiler in a specific prototype project directly or b) locally building a new prototype-framework image.
 
