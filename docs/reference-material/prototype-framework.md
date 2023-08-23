@@ -185,7 +185,7 @@ $dispatcher->addListener(AtomEvent::ADDED, function (AtomEvent $event) {
 ## Generics folder
 A compiled Ampersand script results in different model files that configure the prototype framework and must be placed in a specific. This folder is historically called 'generics'.
 
-::: tip
+:::tip
 
 More about the Ampersand compiler can be found [here](#ampersand-compiler).
 
