@@ -1,5 +1,3 @@
-@import "../../../../../node_modules/primeflex/primeflex.scss";
-
 ::ng-deep .box-form-label {
-    @include styleclass('text-500');
+  color: var(--surface-500);
 }
