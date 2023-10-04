@@ -232,6 +232,18 @@ class ExcelImporter
                     try {
                         $col = $cell->getColumn();
                         $line2[$col] = trim((string) $cell->getCalculatedValue()); // no leading/trailing spaces allowed
+                        
+                        // Handle possibility that column contains multiple values to insert into the relation seperated by a delimiter
+                        // The syntax to indicate this is: '[Concept,]' where in this example the comma ',' is the delimiter
+                        // The square brackets are needed to indicate that this is a multi value column
+                        $delimiter = null;
+                        if (substr(
+                            $line2[$col], 0, 1) === '['
+                            && substr($line2[$col], -1) === ']'
+                        ) {
+                            $delimiter = substr($line2[$col], -2, 1);
+                            $line2[$col] = substr($line2[$col], 1, strlen($line2[$col] - 3));
+                        }
                     
                         // Import header can be determined now using line 1 and line 2
                         if ($col === 'A') {
@@ -247,12 +259,14 @@ class ExcelImporter
                                 $header[$col] = ['concept' => $rightConcept
                                                 ,'relation' => $this->ampersandApp->getRelation(substr($line1[$col], 0, -1), $rightConcept, $leftConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
                                                 ,'flipped' => true
+                                                ,'delimiter' => $delimiter
                                                 ];
                             } else {
                                 $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
                                 $header[$col] = ['concept' => $rightConcept
                                                 ,'relation' => $this->ampersandApp->getRelation($line1[$col], $leftConcept, $rightConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
                                                 ,'flipped' => false
+                                                ,'delimiter' => $delimiter
                                                 ];
                             }
                         }
