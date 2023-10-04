@@ -311,6 +311,7 @@ class ExcelImporter
         foreach ($row->getCellIterator('B') as $cell) {
             try {
                 $col = $cell->getColumn();
+                $rightAtoms = [];
 
                 // Skip cell if column must not be imported
                 if (!array_key_exists($col, $headerInfo)) {
@@ -323,12 +324,22 @@ class ExcelImporter
                 if ($cellvalue === '') {
                     continue; // continue to next cell
                 } elseif ($cellvalue === '_NEW') {
-                    $rightAtom = $leftAtom;
+                    $rightAtoms[] = $leftAtom;
                 } else {
-                    $rightAtom = (new Atom($cellvalue, $headerInfo[$col]['concept']))->add();
+                    if (is_null($headerInfo[$col]['delimiter'])) {
+                        $rightAtoms[] = new Atom($cellvalue, $headerInfo[$col]['concept']);
+                    // Handle case with delimited multi values
+                    } else {
+                        foreach (explode($headerInfo[$col]['delimiter'], $cellvalue) as $value) {
+                            $rightAtoms[] = new Atom($value, $headerInfo[$col]['concept']);
+                        }
+                    }
                 }
 
-                $leftAtom->link($rightAtom, $headerInfo[$col]['relation'], $headerInfo[$col]['flipped'])->add();
+                foreach ($rightAtoms as $rightAtom) {
+                    $rightAtom->add();
+                    $leftAtom->link($rightAtom, $headerInfo[$col]['relation'], $headerInfo[$col]['flipped'])->add();
+                }
             } catch (Exception $e) {
                 $this->throwException($e, $cell);
             }
