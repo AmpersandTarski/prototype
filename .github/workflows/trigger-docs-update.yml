@@ -4,7 +4,7 @@ name: Trigger Documentation Update
 on:
   push:
     branches:
-    - main
+      - main
     paths:
     - 'docs/**'
 
