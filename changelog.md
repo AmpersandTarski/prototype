@@ -11,7 +11,12 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased changes
 * [Issue 79](https://github.com/AmpersandTarski/prototype/issues/79) Add support for delimited multi value columns in excel importer
+* [Issue 156](https://github.com/AmpersandTarski/prototype/issues/156) Adapt to introduced namespace in ADL
+  * This is a breaking change. Requires version update to v2.x
+  * It affects names and labels of all artefacts (concepts, relations, interfaces, rules, views, etc)
+  * It affects metadata from PrototypeContext. Be sure to update those when used in application extensions or running environments
 * Add codebase of new developed frontend. Not integrated in building image yet.
+  * This is a major change. Justifies major version update to v2.x
 
 ## v1.17.0 (24 may 2023)
 * [Issue 91](https://github.com/AmpersandTarski/prototype/issues/91) Display errors/exceptions in the frontend that occur before the API ExceptionHandler is initialized. E.g. database connection failure
