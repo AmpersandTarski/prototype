@@ -42,6 +42,7 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     /**
      * Interface id (i.e. safe name) to use in framework
+     * TODO: rename property to $name
      */
     protected string $id;
     
@@ -105,9 +106,9 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $this->rootIfc = $rootIfc;
         
         // Set attributes from $ifcDef
-        $this->id = $ifcDef['id'];
+        $this->id = $ifcDef['name'];
         $this->label = $ifcDef['label'];
-        $this->view = is_null($ifcDef['viewId']) ? null : $rootIfc->getModel()->getView($ifcDef['viewId']);
+        $this->view = is_null($ifcDef['viewName']) ? null : $rootIfc->getModel()->getView($ifcDef['viewName']);
         $this->path = is_null($parent) ? $this->label : "{$parent->getPath()}/{$this->label}"; // Use label, because path is only used for human readable purposes (e.g. Exception messages)
         
         // Information about the (editable) relation if applicable
@@ -118,8 +119,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         if (!isset($ifcDef['expr'])) {
             throw new FatalException("Expression information not defined for interface object {$this->path}");
         }
-        $this->srcConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['srcConceptId']);
-        $this->tgtConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['tgtConceptId']);
+        $this->srcConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['srcConceptName']);
+        $this->tgtConcept = $this->rootIfc->getModel()->getConcept($ifcDef['expr']['tgtConceptName']);
         $this->isUni = $ifcDef['expr']['isUni'];
         $this->isTot = $ifcDef['expr']['isTot'];
         $this->isIdent = $ifcDef['expr']['isIdent'];

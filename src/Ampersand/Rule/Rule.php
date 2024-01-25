@@ -40,6 +40,12 @@ class Rule
      * Rule identifier
      */
     protected string $id;
+
+    /**
+     * Rule label as defined in Ampersand script
+     * @var string
+     */
+    protected string $label;
     
     /**
      * The file and line number of the Ampersand script where this rule is defined
@@ -107,12 +113,13 @@ class Rule
         $this->type = $type;
         
         $this->id = $ruleDef['name'];
+        $this->label = $ruleDef['label'];
         
         $this->origin = $ruleDef['origin'];
         $this->ruleAdl = $ruleDef['ruleAdl'];
         
-        $this->srcConcept = $app->getModel()->getConcept($ruleDef['srcConceptId']);
-        $this->tgtConcept = $app->getModel()->getConcept($ruleDef['tgtConceptId']);
+        $this->srcConcept = $app->getModel()->getConcept($ruleDef['srcConceptName']);
+        $this->tgtConcept = $app->getModel()->getConcept($ruleDef['tgtConceptName']);
         
         $this->meaning = $ruleDef['meaning'];
         $this->message = $ruleDef['message'];
@@ -133,7 +140,12 @@ class Rule
      */
     public function __toString(): string
     {
-        return $this->id;
+        return $this->label;
+    }
+
+    protected function toLogString(): string
+    {
+        return "{$this->id} (label: {$this->label})";
     }
 
     public function getId(): string
@@ -182,7 +194,7 @@ class Rule
      */
     public function getViolationMessage(): string
     {
-        return $this->message ? $this->message : "Violation of rule '{$this->id}'";
+        return $this->message ? $this->message : "Violation of rule '{$this->label}'";
     }
 
     /**
@@ -202,7 +214,7 @@ class Rule
      */
     public function checkRule(bool $forceReEvaluation = true): array
     {
-        $this->logger->debug("Checking rule '{$this->id}'");
+        $this->logger->debug("Checking rule '{$this->toLogString()}'");
          
         try {
             $violations = [];
@@ -216,13 +228,13 @@ class Rule
             
             // If no violations => rule holds
             if (empty($violations)) {
-                $this->logger->debug("Rule '{$this}' holds");
+                $this->logger->debug("Rule '{$this->toLogString()}' holds");
             }
     
             return $violations;
         } catch (Exception $e) {
-            $this->logger->error("Error while evaluating rule '{$this}': {$e->getMessage()}");
-            $this->ampersandApp->userLog()->error("Error while evaluating rule");
+            $this->logger->error("Error while evaluating rule '{$this->toLogString()}': {$e->getMessage()}");
+            $this->ampersandApp->userLog()->error("Error while evaluating rule '{$this->label}'");
             return [];
         }
     }

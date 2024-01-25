@@ -27,6 +27,8 @@ class Role
      * Name of the role
      */
     protected string $label;
+
+    protected bool $isService;
     
     /**
      * List of all rules that are maintained by this role
@@ -52,8 +54,10 @@ class Role
     {
         $this->model = $model;
 
-        $this->setId($roleDef['id']);
-        $this->label = $roleDef['name'];
+        $this->setId($roleDef['name']);
+        $this->label = $roleDef['label'];
+
+        $this->isService = $roleDef['isService'];
         
         foreach ((array)$roleDef['maintains'] as $ruleName) {
             $this->maintains[] = $model->getRule($ruleName);

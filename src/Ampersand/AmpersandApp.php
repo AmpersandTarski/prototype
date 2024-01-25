@@ -346,7 +346,7 @@ class AmpersandApp
         foreach ($this->getActiveRoles() as $roleAtom) {
             // Set rules to maintain
             try {
-                $role = $this->model->getRoleById($roleAtom->getId());
+                $role = $this->model->getRoleByName($roleAtom->getId());
                 $this->rulesToMaintain = array_merge($this->rulesToMaintain, $role->maintains());
             } catch (Exception $e) {
                 $this->logger->debug("Actived role '{$roleAtom}', but role is not used/defined in &-script.");

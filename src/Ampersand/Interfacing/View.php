@@ -23,9 +23,14 @@ class View
      * Dependency injection of an ViewPlug implementation
      */
     protected ViewPlugInterface $plug;
-    
+
     /**
      * Name (and unique identifier) of view
+     */
+    public string $name;
+    
+    /**
+     * Label of view
      */
     public string $label;
     
@@ -53,13 +58,19 @@ class View
     {
         $this->plug = $plug;
         
+        $this->name = $viewDef['name'];
         $this->label = $viewDef['label'];
-        $this->forConcept = $viewDef['conceptId'];
+        $this->forConcept = $viewDef['conceptName'];
         $this->isDefault = $viewDef['isDefault'];
         
         foreach ($viewDef['segments'] as $segment) {
             $this->segments[] = new ViewSegment($segment, $this);
         }
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
     }
     
     public function getLabel(): string
@@ -94,6 +105,6 @@ class View
                 return $segment;
             }
         }
-        throw new NotDefinedException("View segment '{$this->label}:{$label}' not found");
+        throw new NotDefinedException("View segment '{$this->name}:{$label}' not found");
     }
 }
