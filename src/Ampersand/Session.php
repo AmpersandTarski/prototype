@@ -251,7 +251,7 @@ class Session
             $this->sessionAtom->link($accountAtom, 'sessionAccount[SESSION*Account]')->add();
             
             // Login timestamps
-            $ts = date(DATE_ISO8601);
+            $ts = date(DATE_ATOM);
             $accountAtom->link($ts, 'accMostRecentLogin[Account*DateTime]')->add();
             $accountAtom->link($ts, 'accLoginTimestamps[Account*DateTime]')->add();
 
