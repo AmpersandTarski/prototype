@@ -15,6 +15,7 @@ Additional labels for pre-release and build metadata are available as extensions
   * This is a breaking change. Requires version update to v2.x
   * It affects names and labels of all artefacts (concepts, relations, interfaces, rules, views, etc)
   * It affects metadata from PrototypeContext. Be sure to update those when used in application extensions or running environments
+* [Issue 161](https://github.com/AmpersandTarski/prototype/issues/161) Bugfix ConceptNotDefinedException
 * Add codebase of new developed frontend. Not integrated in building image yet.
   * This is a major change. Justifies major version update to v2.x
 
