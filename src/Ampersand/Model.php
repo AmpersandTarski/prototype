@@ -374,12 +374,12 @@ class Model
 
     public function getRoleConcept(): Concept
     {
-        return $this->getConceptByLabel(ProtoContext::CPT_ROLE);
+        return $this->getConcept(ProtoContext::CPT_ROLE);
     }
 
     public function getInterfaceConcept(): Concept
     {
-        return $this->getConceptByLabel(ProtoContext::CPT_IFC);
+        return $this->getConcept(ProtoContext::CPT_IFC);
     }
 
     /**********************************************************************************************
