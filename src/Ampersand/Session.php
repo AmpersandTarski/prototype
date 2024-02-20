@@ -102,7 +102,7 @@ class Session
         } else {
             $experationTimeStamp = $now - $this->settings->get('session.expirationTime');
             
-            $links = $this->sessionAtom->getLinks('lastAccess[SESSION*DateTime]');
+            $links = $this->sessionAtom->getLinks(ProtoContext::REL_SESSION_LAST_ACCESS);
             foreach ($links as $link) {
                 if (strtotime($link->tgt()->getId()) < $experationTimeStamp) {
                     $this->logger->debug("Session expired");
@@ -129,7 +129,7 @@ class Session
         // $_SESSION['lastAccess'] = $now;
         
         // Update lastAccess time also in plug/database to allow to use this aspect in Ampersand models
-        $this->sessionAtom->link(date(DATE_ATOM, $now), 'lastAccess[SESSION*DateTime]', false)->add();
+        $this->sessionAtom->link(date(DATE_ATOM, $now), ProtoContext::REL_SESSION_LAST_ACCESS, false)->add();
     }
 
     /**
@@ -307,7 +307,7 @@ class Session
     {
         $experationTimeStamp = time() - $ampersandApp->getSettings()->get('session.expirationTime');
         
-        $links = $ampersandApp->getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
+        $links = $ampersandApp->getRelation(ProtoContext::REL_SESSION_LAST_ACCESS)->getAllLinks();
         foreach ($links as $link) {
             if (strtotime($link->tgt()->getId()) < $experationTimeStamp) {
                 $link->src()->delete();

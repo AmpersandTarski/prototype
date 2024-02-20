@@ -13,7 +13,9 @@ abstract class ProtoContext
         CPT_IFC             = 'PrototypeContext.Interface',
         CPT_LABEL           = 'PrototypeContext.Label',
         CPT_NAV_MENU        = 'PrototypeContext.NavMenu',
-        CPT_NAV_ITEM        = 'PrototypeContext.NavMenuItem';
+        CPT_NAV_ITEM        = 'PrototypeContext.NavMenuItem',
+        CPT_DATETIME        = 'PrototypeContext.DateTime',
+        CPT_SESSION         = 'PrototypeContext.SESSION';
 
     const CONCEPTS = [
         self::CPT_ROLE,
@@ -21,6 +23,8 @@ abstract class ProtoContext
         self::CPT_LABEL,
         self::CPT_NAV_MENU,
         self::CPT_NAV_ITEM,
+        self::CPT_DATETIME,
+        // self::CPT_SESSION, // don't include this one, because this population does not need to be exported
     ];
     
     // Relation signatures with notation: rel[src*tgt]
@@ -30,8 +34,9 @@ abstract class ProtoContext
         REL_IFC_IS_API              = 'PrototypeContext.isAPI[PrototypeContext.Interface*PrototypeContext.Interface]',
         REL_IFC_LABEL               = 'PrototypeContext.label[PrototypeContext.Interface*PrototypeContext.Label]',
         REL_ROLE_LABEL              = 'PrototypeContext.label[PrototypeContext.Role*PrototypeContext.Label]',
-        REL_SESSION_ALLOWED_ROLES   = 'PrototypeContext.sessionAllowedRoles[SESSION*PrototypeContext.Role]',
-        REL_SESSION_ACTIVE_ROLES    = 'PrototypeContext.sessionActiveRoles[SESSION*PrototypeContext.Role]',
+        REL_SESSION_ALLOWED_ROLES   = 'PrototypeContext.sessionAllowedRoles[PrototypeContext.SESSION*PrototypeContext.Role]',
+        REL_SESSION_ACTIVE_ROLES    = 'PrototypeContext.sessionActiveRoles[PrototypeContext.SESSION*PrototypeContext.Role]',
+        REL_SESSION_LAST_ACCESS     = 'PrototypeContext.lastAccess[PrototypeContext.SESSION*PrototypeContext.DateTime]',
         REL_NAV_LABEL               = 'PrototypeContext.label[PrototypeContext.NavMenuItem*PrototypeContext.Label]',
         REL_NAV_IS_VISIBLE          = 'PrototypeContext.isVisible[PrototypeContext.NavMenuItem*PrototypeContext.NavMenuItem]',
         REL_NAV_IS_PART_OF          = 'PrototypeContext.isPartOf[PrototypeContext.NavMenuItem*PrototypeContext.NavMenu]',
@@ -47,6 +52,7 @@ abstract class ProtoContext
         self::REL_ROLE_LABEL,
         self::REL_SESSION_ALLOWED_ROLES,
         self::REL_SESSION_ACTIVE_ROLES,
+        // self::REL_SESSION_LAST_ACCESS, // don't include this one, because this population does not need to be exported
         self::REL_NAV_LABEL,
         self::REL_NAV_IS_VISIBLE,
         self::REL_NAV_IS_PART_OF,

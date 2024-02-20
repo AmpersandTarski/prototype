@@ -140,7 +140,10 @@ class AngularJSApp implements FrontendInterface
      */
     public function getSessionRefreshAdvice(): bool
     {
-        static $skipRels = ['lastAccess[SESSION*DateTime]']; // these relations do not result in a session refresh advice
+        // These relations do not result in a session refresh advice
+        static $skipRels = [
+            ProtoContext::REL_SESSION_LAST_ACCESS,
+        ];
 
         $affectedRelations = [];
         foreach ($this->ampersandApp->getTransactions() as $transaction) {
