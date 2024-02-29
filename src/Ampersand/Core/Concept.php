@@ -20,6 +20,7 @@ use Ampersand\Exception\NotDefined\NotDefinedException;
 use Ampersand\Exception\TypeCheckerException;
 use Ramsey\Uuid\Uuid;
 use Ampersand\Interfacing\View;
+use Ampersand\Misc\ProtoContext;
 
 /**
  *
@@ -251,7 +252,7 @@ class Concept
     public function isSession(): bool
     {
         foreach ($this->getGeneralizationsIncl() as $concept) {
-            if ($concept->label === 'SESSION') {
+            if ($concept->name === ProtoContext::CPT_SESSION) {
                 return true;
             }
         }

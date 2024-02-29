@@ -369,7 +369,7 @@ class Model
     
     public function getSessionConcept(): Concept
     {
-        return $this->getConcept('SESSION');
+        return $this->getConcept(ProtoContext::CPT_SESSION);
     }
 
     public function getRoleConcept(): Concept
