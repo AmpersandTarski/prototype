@@ -20,6 +20,7 @@ use Ampersand\Exception\NotDefined\NotDefinedException;
 use Ampersand\Exception\TypeCheckerException;
 use Ramsey\Uuid\Uuid;
 use Ampersand\Interfacing\View;
+use Ampersand\Misc\ProtoContext;
 
 /**
  *
@@ -61,13 +62,11 @@ class Concept
     
     /**
      * Name (and unique escaped identifier) of concept as defined in Ampersand script
-     *
-     * TODO: rename var to $id
      */
     public string $name;
     
     /**
-     * Unescaped name of concept as defined in Ampersand script
+     * Concept label as defined in Ampersand script
      */
     public string $label;
     
@@ -157,7 +156,7 @@ class Concept
         
         $this->def = $conceptDef;
         
-        $this->name = $conceptDef['id'];
+        $this->name = $conceptDef['name'];
         $this->label = $conceptDef['label'];
         $this->type = TType::from($conceptDef['type']);
 
@@ -175,8 +174,8 @@ class Concept
         $this->interfaceIds = (array)$conceptDef['interfaces'];
         $this->largestConceptId = $conceptDef['largestConcept'];
         
-        if (!is_null($conceptDef['defaultViewId'])) {
-            $this->defaultView = $app->getModel()->getView($conceptDef['defaultViewId']);
+        if (!is_null($conceptDef['defaultViewName'])) {
+            $this->defaultView = $app->getModel()->getView($conceptDef['defaultViewName']);
         }
         
         if (!is_null($conceptDef['conceptTable'])) {
@@ -194,9 +193,9 @@ class Concept
      * Default view and query belong together
      * TODO: replace hack by proper implementation in Ampersand generator
      */
-    public function setAllAtomsQuery(string $viewId, string $query): void
+    public function setAllAtomsQuery(string $viewName, string $query): void
     {
-        $this->defaultView = $this->app->getModel()->getView($viewId);
+        $this->defaultView = $this->app->getModel()->getView($viewName);
         $this->mysqlConceptTable->allAtomsQuery = $query;
     }
     
@@ -253,7 +252,7 @@ class Concept
     public function isSession(): bool
     {
         foreach ($this->getGeneralizationsIncl() as $concept) {
-            if ($concept->label === 'SESSION') {
+            if ($concept->name === ProtoContext::CPT_SESSION) {
                 return true;
             }
         }

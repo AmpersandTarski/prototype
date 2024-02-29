@@ -16,6 +16,7 @@ use Ampersand\Exception\AmpersandException;
 use Ampersand\Exception\AtomNotFoundException;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\UploadException;
+use Ampersand\Misc\ProtoContext;
 use stdClass;
 use function Ampersand\Misc\getSafeFileName;
 
@@ -271,7 +272,7 @@ class ResourceList
 
         // Same as in InterfaceNullObject::buildResourcePath()
         if ($srcAtom->concept->isSession()) {
-            $pathEntry = "resource/SESSION/1"; // Don't put session id here, this is implicit
+            $pathEntry = "resource/" . ProtoContext::CPT_SESSION . "/1"; // Don't put session id here, this is implicit
         } else {
             $pathEntry = "resource/{$srcAtom->concept->name}/{$srcAtom->getId()}";
         }

@@ -138,7 +138,7 @@ class Ifc
     {
         switch ($objectDef['type']) {
             case 'ObjExpression':
-                if (isset($objectDef['subinterfaces']['refSubInterfaceId'])) {
+                if (isset($objectDef['subinterfaces']['refSubInterfaceName'])) {
                     return new InterfaceExprObjectRef($objectDef, $defaultPlug, $this, $parent);
                 } else {
                     return new InterfaceExprObject($objectDef, $defaultPlug, $this, $parent);
@@ -159,7 +159,7 @@ class Ifc
             throw new FatalException("Interface expression object definition required, but '{$objectDef['type']}' provided.");
         }
 
-        if (isset($objectDef['subinterfaces']['refSubInterfaceId'])) {
+        if (isset($objectDef['subinterfaces']['refSubInterfaceName'])) {
             return new InterfaceExprObjectRef($objectDef, $defaultPlug, $this, $parent);
         } else {
             return new InterfaceExprObject($objectDef, $defaultPlug, $this, $parent);

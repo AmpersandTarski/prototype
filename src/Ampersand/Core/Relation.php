@@ -114,8 +114,8 @@ class Relation
         $this->app = $app;
 
         $this->name = $relationDef['name'];
-        $this->srcConcept = $app->getModel()->getConcept($relationDef['srcConceptId']);
-        $this->tgtConcept = $app->getModel()->getConcept($relationDef['tgtConceptId']);
+        $this->srcConcept = $app->getModel()->getConcept($relationDef['srcConceptName']);
+        $this->tgtConcept = $app->getModel()->getConcept($relationDef['tgtConceptName']);
         
         $this->signature = $relationDef['signature'];
         

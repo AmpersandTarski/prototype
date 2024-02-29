@@ -53,7 +53,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
         }
         
         // Set attributes from $ifcDef
-        $this->id = $ifcDef['id'];
+        $this->id = $ifcDef['name'];
         $this->label = $ifcDef['label'];
         $this->txt = $ifcDef['txt'];
 

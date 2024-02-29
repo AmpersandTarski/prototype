@@ -101,8 +101,8 @@ class PopulationController extends AbstractController
         $body = $request->reparseBody()->getParsedBody();
         $model = $this->app->getModel();
         
-        $concepts = array_map(function (string $conceptLabel) use ($model) {
-            return $model->getConceptByLabel($conceptLabel);
+        $concepts = array_map(function (string $conceptName) use ($model) {
+            return $model->getConcept($conceptName);
         }, $body->concepts);
 
         $relations = array_map(function (string $relSignature) use ($model) {

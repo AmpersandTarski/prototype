@@ -21,7 +21,7 @@ class LoginController extends AbstractController
             throw new BadRequestException("No account identifier 'accountId' provided");
         }
 
-        $account = $this->app->getModel()->getConceptByLabel('Account')->makeAtom($args['accountId']);
+        $account = $this->app->getModel()->getConcept('Account')->makeAtom($args['accountId']);
 
         $this->app->login($account);
 

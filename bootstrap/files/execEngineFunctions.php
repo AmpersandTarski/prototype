@@ -37,8 +37,8 @@ ExecEngine::registerFunction('InsPair', function ($relationName, $srcConceptName
 
     // Check if relation signature exists: $relationName[$srcConceptName*$tgtConceptName]
     $model = $this->getApp()->getModel();
-    $srcConcept = $model->getConceptByLabel($srcConceptName);
-    $tgtConcept = $model->getConceptByLabel($tgtConceptName);
+    $srcConcept = $model->getConcept($srcConceptName);
+    $tgtConcept = $model->getConcept($tgtConceptName);
     $relation = $this->getApp()->getRelation($relationName, $srcConcept, $tgtConcept);
     
     // if either srcAtomIdStr or tgtAtom is not provided by the pairview function (i.e. value set to '_NULL'): skip the insPair
@@ -87,8 +87,8 @@ ExecEngine::registerFunction('DelPair', function ($relationName, $srcConceptName
         
     // Check if relation signature exists: $relationName[$srcConceptName*$tgtConceptName]
     $model = $this->getApp()->getModel();
-    $srcConcept = $model->getConceptByLabel($srcConceptName);
-    $tgtConcept = $model->getConceptByLabel($tgtConceptName);
+    $srcConcept = $model->getConcept($srcConceptName);
+    $tgtConcept = $model->getConcept($tgtConceptName);
     $relation = $this->getApp()->getRelation($relationName, $srcConcept, $tgtConcept);
     
     // if either srcAtomIdStr or tgtAtom is not provided by the pairview function (i.e. value set to '_NULL'): skip the insPair
@@ -148,7 +148,7 @@ ExecEngine::registerFunction('NewStruct', function () {
     $model = $this->getApp()->getModel();
 
     // We start with parsing the first one or two arguments
-    $c = $model->getConceptByLabel(func_get_arg(0)); // Concept for which atom is to be created
+    $c = $model->getConcept(func_get_arg(0)); // Concept for which atom is to be created
     $atom = $c->createNewAtom(); // Default marker for atom-to-be-created.
 
     $this->info("Newstruct for concept '{$c}'");
@@ -170,9 +170,9 @@ ExecEngine::registerFunction('NewStruct', function () {
     // Next, for every relation that follows in the argument list, we create a link
     for ($i = func_num_args() % 5; $i < func_num_args(); $i = $i+5) {
         $relation   = func_get_arg($i);
-        $srcConcept = $model->getConceptByLabel(func_get_arg($i+1));
+        $srcConcept = $model->getConcept(func_get_arg($i+1));
         $srcAtomId    = func_get_arg($i+2);
-        $tgtConcept = $model->getConceptByLabel(func_get_arg($i+3));
+        $tgtConcept = $model->getConcept(func_get_arg($i+3));
         $tgtAtomId    = func_get_arg($i+4);
         
         if ($srcAtomId === "NULL" or $tgtAtomId === "NULL") {
@@ -216,7 +216,7 @@ ExecEngine::registerFunction('InsAtom', function (string $conceptName) {
         throw new InvalidExecEngineCallException("InsAtom() expects 1 argument, but you have provided " . func_num_args());
     }
 
-    $atom = $this->getApp()->getModel()->getConceptByLabel($conceptName)->createNewAtom();
+    $atom = $this->getApp()->getModel()->getConcept($conceptName)->createNewAtom();
 
     // Add atom to concept set
     $atom->add();
@@ -247,7 +247,7 @@ ExecEngine::registerFunction('DelAtom', function ($concept, $atomId) {
     if ($atomId === "_NEW") {
         $atom = $this->getCreatedAtom();
     } else {
-        $atom = $this->getApp()->getModel()->getConceptByLabel($concept)->makeAtom($atomId);
+        $atom = $this->getApp()->getModel()->getConcept($concept)->makeAtom($atomId);
     }
     
     $atom->delete(); // delete atom + all pairs shared with other atoms
@@ -276,8 +276,8 @@ ExecEngine::registerFunction('MrgAtoms', function ($conceptA, $srcAtomId, $conce
     }
     
     $model = $this->getApp()->getModel();
-    $srcAtom = $model->getConceptByLabel($conceptA)->makeAtom($srcAtomId);
-    $tgtAtom = $model->getConceptByLabel($conceptB)->makeAtom($tgtAtomId);
+    $srcAtom = $model->getConcept($conceptA)->makeAtom($srcAtomId);
+    $tgtAtom = $model->getConcept($conceptB)->makeAtom($tgtAtomId);
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
     if ($srcAtomId === "_NEW") {
@@ -316,10 +316,10 @@ ExecEngine::registerFunction('SetConcept', function ($conceptA, $conceptB, $atom
     if ($atomId === "_NEW") {
         $atom = $this->getCreatedAtom();
     } else {
-        $atom = $this->getApp()->getModel()->getConceptByLabel($conceptA)->makeAtom($atomId);
+        $atom = $this->getApp()->getModel()->getConcept($conceptA)->makeAtom($atomId);
     }
     
-    $conceptB = $this->getApp()->getModel()->getConceptByLabel($conceptB);
+    $conceptB = $this->getApp()->getModel()->getConcept($conceptB);
     $conceptB->addAtom($atom, false);
     $this->debug("Atom '{$atom}' added as member to concept '{$conceptB}'");
 });
@@ -340,7 +340,7 @@ ExecEngine::registerFunction('ClearConcept', function ($concept, $atomId) {
         throw new InvalidExecEngineCallException("ClearConcept() expects 2 arguments, but you have provided " . func_num_args());
     }
 
-    $concept = $this->getApp()->getModel()->getConceptByLabel($concept);
+    $concept = $this->getApp()->getModel()->getConcept($concept);
     
     // if atom id is specified as _NEW, the latest atom created by NewStruct or InsAtom (in this VIOLATION) is used
     if ($atomId === "_NEW") {

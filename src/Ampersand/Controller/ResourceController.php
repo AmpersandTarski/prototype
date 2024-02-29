@@ -5,7 +5,7 @@ namespace Ampersand\Controller;
 use Ampersand\Core\Concept;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
-use Ampersand\Exception\NotDefined\ConceptNotDefined;
+use Ampersand\Exception\NotDefined\ConceptNotDefinedException;
 use Ampersand\Exception\FatalException;
 use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Interfacing\Options;
@@ -177,7 +177,7 @@ class ResourceController extends AbstractController
         
         $resourceType = $args['resourceType'];
         if (!$this->app->getModel()->getConcept($resourceType)->isObject()) {
-            throw new ConceptNotDefined("Resource type '{$resourceType}' not found");
+            throw new ConceptNotDefinedException("Resource type '{$resourceType}' not found");
         }
         
         $list = $request->reparseBody()->getParsedBody();
@@ -188,7 +188,7 @@ class ResourceController extends AbstractController
         $transaction = $this->app->newTransaction();
 
         foreach ($list as $item) {
-            $atom = $this->app->getModel()->getConceptByLabel($resourceType)->makeAtom($item->oldId);
+            $atom = $this->app->getModel()->getConcept($resourceType)->makeAtom($item->oldId);
             $atom->rename($item->newId);
         }
         

@@ -56,7 +56,7 @@ ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPl
     $runCount = $this->getRunCount();
 
     // Get concept and relation objects
-    $concept = $this->getApp()->getModel()->getConceptByLabel($C);
+    $concept = $this->getApp()->getModel()->getConcept($C);
     $relationR = $this->getApp()->getRelation($r, $concept, $concept);
     $relationRCopy = $this->getApp()->getRelation($rCopy, $concept, $concept);
     $relationRPlus = $this->getApp()->getRelation($rPlus, $concept, $concept);
