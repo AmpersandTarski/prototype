@@ -30,26 +30,12 @@ RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
   && node -v \
   && npm -v
 
-# Install Gulp-CLI (needed to package prototype framework frontend)
-#RUN npm install -g gulp-cli
-
 # Install php backend dependencies using PHP Composer package specification (composer.json)
 COPY composer.json composer.lock /var/www/
 WORKDIR /var/www
 RUN composer --version \
  && composer check-platform-reqs
 RUN composer install --prefer-dist --no-dev --profile
-
-# Install frontend dependencies using NPM package specification (package.json)
-COPY package.json package-lock.json /var/www/
-WORKDIR /var/www
-RUN npm install
-
-# We suppress any issues here, this is due to a cascading list of issues with old libraries used here.
-# Soon we'll have the new frontend, so let's not spent any time fixing these issues for the old frontend.
-# We set --audit-level=none to suppress
-# Don't use --force as it will downgrade amongst others Gulp to v3. We need v4.
-#RUN npm audit fix --audit-level=none
 
 # Copy Ampersand compiler
 # NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
@@ -67,11 +53,14 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 # Copy the rest of the prototype framework
 COPY . /var/www
 
-# Build ampersand frontend application
+# Build ampersand frontend application (needs to be done in project Dockerfile with new frontend(?))
 #WORKDIR /var/www
 #RUN gulp build-ampersand
 
-WORKDIR /var/www/frontend
-#TODO Move frontend to root? Or change the workdir in the middle of the file? Laatste kan niet want /var/www base voor alles toch? WIP
-RUN npm install
+#Move frontend to root (TODO now gives errors/creates old AngularJS)
+#COPY frontend /var/www
 
+WORKDIR /var/www/frontend
+
+# Install frontend dependencies using NPM package specification (package.json)
+RUN npm install
