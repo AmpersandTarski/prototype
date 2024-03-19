@@ -50,17 +50,20 @@ ENV APACHE_DOCUMENT_ROOT /var/www/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Copy the rest of the prototype framework
-COPY . /var/www
+# Move frontend to wwwroot
+COPY frontend /var/www
 
-# Build ampersand frontend application (needs to be done in project Dockerfile with new frontend(?))
+# Copy the rest of the prototype framework
+COPY bootstrap/ /var/www/bootstrap
+COPY config/ /var/www/config
+COPY public/api/ /var/www/public/api
+COPY src/Ampersand/ /var/www/src/Ampersand
+
+# Build ampersand frontend application (needs to be done in project Dockerfile with new frontend (right?))
 #WORKDIR /var/www
 #RUN gulp build-ampersand
 
-#Move frontend to root (TODO now gives errors/creates old AngularJS)
-#COPY frontend /var/www
-
-WORKDIR /var/www/frontend
+WORKDIR /var/www
 
 # Install frontend dependencies using NPM package specification (package.json)
 RUN npm install
