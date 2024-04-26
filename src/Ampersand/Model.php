@@ -28,7 +28,7 @@ use Ampersand\Core\Population;
 use Ampersand\Core\Link;
 use Ampersand\Core\Atom;
 use Ampersand\Exception\AmpersandException;
-use Ampersand\Exception\NotDefined\ConceptNotDefined;
+use Ampersand\Exception\NotDefined\ConceptNotDefinedException;
 use Ampersand\Exception\NotDefined\ConjunctNotDefinedException;
 use Ampersand\Exception\FatalException;
 use Ampersand\Exception\NotDefined\RelationNotDefined;
@@ -345,7 +345,7 @@ class Model
     public function getConcept(string $conceptId): Concept
     {
         if (!array_key_exists($conceptId, $concepts = $this->getAllConcepts())) {
-            throw new ConceptNotDefined("Concept '{$conceptId}' is not defined");
+            throw new ConceptNotDefinedException("Concept '{$conceptId}' is not defined");
         }
          
         return $concepts[$conceptId];
@@ -364,7 +364,7 @@ class Model
             }
         }
         
-        throw new ConceptNotDefined("Concept '{$conceptLabel}' is not defined");
+        throw new ConceptNotDefinedException("Concept '{$conceptLabel}' is not defined");
     }
     
     public function getSessionConcept(): Concept
