@@ -11,6 +11,7 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased changes
 * [Issue 79](https://github.com/AmpersandTarski/prototype/issues/79) Add support for delimited multi value columns in excel importer
+* Catch FileNotFoundException and log warning when corresponding file of deleted FileObject is not found on filesystem
 * Skip tracking affected relations and concepts for RELATION lastAccess[SESSION*DateTime]
 * Add codebase of new developed frontend. Not integrated in building image yet.
 

@@ -18,6 +18,7 @@ use Ampersand\Interfacing\ResourcePath;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\Exception\AtomNotFoundException;
 use Ampersand\Exception\BadRequestException;
+use League\Flysystem\FileNotFoundException;
 
 /**
  *
@@ -349,7 +350,11 @@ class Resource extends Atom
 
             // Special case for FileObject: delete files from file system
             foreach ($filePaths as $path) {
-                $this->concept->getApp()->fileSystem()->delete($path);
+                try {
+                    $this->concept->getApp()->fileSystem()->delete($path);
+                } catch (FileNotFoundException $e) {
+                    Logger::getLogger('INTERFACING')->warning("Corresponding file for deleted FileObject '{$this->id}' was not found at path '{$path}'. The filesystem and database might be out of sync if this occurs more often");
+                }
             }
         } else {
             // Perform DELETE using the interface definition
