@@ -544,7 +544,7 @@ class Concept
      *
      * @param bool $populateDefaults specifies if default src/tgt values for relations must be populated also
      */
-    public function addAtom(Atom $atom, bool $populateDefaults = true): Atom
+    public function addAtom(Atom $atom, bool $populateDefaults = true, bool $trackAffected = true): Atom
     {
         // Adding atom[A] to [A] ($this)
         if ($atom->concept === $this) {
@@ -553,7 +553,11 @@ class Concept
             } else {
                 $this->logger->debug("Add atom {$atom} to plug");
                 $transaction = $this->app->getCurrentTransaction();
-                $transaction->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
+
+                if ($trackAffected) {
+                    // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
+                    $transaction->addAffectedConcept($this);
+                }
                 
                 foreach ($this->getPlugs() as $plug) {
                     $plug->addAtom($atom); // Add to plug
@@ -583,7 +587,7 @@ class Concept
             }
             
             $atom->concept = $this; // Change concept definition
-            return $this->addAtom($atom, false);
+            return $this->addAtom($atom, false, $trackAffected);
         }
     }
     

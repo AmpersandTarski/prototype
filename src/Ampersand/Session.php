@@ -129,7 +129,10 @@ class Session
         // $_SESSION['lastAccess'] = $now;
         
         // Update lastAccess time also in plug/database to allow to use this aspect in Ampersand models
-        $this->sessionAtom->link(date(DATE_ATOM, $now), 'lastAccess[SESSION*DateTime]', false)->add();
+        // We set 'trackAffected' to false for this relation, because it will significantly reduce the rule evaluation overhead
+        // for every session interaction. We can safely do this, because no new Session atom is implicitly created here nor does
+        // the DateTime atom is reused elsewhere
+        $this->sessionAtom->link(date(DATE_ATOM, $now), 'lastAccess[SESSION*DateTime]', false)->add(trackAffected: false);
     }
 
     /**
