@@ -235,15 +235,19 @@ class Relation
     /**
      * Add link to this relation
      */
-    public function addLink(Link $link): void
+    public function addLink(Link $link, bool $trackAffected = true): void
     {
         $this->logger->debug("Add link {$link} to plug");
         $transaction = $this->app->getCurrentTransaction();
-        $transaction->addAffectedRelations($this); // Add relation to affected relations. Needed for conjunct evaluation and transaction management
+
+        if ($trackAffected) {
+            // Add relation to affected relations. Needed for conjunct evaluation and transaction management
+            $transaction->addAffectedRelations($this);
+        }
         
         // Ensure that atoms exist in their concept tables
-        $link->src()->add(false); // TODO: remove when we know for sure that this is guaranteed by calling functions
-        $link->tgt()->add(false); // TODO: remove when we know for sure that this is guaranteed by calling functions
+        $link->src()->add(false, $trackAffected); // TODO: remove when we know for sure that this is guaranteed by calling functions
+        $link->tgt()->add(false, $trackAffected); // TODO: remove when we know for sure that this is guaranteed by calling functions
         
         foreach ($this->getPlugs() as $plug) {
             $plug->addLink($link);

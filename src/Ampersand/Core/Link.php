@@ -76,9 +76,9 @@ class Link implements JsonSerializable
     /**
      * Add link relation set
      */
-    public function add(): self
+    public function add(bool $trackAffected = true): self
     {
-        $this->rel->addLink($this);
+        $this->rel->addLink($this, $trackAffected);
         return $this;
     }
     
