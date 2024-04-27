@@ -214,12 +214,6 @@ class AmpersandApp
         // Initialize Ampersand model (i.e. load all defintions from generated json files)
         $this->model->init($this);
 
-        // Verify checksum
-        // Must be done after init of storages and init of model (see above)
-        if (!$this->verifyChecksum() && !$this->settings->get('global.productionEnv')) {
-            $this->userLogger->warning("Generated model is changed. You SHOULD reinstall or migrate your application");
-        }
-
         // Add concept plugs
         foreach ($this->model->getAllConcepts() as $cpt) {
             if (array_key_exists($cpt->label, $this->customConceptPlugs)) {
