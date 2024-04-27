@@ -3,6 +3,9 @@
 /** @phan-file-suppress PhanInvalidFQSENInCallable */
 
 use Ampersand\Controller\SessionController;
+use Ampersand\API\Middleware\VerifyChecksumMiddleware;
+
+global $ampersandApp;
 
 /**
  * @var \Slim\Slim $api
@@ -19,4 +22,5 @@ $api->group('/app', function () {
     $this->patch('/roles', SessionController::class . ':updateRoles');
     $this->get('/navbar', SessionController::class . ':getNavMenu');
     $this->get('/notifications', SessionController::class . ':getNotifications');
-});
+})
+->add(new VerifyChecksumMiddleware($ampersandApp));
