@@ -51,7 +51,7 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Move frontend to wwwroot
-COPY frontend /var/www
+COPY frontend /var/www/frontend
 
 # Copy the rest of the prototype framework
 COPY bootstrap/ /var/www/bootstrap
@@ -63,7 +63,10 @@ COPY src/Ampersand/ /var/www/src/Ampersand
 #WORKDIR /var/www
 #RUN gulp build-ampersand
 
-WORKDIR /var/www
+WORKDIR /var/www/frontend
 
 # Install frontend dependencies using NPM package specification (package.json)
 RUN npm install
+
+# Empty folder needed for ampersand compiler to write files to (later in project dockerfile)
+RUN mkdir /var/www/generics
