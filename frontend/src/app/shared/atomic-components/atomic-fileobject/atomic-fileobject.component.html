@@ -1,0 +1,49 @@
+<div class="fileobjects">
+    <div *ngFor="let object of data; let i = index" class="fileobject">
+        <div
+            *ngIf="canUpdate()"
+            class="pi pi-fw pi-minus"
+            (click)="removeItem(i)"
+            pTooltip="Remove"
+            tooltipPosition="left"
+        ></div>
+
+        <div
+            *ngIf="canDelete()"
+            class="pi pi-fw pi-trash"
+            (click)="deleteItem(i)"
+            pTooltip="Delete"
+            tooltipPosition="left"
+        ></div>
+
+        <app-file-object-view [fileObject]="object" />
+    </div>
+</div>
+
+<!-- Input to add new link to another resource -->
+<p-dropdown
+    *ngIf="canUpdate()"
+    [(ngModel)]="selectedFileObject"
+    placeholder="Add existing file"
+    [options]="fileObjects"
+    optionLabel="_label_"
+    [filter]="true"
+    filterBy="_label_"
+    [showClear]="false"
+    (onChange)="addFileObject()"
+    [disabled]="isUni && data.length > 0"
+/>
+
+<!-- Input to create and upload a new file -->
+<ng-container *ngIf="canUpdate()">
+    <span>Upload new: </span>
+
+    <p-fileUpload
+        #myFileUpload
+        mode="basic"
+        chooseLabel="Choose"
+        i18n-chooseLabel
+        [disabled]="isUni && data.length > 0"
+        (onSelect)="uploadFile($event)"
+    ></p-fileUpload>
+</ng-container>

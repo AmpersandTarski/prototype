@@ -1,0 +1,62 @@
+<div *ngIf="canRead() && !canUpdate()">
+    <ng-container *ngTemplateOutlet="cRud"> </ng-container>
+</div>
+
+<div *ngIf="canRead() && canUpdate() && isUni">
+    <ng-container *ngTemplateOutlet="cRUdUni"> </ng-container>
+</div>
+
+<div *ngIf="canRead() && canUpdate() && !isUni">
+    <ng-container *ngTemplateOutlet="cRUd"> </ng-container>
+</div>
+
+<div *ngIf="!canRead()">
+    <ng-container *ngTemplateOutlet="crud"> </ng-container>
+</div>
+
+<ng-template #cRUdUni>
+    <div class="w-full">
+        <app-ckeditor
+            [(value)]="resource[propertyName]"
+            (valueChange)="dirty = true"
+            (ckBlur)="updateValue()"
+        />
+    </div>
+</ng-template>
+
+<ng-template #cRUd>
+    <div class="items">
+        <div *ngFor="let value of data; let i = index" class="item">
+            <div
+                class="pi pi-fw pi-minus"
+                (click)="removeItem(i)"
+                pTooltip="Remove"
+                tooltipPosition="left"
+                style="color: red; padding-bottom: 9px; cursor: pointer"
+            ></div>
+
+            <div [appMarkdown]="value"></div>
+        </div>
+
+        <app-ckeditor [(value)]="newValue" placeholder="'Add value'" />
+
+        <button
+            type="button"
+            pButton
+            pRipple
+            icon="pi pi-plus"
+            label="Add"
+            styleClass="p-button-success"
+            (click)="addValue()"
+            [disabled]="isNewItemInputDisabled()"
+        ></button>
+    </div>
+</ng-template>
+
+<ng-template #cRud>
+    <div *ngFor="let row of data" class="wordwrap" [appMarkdown]="row"></div>
+</ng-template>
+
+<ng-template #crud>
+    <span><i>Markdown is not readable</i></span>
+</ng-template>
