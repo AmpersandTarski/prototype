@@ -37,16 +37,15 @@ class ExcelImporter
         $this->logger = $logger;
         $this->ampersandApp = $app;
     }
-    
+
     /**
      * Parse excelsheet and import population
      */
     public function parseFile(string $filename): void
     {
         $file = IOFactory::load($filename);
-
         $this->logger->info("Excel import started: parsing file {$filename}");
-        
+
         // Loop over all worksheets
         foreach ($file->getWorksheetIterator() as $worksheet) {
             try {
@@ -59,10 +58,10 @@ class ExcelImporter
             }
             $this->parseWorksheetWithIfc($worksheet, $ifc);
         }
-        
+
         $this->logger->info("Excel import completed");
     }
-    
+
     /**
      * Parse worksheet according to an Ampersand interface definition.
      *
@@ -92,13 +91,13 @@ class ExcelImporter
 
         // The list to add/update items from
         $resourceList = ResourceList::makeFromInterface($this->ampersandApp->getSession()->getId(), $ifc->getId());
-        
+
         // Parse other columns of first row
         $dataColumns = [];
         foreach ($worksheet->getColumnIterator('B') as $column) {
             $columnLetter = $column->getColumnIndex();
             $cellvalue = (string)$worksheet->getCell($columnLetter . '1')->getCalculatedValue();
-            
+
             if ($cellvalue !== '') {
                 try {
                     $subIfcObj = $ifc->getIfcObject()->getSubinterfaceByLabel($cellvalue);
@@ -110,11 +109,11 @@ class ExcelImporter
                 $this->logger->notice("Skipping column {$columnLetter} in sheet {$worksheet->getTitle()}, because header is not provided");
             }
         }
-        
+
         // Parse other rows
         foreach ($worksheet->getRowIterator(2) as $row) {
             $rowNr = $row->getRowIndex();
-            $cell = $worksheet->getCell('A'.$rowNr);
+            $cell = $worksheet->getCell('A' . $rowNr);
 
             try {
                 $firstCol = (string)$cell->getCalculatedValue();
@@ -123,10 +122,10 @@ class ExcelImporter
                 if ($firstCol === '') {
                     $this->logger->notice("Skipping row {$rowNr} in sheet {$worksheet->getTitle()}, because column A is empty");
                     continue;
-                // If cell Ax contains '_NEW', this means to automatically create a new atom
+                    // If cell Ax contains '_NEW', this means to automatically create a new atom
                 } elseif ($firstCol === '_NEW') {
                     $leftResource = $resourceList->post();
-                // Else instantiate atom with given atom identifier
+                    // Else instantiate atom with given atom identifier
                 } else {
                     $leftAtom = new Atom($firstCol, $leftConcept);
                     if ($leftAtom->exists()) {
@@ -138,19 +137,19 @@ class ExcelImporter
             } catch (Exception $e) {
                 throw new Exception("Error in cell '{$cell->getWorksheet()->getTitle()}!{$cell->getCoordinate()}': {$e->getMessage()}", $e->getCode(), $e);
             }
-            
+
             // Process other columns of this row
             foreach ($dataColumns as $columnLetter => $subIfcObj) {
                 /** @var \Ampersand\Interfacing\InterfaceObjectInterface $subIfcObj */
                 $cell = $worksheet->getCell($columnLetter . $rowNr);
-                
+
                 try {
                     $cellvalue = (string)$cell->getCalculatedValue();
-                    
+
                     if ($cellvalue === '') {
                         continue; // skip if not value provided
                     }
-                    
+
                     // Overwrite $cellvalue in case of datetime
                     // The @ is a php indicator for a unix timestamp (http://php.net/manual/en/datetime.formats.compound.php), later used for typeConversion
                     if (Date::isDateTime($cell) && !empty($cellvalue)) {
@@ -164,7 +163,7 @@ class ExcelImporter
             }
         }
     }
-    
+
     /**
      * Parse worksheet according to the 2-row header information.
      * Row 1 contains the relation names, Row 2 the corresponding concept names
@@ -186,7 +185,7 @@ class ExcelImporter
         $blockStartRowNrs = [];
         foreach ($worksheet->getRowIterator() as $row) {
             $rowNr = $row->getRowIndex();
-            $cellvalue = $worksheet->getCell('A'. $rowNr)->getCalculatedValue();
+            $cellvalue = $worksheet->getCell('A' . $rowNr)->getCalculatedValue();
 
             // Import block is indicated by '[]' brackets in cell Ax
             if (substr(trim($cellvalue), 0, 1) === '[') {
@@ -224,15 +223,15 @@ class ExcelImporter
                         $this->throwException($e, $cell);
                     }
                 }
-            // Header line 2 specifies concept names
+                // Header line 2 specifies concept names
             } elseif ($i === 2) {
-                $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue());
+                $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel($worksheet->getCell('A' . $row->getRowIndex())->getCalculatedValue());
 
                 foreach ($row->getCellIterator() as $cell) {
                     try {
                         $col = $cell->getColumn();
                         $line2[$col] = trim((string) $cell->getCalculatedValue()); // no leading/trailing spaces allowed
-                    
+
                         // Import header can be determined now using line 1 and line 2
                         if ($col === 'A') {
                             $header[$col] = ['concept' => $leftConcept, 'relation' => null, 'flipped' => null];
@@ -240,27 +239,35 @@ class ExcelImporter
                             if ($line1[$col] === '' || $line2[$col] === '') { // @phan-suppress-current-line PhanTypeInvalidDimOffset
                                 // Skipping column
                                 $this->logger->notice("Skipping column {$col} in sheet {$worksheet->getTitle()}, because header is not complete");
-                            // Relation is flipped when last character is a tilde (~)
-                            } elseif (substr($line1[$col], -1) === '~') { // @phan-suppress-current-line PhanTypeInvalidDimOffset
-                                $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
-                                
-                                $header[$col] = ['concept' => $rightConcept
-                                                ,'relation' => $this->ampersandApp->getRelation(substr($line1[$col], 0, -1), $rightConcept, $leftConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
-                                                ,'flipped' => true
-                                                ];
+                                // Relation is flipped when last character is a tilde (~)
                             } else {
-                                $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
-                                $header[$col] = ['concept' => $rightConcept
-                                                ,'relation' => $this->ampersandApp->getRelation($line1[$col], $leftConcept, $rightConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
-                                                ,'flipped' => false
-                                                ];
+                                try {
+                                    $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
+                                    $separator = null;
+                                } catch (ConceptNotDefined $e) {
+                                    preg_match('/\\[(.*)(.)\\]/', $line2[$col], $matches);
+                                    $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($matches[1]);
+                                    $separator = $matches[2];
+                                }
+                                if (substr($line1[$col], -1) === '~') { // @phan-suppress-current-line PhanTypeInvalidDimOffset
+
+                                    $header[$col] = [
+                                        'concept' => $rightConcept, 'relation' => $this->ampersandApp->getRelation(substr($line1[$col], 0, -1), $rightConcept, $leftConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
+                                        , 'flipped' => true, 'separator' => $separator
+                                    ];
+                                } else {
+                                    $header[$col] = [
+                                        'concept' => $rightConcept, 'relation' => $this->ampersandApp->getRelation($line1[$col], $leftConcept, $rightConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
+                                        , 'flipped' => false, 'separator' => $separator
+                                    ];
+                                }
                             }
                         }
                     } catch (Exception $e) {
                         $this->throwException($e, $cell);
                     }
                 }
-            // Data lines
+                // Data lines
             } else {
                 $cellA = $worksheet->getCell('A' . $row->getRowIndex());
 
@@ -273,10 +280,10 @@ class ExcelImporter
                     if ($srcAtomId === '') {
                         $this->logger->notice("Skipping row {$row->getRowIndex()}, because column A is empty");
                         continue; // proceed to next row
-                    // If cell Ax contains '_NEW', this means to automatically create a new atom
+                        // If cell Ax contains '_NEW', this means to automatically create a new atom
                     } elseif ($srcAtomId === '_NEW') {
                         $leftAtom = $srcConcept->createNewAtom()->add();
-                    // Else instantiate atom with given atom identifier
+                        // Else instantiate atom with given atom identifier
                     } else {
                         $leftAtom = (new Atom($srcAtomId, $srcConcept))->add();
                     }
@@ -288,7 +295,7 @@ class ExcelImporter
             }
         }
     }
-    
+
     /**
      * Undocumented function
      */
@@ -304,17 +311,27 @@ class ExcelImporter
                 }
 
                 $cellvalue = $this->getCalculatedValueAsAtomId($cell); // @phan-suppress-current-line PhanTypeMismatchArgumentNullable
-
-                // If cell is empty, skip column
-                if ($cellvalue === '') {
-                    continue; // continue to next cell
-                } elseif ($cellvalue === '_NEW') {
-                    $rightAtom = $leftAtom;
+                if ($headerInfo[$col]['separator'] === null) {
+                    // If cell is empty, skip column
+                    if ($cellvalue === '') {
+                        continue; // continue to next cell
+                    } elseif ($cellvalue === '_NEW') {
+                        $rightAtom = $leftAtom;
+                    } else {
+                        $rightAtom = (new Atom($cellvalue, $headerInfo[$col]['concept']))->add();
+                    }
+                    $leftAtom->link($rightAtom, $headerInfo[$col]['relation'], $headerInfo[$col]['flipped'])->add();
                 } else {
-                    $rightAtom = (new Atom($cellvalue, $headerInfo[$col]['concept']))->add();
+                    $values = explode($headerInfo[$col]['separator'], $cellvalue);
+                    foreach ($values as $value) {
+                        if ($value === '') {
+                            continue; // continue to next value TODO: check if this matches with the semantics in the Ampersand compiler (Haskell)
+                        } else {
+                            $rightAtom = (new Atom($value, $headerInfo[$col]['concept']))->add();
+                            $leftAtom->link($rightAtom, $headerInfo[$col]['relation'], $headerInfo[$col]['flipped'])->add();
+                        }
+                    }
                 }
-
-                $leftAtom->link($rightAtom, $headerInfo[$col]['relation'], $headerInfo[$col]['flipped'])->add();
             } catch (Exception $e) {
                 $this->throwException($e, $cell);
             }
@@ -328,7 +345,7 @@ class ExcelImporter
         // Overwrite $cellvalue in case of datetime
         // the @ is a php indicator for a unix timestamp (http://php.net/manual/en/datetime.formats.compound.php), later used for typeConversion
         if (Date::isDateTime($cell) && $cellvalue !== '') {
-            $cellvalue = '@'.(string)Date::excelToTimestamp((int)$cellvalue);
+            $cellvalue = '@' . (string)Date::excelToTimestamp((int)$cellvalue);
         }
 
         return $cellvalue;
