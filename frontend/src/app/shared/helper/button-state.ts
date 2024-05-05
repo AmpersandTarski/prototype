@@ -8,7 +8,11 @@ export class ButtonState {
   }
 
   getStyleClass(): string {
-    return this.success ? 'p-button-success' : this.error ? 'p-button-danger' : '';
+    return this.success
+      ? 'p-button-success'
+      : this.error
+      ? 'p-button-danger'
+      : '';
   }
 
   init(): void {

@@ -1,11 +1,10 @@
-<div *ngFor="let object of data; let i = index">
+<div *ngFor="let object of data; let i = index" class="item">
     <div
         *ngIf="canUpdate()"
         class="pi pi-fw pi-minus"
         (click)="removeItem(i)"
         pTooltip="Remove"
         tooltipPosition="left"
-        style="color: red; padding-bottom: 9px; cursor: pointer"
     ></div>
 
     <div
@@ -14,38 +13,26 @@
         (click)="deleteItem(i)"
         pTooltip="Delete"
         tooltipPosition="left"
-        style="color: red; padding-bottom: 9px; cursor: pointer"
     ></div>
 
-    <p-splitButton
-        *ngIf="object._ifcs_.length > 1"
-        label="{{ object._label_ }}"
-        (onClick)="navigateToInterface(object._ifcs_[0].id, object._id_)"
-        [model]="menuItems[object._id_]"
-        styleClass="p-button-text mr-2 mb-2 flex shrinkbox"
-    ></p-splitButton>
+    <span>
+        {{ object._label_ }}
+    </span>
 
-    <button
-        pButton
-        *ngIf="object._ifcs_.length == 1"
-        (click)="navigateToInterface(object._ifcs_[0].id, object._id_)"
-        label="{{ object._label_ }}"
-        type="button"
-        class="p-button-text"
-    ></button>
-
-    <span *ngIf="object._ifcs_.length == 0 || object._ifcs_ == undefined">{{ object._label_ }}</span>
+    <app-ifcs-dropdown size="small" [resource]="object" />
 </div>
 
 <p-dropdown
-    *ngIf="dropdownMenuObjects$ | async as alternativeObjects"
-    [options]="alternativeObjects"
-    [formControl]="newItemControl"
+    *ngIf="dropdownMenuObjects"
+    [options]="filteredDropdownMenuObjects()"
+    [(ngModel)]="newValue"
     optionLabel="_label_"
     [filter]="true"
     filterBy="_label_"
     [showClear]="false"
     [placeholder]="placeholder"
-    (onChange)="addItem()"
+    (onChange)="addValue()"
+    [required]="isNewItemInputRequired()"
+    [disabled]="isNewItemInputDisabled()"
 >
 </p-dropdown>

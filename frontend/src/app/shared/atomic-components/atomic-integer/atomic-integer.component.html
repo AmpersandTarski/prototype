@@ -18,9 +18,10 @@
     <p-inputNumber
         mode="decimal"
         type="number"
-        [formControl]="formControl"
         [required]="isTot"
-        (keyup.enter)="addItem()"
+        [(ngModel)]="resource[propertyName]"
+        (onInput)="dirty = true"
+        (onBlur)="updateValue()"
     ></p-inputNumber>
 </ng-template>
 
@@ -42,10 +43,11 @@
         <p-inputNumber
             mode="decimal"
             type="number"
-            [formControl]="newItemControl"
+            [(ngModel)]="newValue"
             [placeholder]="'Add value'"
+            (keyup.enter)="addValue()"
             [required]="isNewItemInputRequired()"
-            (keyup.enter)="addItem()"
+            [disabled]="isNewItemInputDisabled()"
         ></p-inputNumber>
         <button
             type="button"
@@ -53,7 +55,8 @@
             pRipple
             icon="pi pi-plus"
             styleClass="p-button-success"
-            (click)="addItem()"
+            (click)="addValue()"
+            [disabled]="isNewItemInputDisabled()"
         ></button>
     </div>
 </ng-template>

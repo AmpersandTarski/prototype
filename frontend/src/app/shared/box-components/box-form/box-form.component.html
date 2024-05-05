@@ -1,48 +1,62 @@
-<div class="card" *ngFor="let item of data; let i = index">
-    <div style="float: right">
-        <span
-            *ngIf="canCreate()"
-            class="pi pi-fw pi-plus"
-            pTooltip="Add"
-            tooltipPosition="left"
-            style="color: green; cursor: pointer"
-            (click)="createItem()"
-        ></span>
-        <span
-            *ngIf="canUpdate()"
-            class="pi pi-fw pi-minus"
-            (click)="removeItem(i)"
-            pTooltip="Remove"
-            tooltipPosition="left"
-            style="color: red; padding-bottom: 9px; cursor: pointer"
-        ></span>
-        <span
-            *ngIf="canDelete()"
-            class="pi pi-fw pi-trash"
-            pTooltip="Delete"
-            tooltipPosition="left"
-            style="color: red; cursor: pointer"
-            (click)="deleteItem(i)"
-        ></span>
-    </div>
-    <ng-container *ngTemplateOutlet="template || defaultTemplate; context: { $implicit: item }"></ng-container>
+<div *ngIf="data.length === 0">
+    <button type="button" class="p-button p-button-rounded" (click)="createItem()">
+        New {{ tgtResourceType }}
+    </button>
 </div>
 
-<p-dropdown
-    *ngIf="canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects; else defaultDropdownMenu"
-    [options]="dropdownMenuObjects"
-    [formControl]="newItemControl"
-    optionLabel="_label_"
-    [filter]="true"
-    filterBy="_label_"
-    [showClear]="false"
-    [placeholder]="placeholder"
-    (onChange)="addItem()"
->
-</p-dropdown>
+<ng-container *ngIf="filterNullish(data).length">
+    <div class="card" *ngFor="let item of data; let i = index">
+        <div style="float: right">
+            <span
+                *ngIf="canCreate() && !isUni"
+                class="pi pi-fw pi-plus"
+                pTooltip="Add"
+                tooltipPosition="left"
+                style="color: green; cursor: pointer"
+                (click)="createItem()"
+            ></span>
+            <span
+                *ngIf="canUpdate()"
+                class="pi pi-fw pi-minus"
+                (click)="removeItem(i)"
+                pTooltip="Remove"
+                tooltipPosition="left"
+                style="color: red; padding-bottom: 9px; cursor: pointer"
+            ></span>
+            <span
+                *ngIf="canDelete()"
+                class="pi pi-fw pi-trash"
+                pTooltip="Delete"
+                tooltipPosition="left"
+                style="color: red; cursor: pointer"
+                (click)="deleteItem(i)"
+            ></span>
+        </div>
+        <ng-container
+            *ngTemplateOutlet="template || defaultTemplate; context: { $implicit: item }"
+        ></ng-container>
+    </div>
+
+    <p-dropdown
+        *ngIf="
+            canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects;
+            else defaultDropdownMenu
+        "
+        [options]="dropdownMenuObjects"
+        [formControl]="newItemControl"
+        optionLabel="_label_"
+        [filter]="true"
+        filterBy="_label_"
+        [showClear]="false"
+        [placeholder]="placeholder"
+        (onChange)="addItem()"
+    >
+    </p-dropdown>
+</ng-container>
 
 <ng-template #defaultDropdownMenu>
-    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder"> </p-dropdown>
+    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder">
+    </p-dropdown>
 </ng-template>
 
 <ng-template #defaultTemplate let-item>

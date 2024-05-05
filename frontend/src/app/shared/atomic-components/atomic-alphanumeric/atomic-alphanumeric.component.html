@@ -15,7 +15,13 @@
 </div>
 
 <ng-template #cRUdUni>
-    <input type="text" class="min-w-10rem w-full" pInputText [formControl]="formControl" [required]="isTot" />
+    <input
+        type="text"
+        [(ngModel)]="resource[propertyName]"
+        (input)="dirty = true"
+        (blur)="updateValue()"
+        [required]="isTot"
+    />
 </ng-template>
 
 <ng-template #cRUd>
@@ -37,10 +43,11 @@
             type="text"
             class="min-w-10rem w-full"
             pInputText
-            [formControl]="newItemControl"
+            [(ngModel)]="newValue"
             [placeholder]="'Add value'"
-            [required]="isNewItemInputRequired()"
-            (keyup.enter)="addItem()"
+            [required]="isTot && data.length === 0"
+            (keyup.enter)="addValue()"
+            [disabled]="isNewItemInputDisabled()"
         />
         <button
             type="button"
@@ -48,7 +55,8 @@
             pRipple
             icon="pi pi-plus"
             styleClass="p-button-success"
-            (click)="addItem()"
+            (click)="addValue()"
+            [disabled]="isNewItemInputDisabled()"
         ></button>
     </div>
 </ng-template>

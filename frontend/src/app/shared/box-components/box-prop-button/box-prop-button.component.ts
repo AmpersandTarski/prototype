@@ -10,7 +10,10 @@ type PropButtonItem = ObjectBase & {
   templateUrl: './box-prop-button.component.html',
   styleUrls: ['./box-prop-button.component.scss'],
 })
-export class BoxPropButtonComponent<TItem extends PropButtonItem, I> extends BaseBoxComponent<TItem, I> {
+export class BoxPropButtonComponent<
+  TItem extends PropButtonItem,
+  I extends ObjectBase | ObjectBase[],
+> extends BaseBoxComponent<TItem, I> {
   @Input() action?: 'toggle' | 'set' | 'clear' = 'toggle';
 
   handleClick(item: TItem) {
@@ -30,10 +33,10 @@ export class BoxPropButtonComponent<TItem extends PropButtonItem, I> extends Bas
     }
 
     this.interfaceComponent
-      .patch<TItem>(item._path_, [{ op: 'replace', path: 'property', value: value }])
+      .patch(item._path_, [{ op: 'replace', path: 'property', value: value }])
       .subscribe((x) => {
         if (x.isCommitted) {
-          this.data = [x.content];
+          this.data = [x.content as any as TItem];
         }
       });
   }

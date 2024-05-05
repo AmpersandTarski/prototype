@@ -1,9 +1,7 @@
-export interface ObjectBase {
-  _id_: string;
-  _label_: string;
-  _path_: string;
-  _ifcs_: Array<InterfaceRefObject>;
-}
+import { Object } from '../generated/project.concepts';
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type ObjectBase = Object;
 
 export interface InterfaceRefObject {
   id: string;

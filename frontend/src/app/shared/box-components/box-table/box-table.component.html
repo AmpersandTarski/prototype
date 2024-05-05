@@ -1,11 +1,12 @@
-<p-table [value]="data">
+<p-table [value]="data" #primengTable>
     <ng-template pTemplate="header">
         <tr>
             <ng-container
                 *ngTemplateOutlet="headers || defaultHeaderTemplate; context: { $implicit: data }"
             ></ng-container>
-            <th *ngIf="canCreate()">
+            <th>
                 <span
+                    *ngIf="canCreate() && !isUni"
                     class="pi pi-fw pi-plus"
                     pTooltip="Add"
                     tooltipPosition="left"
@@ -13,12 +14,13 @@
                     (click)="createItem()"
                 ></span>
             </th>
-            <th *ngIf="canDelete() && !canCreate()"></th>
         </tr>
     </ng-template>
     <ng-template pTemplate="body" let-data let-i="rowIndex">
         <tr style="vertical-align: top">
-            <ng-container *ngTemplateOutlet="rows || defaultRowTemplate; context: { $implicit: data }"></ng-container>
+            <ng-container
+                *ngTemplateOutlet="rows || defaultRowTemplate; context: { $implicit: data }"
+            ></ng-container>
             <td>
                 <span
                     *ngIf="canUpdate()"
@@ -37,13 +39,15 @@
                     (click)="deleteItem(i)"
                 ></span>
             </td>
-            <td *ngIf="canCreate() && !canDelete()"></td>
         </tr>
     </ng-template>
 </p-table>
 
 <p-dropdown
-    *ngIf="canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects; else defaultDropdownMenu"
+    *ngIf="
+        canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects;
+        else defaultDropdownMenu
+    "
     [options]="dropdownMenuObjects"
     [formControl]="newItemControl"
     optionLabel="_label_"
@@ -56,7 +60,8 @@
 </p-dropdown>
 
 <ng-template #defaultDropdownMenu>
-    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder"> </p-dropdown>
+    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder">
+    </p-dropdown>
 </ng-template>
 
 <ng-template #defaultHeaderTemplate let-data>
