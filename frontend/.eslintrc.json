@@ -37,11 +37,21 @@
             "style": "kebab-case"
           }
         ],
-        "@typescript-eslint/no-explicit-any": "error",
+        "@angular-eslint/no-empty-lifecycle-method": "off",
         "prettier/prettier": [
           "error",
           {
             "endOfLine": "auto"
+          }
+        ],
+        "@typescript-eslint/no-explicit-any": "warn",
+        "prefer-const": "warn",
+        "@typescript-eslint/no-unused-vars": [
+          "warn",
+          { 
+            "varsIgnorePattern": "^_",
+            "argsIgnorePattern": "^_",
+            "caughtErrorsIgnorePattern": "^_"
           }
         ]
       }
@@ -54,9 +64,11 @@
         "*inline-template-*.component.html"
       ],
       "extends": [
+        "plugin:@angular-eslint/template/recommended",
         "plugin:prettier/recommended"
       ],
       "rules": {
+        "@angular-eslint/template/eqeqeq": "off",
         "prettier/prettier": [
           "error",
           {
