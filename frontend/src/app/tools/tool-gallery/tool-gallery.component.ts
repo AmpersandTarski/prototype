@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { from, Observable, tap } from 'rxjs';
 import { PatchValue } from 'src/app/shared/interfacing/patch.interface';
 import { PatchResponse } from 'src/app/shared/interfacing/patch-response.interface';
-import { AmpersandInterface } from 'src/app/shared/interfacing/ampersand-interface.class';
+import { AmpersandInterfaceComponent } from 'src/app/shared/interfacing/ampersand-interface.class';
 import { TestDataInterface } from '../test-data.interface';
 import { testdata } from '../testdata';
 import { applyPatch } from 'fast-json-patch';
@@ -15,11 +15,11 @@ import { MessageService } from 'primeng/api';
   templateUrl: './tool-gallery.component.html',
   styleUrls: ['./tool-gallery.component.scss'],
 })
-export class ToolGalleryComponent extends AmpersandInterface<TestDataInterface> {
+export class ToolGalleryComponent extends AmpersandInterfaceComponent<TestDataInterface> {
   data: TestDataInterface = JSON.parse(JSON.stringify(testdata[0]));
 
-  constructor(http: HttpClient) {
-    super(http);
+  constructor(http: HttpClient, messageService: MessageService) {
+    super(http, messageService);
   }
 
   override patch<TestDataInterface>(path: string, patches: PatchValue[]): Observable<PatchResponse<TestDataInterface>> {

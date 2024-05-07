@@ -8,7 +8,7 @@ import { AppComponent } from './app.component';
 import { httpInterceptorProviders } from './backend/http-interceptors';
 import { AppLayoutModule } from './layout/app.layout.module';
 import { SharedModule } from './shared/shared.module';
-// import { ToolsModule } from './tools/tools.module';
+import { ToolsModule } from './tools/tools.module';
 import { ToastModule } from 'primeng/toast';
 import { CoreModule } from './core/core.module';
 import { MessageService } from 'primeng/api';
@@ -24,7 +24,7 @@ import { ProjectModule } from './generated/project.module';
     SharedModule,
     CoreModule,
     ProjectModule,
-    // ToolsModule,
+    ToolsModule,
     AdminModule,
     AppRoutingModule,
     ToastModule,

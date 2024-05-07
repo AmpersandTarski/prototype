@@ -2,7 +2,16 @@
     <div class="gallery-item">
         <app-tool-gallery-component titleHeader="{{ data._label_ }}" subHeader="Object reference">
             <ng-template #header>
-                <app-atomic-object [property]="data" isUni isTot crud="CRUD"></app-atomic-object>
+                <app-atomic-object
+                    [resource]="data"
+                    [interfaceComponent]="this"
+                    [property]="data.Projectleider"
+                    propertyName="Projectleider"
+                    label="Projectleider"
+                    isUni
+                    isTot
+                    crud="CRUD"
+                ></app-atomic-object>
             </ng-template>
             <ng-template #body>
                 <p>
@@ -146,7 +155,16 @@
     <div class="gallery-item">
         <app-tool-gallery-component titleHeader="TODO" subHeader="DateTime">
             <ng-template #header>
-                <app-atomic-datetime [property]="'26-11-1999 23:46'" isUni isTot crud="CRUD"></app-atomic-datetime>
+                <app-atomic-datetime 
+                    [resource]="data"
+                    [interfaceComponent]="this"
+                    [property]="data.Start"
+                    propertyName="Start"
+                    label="Start"
+                    isUni
+                    isTot
+                    crud="CRUD"
+                ></app-atomic-datetime>
             </ng-template>
             <ng-template #body>
                 <p>The datetime component builds upon the date component. It adds the ability to choose a time.</p>
@@ -160,7 +178,15 @@
     <div class="gallery-item">
         <app-tool-gallery-component titleHeader="TODO" subHeader="Float">
             <ng-template #header>
-                <app-atomic-float [property]="9999999.1" isUni isTot crud="CRUD"></app-atomic-float>
+                <app-atomic-float 
+                    [resource]="data"
+                    [interfaceComponent]="this"
+                    [property]="9999999.1"
+                    propertyName="Float"
+                    isUni
+                    isTot
+                    crud="CRUD"
+                ></app-atomic-float>
             </ng-template>
             <ng-template #body>
                 <p>
@@ -176,7 +202,15 @@
     <div class="gallery-item">
         <app-tool-gallery-component titleHeader="TODO" subHeader="Integer">
             <ng-template #header>
-                <app-atomic-integer [property]="9999999" isUni isTot crud="CRUD"></app-atomic-integer>
+                <app-atomic-integer
+                    [resource]="data"
+                    [interfaceComponent]="this"
+                    [property]="9999999"
+                    propertyName="Integer"
+                    isUni
+                    isTot
+                    crud="CRUD"
+                ></app-atomic-integer>
             </ng-template>
             <ng-template #body>
                 <p>
@@ -192,7 +226,15 @@
     <div class="gallery-item">
         <app-tool-gallery-component titleHeader="TODO" subHeader="Password">
             <ng-template #header>
-                <app-atomic-password [property]="'Pre-set value'" isUni isTot crud="CRUD"></app-atomic-password>
+                <app-atomic-password
+                    [resource]="data"
+                    [interfaceComponent]="this"
+                    [property]="'Pre-set value'"
+                    propertyName="Password"
+                    isUni
+                    isTot
+                    crud="CRUD"
+                ></app-atomic-password>
             </ng-template>
             <ng-template #body>
                 <p>
