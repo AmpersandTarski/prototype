@@ -5,17 +5,7 @@
  * Context:     $contextName$
  */
 
-export type Object = {
-  _id_: string;
-  _label_: string;
-  _path_: string;
-  _ifcs_: Array<InterfaceRef>;
-};
-
-export type InterfaceRef = {
-  id: string;
-  label: string;
-};
+import { Object } from '../shared/objectBase.interface';
 
 $concepts:{concept|export type $concept.cptId$ = $concept.typescriptType$;
 }$
