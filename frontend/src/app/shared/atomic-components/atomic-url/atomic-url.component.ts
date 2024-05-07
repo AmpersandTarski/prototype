@@ -7,6 +7,4 @@ import { ObjectBase } from '../../objectBase.interface';
   templateUrl: './atomic-url.component.html',
   styleUrls: ['./atomic-url.component.css'],
 })
-export class AtomicUrlComponent<
-  I extends ObjectBase | ObjectBase[],
-> extends BaseAtomicComponent<string, I> {}
+export class AtomicUrlComponent<I extends ObjectBase | ObjectBase[]> extends BaseAtomicComponent<string, I> {}

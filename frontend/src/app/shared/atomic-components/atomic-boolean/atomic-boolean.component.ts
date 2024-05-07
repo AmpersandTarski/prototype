@@ -7,9 +7,7 @@ import { ObjectBase } from '../../objectBase.interface';
   templateUrl: './atomic-boolean.component.html',
   styleUrls: ['./atomic-boolean.component.css'],
 })
-export class AtomicBooleanComponent<
-  I extends ObjectBase | ObjectBase[],
-> extends BaseAtomicComponent<boolean, I> {
+export class AtomicBooleanComponent<I extends ObjectBase | ObjectBase[]> extends BaseAtomicComponent<boolean, I> {
   override updateValue() {
     this.interfaceComponent
       .patch(this.resource._path_, [

@@ -1,7 +1,5 @@
 <div *ngIf="data.length === 0">
-    <button type="button" class="p-button p-button-rounded" (click)="createItem()">
-        New {{ tgtResourceType }}
-    </button>
+    <button type="button" class="p-button p-button-rounded" (click)="createItem()">New {{ tgtResourceType }}</button>
 </div>
 
 <ng-container *ngIf="filterNullish(data).length">
@@ -32,16 +30,11 @@
                 (click)="deleteItem(i)"
             ></span>
         </div>
-        <ng-container
-            *ngTemplateOutlet="template || defaultTemplate; context: { $implicit: item }"
-        ></ng-container>
+        <ng-container *ngTemplateOutlet="template || defaultTemplate; context: { $implicit: item }"></ng-container>
     </div>
 
     <p-dropdown
-        *ngIf="
-            canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects;
-            else defaultDropdownMenu
-        "
+        *ngIf="canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects; else defaultDropdownMenu"
         [options]="dropdownMenuObjects"
         [formControl]="newItemControl"
         optionLabel="_label_"
@@ -55,8 +48,7 @@
 </ng-container>
 
 <ng-template #defaultDropdownMenu>
-    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder">
-    </p-dropdown>
+    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder"> </p-dropdown>
 </ng-template>
 
 <ng-template #defaultTemplate let-item>

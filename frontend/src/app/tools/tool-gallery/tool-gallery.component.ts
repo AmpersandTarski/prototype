@@ -26,7 +26,7 @@ export class ToolGalleryComponent extends AmpersandInterfaceComponent<TestDataIn
     // Prepend path of patches with '/', because our backend has a different (probably wrong) implementation
     // of the JSON-Patch (RFC6902) standard. The applyPatch function below requires the '/'.
     patches.forEach((x) => (x.path = `/${x.path}`));
-    let content = applyPatch(this.data, patches).newDocument;
+    const content = applyPatch(this.data, patches).newDocument;
     content._label_ = content.Name; // Mock rule in backend
 
     return from([

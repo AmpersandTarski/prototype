@@ -8,24 +8,22 @@ import { ObjectBase } from '../objectBase.interface';
 @Component({
   template: '',
 })
-export abstract class BaseBoxComponent<
-  TItem extends ObjectBase,
-  I extends ObjectBase | ObjectBase[],
-> implements OnInit
+export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends ObjectBase | ObjectBase[]>
+  implements OnInit
 {
   @Input() resource!: ObjectBase & { [key: string]: any };
   @Input({ required: true }) propertyName: string;
   @Input({ required: true }) data: TItem[];
   @Input({ required: true }) interfaceComponent: AmpersandInterfaceComponent<I>;
-  @Input() crud: string = 'cRud';
-  @Input() placeholder: string = '';
+  @Input() crud = 'cRud';
+  @Input() placeholder = '';
   @Input({ required: true }) tgtResourceType: string;
-  @Input({ transform: booleanAttribute }) isRootBox: boolean = false;
+  @Input({ transform: booleanAttribute }) isRootBox = false;
   dropdownMenuObjects$: Observable<Array<ObjectBase>> = of();
   newItemControl!: FormControl<string | boolean | number | ObjectBase>;
 
-  @Input({ transform: booleanAttribute }) isUni: boolean = false;
-  @Input({ transform: booleanAttribute }) isTot: boolean = false;
+  @Input({ transform: booleanAttribute }) isUni = false;
+  @Input({ transform: booleanAttribute }) isTot = false;
 
   constructor(private http: HttpClient) {}
 
@@ -35,9 +33,7 @@ export abstract class BaseBoxComponent<
         nonNullable: true,
         updateOn: 'change',
       });
-      this.dropdownMenuObjects$ = this.getDropdownMenuItems(
-        this.tgtResourceType,
-      );
+      this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
     }
   }
 
@@ -55,7 +51,7 @@ export abstract class BaseBoxComponent<
   }
 
   public createItem(): void {
-    const path: string = `${this.resource._path_}/${this.propertyName}`;
+    const path = `${this.resource._path_}/${this.propertyName}`;
     const propertyField = this.isRootBox ? 'data' : this.propertyName;
     this.interfaceComponent.post(path).subscribe((x) => {
       if (this.isUni) {
@@ -85,9 +81,7 @@ export abstract class BaseBoxComponent<
         if (x.isCommitted && x.invariantRulesHold) {
           // TODO: fix ugly any type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          this.resource[propertyField] = (x.content as any)[
-            this.propertyName
-          ] as TItem[];
+          this.resource[propertyField] = (x.content as any)[this.propertyName] as TItem[];
 
           // remove the recently added item from the dropdown menu
           this.dropdownMenuObjects$ = this.dropdownMenuObjects$.pipe(
@@ -119,13 +113,9 @@ export abstract class BaseBoxComponent<
         if (x.isCommitted && x.invariantRulesHold) {
           // TODO: fix ugly any type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          this.resource[propertyField] = (x.content as any)[
-            this.propertyName
-          ] as TItem[];
+          this.resource[propertyField] = (x.content as any)[this.propertyName] as TItem[];
 
-          this.dropdownMenuObjects$ = this.getDropdownMenuItems(
-            this.tgtResourceType,
-          );
+          this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
         }
       });
   }
@@ -140,17 +130,12 @@ export abstract class BaseBoxComponent<
     });
   }
 
-  private getDropdownMenuItems(
-    resourceType: string,
-  ): Observable<Array<ObjectBase>> {
-    let objects: Observable<Array<ObjectBase>> =
-      this.interfaceComponent.fetchDropdownMenuData(`resource/${resourceType}`);
+  private getDropdownMenuItems(resourceType: string): Observable<Array<ObjectBase>> {
+    let objects: Observable<Array<ObjectBase>> = this.interfaceComponent.fetchDropdownMenuData(
+      `resource/${resourceType}`,
+    );
     objects = objects.pipe(
-      map((dropdownobjects) =>
-        dropdownobjects.filter(
-          (object) => !this.data.map((y) => y._id_).includes(object._id_),
-        ),
-      ),
+      map((dropdownobjects) => dropdownobjects.filter((object) => !this.data.map((y) => y._id_).includes(object._id_))),
     );
     return objects;
   }

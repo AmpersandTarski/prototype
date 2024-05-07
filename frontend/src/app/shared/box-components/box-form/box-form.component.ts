@@ -8,10 +8,10 @@ import { BoxFormTemplateDirective } from './box-form-template.directive';
   templateUrl: './box-form.component.html',
   styleUrls: ['./box-form.component.scss'],
 })
-export class BoxFormComponent<
-  TItem extends ObjectBase,
-  I extends ObjectBase | ObjectBase[],
-> extends BaseBoxComponent<TItem, I> {
+export class BoxFormComponent<TItem extends ObjectBase, I extends ObjectBase | ObjectBase[]> extends BaseBoxComponent<
+  TItem,
+  I
+> {
   @ContentChild(BoxFormTemplateDirective, { read: TemplateRef })
   template?: TemplateRef<unknown>;
 }

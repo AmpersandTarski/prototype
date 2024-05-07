@@ -4,11 +4,7 @@ import { ObjectBase } from '../objectBase.interface';
 @Component({
   template: '',
 })
-export abstract class BaseAtomicComponent<
-  T,
-  I extends ObjectBase | ObjectBase[],
-> implements OnInit
-{
+export abstract class BaseAtomicComponent<T, I extends ObjectBase | ObjectBase[]> implements OnInit {
   @Input({ required: true }) property: T | Array<T> | null = null;
 
   @Input({ required: true }) resource: any;
@@ -19,10 +15,10 @@ export abstract class BaseAtomicComponent<
   // Most likely this is a top-level component for a specific application interface (e.g. ProjectComponent)
   @Input({ required: true }) interfaceComponent: AmpersandInterfaceComponent<I>;
 
-  @Input({ transform: booleanAttribute }) isUni: boolean = false;
-  @Input({ transform: booleanAttribute }) isTot: boolean = false;
+  @Input({ transform: booleanAttribute }) isUni = false;
+  @Input({ transform: booleanAttribute }) isTot = false;
 
-  @Input() crud: string = 'cRud';
+  @Input() crud = 'cRud';
 
   /**
    * Remember if the value was changed, so that we know if we have to patch on blur,

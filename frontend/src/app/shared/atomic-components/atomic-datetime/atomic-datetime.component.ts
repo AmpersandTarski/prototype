@@ -13,7 +13,7 @@ export class AtomicDatetimeComponent<I extends ObjectBase | ObjectBase[]>
 {
   // Possible formats can be found at https://www.primefaces.org/primeng/calendar.
   // Scroll down to DateFormat for the documentation
-  @Input() format: string = 'yy-mm-dd';
+  @Input() format = 'yy-mm-dd';
 
   override newValue = '';
 }

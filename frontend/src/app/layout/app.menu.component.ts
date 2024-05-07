@@ -25,7 +25,7 @@ export class AppMenuComponent implements OnInit {
 
   /* Creates the menuItems from API data, or load from session storage when it already exists. */
   private loadOrCreateMenu() {
-    let navbarItems = sessionStorage.getItem('menuItems');
+    const navbarItems = sessionStorage.getItem('menuItems');
     if (navbarItems != null) {
       // Using menu items in session storage
       this.model = JSON.parse(navbarItems) as Array<MenuItem>;
@@ -41,14 +41,14 @@ export class AppMenuComponent implements OnInit {
 
   /* Adds MenuItems to the navigation menu */
   private addMenuItems() {
-    let childItems = new Array<MenuItem>(); // Storage for child items where parent is not added yet.
+    const childItems = new Array<MenuItem>(); // Storage for child items where parent is not added yet.
     this.menuService.getMenuItems().subscribe((navs) => {
       // Add fetched menu items
       navs.forEach((nav) => {
         let menuItem: MenuItem;
 
         /* Create a variable to determine the type of menu item */
-        let itemType = 2 * Number(nav.ifc != null) + Number(nav.url != null);
+        const itemType = 2 * Number(nav.ifc != null) + Number(nav.url != null);
         switch (itemType) {
           case 0: {
             // A root/parent item
@@ -89,7 +89,7 @@ export class AppMenuComponent implements OnInit {
               break;
             }
             menuItem.fragment = nav.parent;
-            let parentItem = this.model.find((item) => item.id == nav.parent);
+            const parentItem = this.model.find((item) => item.id == nav.parent);
             if (parentItem == null) {
               childItems.push(menuItem);
             } else {
@@ -102,8 +102,8 @@ export class AppMenuComponent implements OnInit {
 
       // Loop through childItems until they are all added to the menu.
       while (childItems.length > 0) {
-        let childItem = childItems.pop() ?? {};
-        let parentItem = this.model.find((item) => item.id == childItem.fragment);
+        const childItem = childItems.pop() ?? {};
+        const parentItem = this.model.find((item) => item.id == childItem.fragment);
         parentItem == null ? childItems.push(childItem) : this.addItemToParent(parentItem, childItem);
       }
 
@@ -124,7 +124,7 @@ export class AppMenuComponent implements OnInit {
   }
 
   private addPrototypeItems() {
-    let prototypeItems: MenuItem = {
+    const prototypeItems: MenuItem = {
       label: 'Prototype',
       items: [
         { label: 'Home', icon: 'pi pi-fw pi-home', routerLink: ['/'] },

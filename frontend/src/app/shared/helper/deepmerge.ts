@@ -35,9 +35,7 @@ export function mergeDeep(target: any, ...sources: any[]): any {
         for (const sourceChild of source[key]) {
           let targetChild = undefined;
           if (sourceChild._id_) {
-            targetChild = target[key].find(
-              (tc: any) => tc._id_ == sourceChild._id_,
-            );
+            targetChild = target[key].find((tc: any) => tc._id_ == sourceChild._id_);
           }
 
           if (targetChild) {
@@ -46,9 +44,7 @@ export function mergeDeep(target: any, ...sources: any[]): any {
 
             // Move targetChild to end, so that we'll end up with the same
             // sorting as source array
-            target[key].push(
-              target[key].splice(target[key].indexOf(targetChild), 1)[0],
-            );
+            target[key].push(target[key].splice(target[key].indexOf(targetChild), 1)[0]);
           } else {
             // This `if` prevents duplicates when the array only has primitive values like strings
             if (!target[key].includes(sourceChild)) {

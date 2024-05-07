@@ -6,7 +6,7 @@ import { IPopulationService } from './population.service.interface';
 
 @Injectable()
 export class PopulationService implements IPopulationService {
-  private importUrl: string = 'admin/import';
+  private importUrl = 'admin/import';
 
   constructor(private http: HttpClient) {}
 
@@ -19,11 +19,11 @@ export class PopulationService implements IPopulationService {
   }
 
   public exportPopulation(jsonResponse: Object): void {
-    let currentDate = new Date().toISOString();
+    const currentDate = new Date().toISOString();
 
     // Creates a fake DOM and simulates the onClick to download the json file
-    let theJSON = JSON.stringify(jsonResponse);
-    let element = document.createElement('a');
+    const theJSON = JSON.stringify(jsonResponse);
+    const element = document.createElement('a');
     element.setAttribute('href', 'data:text/json;charset=UTF-8,' + encodeURIComponent(theJSON));
     element.setAttribute('download', `ProjectAdministatrion_population_${currentDate}.json`);
     element.style.display = 'none';
@@ -37,7 +37,7 @@ export class PopulationService implements IPopulationService {
     if (file === undefined) {
       return EMPTY;
     }
-    var formData;
+    let formData;
 
     formData = new FormData();
     formData.append('file', file, file.name);

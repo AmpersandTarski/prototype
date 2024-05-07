@@ -27,19 +27,14 @@
     </div>
     <p-tabView [scrollable]="true">
         <p-tabPanel *ngFor="let tab of tabs" header="{{ tab.label }}">
-            <ng-container
-                *ngTemplateOutlet="tab.template || defaultTemplate; context: { $implicit: item }"
-            >
+            <ng-container *ngTemplateOutlet="tab.template || defaultTemplate; context: { $implicit: item }">
             </ng-container>
         </p-tabPanel>
     </p-tabView>
 </ng-container>
 
 <p-dropdown
-    *ngIf="
-        canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects;
-        else defaultDropdownMenu
-    "
+    *ngIf="canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects; else defaultDropdownMenu"
     [options]="dropdownMenuObjects"
     [formControl]="newItemControl"
     optionLabel="_label_"
@@ -52,8 +47,7 @@
 </p-dropdown>
 
 <ng-template #defaultDropdownMenu>
-    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder">
-    </p-dropdown>
+    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder"> </p-dropdown>
 </ng-template>
 
 <ng-template #defaultTemplate let-item>

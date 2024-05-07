@@ -8,9 +8,9 @@ import { BoxTabsDirective as BoxTabsDirective } from './box-tabs.directive';
   templateUrl: './box-tabs.component.html',
   styleUrls: ['./box-tabs.component.scss'],
 })
-export class BoxTabsComponent<
-  TItem extends ObjectBase,
-  I extends ObjectBase | ObjectBase[],
-> extends BaseBoxComponent<TItem, I> {
+export class BoxTabsComponent<TItem extends ObjectBase, I extends ObjectBase | ObjectBase[]> extends BaseBoxComponent<
+  TItem,
+  I
+> {
   @ContentChildren(BoxTabsDirective) tabs!: QueryList<BoxTabsDirective>;
 }

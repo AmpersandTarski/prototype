@@ -1,12 +1,4 @@
-import {
-  Component,
-  ContentChild,
-  Input,
-  OnInit,
-  TemplateRef,
-  ViewChild,
-  booleanAttribute,
-} from '@angular/core';
+import { Component, ContentChild, Input, OnInit, TemplateRef, ViewChild, booleanAttribute } from '@angular/core';
 import { ObjectBase } from '../../objectBase.interface';
 import { BaseBoxComponent } from '../BaseBoxComponent.class';
 import { BoxTableHeaderTemplateDirective } from './box-table-header-template.directive';
@@ -14,10 +6,9 @@ import { BoxTableRowTemplateDirective } from './box-table-row-template.directive
 import { Table, TableService } from 'primeng/table';
 
 // Read why this is needed here: https://stackoverflow.com/questions/49988352/primeng-turbo-table-template-error-when-sorting
-export function tableFactory<
-  T extends ObjectBase,
-  I extends ObjectBase | ObjectBase[],
->(boxTable: BoxTableComponent<T, I>) {
+export function tableFactory<T extends ObjectBase, I extends ObjectBase | ObjectBase[]>(
+  boxTable: BoxTableComponent<T, I>,
+) {
   return boxTable.primengTable;
 }
 
@@ -25,15 +16,9 @@ export function tableFactory<
   selector: 'app-box-table',
   templateUrl: './box-table.component.html',
   styleUrls: ['./box-table.component.css'],
-  providers: [
-    TableService,
-    { provide: Table, useFactory: tableFactory, deps: [BoxTableComponent] },
-  ],
+  providers: [TableService, { provide: Table, useFactory: tableFactory, deps: [BoxTableComponent] }],
 })
-export class BoxTableComponent<
-    TItem extends ObjectBase,
-    I extends ObjectBase | ObjectBase[],
-  >
+export class BoxTableComponent<TItem extends ObjectBase, I extends ObjectBase | ObjectBase[]>
   extends BaseBoxComponent<TItem, I>
   implements OnInit
 {
@@ -46,7 +31,7 @@ export class BoxTableComponent<
   public primengTable: Table;
 
   @Input({ transform: booleanAttribute })
-  sortable: boolean = false;
+  sortable = false;
 
   @Input()
   sortBy?: string;
