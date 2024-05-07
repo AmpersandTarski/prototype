@@ -1,12 +1,16 @@
 <!-- Box-TABS.html -->
-<div $if(isRoot)$*ngIf="data\$ | async as data; else loading"$endif$>
+<div $if(isRoot)$*ngIf="resource?.data; else loading"$endif$>
     <app-box-tabs
+      $if(!isRoot)$*ngIf="resource.$name$"$else$isRootBox$endif$
       crud="$crud$"
       [interfaceComponent]="this"
-      $if(!isRoot)$[resource]="resource" propertyName="$name$" $endif$
-      [data]="$if(isRoot)$$if(exprIsUni)$[data]$else$data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
+      [resource]="resource"
+      propertyName="$name$"
+      [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
       tgtResourceType="$target$" 
       placeholder="Add $target$"
+      $if(exprIsUni)$isUni$endif$
+      $if(exprIsTot)$isTot$endif$
     >$subObjects:{subObj|
         <ng-template tab label="$subObj.subObjLabel$" let-resource>
             $subObj.subObjContents$

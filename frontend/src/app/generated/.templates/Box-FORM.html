@@ -1,7 +1,18 @@
 <!-- Box-FORM.html -->
-<div $if(isRoot)$*ngIf="data\$ | async as data; else loading"$endif$>
-    <app-box-form crud="$crud$" [interfaceComponent]="this" $if(!isRoot)$[resource]="resource" propertyName="$name$" placeholder="Add existing $target$" $endif$ [data]="$if(isRoot)$$if(exprIsUni)$[data]$else$data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$" tgtResourceType="$target$">
-        <ng-template [boxFormTemplate]="$if(isRoot)$$if(exprIsUni)$[data]$else$data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$" let-resource>
+<div $if(isRoot)$*ngIf="resource?.data; else loading"$endif$>
+    <app-box-form
+        $if(!isRoot)$*ngIf="resource.$name$"$else$isRootBox$endif$
+        crud="$crud$" 
+        [interfaceComponent]="this" 
+        [resource]="resource"
+        propertyName="$name$"
+        [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
+        tgtResourceType="$target$"
+        placeholder="Add existing $target$"
+        $if(exprIsUni)$isUni$endif$
+        $if(exprIsTot)$isTot$endif$
+    >
+        <ng-template [boxFormTemplate]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$" let-resource>
             <div class="formgrid grid">$subObjects:{subObj|
                 <div class="field col-12 box-form-field">
                     <label class="box-form-label">$subObj.subObjLabel$</label>

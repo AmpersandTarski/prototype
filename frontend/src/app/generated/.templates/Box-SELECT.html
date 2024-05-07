@@ -1,1 +1,9 @@
 <!-- Box-SELECT.html -->
+<app-atomic-select
+    [resource]="resource.$name$"
+    [interfaceComponent]="this"
+    [property]="resource.$name$.setRelation"
+    propertyName="setRelation"
+    label="$label$"
+    crud="$crud$"
+></app-atomic-select>

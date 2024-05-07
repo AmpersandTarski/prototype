@@ -8,7 +8,10 @@ import { BoxRawTemplateDirective } from './box-raw-template.directive';
   templateUrl: './box-raw.component.html',
   styleUrls: ['./box-raw.component.scss'],
 })
-export class BoxRawComponent<TItem extends ObjectBase, I> extends BaseBoxComponent<TItem, I> {
+export class BoxRawComponent<TItem extends ObjectBase, I extends ObjectBase | ObjectBase[]> extends BaseBoxComponent<
+  TItem,
+  I
+> {
   @ContentChild(BoxRawTemplateDirective, { read: TemplateRef })
   template?: TemplateRef<unknown>;
 }

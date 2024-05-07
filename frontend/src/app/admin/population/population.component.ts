@@ -41,7 +41,7 @@ export class PopulationComponent {
       .getExportPopulation()
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
         next: (x) => this.populationService.exportPopulation(x),
       });
@@ -59,7 +59,7 @@ export class PopulationComponent {
       .getExportPopulationMetaModel()
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
         next: (x) => this.populationService.exportPopulation(x),
       });

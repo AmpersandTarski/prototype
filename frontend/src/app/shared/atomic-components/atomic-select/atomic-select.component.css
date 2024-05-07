@@ -1,0 +1,17 @@
+.select-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item {
+  display: flex;
+  gap: 5px;
+}
+
+.pi-minus,
+.pi-trash {
+  color: red;
+  padding-bottom: 9px;
+  cursor: pointer;
+}

@@ -7,8 +7,8 @@ export class GlobalErrorHandler implements ErrorHandler {
   constructor(private messageService: MessageService, private zone: NgZone) {}
 
   handleError(error: Error | HttpErrorResponse) {
-    let messageSummary: string = '';
-    let messageDetail: string = '';
+    let messageSummary = '';
+    let messageDetail = '';
 
     // Assign message content
     if (error instanceof HttpErrorResponse) {

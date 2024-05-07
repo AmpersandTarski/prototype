@@ -26,8 +26,8 @@ export class MenuService {
 
   /* Obtain navbar navs and convert them to MenuItems */
   getMenuItems(): Observable<Array<Navs>> {
-    let navbar = this.http.get<Navbar>('app/navbar');
-    let navs: Observable<Array<Navs>> = navbar.pipe(map((x) => x.navs));
+    const navbar = this.http.get<Navbar>('app/navbar');
+    const navs: Observable<Array<Navs>> = navbar.pipe(map((x) => x.navs));
     return navs;
   }
 

@@ -1,11 +1,12 @@
-<p-table [value]="data">
+<p-table [value]="data" #primengTable>
     <ng-template pTemplate="header">
         <tr>
             <ng-container
                 *ngTemplateOutlet="headers || defaultHeaderTemplate; context: { $implicit: data }"
             ></ng-container>
-            <th *ngIf="canCreate()">
+            <th>
                 <span
+                    *ngIf="canCreate() && !isUni"
                     class="pi pi-fw pi-plus"
                     pTooltip="Add"
                     tooltipPosition="left"
@@ -13,7 +14,6 @@
                     (click)="createItem()"
                 ></span>
             </th>
-            <th *ngIf="canDelete() && !canCreate()"></th>
         </tr>
     </ng-template>
     <ng-template pTemplate="body" let-data let-i="rowIndex">
@@ -37,7 +37,6 @@
                     (click)="deleteItem(i)"
                 ></span>
             </td>
-            <td *ngIf="canCreate() && !canDelete()"></td>
         </tr>
     </ng-template>
 </p-table>

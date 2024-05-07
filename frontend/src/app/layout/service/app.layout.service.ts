@@ -43,7 +43,7 @@ export class LayoutService {
 
   private configUpdate = new Subject<AppConfig>();
 
-  private overlayOpen = new Subject<any>();
+  private overlayOpen = new Subject<unknown>();
 
   configUpdate$ = this.configUpdate.asObservable();
 

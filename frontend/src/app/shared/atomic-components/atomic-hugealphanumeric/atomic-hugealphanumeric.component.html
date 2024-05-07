@@ -18,9 +18,10 @@
     <div class="w-full">
         <textarea
             pInputTextarea
-            [formControl]="formControl"
+            [(ngModel)]="resource[propertyName]"
+            (input)="dirty = true"
+            (blur)="updateValue()"
             [required]="isTot"
-            maxlength="64000"
             rows="20"
             class="w-full min-w-10rem"
         ></textarea>
@@ -45,11 +46,11 @@
         <textarea
             pInputTextarea
             class="min-w-10rem w-full"
-            maxlength="64000"
             rows="20"
-            [formControl]="newItemControl"
+            [(ngModel)]="newValue"
             [placeholder]="'Add value'"
             [required]="isNewItemInputRequired()"
+            [disabled]="isNewItemInputDisabled()"
         ></textarea>
         <button
             type="button"
@@ -57,7 +58,8 @@
             pRipple
             icon="pi pi-plus"
             styleClass="p-button-success"
-            (click)="addItem()"
+            (click)="addValue()"
+            [disabled]="isNewItemInputDisabled()"
         ></button>
     </div>
 </ng-template>

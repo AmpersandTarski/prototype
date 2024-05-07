@@ -1,0 +1,12 @@
+<!-- View-Multiplicity.html -->
+<app-atomic-alphanumeric
+    [resource]="resource"
+    [interfaceComponent]="this"
+    [property]="resource.$name$"
+    propertyName="$name$"
+    label="$label$"
+    crud="$crud$"
+    $if(exprIsUni)$isUni$endif$
+    $if(exprIsTot)$isTot$endif$
+    class="view-multiplicity"
+></app-atomic-alphanumeric>

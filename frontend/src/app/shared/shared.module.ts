@@ -2,6 +2,21 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
+// PrimeNG modules
+import { CalendarModule } from 'primeng/calendar';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { SkeletonModule } from 'primeng/skeleton';
+import { TableModule } from 'primeng/table';
+import { SplitButtonModule } from 'primeng/splitbutton';
+import { PasswordModule } from 'primeng/password';
+import { TabViewModule } from 'primeng/tabview';
+import { ButtonModule } from 'primeng/button';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+
 // Components
 import { AtomicAlphanumericComponent } from './atomic-components/atomic-alphanumeric/atomic-alphanumeric.component';
 import { AtomicBigalphanumericComponent } from './atomic-components/atomic-bigalphanumeric/atomic-bigalphanumeric.component';
@@ -26,33 +41,24 @@ import { BoxFormLoadingComponent } from './box-components/box-form-loading/box-f
 import { BoxRawComponent } from './box-components/box-raw/box-raw.component';
 import { BoxRawTemplateDirective } from './box-components/box-raw/box-raw-template.directive';
 import { BoxPropButtonComponent } from './box-components/box-prop-button/box-prop-button.component';
-
-// PrimeNG modules
-import { CalendarModule } from 'primeng/calendar';
-import { DropdownModule } from 'primeng/dropdown';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { InputSwitchModule } from 'primeng/inputswitch';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputTextareaModule } from 'primeng/inputtextarea';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TableModule } from 'primeng/table';
-import { SplitButtonModule } from 'primeng/splitbutton';
-import { PasswordModule } from 'primeng/password';
-import { TabViewModule } from 'primeng/tabview';
-import { ButtonModule } from 'primeng/button';
+import { AtomicUrlComponent } from './atomic-components/atomic-url/atomic-url.component';
+import { AtomicSelectComponent } from './atomic-components/atomic-select/atomic-select.component';
+import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.component';
 
 @NgModule({
   declarations: [
     AtomicAlphanumericComponent,
     AtomicBigalphanumericComponent,
-    AtomicHugealphanumericComponent,
     AtomicBooleanComponent,
     AtomicDateComponent,
     AtomicDatetimeComponent,
     AtomicFloatComponent,
+    AtomicHugealphanumericComponent,
     AtomicIntegerComponent,
     AtomicObjectComponent,
     AtomicPasswordComponent,
+    AtomicSelectComponent,
+    AtomicUrlComponent,
     BoxTableComponent,
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
@@ -83,18 +89,22 @@ import { ButtonModule } from 'primeng/button';
     PasswordModule,
     TabViewModule,
     ButtonModule,
+    AutoCompleteModule,
+    IfcsDropdownComponent,
   ],
   exports: [
     AtomicAlphanumericComponent,
     AtomicBigalphanumericComponent,
-    AtomicHugealphanumericComponent,
     AtomicBooleanComponent,
     AtomicDateComponent,
     AtomicDatetimeComponent,
     AtomicFloatComponent,
+    AtomicHugealphanumericComponent,
     AtomicIntegerComponent,
     AtomicObjectComponent,
     AtomicPasswordComponent,
+    AtomicSelectComponent,
+    AtomicUrlComponent,
     BoxTableComponent,
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
@@ -109,5 +119,6 @@ import { ButtonModule } from 'primeng/button';
     BoxRawTemplateDirective,
     BoxPropButtonComponent,
   ],
+  providers: [],
 })
 export class SharedModule {}

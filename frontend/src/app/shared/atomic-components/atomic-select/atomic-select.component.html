@@ -1,0 +1,67 @@
+<div *ngIf="canRead() && !propertyIsArray" class="select-wrap">
+    <ng-container *ngTemplateOutlet="cRUdUni"> </ng-container>
+</div>
+
+<div *ngIf="canRead() && propertyIsArray" class="select-wrap">
+    <ng-container *ngTemplateOutlet="cRUd"> </ng-container>
+</div>
+
+<div *ngIf="!canRead()" class="select-wrap">
+    <ng-container *ngTemplateOutlet="crud"> </ng-container>
+</div>
+
+<ng-template #cRUdUni>
+    <!-- Atomic select crud uni -->
+
+    <p-dropdown
+        *ngIf="selectFrom.length > 0"
+        [options]="selectFrom"
+        dataKey="_id_"
+        optionLabel="_label_"
+        [(ngModel)]="resource[propertyName]"
+        [filter]="true"
+        filterBy="_label_"
+        [showClear]="true"
+        [placeholder]="resource.emptyOption"
+        (onChange)="dirty = true; updateValue()"
+        [disabled]="resource.disabled"
+    >
+    </p-dropdown>
+
+    <div *ngIf="selectFrom.length == 0 && resource.noOptionsTxt">
+        {{ resource.noOptionsTxt }}
+    </div>
+</ng-template>
+
+<ng-template #cRUd>
+    <!-- Atomic select crud multi -->
+
+    <div *ngFor="let object of data; let i = index" class="item">
+        <div class="pi pi-fw pi-minus" (click)="removeItem(i)" pTooltip="Remove" tooltipPosition="left"></div>
+
+        <span>
+            {{ object._label_ }}
+        </span>
+
+        <app-ifcs-dropdown size="small" [resource]="object"></app-ifcs-dropdown>
+    </div>
+
+    <p-dropdown
+        *ngIf="selectFrom.length > 0"
+        [options]="selectFrom"
+        dataKey="_id_"
+        optionLabel="_label_"
+        [(ngModel)]="newValue"
+        [filter]="true"
+        filterBy="_label_"
+        [showClear]="false"
+        [placeholder]="resource.emptyOption"
+        (onChange)="addValue()"
+        [disabled]="resource.disabled"
+    >
+    </p-dropdown>
+</ng-template>
+
+<ng-template #crud>
+    <span><i>Select is not readable</i></span>
+</ng-template>

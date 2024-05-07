@@ -9,8 +9,8 @@ export class RolesService {
   constructor(private http: HttpClient) {}
 
   public getRoles(): Observable<Array<SessionRole>> {
-    let navbar: Observable<Navbar> = this.http.get<Navbar>('app/navbar');
-    let roles: Observable<Array<SessionRole>> = navbar.pipe(map((x) => x.sessionRoles));
+    const navbar: Observable<Navbar> = this.http.get<Navbar>('app/navbar');
+    const roles: Observable<Array<SessionRole>> = navbar.pipe(map((x) => x.sessionRoles));
     return roles;
   }
 
