@@ -16,7 +16,6 @@ import { PasswordModule } from 'primeng/password';
 import { TabViewModule } from 'primeng/tabview';
 import { ButtonModule } from 'primeng/button';
 import { AutoCompleteModule } from 'primeng/autocomplete';
-import { FileUploadModule } from 'primeng/fileupload';
 
 // Components
 import { AtomicAlphanumericComponent } from './atomic-components/atomic-alphanumeric/atomic-alphanumeric.component';
@@ -42,12 +41,8 @@ import { BoxFormLoadingComponent } from './box-components/box-form-loading/box-f
 import { BoxRawComponent } from './box-components/box-raw/box-raw.component';
 import { BoxRawTemplateDirective } from './box-components/box-raw/box-raw-template.directive';
 import { BoxPropButtonComponent } from './box-components/box-prop-button/box-prop-button.component';
-import { AtomicFileObjectComponent } from './atomic-components/atomic-fileobject/atomic-fileobject.component';
 import { AtomicUrlComponent } from './atomic-components/atomic-url/atomic-url.component';
-import { AtomicMarkdownComponent } from './atomic-components/atomic-markdown/atomic-markdown.component';
-import { AtomicXmlComponent } from './atomic-components/atomic-xml/atomic-xml.component';
 import { AtomicSelectComponent } from './atomic-components/atomic-select/atomic-select.component';
-import { AtomicRdfComponent } from './atomic-components/atomic-rdf/atomic-rdf.component';
 
 @NgModule({
   declarations: [
@@ -56,16 +51,13 @@ import { AtomicRdfComponent } from './atomic-components/atomic-rdf/atomic-rdf.co
     AtomicBooleanComponent,
     AtomicDateComponent,
     AtomicDatetimeComponent,
-    AtomicFileObjectComponent,
     AtomicFloatComponent,
     AtomicHugealphanumericComponent,
     AtomicIntegerComponent,
-    AtomicMarkdownComponent,
     AtomicObjectComponent,
     AtomicPasswordComponent,
     AtomicSelectComponent,
     AtomicUrlComponent,
-    AtomicXmlComponent,
     BoxTableComponent,
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
@@ -79,7 +71,6 @@ import { AtomicRdfComponent } from './atomic-components/atomic-rdf/atomic-rdf.co
     BoxRawComponent,
     BoxRawTemplateDirective,
     BoxPropButtonComponent,
-    AtomicRdfComponent,
   ],
   imports: [
     CommonModule,
@@ -98,7 +89,6 @@ import { AtomicRdfComponent } from './atomic-components/atomic-rdf/atomic-rdf.co
     TabViewModule,
     ButtonModule,
     AutoCompleteModule,
-    FileUploadModule,
   ],
   exports: [
     AtomicAlphanumericComponent,
@@ -106,17 +96,13 @@ import { AtomicRdfComponent } from './atomic-components/atomic-rdf/atomic-rdf.co
     AtomicBooleanComponent,
     AtomicDateComponent,
     AtomicDatetimeComponent,
-    AtomicFileObjectComponent,
     AtomicFloatComponent,
     AtomicHugealphanumericComponent,
     AtomicIntegerComponent,
-    AtomicMarkdownComponent,
     AtomicObjectComponent,
     AtomicPasswordComponent,
     AtomicSelectComponent,
     AtomicUrlComponent,
-    AtomicXmlComponent,
-    AtomicRdfComponent,
     BoxTableComponent,
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
