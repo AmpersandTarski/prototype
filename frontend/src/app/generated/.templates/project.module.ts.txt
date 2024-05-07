@@ -11,25 +11,23 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { BackendService } from './backend.service';
-import { AppLayoutComponent } from '../layout/app.layout.component';
+// import { AppLayoutComponent } from '../layout/app.layout.component';
 import { SharedModule } from '../shared/shared.module';
 import { InterfaceRouteMap, INTERFACE_ROUTE_MAPPING_TOKEN } from '../config';
+import { TabViewModule } from 'primeng/tabview';
+import { TableModule } from 'primeng/table';
+import { SpecOverviewLinkDirective } from '../ui/specification/spec-overview-link.directive';
 
 $uis:{ifc|import { $ifc.ifcNamePascal$Component \} from './$ifc.ifcNameKebab$/$ifc.ifcNameKebab$.component';
 }$
 // Routes
 const routes: Routes = [
-  {
-    path: 'p',
-    component: AppLayoutComponent,
-    children: [$uis:{ifc|
-      {
-        path: '$ifc.ifcNameKebab$$if(!ifc.isSessionInterface)$/:id$endif$',
-        component: $ifc.ifcNamePascal$Component,
-        title: '$ifc.ifcLabel$',
-      \},}$
-    ],
-  },
+  $uis:{ifc|{
+    path: '$ifc.ifcNameKebab$$if(!ifc.isSessionInterface)$/:id$endif$',
+    component: $ifc.ifcNamePascal$Component,
+    title: '$ifc.ifcLabel$',
+  \},
+  }$
 ];
 
 // Menu
@@ -41,7 +39,7 @@ export const menuItems: MenuItem[] = [
       {
         label: '$ifc.ifcLabel$',
         icon: 'pi pi-fw pi-bars',
-        routerLink: ['/p/$ifc.ifcNameKebab$'],
+        routerLink: ['/$ifc.ifcNameKebab$'],
       \},$endif$}$
     ],
   },
@@ -49,7 +47,7 @@ export const menuItems: MenuItem[] = [
 
 // Interface to route mapping
 const INTERFACE_ROUTE_MAP: InterfaceRouteMap = {$uis:{ifc|
-  $ifc.ifcName$: '/p/$ifc.ifcNameKebab$',}$
+  $ifc.ifcName$: '/$ifc.ifcNameKebab$',}$
 };
 
 // Module
@@ -57,11 +55,20 @@ const INTERFACE_ROUTE_MAP: InterfaceRouteMap = {$uis:{ifc|
   declarations: [$uis:{ifc|
     $ifc.ifcNamePascal$Component,}$
   ],
-  imports: [CommonModule, SharedModule, RouterModule.forChild(routes)],
+  exports: [$uis:{ifc|
+    $ifc.ifcNamePascal$Component,}$
+  ],
+  imports: [
+    CommonModule,
+    SharedModule,
+    RouterModule.forChild(routes),
+    TabViewModule,
+    TableModule,
+    SpecOverviewLinkDirective,
+  ],
   providers: [
     { provide: BackendService, useClass: BackendService },
     { provide: INTERFACE_ROUTE_MAPPING_TOKEN, useValue: INTERFACE_ROUTE_MAP },
   ],
 })
 export class ProjectModule {}
-

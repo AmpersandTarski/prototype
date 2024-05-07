@@ -7,11 +7,12 @@
 
 // Imports
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute, ParamMap } from '@angular/router';
-import { from, map, Observable, switchMap, tap } from 'rxjs';
-import { AmpersandInterface } from 'src/app/shared/interfacing/ampersand-interface.class';
+import { firstValueFrom, from, map, Observable, switchMap, tap } from 'rxjs';
+import { AmpersandInterfaceComponent } from 'src/app/shared/interfacing/ampersand-interface.class';
 import { BackendService } from '../backend.service';
+import { MessageService } from 'primeng/api';
 
 import { $ifcNamePascal$Interface } from './$ifcNameKebab$.interface';
 
@@ -20,26 +21,48 @@ import { $ifcNamePascal$Interface } from './$ifcNameKebab$.interface';
   templateUrl: './$ifcNameKebab$.component.html',
   // styleUrls: ['./$ifcNameKebab$.component.scss'],
 })
-export class $ifcNamePascal$Component extends AmpersandInterface<$ifcNamePascal$Interface> implements OnInit {
+export class $ifcNamePascal$Component extends AmpersandInterfaceComponent<$ifcNamePascal$Interface> implements OnInit {
   constructor(
     private route: ActivatedRoute,
     protected service: BackendService,
     private router: Router,
-    http: HttpClient
+    http: HttpClient,
+    messageService: MessageService,
   ) {
-    super(http);
+    super(http, messageService);
   }
 
-  ngOnInit(): void {
-    $if(isSessionInterface)$this.data\$ = this.service.get$ifcNamePascal$();$else$this.data\$ = this.route.paramMap.pipe(
-      switchMap((params: ParamMap) => {
+  async ngOnInit() {
+    $if(isSessionInterface)$this.setResource(
+      '$source$',
+      '1',
+      await firstValueFrom(this.service.get$ifcNamePascal$()),
+    );$else$if (!this.resourceId) {
+      this.route.paramMap.subscribe(async (params: ParamMap) => {
         let resourceId = params.get('id')!;
         if (resourceId === null) {
           this.router.navigate(['/404'], { skipLocationChange: true });
         }
-        return this.service.get$ifcNamePascal$(resourceId);
-      }),
-    );$endif$
-  }
+        this.resourceId = resourceId;
+        this.setResource(
+          '$source$',
+          this.resourceId,
+          await firstValueFrom(this.service.get$ifcNamePascal$(resourceId)),
+        );
+      });
+    }$endif$
+  }$if(!isSessionInterface)$
+
+
+  async ngOnChanges(changes: SimpleChanges) {
+    if (changes['resourceId']) {
+      let resourceId = changes['resourceId'].currentValue;
+      this.setResource(
+        '$source$',
+        resourceId,
+        await firstValueFrom(this.service.get$ifcNamePascal$(resourceId)),
+      );
+    }
+  }$endif$
 }
 

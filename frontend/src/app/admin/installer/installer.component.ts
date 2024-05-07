@@ -47,7 +47,7 @@ export class InstallerComponent {
       .getReinstall(defaultPop, ignoreInvariants)
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
       });
   }
@@ -57,7 +57,7 @@ export class InstallerComponent {
       .getChecksumUpdate()
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
       });
   }

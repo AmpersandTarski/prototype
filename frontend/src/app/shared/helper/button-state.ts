@@ -1,7 +1,7 @@
 export class ButtonState {
-  public loading: boolean = false;
-  public success: boolean = false;
-  public error: boolean = false;
+  public loading = false;
+  public success = false;
+  public error = false;
 
   isLoading(): boolean {
     return this.loading;

@@ -18,7 +18,7 @@ export class RolesComponent implements OnInit {
   }
 
   private loadOrCreateMenu() {
-    let rolesMenu = sessionStorage.getItem('rolesMenuItems');
+    const rolesMenu = sessionStorage.getItem('rolesMenuItems');
     if (rolesMenu != null) {
       // Using menu items in session storage.
       this.menuItems = JSON.parse(rolesMenu);

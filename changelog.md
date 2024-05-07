@@ -10,7 +10,13 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+
+## v1.18.0 (27 april 2024)
 * [Issue 79](https://github.com/AmpersandTarski/prototype/issues/79) Add support for delimited multi value columns in excel importer
+* [Issue 115](https://github.com/AmpersandTarski/prototype/issues/115) Bugfix name ConceptNotDefinedException to match class filename
+* [Issue 165](https://github.com/AmpersandTarski/prototype/issues/165) Only show warning 'Generated model is changed...'on startup of browser app
+* Catch FileNotFoundException and log warning when corresponding file of deleted FileObject is not found on filesystem
+* Skip tracking affected relations and concepts for RELATION lastAccess[SESSION*DateTime]
 * Add codebase of new developed frontend. Not integrated in building image yet.
 
 ## v1.17.0 (24 may 2023)

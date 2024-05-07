@@ -1,46 +1,37 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { AmpersandInterface } from '../interfacing/ampersand-interface.class';
+import { Component, Input, OnInit, booleanAttribute } from '@angular/core';
+import { AmpersandInterfaceComponent } from '../interfacing/ampersand-interface.class';
 import { ObjectBase } from '../objectBase.interface';
 @Component({
   template: '',
 })
-export abstract class BaseAtomicComponent<T, I> implements OnInit {
-  @Input() property: T | Array<T> | null = null;
+export abstract class BaseAtomicComponent<T, I extends ObjectBase | ObjectBase[]> implements OnInit {
+  @Input({ required: true }) property: T | Array<T> | null = null;
 
-  @Input() resource!: ObjectBase;
+  @Input({ required: true }) resource: any;
 
-  @Input() propertyName!: string;
+  @Input({ required: true }) propertyName: string;
 
-  // We require a AmpersandInterface reference that implements the required methods (like patch)
+  // We require a AmpersandInterfaceComponent reference that implements the required methods (like patch)
   // Most likely this is a top-level component for a specific application interface (e.g. ProjectComponent)
-  @Input() interfaceComponent!: AmpersandInterface<I>;
+  @Input({ required: true }) interfaceComponent: AmpersandInterfaceComponent<I>;
 
-  public newItemControl!: FormControl<string | boolean | number | ObjectBase>;
+  @Input({ transform: booleanAttribute }) isUni = false;
+  @Input({ transform: booleanAttribute }) isTot = false;
 
-  public data: Array<T> = [];
+  @Input() crud = 'cRud';
 
-  private _isUni: boolean = false;
-  @Input()
-  set isUni(attribute: boolean | '') {
-    this._isUni = attribute === '' || attribute;
-  }
-  get isUni(): boolean {
-    return this._isUni;
-  }
+  /**
+   * Remember if the value was changed, so that we know if we have to patch on blur,
+   * or if we can skip it.
+   */
+  dirty = false;
 
-  private _isTot: boolean = false;
-  @Input()
-  set isTot(attribute: boolean | '') {
-    this._isTot = attribute === '' || attribute;
-  }
-  get isTot(): boolean {
-    return this._isTot;
-  }
+  /**
+   * New value for non-isUni
+   */
+  newValue: T | undefined;
 
-  @Input() crud: string = 'cRud';
-
-  constructor() {}
+  ngOnInit(): void {}
 
   public canCreate(): boolean {
     return this.crud[0] == 'C';
@@ -55,8 +46,8 @@ export abstract class BaseAtomicComponent<T, I> implements OnInit {
     return this.crud[3] == 'D';
   }
 
-  ngOnInit(): void {
-    this.data = this.requireArray(this.property);
+  get data(): T[] {
+    return this.requireArray(this.resource[this.propertyName]);
   }
 
   public requireArray(property: T | Array<T> | null) {
@@ -69,51 +60,72 @@ export abstract class BaseAtomicComponent<T, I> implements OnInit {
     }
   }
 
-  public addItem() {
-    // TODO: show warning message when item already exists?
-    // if (this.data.some((x: T) => x == (this.newItemControl.value as unknown))) {
-    //   // the warning message
-    // }
+  // Remove for not isUni atomic-components
+  public removeItem(index: number) {
+    if (!confirm('Remove?')) return;
 
-    let val: T = this.newItemControl.value as unknown as T;
+    const val = this.data[index] as any;
+
+    this.interfaceComponent
+      .patch(this.resource._path_, [
+        {
+          op: 'remove',
+          path: this.propertyName,
+          value: val._id_ ? val._id_ : val,
+        },
+      ])
+      .subscribe();
+  }
+
+  public isNewItemInputRequired() {
+    return this.isTot && this.data.length === 0;
+  }
+
+  public isNewItemInputDisabled() {
+    return this.isUni && this.data.length > 0;
+  }
+
+  public updateValue() {
+    if (!this.dirty) return;
+
+    // transform empty string to null value
+    if (this.resource[this.propertyName] === '') {
+      this.resource[this.propertyName] = null;
+    }
+
+    const val = this.resource[this.propertyName];
+
+    this.interfaceComponent
+      .patch(this.resource._path_, [
+        {
+          op: 'replace',
+          path: this.propertyName,
+          // Send _id_ of object when present, primitive value otherwise
+          value: val?._id_ ? val._id_ : val,
+        },
+      ])
+      .subscribe(() => {
+        this.dirty = false;
+      });
+  }
+
+  public addValue() {
+    if (!this.newValue) return;
+
+    const val = this.newValue as any;
 
     this.interfaceComponent
       .patch(this.resource._path_, [
         {
           op: 'add',
-          path: this.propertyName, // FIXME: this must be relative to path of this.resource
-          value: val,
+          path: this.propertyName,
+          value: val?._id_ ? val._id_ : val,
         },
       ])
       .subscribe((x) => {
         if (x.isCommitted && x.invariantRulesHold) {
-          if (this.isUni) {
-            this.newItemControl.disable();
-          }
-          this.data.push(val);
-          this.newItemControl.setValue('');
+          this.newValue = undefined;
         }
       });
-  }
-
-  // remove for not univalent atomic-components
-  public removeItem(index: number) {
-    this.interfaceComponent
-      .patch(this.resource._path_, [
-        {
-          op: 'remove',
-          path: this.propertyName, // FIXME: this must be relative to path of this.resource
-          value: this.data[index],
-        },
-      ])
-      .subscribe((x) => {
-        if (x.isCommitted && x.invariantRulesHold) {
-          this.data.splice(index, 1);
-        }
-      });
-  }
-
-  public isNewItemInputRequired() {
-    return this.isTot && this.data.length === 0;
   }
 }

@@ -1,136 +1,55 @@
-import { Component, Inject, Input, OnInit } from '@angular/core';
-import { MenuItem } from 'primeng/api';
+import { Component, Input, OnInit, Signal, computed } from '@angular/core';
 import { BaseAtomicComponent } from '../BaseAtomicComponent.class';
-import { Router } from '@angular/router';
-import { InterfaceRefObject, ObjectBase } from '../../objectBase.interface';
-import { map, Observable, tap } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
-import { InterfaceRouteMap, INTERFACE_ROUTE_MAPPING_TOKEN } from 'src/app/config';
-import { FormControl } from '@angular/forms';
+import { ObjectBase } from '../../objectBase.interface';
 
 @Component({
   selector: 'app-atomic-object',
   templateUrl: './atomic-object.component.html',
   styleUrls: ['./atomic-object.component.scss'],
 })
-export class AtomicObjectComponent<I> extends BaseAtomicComponent<ObjectBase, I> implements OnInit {
-  public menuItems: { [index: string]: Array<MenuItem> } = {};
-  public dropdownMenuObjects$!: Observable<ObjectBase[]>;
+export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
+  extends BaseAtomicComponent<ObjectBase, I>
+  implements OnInit
+{
+  public dropdownMenuObjects: ObjectBase[] | undefined;
   @Input() public placeholder!: string;
   @Input() tgtResourceType!: string;
-
-  constructor(
-    private router: Router,
-    private http: HttpClient, // required to make property 'itemsMethod' work
-    @Inject(INTERFACE_ROUTE_MAPPING_TOKEN) private interfaceRouteMap: InterfaceRouteMap,
-  ) {
-    super();
-  }
 
   override ngOnInit(): void {
     super.ngOnInit();
 
-    this.data.forEach((object) => {
-      this.menuItems[object._id_] = this.toPrimeNgMenuModel(object._ifcs_, object._id_);
-    });
-
     if (this.canUpdate()) {
-      this.newItemControl = new FormControl<ObjectBase>({} as ObjectBase, { nonNullable: true, updateOn: 'change' });
-
-      if (this.isUni && this.data.length > 0) {
-        this.newItemControl.disable(); // disables dropdown when univalent and already has a value
-      }
-
-      this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
+      // Find which entities are able to be added to the dropdown menu
+      this.interfaceComponent.fetchDropdownMenuData(`resource/${this.tgtResourceType}`).subscribe((objects) => {
+        this.dropdownMenuObjects = objects;
+      });
     }
   }
 
-  public override addItem() {
-    let val = this.newItemControl.value as ObjectBase;
-
-    this.interfaceComponent
-      .patch(this.resource._path_, [
-        {
-          op: 'add',
-          path: this.propertyName, // FIXME: this must be relative to path of this.resource
-          value: val._id_,
-        },
-      ])
-      .subscribe((x) => {
-        if (x.isCommitted && x.invariantRulesHold) {
-          if (this.isUni) {
-            this.newItemControl.disable(); // disables dropdown when univalent and already has a value
-          }
-          this.data.push(val);
-
-          // remove the recently added item from the dropdown menu
-          this.dropdownMenuObjects$ = this.dropdownMenuObjects$.pipe(
-            tap((objects) =>
-              objects.forEach((item, index) => {
-                if (item._id_ === val._id_) {
-                  objects.splice(index, 1);
-                }
-              }),
-            ),
-          );
-          this.newItemControl.setValue({} as ObjectBase);
-        }
-      });
-  }
-
   public override removeItem(index: number) {
+    if (!confirm('Remove?')) return;
+
     this.interfaceComponent
       .patch(this.resource._path_, [
         {
           op: 'remove',
-          path: `${this.propertyName}/${this.data[index]._id_}`, // FIXME: this must be relative to path of this.resource
+          path: `${this.propertyName}/${this.data[index]._id_}`,
         },
       ])
-      .subscribe((x) => {
-        if (x.isCommitted && x.invariantRulesHold) {
-          this.data.splice(index, 1);
-          this.dropdownMenuObjects$ = this.dropdownMenuObjects$.pipe(tap((objects) => objects.push(this.data[index])));
-        }
-      });
+      .subscribe();
   }
 
   public deleteItem(index: number) {
-    this.interfaceComponent
-      .delete(this.resource._path_, `${this.propertyName}/${this.data[index]._id_}`)
-      .subscribe((x) => {
-        if (x.isCommitted && x.invariantRulesHold) {
-          this.data.splice(index, 1);
-        }
-      });
+    if (!confirm('Delete?')) return;
+
+    this.interfaceComponent.delete(`${this.resource._path_}/${this.propertyName}/${this.data[index]._id_}`).subscribe();
   }
 
-  public navigateToInterface(interfaceName: string, resourceId: string): Promise<boolean> {
-    const routePath = this.interfaceRouteMap[interfaceName];
-    if (routePath === undefined) {
-      throw new Error(`No route path defined for interface ${interfaceName}`);
-    }
-
-    return this.router.navigate([routePath, `${resourceId}`]);
-  }
-
-  private toPrimeNgMenuModel(ifcs: Array<InterfaceRefObject>, id: string): Array<MenuItem> {
-    return ifcs.map(
-      (ifc) =>
-        <MenuItem>{
-          label: ifc.label,
-          icon: 'pi pi-refresh',
-          command: () => this.navigateToInterface(ifc.id, id),
-        },
-    );
-  }
-
-  // Find which entities are able to be added to the dropdown menu
-  private getDropdownMenuItems(resourceType: string): Observable<ObjectBase[]> {
-    let objects: Observable<ObjectBase[]> = this.interfaceComponent.fetchDropdownMenuData(`resource/${resourceType}`);
-    // grab only the elements for the dropdown menu when they don't exist yet
-    objects = objects.pipe(
-      map((dropdownobjects) => dropdownobjects.filter((object) => !this.data.map((y) => y._id_).includes(object._id_))),
-    );
-    return objects;
-  }
+  /**
+   * Exclude current values from dropdown menu
+   */
+  filteredDropdownMenuObjects: Signal<typeof this.dropdownMenuObjects> = computed(() => {
+    const ids = this.requireArray(this.resource[this.propertyName]).map((d) => d._id_);
+    return this.dropdownMenuObjects?.filter((o) => !ids.includes(o._id_)) ?? [];
+  });
 }

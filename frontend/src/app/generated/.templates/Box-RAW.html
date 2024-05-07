@@ -1,7 +1,17 @@
 <!-- Box-RAW.html -->
-<div $if(isRoot)$*ngIf="data\$ | async as data; else loading"$endif$>
-    <app-box-raw crud="$crud$" [interfaceComponent]="this" [data]="$if(isRoot)$$if(exprIsUni)$[data]$else$data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$">
-        <ng-template [boxRawTemplate]="$if(isRoot)$$if(exprIsUni)$[data]$else$data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$" let-resource>
+<div $if(isRoot)$*ngIf="resource?.data; else loading"$endif$>
+    <app-box-raw
+        $if(!isRoot)$*ngIf="resource.$name$"$else$isRootBox$endif$
+        crud="$crud$"
+        [interfaceComponent]="this"
+        [resource]="resource"
+        propertyName="$name$"
+        [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
+        tgtResourceType="$target$"
+        $if(exprIsUni)$isUni$endif$
+        $if(exprIsTot)$isTot$endif$
+    >
+        <ng-template [boxRawTemplate]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$" let-resource>
             <div>
                 $subObjects:{subObj| $subObj.subObjContents$}$
             </div>

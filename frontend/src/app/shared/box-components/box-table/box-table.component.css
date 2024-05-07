@@ -1,0 +1,7 @@
+/**
+ * Fix for children with popups (like datepickers, dropdowns) being cut off by
+ * the datatable.
+ */
+:host ::ng-deep .p-datatable .p-datatable-wrapper {
+  overflow: visible;
+}

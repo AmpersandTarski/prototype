@@ -177,9 +177,9 @@ class Atom implements JsonSerializable
     /**
      * Add atom to concept
      */
-    public function add(bool $populateDefaults = true): self
+    public function add(bool $populateDefaults = true, bool $trackAffected = true): self
     {
-        $this->concept->addAtom($this, $populateDefaults);
+        $this->concept->addAtom($this, $populateDefaults, $trackAffected);
         return $this;
     }
     

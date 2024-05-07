@@ -8,7 +8,7 @@ import { BoxTableHeaderTemplateDirective } from '../box-table/box-table-header-t
 })
 export class BoxTableLoadingComponent {
   @Input()
-  nrOfRows: number = 5;
+  nrOfRows = 5;
 
   @ContentChild(BoxTableHeaderTemplateDirective, { read: TemplateRef })
   headers?: TemplateRef<unknown>;
