@@ -1,11 +1,13 @@
-<!-- Atomic-BIGALPHANUMERIC.html -->
-<app-atomic-bigalphanumeric
+<!-- View-FILEOBJECT.html -->
+<app-atomic-fileobject
     [resource]="resource"
     [interfaceComponent]="this"
     [property]="resource.$name$"
     propertyName="$name$"
     label="$label$"
     crud="$crud$"
+    placeholder="Add $target$"
+    tgtResourceType="$target$"
     $if(exprIsUni)$isUni$endif$
     $if(exprIsTot)$isTot$endif$
-></app-atomic-bigalphanumeric>
+></app-atomic-fileobject>
