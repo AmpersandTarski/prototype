@@ -47,7 +47,7 @@ export class ReportComponent {
       .getRelations()
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
       });
   }
@@ -63,7 +63,7 @@ export class ReportComponent {
       .getConjunctUsage()
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
       });
   }
@@ -79,7 +79,7 @@ export class ReportComponent {
       .getConjunctPerformance()
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
       });
   }
@@ -95,7 +95,7 @@ export class ReportComponent {
       .getInterfaces()
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
       });
   }
@@ -111,7 +111,7 @@ export class ReportComponent {
       .getInterfaceIssues()
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
       });
   }

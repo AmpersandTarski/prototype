@@ -119,7 +119,7 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
       this.active = false;
     });
 
-    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((params) => {
+    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((_params) => {
       if (this.item.routerLink) {
         this.updateActiveStateFromRoute();
       }

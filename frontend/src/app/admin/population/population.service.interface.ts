@@ -1,11 +1,11 @@
 import { Observable } from 'rxjs';
 
 export interface IPopulationService {
-  getExportPopulation(): Observable<Object>;
+  getExportPopulation(): Observable<object>;
 
-  getExportPopulationMetaModel(): Observable<Object>;
+  getExportPopulationMetaModel(): Observable<object>;
 
-  exportPopulation(jsonResponse: Object): void;
+  exportPopulation(jsonResponse: object): void;
 
   importPopulation(file: File): void;
 }

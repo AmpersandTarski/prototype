@@ -7,7 +7,6 @@ import { TestDataInterface } from '../test-data.interface';
 import { testdata } from '../testdata';
 import { applyPatch } from 'fast-json-patch';
 import { HttpClient } from '@angular/common/http';
-import { ObjectBase } from 'src/app/shared/objectBase.interface';
 import { MessageService } from 'primeng/api';
 
 @Component({
@@ -30,7 +29,6 @@ export class ToolGalleryComponent extends AmpersandInterfaceComponent<TestDataIn
     content._label_ = content.Name; // Mock rule in backend
 
     return from([
-      // @ts-ignore
       {
         content: content,
         patches: patches,

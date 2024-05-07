@@ -11,6 +11,4 @@ export class ToolGalleryComponentComponent {
   @ContentChild('header') header: TemplateRef<unknown> | undefined;
   @ContentChild('body') body: TemplateRef<unknown> | undefined;
   @ContentChild('footer') footer: TemplateRef<unknown> | undefined;
-
-  constructor() {}
 }

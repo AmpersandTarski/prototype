@@ -44,7 +44,7 @@ export class UtilsComponent {
       .getEvaluateAllRules()
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
       });
   }
@@ -60,7 +60,7 @@ export class UtilsComponent {
       .getRunExecutionEngine()
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
       });
   }
@@ -76,7 +76,7 @@ export class UtilsComponent {
       .getRegenerateAllAtomIds()
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
       });
   }
@@ -92,7 +92,7 @@ export class UtilsComponent {
       .getRegenerateAtom(concept)
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
-        error: (err) => (buttonState.error = true),
+        error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
       });
   }

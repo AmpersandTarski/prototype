@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable, throwError } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import { PatchResponse } from 'src/app/shared/interfacing/patch-response.interface';
 import { IPopulationService } from './population.service.interface';
 
@@ -10,15 +10,15 @@ export class PopulationService implements IPopulationService {
 
   constructor(private http: HttpClient) {}
 
-  public getExportPopulation(): Observable<Object> {
-    return this.http.get<Object>('admin/exporter/export/all');
+  public getExportPopulation(): Observable<object> {
+    return this.http.get<object>('admin/exporter/export/all');
   }
 
-  public getExportPopulationMetaModel(): Observable<Object> {
-    return this.http.get<Object>('admin/exporter/export/metamodel');
+  public getExportPopulationMetaModel(): Observable<object> {
+    return this.http.get<object>('admin/exporter/export/metamodel');
   }
 
-  public exportPopulation(jsonResponse: Object): void {
+  public exportPopulation(jsonResponse: object): void {
     const currentDate = new Date().toISOString();
 
     // Creates a fake DOM and simulates the onClick to download the json file
@@ -37,9 +37,8 @@ export class PopulationService implements IPopulationService {
     if (file === undefined) {
       return EMPTY;
     }
-    let formData;
 
-    formData = new FormData();
+    const formData = new FormData();
     formData.append('file', file, file.name);
     return this.http.post<PatchResponse<JSON>>(this.importUrl, formData);
   }

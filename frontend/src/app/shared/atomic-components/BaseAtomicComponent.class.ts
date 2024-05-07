@@ -31,8 +31,6 @@ export abstract class BaseAtomicComponent<T, I extends ObjectBase | ObjectBase[]
    */
   newValue: T | undefined;
 
-  constructor() {}
-
   ngOnInit(): void {}
 
   public canCreate(): boolean {
@@ -76,7 +74,7 @@ export abstract class BaseAtomicComponent<T, I extends ObjectBase | ObjectBase[]
           value: val._id_ ? val._id_ : val,
         },
       ])
-      .subscribe(() => {});
+      .subscribe();
   }
 
   public isNewItemInputRequired() {
