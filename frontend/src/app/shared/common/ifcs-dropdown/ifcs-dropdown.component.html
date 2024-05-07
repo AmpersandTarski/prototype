@@ -1,0 +1,35 @@
+<ng-container *ngIf="filteredIfcs().length || processedExternalLinks?.length">
+    <!-- Medium -->
+    <button
+        *ngIf="size != 'small'"
+        type="button"
+        pButton
+        class="p-button-rounded p-button-text p-button-icon-only p-button-sm"
+        icon="pi pi-ellipsis-v"
+        (click)="dropdown.toggle($event)"
+    ></button>
+
+    <!-- Small -->
+    <i
+        *ngIf="size == 'small'"
+        class="small-icon pi pi-ellipsis-v"
+        (click)="dropdown.toggle($event)"
+    ></i>
+
+    <p-overlayPanel #dropdown>
+        <ng-template pTemplate="content">
+            <ul>
+                <li *ngFor="let ifc of filteredIfcs()">
+                    <a [routerLink]="['/' + routeMap[ifc.id], resource?._id_]">{{ ifc.label }}</a>
+                </li>
+
+                <li *ngFor="let link of processedExternalLinks">
+                    <a [href]="link.url" target="_blank">
+                        <span *ngIf="link.iconClass" [ngClass]="link.iconClass"></span>
+                        <span>{{ link.label }}</span>
+                    </a>
+                </li>
+            </ul>
+        </ng-template>
+    </p-overlayPanel>
+</ng-container>

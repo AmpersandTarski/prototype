@@ -43,6 +43,7 @@ import { BoxRawTemplateDirective } from './box-components/box-raw/box-raw-templa
 import { BoxPropButtonComponent } from './box-components/box-prop-button/box-prop-button.component';
 import { AtomicUrlComponent } from './atomic-components/atomic-url/atomic-url.component';
 import { AtomicSelectComponent } from './atomic-components/atomic-select/atomic-select.component';
+import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.component';
 
 @NgModule({
   declarations: [
@@ -89,6 +90,7 @@ import { AtomicSelectComponent } from './atomic-components/atomic-select/atomic-
     TabViewModule,
     ButtonModule,
     AutoCompleteModule,
+    IfcsDropdownComponent,
   ],
   exports: [
     AtomicAlphanumericComponent,
