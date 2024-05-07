@@ -13,7 +13,7 @@ import { SharedModule } from './shared/shared.module';
 import { ToastModule } from 'primeng/toast';
 import { CoreModule } from './core/core.module';
 import { MessageService } from 'primeng/api';
-// import { ProjectModule } from './generated/project.module';
+import { ProjectModule } from './generated/project.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -25,7 +25,7 @@ import { MessageService } from 'primeng/api';
     SharedModule,
     CoreModule,
     // ProjectAdministrationModule,
-    // ProjectModule,
+    ProjectModule,
     // ToolsModule,
     AdminModule,
     AppRoutingModule,
