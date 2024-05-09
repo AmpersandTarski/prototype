@@ -10,7 +10,7 @@
         }
     ],
     "config": {
-        "vendor-dir": "lib"
+        "vendor-dir": "backend/lib"
     },
     "require": {
         "php": ">=8.1",
@@ -34,10 +34,10 @@
     },
     "autoload": {
         "psr-4": {
-            "Ampersand\\": "src/Ampersand"
+            "Ampersand\\": "backend/src/Ampersand"
         },
         "files": [
-            "src/Ampersand/Misc/functions.php"
+            "backend/src/Ampersand/Misc/functions.php"
         ]
     },
     "require-dev": {

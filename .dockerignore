@@ -1,20 +1,11 @@
-# developer files
-.devcontainer/
-.github/
-.vscode
-tests/
-.bowerrc
-.jshintrc
-bower.json
-phpcs.xml
-
 # content of .gitignore
 .git
-lib/
-app/lib/
+**/lib/
+**/node_modules/
 
-# Node
-**/node_modules
+# Ampersand compiler
+ampersand
+ampersand.exe
 
 # Miscellaneous
 **/.angular/cache
