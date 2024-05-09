@@ -1,4 +1,4 @@
-# Components
+# Frontend components
 
 With the ampersand project, its possible to create a variety of input fields and ways to display those input fields or simply data.
 Every component features a couple of default options in the form of attributes. These attributes are listed in het following table:
