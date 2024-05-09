@@ -43,7 +43,13 @@ COPY --from=ampersandtarski/ampersand:v4.7 /bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
 
 # Add default data folder that Apache can write to
-RUN mkdir /var/www/data && chown -R www-data:www-data /var/www/data
+RUN mkdir /var/www/data && chown -R www-data:www-data /var/www/data \
+ && mkdir /var/www/public
+
+# Change doc root. Let's move to apache conf file when more configuration is needed
+ENV APACHE_DOCUMENT_ROOT /var/www/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Move frontend to wwwroot
 COPY frontend /var/www/frontend
@@ -74,4 +80,4 @@ WORKDIR /var/www/frontend
 RUN npx ng build
 
 # Copy output from frontend build
-RUN cp -r /var/www/frontend/dist/prototype-frontend/* /var/www/html
+RUN cp -r /var/www/frontend/dist/prototype-frontend/* /var/www/public
