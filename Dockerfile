@@ -52,16 +52,7 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
 # Move frontend to wwwroot
 COPY frontend /var/www/frontend
-
-# Copy the rest of the prototype framework
-COPY bootstrap/ /var/www/bootstrap
-COPY config/ /var/www/config
-COPY public/api/ /var/www/public/api
-COPY src/Ampersand/ /var/www/src/Ampersand
-
-# Build ampersand frontend application (needs to be done in project Dockerfile with new frontend (right?))
-#WORKDIR /var/www
-#RUN gulp build-ampersand
+COPY backend /var/www/backend
 
 WORKDIR /var/www/frontend
 
