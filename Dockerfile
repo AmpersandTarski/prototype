@@ -1,5 +1,5 @@
 # To run generated prototypes we require a apache webserver with php
-FROM php:8.3-apache-bullseye
+FROM php:8.3-apache-bullseye as framework
 
 RUN apt-get update \
  && apt-get install -y \
@@ -59,5 +59,24 @@ WORKDIR /var/www/frontend
 # Install frontend dependencies using NPM package specification (package.json)
 RUN npm install
 
-# Empty folder needed for ampersand compiler to write files to (later in project dockerfile)
-RUN mkdir /var/www/generics
+FROM framework as project-administration
+
+COPY test/assets/project-administration /usr/local/project/
+
+# Run ampersand compiler to generated new frontend and backend json model files (in generics folder)
+RUN ampersand proto --no-frontend /usr/local/project/model/ProjectAdministration.adl \
+  --proto-dir /var/www/backend \
+  --crud-defaults cRud \
+  --verbose
+
+RUN ampersand proto --frontend-version Angular --no-backend /usr/local/project/model/ProjectAdministration.adl \
+  --proto-dir /var/www/frontend/src/app/generated \
+  --crud-defaults cRud \
+  --verbose
+
+WORKDIR /var/www/frontend
+
+RUN npx ng build
+
+# Copy output from frontend build
+RUN cp -r /var/www/frontend/dist/prototype-frontend/* /var/www/public
