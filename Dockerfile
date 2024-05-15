@@ -76,5 +76,6 @@ RUN npx ng build
 
 # Copy output from frontend build
 RUN cp -r /var/www/frontend/dist/prototype-frontend/* /var/www/html
+RUN mv /var/www/backend/public/* /var/www/html/
 
 COPY frontend/apache-conf/.htaccess /var/www/html
