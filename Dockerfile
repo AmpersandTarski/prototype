@@ -30,17 +30,17 @@ RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
   && node -v \
   && npm -v
 
+# Copy Ampersand compiler
+# NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
+COPY --from=ampersandtarski/ampersand:v4.7 /bin/ampersand /usr/local/bin
+RUN chmod +x /usr/local/bin/ampersand
+
 # Install php backend dependencies using PHP Composer package specification (composer.json)
 COPY composer.json composer.lock /var/www/
 WORKDIR /var/www
 RUN composer --version \
  && composer check-platform-reqs
 RUN composer install --prefer-dist --no-dev --profile
-
-# Copy Ampersand compiler
-# NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
-COPY --from=ampersandtarski/ampersand:v4.7 /bin/ampersand /usr/local/bin
-RUN chmod +x /usr/local/bin/ampersand
 
 # Add default data folder that Apache can write to
 RUN mkdir /var/www/data && chown -R www-data:www-data /var/www/data
@@ -49,15 +49,11 @@ RUN mkdir /var/www/data && chown -R www-data:www-data /var/www/data
 # Install frontend dependencies using NPM package specification (package.json)
 COPY frontend/package.json frontend/package-lock.json /var/www/frontend/
 WORKDIR /var/www/frontend
+RUN npm install
 
 # Copy remaining parts of framework
 COPY frontend /var/www/frontend
 COPY backend /var/www/backend
-
-WORKDIR /var/www/frontend
-
-# Install frontend dependencies using NPM package specification (package.json)
-RUN npm install
 
 FROM framework as project-administration
 
