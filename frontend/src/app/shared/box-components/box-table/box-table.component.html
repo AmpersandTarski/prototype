@@ -1,4 +1,8 @@
-<p-table [value]="data" #primengTable>
+<!-- 
+We need .slice() here to shallow clone the array every time, otherwise prime-table
+fails to detect changes to the array, like new rows.
+ -->
+<p-table [value]="data.slice()" #primengTable>
     <ng-template pTemplate="header">
         <tr>
             <ng-container

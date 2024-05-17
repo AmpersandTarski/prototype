@@ -67,7 +67,6 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
 
   public addItem() {
     const val = this.newItemControl.value as ObjectBase;
-    const propertyField = this.isRootBox ? 'data' : this.propertyName;
 
     this.interfaceComponent
       .patch(this.resource._path_, [
@@ -79,10 +78,6 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
       ])
       .subscribe((x) => {
         if (x.isCommitted && x.invariantRulesHold) {
-          // TODO: fix ugly any type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          this.resource[propertyField] = (x.content as any)[this.propertyName] as TItem[];
-
           // remove the recently added item from the dropdown menu
           this.dropdownMenuObjects$ = this.dropdownMenuObjects$.pipe(
             tap((objects) =>
@@ -100,7 +95,6 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
 
   public removeItem(index: number): void {
     if (!confirm('Remove?')) return;
-    const propertyField = this.isRootBox ? 'data' : this.propertyName;
 
     this.interfaceComponent
       .patch(this.resource._path_, [
@@ -111,10 +105,6 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
       ])
       .subscribe((x) => {
         if (x.isCommitted && x.invariantRulesHold) {
-          // TODO: fix ugly any type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          this.resource[propertyField] = (x.content as any)[this.propertyName] as TItem[];
-
           this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
         }
       });
