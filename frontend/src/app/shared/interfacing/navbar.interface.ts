@@ -35,7 +35,7 @@ export type Navs = {
 
 type MenuItemId = string;
 
-type New = {
+export type New = {
   label: string;
   ifcs: Array<Ifcs>;
 };

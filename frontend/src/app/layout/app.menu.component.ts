@@ -5,6 +5,7 @@ import { menuItems as adminMenuItems } from '../admin/admin.module';
 import { LayoutService } from './service/app.layout.service';
 import { MenuService } from './app.menu.service';
 import { InterfaceRouteMap, INTERFACE_ROUTE_MAPPING_TOKEN } from '../config';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-menu',
@@ -29,6 +30,8 @@ export class AppMenuComponent implements OnInit {
     if (navbarItems != null) {
       // Using menu items in session storage
       this.model = JSON.parse(navbarItems) as Array<MenuItem>;
+      // Add 'New' buttons for new instance of the defined entities
+      this.addAddButtons();
     } else {
       // Add prototype menu items
       this.addPrototypeItems();
@@ -109,7 +112,30 @@ export class AppMenuComponent implements OnInit {
 
       // Store menu items in session storage
       this.menuService.setSessionStorageItem('menuItems', JSON.stringify(this.model));
+
+      // Add 'New' buttons for new instance of the defined entities
+      this.addAddButtons();
     });
+  }
+
+  private addAddButtons() {
+    // Add parent
+    var addBtnsMenu: MenuItem = {
+      label: 'New',
+      items: []
+    };
+
+    this.menuService.getAddButtons().subscribe((addBtns) => {
+      addBtns.forEach((addBtn) => {
+        // Lookup and convert
+        var id = addBtn.ifcs[0].id;
+        var link = this.interfaceRouteMap[id] + '/' + uuidv4();
+        var menuItem = { id: id, label: addBtn.label, icon: 'pi pi-fw pi-plus', routerLink: [link] };
+        addBtnsMenu.items?.push(menuItem);
+      });
+    });
+
+    this.model.push(addBtnsMenu);
   }
 
   addItemToParent(parentItem: MenuItem, menuItem: MenuItem) {

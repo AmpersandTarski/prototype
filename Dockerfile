@@ -50,6 +50,8 @@ RUN mkdir /var/www/data && chown -R www-data:www-data /var/www/data
 COPY frontend/package.json frontend/package-lock.json /var/www/frontend/
 WORKDIR /var/www/frontend
 RUN npm install
+RUN npm install uuid
+RUN npm i @types/uuid
 
 # Copy remaining parts of framework
 COPY frontend /var/www/frontend
