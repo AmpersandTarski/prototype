@@ -1,8 +1,8 @@
 <!-- Box-FORM.html -->
 <div $if(isRoot)$*ngIf="resource?.data; else loading"$endif$>
     <app-box-form
-        $if(!isRoot)$*ngIf="resource.$name$"$else$isRootBox$endif$
-        crud="$crud$" 
+        $if(isRoot)$isRootBox
+        $endif$crud="$crud$" 
         [interfaceComponent]="this" 
         [resource]="resource"
         propertyName="$name$"
