@@ -1,8 +1,9 @@
 <!-- 
-We need .slice() here to shallow clone the array every time, otherwise prime-table
-fails to detect changes to the array, like new rows.
+We need an array function here to shallow clone the array every time, otherwise prime-table
+fails to detect changes to the array, like new rows. Currently it is filterNullish(data),
+but can also be done with data.slice()
  -->
-<p-table [value]="data.slice()" #primengTable>
+<p-table [value]="filterNullish(data)" #primengTable>
     <ng-template pTemplate="header">
         <tr>
             <ng-container
@@ -10,7 +11,7 @@ fails to detect changes to the array, like new rows.
             ></ng-container>
             <th>
                 <span
-                    *ngIf="canCreate() && !isUni"
+                    *ngIf="canCreate()"
                     class="pi pi-fw pi-plus"
                     pTooltip="Add"
                     tooltipPosition="left"

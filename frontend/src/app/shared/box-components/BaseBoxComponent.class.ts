@@ -44,7 +44,7 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
   }
 
   public canCreate(): boolean {
-    return this.crud[0] == 'C';
+    return this.crud[0] == 'C' && (!this.isUni || this.isEmpty());
   }
   public canRead(): boolean {
     return this.crud[1] == 'R';
@@ -54,6 +54,10 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
   }
   public canDelete(): boolean {
     return this.crud[3] == 'D';
+  }
+
+  public isEmpty(): boolean {
+    return this.filterNullish(this.data).length === 0;
   }
 
   public createItem(): void {

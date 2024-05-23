@@ -1,7 +1,13 @@
-<ng-container *ngFor="let item of data; let i = index">
+<div *ngIf="canCreate() && isEmpty()">
+    <p-button [rounded]="true" size="small" (click)="createItem()"
+        >New {{ tgtResourceType }}</p-button
+    >
+</div>
+
+<ng-container *ngFor="let item of filterNullish(data); let i = index">
     <div style="float: right" class="options">
         <span
-            *ngIf="canCreate() && !isUni"
+            *ngIf="canCreate()"
             class="pi pi-fw pi-plus"
             pTooltip="Add"
             tooltipPosition="left"
