@@ -26,15 +26,11 @@ export class MenuService {
 
   /* Obtain navbar navs and convert them to MenuItems */
   getMenuItems(): Observable<Array<Navs>> {
-    const navbar = this.http.get<Navbar>('app/navbar');
-    const navs: Observable<Array<Navs>> = navbar.pipe(map((x) => x.navs));
-    return navs;
+    return this.http.get<Navbar>('app/navbar').pipe(map((x) => x.navs));
   }
 
   getAddButtons(): Observable<Navbar['new']> {
-    const navbar = this.http.get<Navbar>('app/navbar');
-    const addBtns = navbar.pipe(map((x) => x.new));
-    return addBtns;
+    return this.http.get<Navbar>('app/navbar').pipe(map((x) => x.new));
   }
 
   public setSessionStorageItem(name: string, data: string) {
