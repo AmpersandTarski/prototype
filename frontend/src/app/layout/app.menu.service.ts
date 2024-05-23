@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject, map, Observable } from 'rxjs';
-import { Navbar, Navs, New } from '../shared/interfacing/navbar.interface';
+import { Navbar, Navs } from '../shared/interfacing/navbar.interface';
 import { MenuChangeEvent } from './api/menuchangeevent';
 import { HttpClient } from '@angular/common/http';
 
@@ -31,9 +31,9 @@ export class MenuService {
     return navs;
   }
 
-  getAddButtons(): Observable<Array<New>> {
+  getAddButtons(): Observable<Navbar['new']> {
     const navbar = this.http.get<Navbar>('app/navbar');
-    const addBtns: Observable<Array<New>> = navbar.pipe(map((x) => x.new));
+    const addBtns = navbar.pipe(map((x) => x.new));
     return addBtns;
   }
 
