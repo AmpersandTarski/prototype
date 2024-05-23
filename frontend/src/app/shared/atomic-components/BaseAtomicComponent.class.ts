@@ -31,7 +31,13 @@ export abstract class BaseAtomicComponent<T, I extends ObjectBase | ObjectBase[]
    */
   newValue: T | undefined;
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (!(this.propertyName in this.resource)) {
+      throw new Error(
+        `Property '${this.propertyName}' not defined for object in '${this.resource._path_}'. It is likely that the backend data model is not in sync with the generated frontend.`,
+      );
+    }
+  }
 
   public canCreate(): boolean {
     return this.crud[0] == 'C';

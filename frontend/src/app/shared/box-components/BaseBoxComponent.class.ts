@@ -35,6 +35,12 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
       });
       this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
     }
+
+    if (!this.isRootBox && !(this.propertyName in this.resource)) {
+      throw new Error(
+        `Property '${this.propertyName}' not defined for object in '${this.resource._path_}'. It is likely that the backend data model is not in sync with the generated frontend.`,
+      );
+    }
   }
 
   public canCreate(): boolean {
