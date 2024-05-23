@@ -45,7 +45,6 @@ RUN composer install --prefer-dist --no-dev --profile
 # Add default data folder that Apache can write to
 RUN mkdir /var/www/data && chown -R www-data:www-data /var/www/data
 
-
 # Install frontend dependencies using NPM package specification (package.json)
 COPY frontend/package.json frontend/package-lock.json /var/www/frontend/
 WORKDIR /var/www/frontend
@@ -53,7 +52,7 @@ RUN npm install
 
 # Copy remaining parts of framework
 COPY frontend /var/www/frontend
-COPY frontend/apache-conf/.htaccess /var/www/html
+COPY apache-conf/.htaccess /var/www/html
 COPY backend /var/www/backend
 RUN mv /var/www/backend/public/* /var/www/html/
 
