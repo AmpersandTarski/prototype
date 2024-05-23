@@ -64,15 +64,15 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "prototype-frontend:build:production"
+              "buildTarget": "prototype-frontend:build:production"
             },
             "development": {
-              "browserTarget": "prototype-frontend:build:development",
-              "proxyConfig": "src/environments/proxy.conf.json"
+              "proxyConfig": "src/environments/proxy.conf.json",
+              "buildTarget": "prototype-frontend:build:development"
             },
             "dev-container": {
-              "browserTarget": "prototype-frontend:build:development",
-              "proxyConfig": "src/environments/proxy.conf.dev-container.json"
+              "proxyConfig": "src/environments/proxy.conf.dev-container.json",
+              "buildTarget": "prototype-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -80,7 +80,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "prototype-frontend:build"
+            "buildTarget": "prototype-frontend:build"
           }
         },
         "test": {
