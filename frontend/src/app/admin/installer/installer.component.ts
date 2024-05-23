@@ -21,16 +21,24 @@ export class InstallerComponent {
    * We capture this state in the associated buttonState(s)
    */
   isLoading(): boolean {
-    return [this.buttonState1, this.buttonState2, this.buttonState3, this.buttonState4].some((state) =>
-      state.isLoading(),
-    );
+    return [
+      this.buttonState1,
+      this.buttonState2,
+      this.buttonState3,
+      this.buttonState4,
+    ].some((state) => state.isLoading());
   }
 
   /**
    * Set the buttonStates to their initial value
    */
   initButtonStates(): void {
-    [this.buttonState1, this.buttonState2, this.buttonState3, this.buttonState4].forEach((state) => state.init());
+    [
+      this.buttonState1,
+      this.buttonState2,
+      this.buttonState3,
+      this.buttonState4,
+    ].forEach((state) => state.init());
   }
 
   /**
@@ -40,7 +48,11 @@ export class InstallerComponent {
    * @param ignoreInvariants determines if invariant violations of the default population should be ignored or not
    * @param buttonState the ButtonState associated with the button that triggers this method
    */
-  reinstall(defaultPop: boolean, ignoreInvariants: boolean, buttonState: ButtonState): void {
+  reinstall(
+    defaultPop: boolean,
+    ignoreInvariants: boolean,
+    buttonState: ButtonState,
+  ): void {
     this.initButtonStates();
     buttonState.loading = true;
     this.installerService

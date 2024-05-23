@@ -17,7 +17,8 @@ export class AppMenuComponent implements OnInit {
   constructor(
     public layoutService: LayoutService,
     public menuService: MenuService,
-    @Inject(INTERFACE_ROUTE_MAPPING_TOKEN) private interfaceRouteMap: InterfaceRouteMap,
+    @Inject(INTERFACE_ROUTE_MAPPING_TOKEN)
+    private interfaceRouteMap: InterfaceRouteMap,
   ) {}
 
   ngOnInit() {
@@ -106,12 +107,19 @@ export class AppMenuComponent implements OnInit {
       // Loop through childItems until they are all added to the menu.
       while (childItems.length > 0) {
         const childItem = childItems.pop() ?? {};
-        const parentItem = this.model.find((item) => item.id == childItem.fragment);
-        parentItem == null ? childItems.push(childItem) : this.addItemToParent(parentItem, childItem);
+        const parentItem = this.model.find(
+          (item) => item.id == childItem.fragment,
+        );
+        parentItem == null
+          ? childItems.push(childItem)
+          : this.addItemToParent(parentItem, childItem);
       }
 
       // Store menu items in session storage
-      this.menuService.setSessionStorageItem('menuItems', JSON.stringify(this.model));
+      this.menuService.setSessionStorageItem(
+        'menuItems',
+        JSON.stringify(this.model),
+      );
 
       // Add 'New' buttons for new instance of the defined entities
       this.addAddButtons();
@@ -122,7 +130,7 @@ export class AppMenuComponent implements OnInit {
     // Add parent
     var addBtnsMenu: MenuItem = {
       label: 'New',
-      items: []
+      items: [],
     };
 
     this.menuService.getAddButtons().subscribe((addBtns) => {
@@ -130,7 +138,12 @@ export class AppMenuComponent implements OnInit {
         // Lookup and convert
         var id = addBtn.ifcs[0].id;
         var link = this.interfaceRouteMap[id] + '/' + uuidv4();
-        var menuItem = { id: id, label: addBtn.label, icon: 'pi pi-fw pi-plus', routerLink: [link] };
+        var menuItem = {
+          id: id,
+          label: addBtn.label,
+          icon: 'pi pi-fw pi-plus',
+          routerLink: [link],
+        };
         addBtnsMenu.items?.push(menuItem);
       });
     });

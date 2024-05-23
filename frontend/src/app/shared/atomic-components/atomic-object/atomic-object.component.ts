@@ -20,9 +20,11 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
     if (this.canUpdate()) {
       // Find which entities are able to be added to the dropdown menu
-      this.interfaceComponent.fetchDropdownMenuData(`resource/${this.tgtResourceType}`).subscribe((objects) => {
-        this.dropdownMenuObjects = objects;
-      });
+      this.interfaceComponent
+        .fetchDropdownMenuData(`resource/${this.tgtResourceType}`)
+        .subscribe((objects) => {
+          this.dropdownMenuObjects = objects;
+        });
     }
   }
 
@@ -42,14 +44,23 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   public deleteItem(index: number) {
     if (!confirm('Delete?')) return;
 
-    this.interfaceComponent.delete(`${this.resource._path_}/${this.propertyName}/${this.data[index]._id_}`).subscribe();
+    this.interfaceComponent
+      .delete(
+        `${this.resource._path_}/${this.propertyName}/${this.data[index]._id_}`,
+      )
+      .subscribe();
   }
 
   /**
    * Exclude current values from dropdown menu
    */
-  filteredDropdownMenuObjects: Signal<typeof this.dropdownMenuObjects> = computed(() => {
-    const ids = this.requireArray(this.resource[this.propertyName]).map((d) => d._id_);
-    return this.dropdownMenuObjects?.filter((o) => !ids.includes(o._id_)) ?? [];
-  });
+  filteredDropdownMenuObjects: Signal<typeof this.dropdownMenuObjects> =
+    computed(() => {
+      const ids = this.requireArray(this.resource[this.propertyName]).map(
+        (d) => d._id_,
+      );
+      return (
+        this.dropdownMenuObjects?.filter((o) => !ids.includes(o._id_)) ?? []
+      );
+    });
 }

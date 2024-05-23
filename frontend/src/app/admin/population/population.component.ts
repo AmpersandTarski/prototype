@@ -19,7 +19,9 @@ export class PopulationComponent {
    * We capture this state in the associated buttonState(s)
    */
   isLoading(): boolean {
-    return [this.buttonState1, this.buttonState2].some((state) => state.isLoading());
+    return [this.buttonState1, this.buttonState2].some((state) =>
+      state.isLoading(),
+    );
   }
 
   /**

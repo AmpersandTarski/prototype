@@ -24,8 +24,14 @@ export class PopulationService implements IPopulationService {
     // Creates a fake DOM and simulates the onClick to download the json file
     const theJSON = JSON.stringify(jsonResponse);
     const element = document.createElement('a');
-    element.setAttribute('href', 'data:text/json;charset=UTF-8,' + encodeURIComponent(theJSON));
-    element.setAttribute('download', `ProjectAdministatrion_population_${currentDate}.json`);
+    element.setAttribute(
+      'href',
+      'data:text/json;charset=UTF-8,' + encodeURIComponent(theJSON),
+    );
+    element.setAttribute(
+      'download',
+      `ProjectAdministatrion_population_${currentDate}.json`,
+    );
     element.style.display = 'none';
     document.body.appendChild(element);
     element.click(); // simulate click
@@ -33,7 +39,9 @@ export class PopulationService implements IPopulationService {
   }
 
   /* Send one file to API. */
-  public importPopulation(file: File | undefined): Observable<PatchResponse<JSON>> {
+  public importPopulation(
+    file: File | undefined,
+  ): Observable<PatchResponse<JSON>> {
     if (file === undefined) {
       return EMPTY;
     }

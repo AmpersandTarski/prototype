@@ -1,5 +1,5 @@
 <!-- Box-TABLE.html -->
-<div $if(isRoot)$*ngIf="resource?.data; else loading"$endif$>
+<div $if(isRoot)$*ngIf="resource?.data; else loading" $endif$>
     <app-box-table
         $if(isRoot)$isRootBox
         $endif$crud="$crud$"
@@ -9,25 +9,37 @@
         [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
         tgtResourceType="$target$"
         placeholder="Add existing $target$"
-        $if(sortable)$sortable$if(sortBy)$ sortBy="_sortValues_.$sortBy$"$endif$$if(order)$ sortOrder="$order$"$endif$
+        $if(sortable)$sortable$if(sortBy)$
+        sortBy="_sortValues_.$sortBy$"
+        $endif$$if(order)$
+        sortOrder="$order$"
+        $endif$
         $endif$$if(exprIsUni)$isUni
         $endif$$if(exprIsTot)$isTot$endif$
     >
-        <ng-template boxTableHeader>$subObjects:{subObj|
-            $if(subObj.subObjExprIsUni)$$if(sortable)$<th pSortableColumn="_sortValues_.$subObj.subObjName$">
+        <ng-template boxTableHeader
+            >$subObjects:{subObj| $if(subObj.subObjExprIsUni)$$if(sortable)$
+            <th pSortableColumn="_sortValues_.$subObj.subObjName$">
                 <span>$subObj.subObjLabel$</span>
                 <p-sortIcon field="_sortValues_.$subObj.subObjName$"></p-sortIcon>
-            </th>$else$<th>$subObj.subObjLabel$</th>$endif$$else$<th>$subObj.subObjLabel$</th>$endif$}$
+            </th>
+            $else$
+            <th>$subObj.subObjLabel$</th>
+            $endif$$else$
+            <th>$subObj.subObjLabel$</th>
+            $endif$}$
         </ng-template>
-        <ng-template [boxTableRow]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$" let-resource>$subObjects:{subObj|
-            <td>
-                $subObj.subObjContents$
-            </td>}$
+        <ng-template
+            [boxTableRow]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
+            let-resource
+            >$subObjects:{subObj|
+            <td>$subObj.subObjContents$</td>
+            }$
         </ng-template>
     </app-box-table>
-</div>$if(isRoot)$
-
+</div>
+$if(isRoot)$
 
 <ng-template #loading>
-    <app-box-table-loading [nrOfRows]="10"></app-box-table-loading>
-</ng-template>$endif$
+    <app-box-table-loading [nrOfRows]="10"></app-box-table-loading> </ng-template
+>$endif$

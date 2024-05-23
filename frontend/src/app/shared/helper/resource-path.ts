@@ -29,7 +29,9 @@ export class ResourcePath {
    * Returns the suffix of path after removing the prefix
    */
   drop(prefix: ResourcePath): ResourcePath {
-    return new ResourcePath(this.toString().substring(prefix.toString().length));
+    return new ResourcePath(
+      this.toString().substring(prefix.toString().length),
+    );
   }
 
   prepend(path: ResourcePath): ResourcePath {

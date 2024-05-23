@@ -8,8 +8,10 @@ import { ObjectBase } from '../objectBase.interface';
 @Component({
   template: '',
 })
-export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends ObjectBase | ObjectBase[]>
-  implements OnInit
+export abstract class BaseBoxComponent<
+  TItem extends ObjectBase,
+  I extends ObjectBase | ObjectBase[],
+> implements OnInit
 {
   @Input() resource!: ObjectBase & { [key: string]: any };
   @Input({ required: true }) propertyName: string;
@@ -33,7 +35,9 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
         nonNullable: true,
         updateOn: 'change',
       });
-      this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
+      this.dropdownMenuObjects$ = this.getDropdownMenuItems(
+        this.tgtResourceType,
+      );
     }
 
     if (!this.isRootBox && !(this.propertyName in this.resource)) {
@@ -61,7 +65,7 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
   }
 
   public createItem(): void {
-    const path = `${this.resource._path_}/${this.propertyName}`;
+    const path: string = `${this.resource._path_}/${this.propertyName}`;
     const propertyField = this.isRootBox ? 'data' : this.propertyName;
     this.interfaceComponent.post(path).subscribe((x) => {
       if (this.isUni) {
@@ -115,7 +119,9 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
       ])
       .subscribe((x) => {
         if (x.isCommitted && x.invariantRulesHold) {
-          this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
+          this.dropdownMenuObjects$ = this.getDropdownMenuItems(
+            this.tgtResourceType,
+          );
         }
       });
   }
@@ -130,12 +136,17 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
     });
   }
 
-  private getDropdownMenuItems(resourceType: string): Observable<Array<ObjectBase>> {
-    let objects: Observable<Array<ObjectBase>> = this.interfaceComponent.fetchDropdownMenuData(
-      `resource/${resourceType}`,
-    );
+  private getDropdownMenuItems(
+    resourceType: string,
+  ): Observable<Array<ObjectBase>> {
+    let objects: Observable<Array<ObjectBase>> =
+      this.interfaceComponent.fetchDropdownMenuData(`resource/${resourceType}`);
     objects = objects.pipe(
-      map((dropdownobjects) => dropdownobjects.filter((object) => !this.data.map((y) => y._id_).includes(object._id_))),
+      map((dropdownobjects) =>
+        dropdownobjects.filter(
+          (object) => !this.data.map((y) => y._id_).includes(object._id_),
+        ),
+      ),
     );
     return objects;
   }

@@ -21,16 +21,24 @@ export class UtilsComponent {
    * We capture this state in the associated buttonState(s)
    */
   isLoading(): boolean {
-    return [this.buttonState1, this.buttonState2, this.buttonState3, this.buttonState4].some((state) =>
-      state.isLoading(),
-    );
+    return [
+      this.buttonState1,
+      this.buttonState2,
+      this.buttonState3,
+      this.buttonState4,
+    ].some((state) => state.isLoading());
   }
 
   /**
    * Set the buttonStates to their initial value
    */
   initButtonStates(): void {
-    [this.buttonState1, this.buttonState2, this.buttonState3, this.buttonState4].forEach((state) => state.init());
+    [
+      this.buttonState1,
+      this.buttonState2,
+      this.buttonState3,
+      this.buttonState4,
+    ].forEach((state) => state.init());
   }
 
   /**

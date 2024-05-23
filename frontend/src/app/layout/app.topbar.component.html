@@ -9,7 +9,11 @@
         <span>SAKAI</span>
     </a>
 
-    <button #menubutton class="p-link layout-menu-button layout-topbar-button" (click)="layoutService.onMenuToggle()">
+    <button
+        #menubutton
+        class="p-link layout-menu-button layout-topbar-button"
+        (click)="layoutService.onMenuToggle()"
+    >
         <i class="pi pi-bars"></i>
     </button>
 
@@ -24,7 +28,9 @@
     <div
         #topbarmenu
         class="layout-topbar-menu"
-        [ngClass]="{ 'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible }"
+        [ngClass]="{
+            'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible
+        }"
     >
         <!-- Role Menu -->
         <app-roles></app-roles>

@@ -23,7 +23,9 @@ but can also be done with data.slice()
     </ng-template>
     <ng-template pTemplate="body" let-data let-i="rowIndex">
         <tr style="vertical-align: top">
-            <ng-container *ngTemplateOutlet="rows || defaultRowTemplate; context: { $implicit: data }"></ng-container>
+            <ng-container
+                *ngTemplateOutlet="rows || defaultRowTemplate; context: { $implicit: data }"
+            ></ng-container>
             <td>
                 <span
                     *ngIf="canUpdate()"
@@ -47,7 +49,10 @@ but can also be done with data.slice()
 </p-table>
 
 <p-dropdown
-    *ngIf="canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects; else defaultDropdownMenu"
+    *ngIf="
+        canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects;
+        else defaultDropdownMenu
+    "
     [options]="dropdownMenuObjects"
     [formControl]="newItemControl"
     optionLabel="_label_"
@@ -60,7 +65,8 @@ but can also be done with data.slice()
 </p-dropdown>
 
 <ng-template #defaultDropdownMenu>
-    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder"> </p-dropdown>
+    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder">
+    </p-dropdown>
 </ng-template>
 
 <ng-template #defaultHeaderTemplate let-data>

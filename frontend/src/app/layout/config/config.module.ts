@@ -8,7 +8,14 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { AppConfigComponent } from './app.config.component';
 
 @NgModule({
-  imports: [CommonModule, FormsModule, SidebarModule, RadioButtonModule, ButtonModule, InputSwitchModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    SidebarModule,
+    RadioButtonModule,
+    ButtonModule,
+    InputSwitchModule,
+  ],
   declarations: [AppConfigComponent],
   exports: [AppConfigComponent],
 })

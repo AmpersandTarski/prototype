@@ -4,7 +4,11 @@ import { ObjectBase } from '../objectBase.interface';
 @Component({
   template: '',
 })
-export abstract class BaseAtomicComponent<T, I extends ObjectBase | ObjectBase[]> implements OnInit {
+export abstract class BaseAtomicComponent<
+  T,
+  I extends ObjectBase | ObjectBase[],
+> implements OnInit
+{
   @Input({ required: true }) property: T | Array<T> | null = null;
 
   @Input({ required: true }) resource: any;

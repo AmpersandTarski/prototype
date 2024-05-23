@@ -25,7 +25,10 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
    */
   private pendingPatches: (Patch | PatchValue)[] = [];
 
-  constructor(protected http: HttpClient, private messageService: MessageService) {}
+  constructor(
+    protected http: HttpClient,
+    private messageService: MessageService,
+  ) {}
 
   public setResource(resourceType: string, resourceId: string, data: T) {
     this.resource = {
@@ -37,7 +40,9 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
     };
   }
 
-  public fetchDropdownMenuData<ResponseObject extends ObjectBase>(path: string): Observable<Array<ResponseObject>> {
+  public fetchDropdownMenuData<ResponseObject extends ObjectBase>(
+    path: string,
+  ): Observable<Array<ResponseObject>> {
     if (!(path in this.typeAheadData)) {
       const source = this.http.get<Array<ResponseObject>>(path);
       const sharedObservable = source.pipe(share());
@@ -54,7 +59,10 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
     );
   }
 
-  public patch(path: string, patches: Array<Patch | PatchValue>): Observable<PatchResponse<T>> {
+  public patch(
+    path: string,
+    patches: Array<Patch | PatchValue>,
+  ): Observable<PatchResponse<T>> {
     if (!this.resource.data) throw 'Cannot patch with no data set';
 
     const resourcePath = new ResourcePath(path);
@@ -101,7 +109,10 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
     }
 
     return this.http
-      .patch<PatchResponse<T>>(rootPath.toString(), [...this.pendingPatches, ...patches])
+      .patch<PatchResponse<T>>(rootPath.toString(), [
+        ...this.pendingPatches,
+        ...patches,
+      ])
       .pipe(
         tap((resp) => {
           if (resp.isCommitted) {
@@ -117,7 +128,9 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
            */
           if (Array.isArray(this.resource.data)) {
             mergeDeep(
-              this.resource.data.find((obj) => obj._path_ === rootPath.toString()),
+              this.resource.data.find(
+                (obj) => obj._path_ === rootPath.toString(),
+              ),
               resp.content,
             );
           } else {
@@ -152,7 +165,9 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
     );
   }
 
-  private showNotifications(resp: PatchResponse<T> | CreateResponse | DeleteResponse) {
+  private showNotifications(
+    resp: PatchResponse<T> | CreateResponse | DeleteResponse,
+  ) {
     /* Show notifications */
     this.messageService.clear();
 

@@ -23,7 +23,11 @@ const routes: Routes = [
   //     { path: ':componentType/:componentName', component: ToolComponentDetailsComponent },
   //   ],
   // },
-  { path: '**', component: AppLayoutComponent, children: [{ path: '', component: NotFoundComponentComponent }] },
+  {
+    path: '**',
+    component: AppLayoutComponent,
+    children: [{ path: '', component: NotFoundComponentComponent }],
+  },
 ];
 
 @NgModule({

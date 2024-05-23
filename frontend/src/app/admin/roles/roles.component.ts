@@ -31,7 +31,10 @@ export class RolesComponent implements OnInit {
           command: () => this.patchRole(roles, index),
         }));
         // Store menu items in session storage
-        this.rolesService.setSessionStorageItem('rolesMenuItems', JSON.stringify(this.menuItems));
+        this.rolesService.setSessionStorageItem(
+          'rolesMenuItems',
+          JSON.stringify(this.menuItems),
+        );
       });
     }
   }

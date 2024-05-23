@@ -7,9 +7,15 @@ import { IInstallerService } from './installer.service.interface';
 export class InstallerService implements IInstallerService {
   constructor(private http: HttpClient) {}
 
-  public getReinstall(defaultPop: boolean, ignoreInvariants: boolean): Observable<Notification> {
+  public getReinstall(
+    defaultPop: boolean,
+    ignoreInvariants: boolean,
+  ): Observable<Notification> {
     return this.http.get<Notification>('admin/installer', {
-      params: { defaultPop: defaultPop, ignoreInvariantRules: ignoreInvariants },
+      params: {
+        defaultPop: defaultPop,
+        ignoreInvariantRules: ignoreInvariants,
+      },
     });
   }
 

@@ -32,10 +32,12 @@ export class BoxPropButtonComponent<
         break;
     }
 
-    this.interfaceComponent.patch(item._path_, [{ op: 'replace', path: 'property', value: value }]).subscribe((x) => {
-      if (x.isCommitted) {
-        this.data = [x.content as any as TItem];
-      }
-    });
+    this.interfaceComponent
+      .patch(item._path_, [{ op: 'replace', path: 'property', value: value }])
+      .subscribe((x) => {
+        if (x.isCommitted) {
+          this.data = [x.content as any as TItem];
+        }
+      });
   }
 }

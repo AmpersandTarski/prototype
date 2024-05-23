@@ -58,7 +58,8 @@ export class LayoutService {
     }
 
     if (this.isDesktop()) {
-      this.state.staticMenuDesktopInactive = !this.state.staticMenuDesktopInactive;
+      this.state.staticMenuDesktopInactive =
+        !this.state.staticMenuDesktopInactive;
     } else {
       this.state.staticMenuMobileActive = !this.state.staticMenuMobileActive;
 

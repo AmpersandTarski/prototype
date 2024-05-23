@@ -1,6 +1,10 @@
 <div class="flex flex-wrap">
     <div class="flex-1 mb-3 mr-3 min-h-full">
-        <p-card header="With default population" subheader="Application (re)install" styleClass="p-card-shadow">
+        <p-card
+            header="With default population"
+            subheader="Application (re)install"
+            styleClass="p-card-shadow"
+        >
             <p>This action will reinstall the application and database and delete all content.</p>
             <p>If provided, the initial population will be installed.</p>
             <ng-template pTemplate="footer">
@@ -16,7 +20,11 @@
         </p-card>
     </div>
     <div class="flex-1 mb-3 mr-3 min-h-full">
-        <p-card header="Without default population" subheader="Application (re)install" styleClass="p-card-shadow">
+        <p-card
+            header="Without default population"
+            subheader="Application (re)install"
+            styleClass="p-card-shadow"
+        >
             <p>This action will reinstall the application and database and delete all content.</p>
             <p><strong>No initial population</strong> will be installed.</p>
             <ng-template pTemplate="footer">
@@ -32,11 +40,15 @@
         </p-card>
     </div>
     <div class="flex-1 mb-3 mr-3 min-h-full">
-        <p-card header="Ignore invariant violations" subheader="Application (re)install" styleClass="p-card-shadow">
+        <p-card
+            header="Ignore invariant violations"
+            subheader="Application (re)install"
+            styleClass="p-card-shadow"
+        >
             <p>This action will reinstall the application and database and delete all content.</p>
             <p>
-                If provided, the initial population will be installed. Any invariant violations will be ignored and the
-                database transaction will be committed anyway.
+                If provided, the initial population will be installed. Any invariant violations will
+                be ignored and the database transaction will be committed anyway.
             </p>
             <ng-template pTemplate="footer">
                 <p-button

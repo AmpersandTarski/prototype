@@ -7,7 +7,9 @@ import { ObjectBase } from '../../objectBase.interface';
   templateUrl: './atomic-select.component.html',
   styleUrls: ['./atomic-select.component.css'],
 })
-export class AtomicSelectComponent<I extends ObjectBase | ObjectBase[]> extends BaseAtomicComponent<ObjectBase, I> {
+export class AtomicSelectComponent<
+  I extends ObjectBase | ObjectBase[],
+> extends BaseAtomicComponent<ObjectBase, I> {
   /**
    * Because we don't get correct isUni from template just check if prop is array
    * to see if multiple or single value.

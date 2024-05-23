@@ -21,6 +21,8 @@ export class UtilsService implements IUtilsService {
   }
 
   public getRegenerateAtom(concept: string): Observable<Notifications> {
-    return this.http.get<Notifications>(`admin/utils/regenerate-all-atom-ids/${concept}`);
+    return this.http.get<Notifications>(
+      `admin/utils/regenerate-all-atom-ids/${concept}`,
+    );
   }
 }
