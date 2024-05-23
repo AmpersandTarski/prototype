@@ -1,10 +1,10 @@
 <div *ngIf="canCreate() && isEmpty()">
-    <p-button [rounded]="true" size="small" (click)="createItem()"
-        >New {{ tgtResourceType }}</p-button
-    >
+    <p-button [rounded]="true" size="small" (click)="createItem()">
+        New {{ tgtResourceType }}
+    </p-button>
 </div>
 
-<ng-container *ngFor="let item of filterNullish(data); let i = index">
+<ng-container *ngFor="let item of filterNullish(data)">
     <div style="float: right" class="options">
         <span
             *ngIf="canCreate()"
@@ -17,7 +17,7 @@
         <span
             *ngIf="canUpdate()"
             class="pi pi-fw pi-minus"
-            (click)="removeItem(i)"
+            (click)="removeItem(item)"
             pTooltip="Remove"
             tooltipPosition="left"
             style="color: red; padding-bottom: 9px; cursor: pointer"
@@ -28,7 +28,7 @@
             pTooltip="Delete"
             tooltipPosition="left"
             style="color: red; cursor: pointer"
-            (click)="deleteItem(i)"
+            (click)="deleteItem(item)"
         ></span>
     </div>
     <p-tabView [scrollable]="true">

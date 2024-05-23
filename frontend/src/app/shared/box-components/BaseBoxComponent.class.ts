@@ -107,14 +107,14 @@ export abstract class BaseBoxComponent<
       });
   }
 
-  public removeItem(index: number): void {
+  public removeItem(item: TItem): void {
     if (!confirm('Remove?')) return;
 
     this.interfaceComponent
       .patch(this.resource._path_, [
         {
           op: 'remove',
-          path: `${this.propertyName}/${this.data[index]._id_}`,
+          path: `${this.propertyName}/${item._id_}`,
         },
       ])
       .subscribe((x) => {
@@ -126,12 +126,15 @@ export abstract class BaseBoxComponent<
       });
   }
 
-  public deleteItem(index: number): void {
+  public deleteItem(item: TItem): void {
     if (!confirm('Delete?')) return;
 
-    this.interfaceComponent.delete(this.data[index]._path_).subscribe((x) => {
+    this.interfaceComponent.delete(item._path_).subscribe((x) => {
       if (x.isCommitted && x.invariantRulesHold) {
-        this.data.splice(index, 1);
+        const index = this.data.indexOf(item);
+        if (index != -1) {
+          this.data.splice(index, 1);
+        }
       }
     });
   }

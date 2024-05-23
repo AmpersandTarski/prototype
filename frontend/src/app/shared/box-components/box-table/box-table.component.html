@@ -21,7 +21,7 @@ but can also be done with data.slice()
             </th>
         </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-data let-i="rowIndex">
+    <ng-template pTemplate="body" let-data>
         <tr style="vertical-align: top">
             <ng-container
                 *ngTemplateOutlet="rows || defaultRowTemplate; context: { $implicit: data }"
@@ -30,7 +30,7 @@ but can also be done with data.slice()
                 <span
                     *ngIf="canUpdate()"
                     class="pi pi-fw pi-minus"
-                    (click)="removeItem(i)"
+                    (click)="removeItem(data)"
                     pTooltip="Remove"
                     tooltipPosition="left"
                     style="color: red; padding-bottom: 9px; cursor: pointer"
@@ -41,7 +41,7 @@ but can also be done with data.slice()
                     pTooltip="Delete"
                     tooltipPosition="left"
                     style="color: red; cursor: pointer"
-                    (click)="deleteItem(i)"
+                    (click)="deleteItem(data)"
                 ></span>
             </td>
         </tr>

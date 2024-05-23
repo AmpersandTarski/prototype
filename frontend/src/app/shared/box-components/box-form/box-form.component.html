@@ -1,10 +1,10 @@
 <div *ngIf="canCreate() && isEmpty()">
-    <p-button [rounded]="true" size="small" (click)="createItem()"
-        >New {{ tgtResourceType }}</p-button
-    >
+    <p-button [rounded]="true" size="small" (click)="createItem()">
+        New {{ tgtResourceType }}
+    </p-button>
 </div>
 
-<div class="card" *ngFor="let item of filterNullish(data); let i = index">
+<div class="card" *ngFor="let item of filterNullish(data)">
     <div style="float: right">
         <span
             *ngIf="canCreate()"
@@ -17,7 +17,7 @@
         <span
             *ngIf="canUpdate()"
             class="pi pi-fw pi-minus"
-            (click)="removeItem(i)"
+            (click)="removeItem(item)"
             pTooltip="Remove"
             tooltipPosition="left"
             style="color: red; padding-bottom: 9px; cursor: pointer"
@@ -28,7 +28,7 @@
             pTooltip="Delete"
             tooltipPosition="left"
             style="color: red; cursor: pointer"
-            (click)="deleteItem(i)"
+            (click)="deleteItem(item)"
         ></span>
     </div>
     <ng-container
@@ -53,12 +53,8 @@
 </p-dropdown>
 
 <ng-template #defaultDropdownMenu>
-    <p-dropdown
-        *ngIf="canUpdate()"
-        [options]="[]"
-        [showClear]="false"
-        [placeholder]="placeholder"
-    ></p-dropdown>
+    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder">
+    </p-dropdown>
 </ng-template>
 
 <ng-template #defaultTemplate let-item>
