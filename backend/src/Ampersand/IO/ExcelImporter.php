@@ -85,7 +85,7 @@ class ExcelImporter
         }
 
         // Determine $leftConcept from cell A1
-        $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel((string)$worksheet->getCell('A1'));
+        $leftConcept = $this->ampersandApp->getModel()->getConcept((string)$worksheet->getCell('A1'));
         if ($leftConcept !== $ifc->getTgtConcept()) {
             throw new BadRequestException("Target concept of interface '{$ifc->getLabel()}' does not match concept specified in cell {$worksheet->getTitle()}!A1");
         }
@@ -226,7 +226,7 @@ class ExcelImporter
                 }
             // Header line 2 specifies concept names
             } elseif ($i === 2) {
-                $leftConcept = $this->ampersandApp->getModel()->getConceptByLabel($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue());
+                $leftConcept = $this->ampersandApp->getModel()->getConcept($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue());
 
                 foreach ($row->getCellIterator() as $cell) {
                     try {
@@ -254,7 +254,7 @@ class ExcelImporter
                                 $this->logger->notice("Skipping column {$col} in sheet {$worksheet->getTitle()}, because header is not complete");
                             // Relation is flipped when last character is a tilde (~)
                             } elseif (substr($line1[$col], -1) === '~') { // @phan-suppress-current-line PhanTypeInvalidDimOffset
-                                $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
+                                $rightConcept = $this->ampersandApp->getModel()->getConcept($line2[$col]);
                                 
                                 $header[$col] = ['concept' => $rightConcept
                                                 ,'relation' => $this->ampersandApp->getRelation(substr($line1[$col], 0, -1), $rightConcept, $leftConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
@@ -262,7 +262,7 @@ class ExcelImporter
                                                 ,'delimiter' => $delimiter
                                                 ];
                             } else {
-                                $rightConcept = $this->ampersandApp->getModel()->getConceptByLabel($line2[$col]);
+                                $rightConcept = $this->ampersandApp->getModel()->getConcept($line2[$col]);
                                 $header[$col] = ['concept' => $rightConcept
                                                 ,'relation' => $this->ampersandApp->getRelation($line1[$col], $leftConcept, $rightConcept) // @phan-suppress-current-line PhanTypeInvalidDimOffset
                                                 ,'flipped' => false

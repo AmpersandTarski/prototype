@@ -44,11 +44,11 @@ class InterfaceExprObjectRef extends InterfaceExprObject implements InterfaceObj
             throw new FatalException("Sub interface definition is required to instantiate InterfaceExprObjectRef object");
         }
 
-        if (!isset($subIfcsDef['refSubInterfaceId'])) {
-            throw new FatalException("refSubInterfaceId not specified but required to instantiate InterfaceExprObjectRef");
+        if (!isset($subIfcsDef['refSubInterfaceName'])) {
+            throw new FatalException("refSubInterfaceName not specified but required to instantiate InterfaceExprObjectRef");
         }
 
-        $this->refInterfaceId = $subIfcsDef['refSubInterfaceId'];
+        $this->refInterfaceId = $subIfcsDef['refSubInterfaceName'];
         $this->isLinkTo = $subIfcsDef['refIsLinkTo'];
     }
 

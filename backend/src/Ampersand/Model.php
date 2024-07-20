@@ -190,7 +190,7 @@ class Model
         $allConceptDefs = (array)json_decode(file_get_contents($this->modelFiles['concepts']), true);
     
         foreach ($allConceptDefs as $conceptDef) {
-            $this->concepts[$conceptDef['id']] = new Concept($conceptDef, $logger, $app);
+            $this->concepts[$conceptDef['name']] = new Concept($conceptDef, $logger, $app);
         }
 
         $this->initialized[] = 'concepts';
@@ -233,7 +233,7 @@ class Model
         
         $this->interfaces = [];
         foreach ($allInterfaceDefs as $ifcDef) {
-            $ifc = new Ifc($ifcDef['id'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['ifcObject'], $defaultPlug, $this);
+            $ifc = new Ifc($ifcDef['name'], $ifcDef['label'], $ifcDef['isAPI'], $ifcDef['ifcObject'], $defaultPlug, $this);
             $this->interfaces[$ifc->getId()] = $ifc;
         }
 
@@ -248,7 +248,7 @@ class Model
         $allViewDefs = (array)json_decode(file_get_contents($this->modelFiles['views']), true);
         
         foreach ($allViewDefs as $viewDef) {
-            $this->views[$viewDef['label']] = new View($viewDef, $defaultPlug);
+            $this->views[$viewDef['name']] = new View($viewDef, $defaultPlug);
         }
 
         $this->initialized[] = 'views';
@@ -369,17 +369,17 @@ class Model
     
     public function getSessionConcept(): Concept
     {
-        return $this->getConcept('SESSION');
+        return $this->getConcept(ProtoContext::CPT_SESSION);
     }
 
     public function getRoleConcept(): Concept
     {
-        return $this->getConceptByLabel(ProtoContext::CPT_ROLE);
+        return $this->getConcept(ProtoContext::CPT_ROLE);
     }
 
     public function getInterfaceConcept(): Concept
     {
-        return $this->getConceptByLabel(ProtoContext::CPT_IFC);
+        return $this->getConcept(ProtoContext::CPT_IFC);
     }
 
     /**********************************************************************************************
@@ -524,17 +524,17 @@ class Model
      * Return view object
      *
      */
-    public function getView(string $viewLabel): View
+    public function getView(string $viewName): View
     {
         if (!in_array('views', $this->initialized)) {
             throw new FatalException("Ampersand model is not yet initialized");
         }
 
-        if (!array_key_exists($viewLabel, $this->views)) {
-            throw new ViewNotDefinedException("View '{$viewLabel}' is not defined");
+        if (!array_key_exists($viewName, $this->views)) {
+            throw new ViewNotDefinedException("View '{$viewName}' is not defined");
         }
     
-        return $this->views[$viewLabel];
+        return $this->views[$viewName];
     }
 
     /**********************************************************************************************
@@ -637,21 +637,6 @@ class Model
         }
          
         return $this->roles;
-    }
-
-    /**
-     * Return role object
-     *
-     */
-    public function getRoleById(string $roleId): Role
-    {
-        foreach ($this->getAllRoles() as $role) {
-            if ($role->getId() === $roleId) {
-                return $role;
-            }
-        }
-        
-        throw new RoleNotDefinedException("Role with id '{$roleId}' is not defined");
     }
     
     /**

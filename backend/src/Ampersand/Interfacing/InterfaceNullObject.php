@@ -18,6 +18,7 @@ use Ampersand\AmpersandApp;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\MethodNotAllowedException;
+use Ampersand\Misc\ProtoContext;
 
 /**
  *
@@ -167,7 +168,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     public function buildResourcePath(Atom $tgt, string $pathToSrc): string
     {
         if ($tgt->concept->isSession()) {
-            return "resource/SESSION/1"; // Don't put real session id here. Instead we use '1' to indicate the user session
+            return "resource/" . ProtoContext::CPT_SESSION . "/1"; // Don't put real session id here. Instead we use '1' to indicate the user session
         } else {
             return "resource/{$tgt->concept->name}/{$tgt->getId()}";
         }

@@ -7,7 +7,7 @@ INTERFACE "$interfaceName$" : $expAdl$ :: $source$ * $target$ $if(exprIsUni)$[UN
 Roles: [$roles;separator=", "$]
 $endif$*/
 /* jshint ignore:start */
-angular.module('AmpersandApp').controller('Ifc$interfaceName$Controller', function (\$scope, \$route, \$routeParams, ResourceService, \$location) {
+angular.module('AmpersandApp').controller('Ifc$interfaceNamePascal$Controller', function (\$scope, \$route, \$routeParams, ResourceService, \$location) {
     const resourceType = '$source$';
     const ifcName = '$interfaceName$';
     let resourceId;
@@ -42,7 +42,7 @@ angular.module('AmpersandApp').controller('Ifc$interfaceName$Controller', functi
     
     // Controller functions
     \$scope.switchResource = function(resourceId) {
-        \$location.url('/$interfaceName$/' + resourceId);
+        \$location.url('/$interfaceNameKebab$/' + resourceId);
     };
     
     // Get resource

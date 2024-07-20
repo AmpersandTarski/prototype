@@ -102,7 +102,7 @@ class Session
         } else {
             $experationTimeStamp = $now - $this->settings->get('session.expirationTime');
             
-            $links = $this->sessionAtom->getLinks('lastAccess[SESSION*DateTime]');
+            $links = $this->sessionAtom->getLinks(ProtoContext::REL_SESSION_LAST_ACCESS);
             foreach ($links as $link) {
                 if (strtotime($link->tgt()->getId()) < $experationTimeStamp) {
                     $this->logger->debug("Session expired");
@@ -132,7 +132,7 @@ class Session
         // We set 'trackAffected' to false for this relation, because it will significantly reduce the rule evaluation overhead
         // for every session interaction. We can safely do this, because no new Session atom is implicitly created here nor does
         // the DateTime atom is reused elsewhere
-        $this->sessionAtom->link(date(DATE_ATOM, $now), 'lastAccess[SESSION*DateTime]', false)->add(trackAffected: false);
+        $this->sessionAtom->link(date(DATE_ATOM, $now), ProtoContext::REL_SESSION_LAST_ACCESS, false)->add(trackAffected: false);
     }
 
     /**
@@ -254,7 +254,7 @@ class Session
             $this->sessionAtom->link($accountAtom, 'sessionAccount[SESSION*Account]')->add();
             
             // Login timestamps
-            $ts = date(DATE_ISO8601);
+            $ts = date(DATE_ATOM);
             $accountAtom->link($ts, 'accMostRecentLogin[Account*DateTime]')->add();
             $accountAtom->link($ts, 'accLoginTimestamps[Account*DateTime]')->add();
 
@@ -310,7 +310,7 @@ class Session
     {
         $experationTimeStamp = time() - $ampersandApp->getSettings()->get('session.expirationTime');
         
-        $links = $ampersandApp->getRelation('lastAccess[SESSION*DateTime]')->getAllLinks();
+        $links = $ampersandApp->getRelation(ProtoContext::REL_SESSION_LAST_ACCESS)->getAllLinks();
         foreach ($links as $link) {
             if (strtotime($link->tgt()->getId()) < $experationTimeStamp) {
                 $link->src()->delete();

@@ -1,5 +1,5 @@
 # To run generated prototypes we require a apache webserver with php
-FROM php:8.3-apache-bullseye as framework
+FROM php:8.3-apache-bookworm as framework
 
 RUN apt-get update \
  && apt-get install -y \

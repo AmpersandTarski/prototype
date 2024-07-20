@@ -188,7 +188,7 @@ class ResourceController extends AbstractController
         $transaction = $this->app->newTransaction();
 
         foreach ($list as $item) {
-            $atom = $this->app->getModel()->getConceptByLabel($resourceType)->makeAtom($item->oldId);
+            $atom = $this->app->getModel()->getConcept($resourceType)->makeAtom($item->oldId);
             $atom->rename($item->newId);
         }
         

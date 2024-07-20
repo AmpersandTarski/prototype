@@ -4,9 +4,9 @@
 /* jshint ignore:start */
 angular.module('AmpersandApp').config( function (\$routeProvider) {
     \$routeProvider$ifcs:{ifc|
-    .when( "/$ifc.ifcName$/:resourceId?", {
-        controller:  "Ifc$ifc.ifcName$Controller",
-        templateUrl: "app/project/ifc$ifc.ifcName$.view.html",
+    .when( "/$ifc.ifcNameKebab$/:resourceId?", {
+        controller:  "Ifc$ifc.ifcNamePascal$Controller",
+        templateUrl: "app/project/ifc$ifc.ifcNameKebab$.view.html",
         interfaceLabel: "$ifc.ifcLabel$" 
         \}
     )}$
