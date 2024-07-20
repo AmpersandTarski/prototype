@@ -45,7 +45,7 @@ export const menuItems: MenuItem[] = [
 
 // Interface to route mapping
 const INTERFACE_ROUTE_MAP: InterfaceRouteMap = {$uis:{ifc|
-  $ifc.ifcName$: '/$ifc.ifcNameKebab$',}$
+  '$ifc.ifcName$': '/$ifc.ifcNameKebab$',}$
 };
 
 // Module
