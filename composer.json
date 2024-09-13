@@ -26,7 +26,7 @@
         "psr/log": "^1.1",
         "concrete5/monolog-cascade": "^0.6.0",
         "symfony/event-dispatcher": "^5.1",
-        "symfony/serializer": "^3.4",
+        "symfony/serializer": "^5",
         "symfony/filesystem": "^4.2",
         "easyrdf/easyrdf": "^1.0",
         "league/flysystem": "^1.1",
