@@ -97,11 +97,6 @@ ini_set('error_reporting', E_ALL & ~E_NOTICE); // @phan-suppress-current-line Ph
 ini_set("display_errors", '0');
 ini_set("log_errors", '1');
 
-// Application log
-$logConfigFile = getenv('AMPERSAND_LOG_CONFIG', true);
-if ($logConfigFile === false) {
-    $logConfigFile = 'logging.yaml';
-}
 // Processors
 $webProcessor = new WebProcessor(extraFields: [
     'ip' => 'REMOTE_ADDR',
