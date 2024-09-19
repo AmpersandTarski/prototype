@@ -10,13 +10,19 @@ use Ampersand\API\Middleware\LogPerformanceMiddleware;
 use Ampersand\API\Middleware\PostMaxSizeMiddleware;
 use Ampersand\Frontend\AngularJSApp;
 use Ampersand\Log\Logger;
+use Ampersand\Log\RequestIDProcessor;
 use Ampersand\Misc\Settings;
 use Ampersand\Model;
 use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
-use Cascade\Cascade;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use Monolog\Handler\FingersCrossed\ErrorLevelActivationStrategy;
+use Monolog\Handler\FingersCrossedHandler;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger as MonologLogger;
+use Monolog\Processor\WebProcessor;
+use Monolog\Registry;
 use Slim\App;
 use Slim\Container;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -96,7 +102,24 @@ $logConfigFile = getenv('AMPERSAND_LOG_CONFIG', true);
 if ($logConfigFile === false) {
     $logConfigFile = 'logging.yaml';
 }
-Cascade::fileConfig(dirname(__FILE__, 2) . "/config/{$logConfigFile}"); // loads logging configuration
+// Processors
+$webProcessor = new WebProcessor(extraFields: [
+    'ip' => 'REMOTE_ADDR',
+    'method' => 'REQUEST_METHOD',
+    'url' => 'REQUEST_URI',
+]);
+$requestIDProcessor = new RequestIDProcessor();
+$processors = [$requestIDProcessor, $webProcessor];
+// Handlers
+$stdoutStream = new StreamHandler('php://stdout', level: MonologLogger::DEBUG);
+$stdout = new FingersCrossedHandler($stdoutStream, activationStrategy: new ErrorLevelActivationStrategy(MonologLogger::ERROR), passthruLevel: MonologLogger::NOTICE);
+$stderr = new StreamHandler('php://stderr', level: MonologLogger::WARNING);
+$handlers = [$stdout, $stderr];
+// Loggers
+foreach (['EXECENGINE', 'IO', 'API', 'APPLICATION', 'DATABASE', 'CORE', 'RULEENGINE', 'TRANSACTION', 'INTERFACING'] as $name) {
+    $logger = new MonologLogger($name, $handlers, $processors);
+    Registry::addLogger($logger);
+}
 
 /**************************************************************************************************
  * AMPERSAND APPLICATION

@@ -24,7 +24,6 @@
         "phpoffice/phpspreadsheet": "^1.20.0",
         "psr/cache": "^1.0",
         "psr/log": "^1.1",
-        "concrete5/monolog-cascade": "^0.6.0",
         "symfony/event-dispatcher": "^5.1",
         "symfony/serializer": "^5",
         "symfony/filesystem": "^4.2",
