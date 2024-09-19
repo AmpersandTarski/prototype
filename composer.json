@@ -22,7 +22,7 @@
         "slim/slim": "^3.0",
         "monolog/monolog": "^1.18",
         "phpoffice/phpspreadsheet": "^1.20.0",
-        "psr/cache": "^1.0",
+        "psr/cache": "^3.0",
         "psr/log": "^1.1",
         "symfony/event-dispatcher": "^7",
         "symfony/serializer": "^7",

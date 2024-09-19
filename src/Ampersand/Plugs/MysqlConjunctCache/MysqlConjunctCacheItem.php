@@ -119,7 +119,7 @@ class MysqlConjunctCacheItem implements CacheItemInterface
      * @return static
      *   The invoked object.
      */
-    public function set($value): self
+    public function set($value): static
     {
         $this->value = $value;
         $this->hasValue = true;
