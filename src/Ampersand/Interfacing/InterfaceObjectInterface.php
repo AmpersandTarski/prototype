@@ -42,7 +42,7 @@ interface InterfaceObjectInterface
      *
      * @return \Ampersand\Core\Atom[]
      */
-    public function getTgtAtoms(Atom $src, string $selectTgt = null): array;
+    public function getTgtAtoms(Atom $src, ?string $selectTgt = null): array;
 
     /**
      * Returns path for given tgt atom
@@ -69,7 +69,7 @@ interface InterfaceObjectInterface
     public function getViewData(Atom $tgtAtom): array;
 
     public function create(Atom $src, $tgtId = null): Atom;
-    public function read(Atom $src, string $pathToSrc, string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, int $depth = null, array $recursionArr = []);
+    public function read(Atom $src, string $pathToSrc, ?string $tgtId = null, int $options = Options::DEFAULT_OPTIONS, ?int $depth = null, array $recursionArr = []);
     public function set(Atom $src, $value = null): ?Atom;
     public function add(Atom $src, $value): Atom;
     public function remove(Atom $src, $value): void;

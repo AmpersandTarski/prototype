@@ -545,7 +545,7 @@ class Model
      *
      * @return Rule[]
      */
-    public function getAllRules(string $type = null): array
+    public function getAllRules(?string $type = null): array
     {
         if (!in_array('rules', $this->initialized)) {
             throw new FatalException("Ampersand model is not yet initialized");

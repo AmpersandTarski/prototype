@@ -14,7 +14,7 @@ namespace Ampersand\Interfacing;
  */
 class ResourcePath
 {
-    public static function makePathList(string $path = null): array
+    public static function makePathList(?string $path = null): array
     {
         if (is_null($path)) {
             $path = '';
