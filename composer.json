@@ -24,9 +24,9 @@
         "phpoffice/phpspreadsheet": "^1.20.0",
         "psr/cache": "^1.0",
         "psr/log": "^1.1",
-        "symfony/event-dispatcher": "^5.1",
-        "symfony/serializer": "^5",
-        "symfony/filesystem": "^4.2",
+        "symfony/event-dispatcher": "^7",
+        "symfony/serializer": "^7",
+        "symfony/filesystem": "^7",
         "easyrdf/easyrdf": "^1.0",
         "league/flysystem": "^1.1",
         "ramsey/uuid": "^4.1"
