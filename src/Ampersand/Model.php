@@ -686,7 +686,7 @@ class Model
 
     protected function loadFile(string $filename): mixed
     {
-        $decoder = new JsonDecode(false);
+        $decoder = new JsonDecode();
         return $decoder->decode(file_get_contents($this->getFilePath($filename)), JsonEncoder::FORMAT);
     }
 

@@ -114,7 +114,7 @@ class Settings
             throw new InvalidConfigurationException("Cannot load settings file. Specified path does not exist: '{$filePath}'");
         }
 
-        $decoder = new JsonDecode(false);
+        $decoder = new JsonDecode();
         $compilerSettings = $decoder->decode(file_get_contents($filePath), JsonEncoder::FORMAT);
 
         // Only the variables mapped in the COMPILER_VAR_CONFIG_MAP are used
