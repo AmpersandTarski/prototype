@@ -1,5 +1,5 @@
 # To run generated prototypes we require a apache webserver with php
-FROM php:8.3-apache-bookworm as framework
+FROM php:8.3-apache-bookworm AS framework
 
 RUN apt-get update \
  && apt-get install -y \
@@ -22,7 +22,7 @@ RUN php  -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
  && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
  && php -r "unlink('composer-setup.php');" \
  && rm -rf /var/lib/apt/lists/*
-ENV COMPOSER_HOME /usr/local/bin/
+ENV COMPOSER_HOME=/usr/local/bin/
 
 # Install NodeJs with NPM
 RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
@@ -57,6 +57,7 @@ COPY backend /var/www/backend
 RUN mv /var/www/backend/public/* /var/www/html/
 
 FROM framework as project-administration
+FROM framework AS project-administration
 
 COPY test/assets/project-administration /usr/local/project/
 
