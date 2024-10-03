@@ -86,7 +86,7 @@ require_once($composerAutoloaderFile);
  * LOGGING
  *************************************************************************************************/
 
-require_once('../config/logging.php');
+require_once(__DIR__ . '/../config/logging.php');
 
 /**************************************************************************************************
  * AMPERSAND APPLICATION
