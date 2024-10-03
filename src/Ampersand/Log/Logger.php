@@ -8,7 +8,6 @@
 namespace Ampersand\Log;
 
 use Ampersand\Exception\InvalidConfigurationException;
-use Cascade\Cascade;
 use Monolog\Registry;
 use Psr\Log\LoggerInterface;
 
@@ -29,7 +28,7 @@ class Logger
     public static function getLogger(string $channel): LoggerInterface
     {
         if (Registry::hasLogger($channel)) {
-            return Cascade::getLogger($channel);
+            return Registry::getInstance($channel);
         } else {
             throw new InvalidConfigurationException("Log channel '{$channel}' not configured");
         }

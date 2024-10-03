@@ -446,7 +446,7 @@ class Concept
     /**
      * Generate a new atom identifier for this concept
      */
-    public function createNewAtomId(bool $prefixAtomIdWithConceptName = null): string
+    public function createNewAtomId(?bool $prefixAtomIdWithConceptName = null): string
     {
         $prefixAtomIdWithConceptName ??= $this->prefixAtomIdWithConceptName;
 
@@ -723,7 +723,7 @@ class Concept
         $this->deleteAtom($rightAtom);
     }
 
-    public function regenerateAllAtomIds(bool $prefixWithConceptName = null): void
+    public function regenerateAllAtomIds(?bool $prefixWithConceptName = null): void
     {
         foreach ($this->getAllAtomObjects() as $atom) {
             $atom->rename($this->createNewAtomId($prefixWithConceptName));

@@ -448,7 +448,7 @@ ExecEngine::registerFunction('SetNavToOnRollback', function ($navTo) {
  * @phan-closure-scope \Ampersand\Rule\ExecEngine
  * Phan analyzes the inner body of this closure as if it were a closure declared in ExecEngine.
  */
-ExecEngine::registerFunction('TerminateThisExecEngine', function (string $userMessage = null) {
+ExecEngine::registerFunction('TerminateThisExecEngine', function (?string $userMessage = null) {
     /** @var \Ampersand\Rule\ExecEngine $this */
     if (func_num_args() < 2) {
         throw new InvalidExecEngineCallException("TerminateThisExecEngine() expects at most 1 argument, but you have provided " . func_num_args());

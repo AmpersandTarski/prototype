@@ -72,7 +72,7 @@ class ReportController extends AbstractController
         $this->guard();
 
         // Get report
-        $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
+        $reporter = new Reporter(new CsvEncoder([CsvEncoder::DELIMITER_KEY => ';']), $response->getBody());
         $reporter->reportConjunctPerformance($this->app->getModel()->getAllConjuncts(), 'csv');
         
         // Set response headers
@@ -89,7 +89,7 @@ class ReportController extends AbstractController
         $details = $request->getQueryParam('details', false);
 
         // Get report
-        $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
+        $reporter = new Reporter(new CsvEncoder([CsvEncoder::DELIMITER_KEY => ';']), $response->getBody());
         if ($details) {
             $reporter->reportInterfaceObjectDefinitions($this->app->getModel()->getAllInterfaces(), 'csv');
         } else {
@@ -107,7 +107,7 @@ class ReportController extends AbstractController
         $this->guard();
         
         // Get report
-        $reporter = new Reporter(new CsvEncoder(';', '"'), $response->getBody());
+        $reporter = new Reporter(new CsvEncoder([CsvEncoder::DELIMITER_KEY => ';']), $response->getBody());
         $reporter->reportInterfaceIssues($this->app->getModel()->getAllInterfaces(), 'csv');
 
         // Set response headers

@@ -306,7 +306,7 @@ class AmpersandApp
         $this->conjunctCache = $cache;
     }
 
-    public function setSession(Atom $sessionAccount = null): self
+    public function setSession(?Atom $sessionAccount = null): self
     {
         $this->session = new Session($this->logger, $this);
         $this->session->initSessionAtom();
@@ -323,7 +323,7 @@ class AmpersandApp
         return $this;
     }
 
-    public function resetSession(Atom $sessionAccount = null): void
+    public function resetSession(?Atom $sessionAccount = null): void
     {
         $this->logger->debug("Resetting session");
         $this->session->deleteSessionAtom(); // delete Ampersand representation of session

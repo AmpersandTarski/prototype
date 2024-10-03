@@ -151,17 +151,17 @@ class ResourceList
      * REST methods to call on resource list
      *********************************************************************************************/
 
-    public function get(int $options = Options::DEFAULT_OPTIONS, int $depth = null): mixed
+    public function get(int $options = Options::DEFAULT_OPTIONS, ?int $depth = null): mixed
     {
         return $this->ifcObject->read($this->srcAtom, $this->pathEntry, null, $options, $depth);
     }
 
-    public function getOne(string $tgtId, int $options = Options::DEFAULT_OPTIONS, int $depth = null): mixed
+    public function getOne(string $tgtId, int $options = Options::DEFAULT_OPTIONS, ?int $depth = null): mixed
     {
         return $this->ifcObject->read($this->srcAtom, $this->pathEntry, $tgtId, $options, $depth);
     }
 
-    public function post(stdClass $resourceToPost = null): Resource
+    public function post(?stdClass $resourceToPost = null): Resource
     {
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var

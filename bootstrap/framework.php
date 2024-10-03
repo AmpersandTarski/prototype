@@ -14,7 +14,6 @@ use Ampersand\Misc\Settings;
 use Ampersand\Model;
 use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
-use Cascade\Cascade;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 use Slim\App;
@@ -86,17 +85,8 @@ require_once($composerAutoloaderFile);
 /**************************************************************************************************
  * LOGGING
  *************************************************************************************************/
-// PHP log
-ini_set('error_reporting', E_ALL & ~E_NOTICE); // @phan-suppress-current-line PhanTypeMismatchArgumentInternal
-ini_set("display_errors", '0');
-ini_set("log_errors", '1');
 
-// Application log
-$logConfigFile = getenv('AMPERSAND_LOG_CONFIG', true);
-if ($logConfigFile === false) {
-    $logConfigFile = 'logging.yaml';
-}
-Cascade::fileConfig(dirname(__FILE__, 2) . "/config/{$logConfigFile}"); // loads logging configuration
+require_once(__DIR__ . '/../config/logging.php');
 
 /**************************************************************************************************
  * AMPERSAND APPLICATION
