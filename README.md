@@ -1,8 +1,1 @@
-# Ampersand Prototype Framework
-Prototype framework that transforms your Ampersand model into a web application
-
-## User documenation
-* For user documentation, see: https://ampersandtarski.gitbook.io
-
-## Docs
-* Documentation about the prototype framework (this repository) is maintained in the [developer documentation](./docs) folder
+Temporary fork of https://github.com/AmpersandTarski/prototype with upgraded php deps
