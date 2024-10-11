@@ -22,7 +22,6 @@ import { RolesService } from './roles/roles.service';
 const routes: Routes = [
   {
     path: 'admin',
-    component: AppLayoutComponent,
     children: [
       {
         path: 'installer',
