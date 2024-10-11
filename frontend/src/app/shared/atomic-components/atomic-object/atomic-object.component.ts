@@ -29,8 +29,6 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   }
 
   public override removeItem(index: number) {
-    if (!confirm('Remove?')) return;
-
     this.interfaceComponent
       .patch(this.resource._path_, [
         {

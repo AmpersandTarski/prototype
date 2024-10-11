@@ -72,8 +72,6 @@ export abstract class BaseAtomicComponent<
 
   // Remove for not isUni atomic-components
   public removeItem(index: number) {
-    if (!confirm('Remove?')) return;
-
     const val = this.data[index] as any;
 
     this.interfaceComponent

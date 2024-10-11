@@ -108,8 +108,6 @@ export abstract class BaseBoxComponent<
   }
 
   public removeItem(item: TItem): void {
-    if (!confirm('Remove?')) return;
-
     this.interfaceComponent
       .patch(this.resource._path_, [
         {
