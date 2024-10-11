@@ -41,8 +41,6 @@ export class AppMenuComponent implements OnInit {
       // Add 'New' buttons for new instance of the defined entities
       this.addAddButtons();
     } else {
-      // Add prototype menu items
-      this.addPrototypeItems();
       // Add admin menu items
       adminMenuItems.forEach((item) => this.model.push(item));
       // Add menu items from API
@@ -167,16 +165,5 @@ export class AppMenuComponent implements OnInit {
       // items has been defined. Add to array
       parentItem.items.push(menuItem);
     }
-  }
-
-  private addPrototypeItems() {
-    const prototypeItems: MenuItem = {
-      label: 'Prototype',
-      items: [
-        { label: 'Home', icon: 'pi pi-fw pi-home', routerLink: ['/'] },
-        { label: 'Tools', icon: 'pi pi-fw pi-code', routerLink: ['/tools'] },
-      ],
-    };
-    this.model.push(prototypeItems);
   }
 }
