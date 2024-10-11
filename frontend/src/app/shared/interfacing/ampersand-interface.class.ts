@@ -52,11 +52,7 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
   }
 
   public post(path: string): Observable<CreateResponse> {
-    return this.http.post<CreateResponse>(path, {}).pipe(
-      tap((resp) => {
-        this.showNotifications(resp);
-      }),
-    );
+    return this.http.post<CreateResponse>(path, {});
   }
 
   public patch(
@@ -136,8 +132,6 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
           } else {
             mergeDeep(this.resource.data, resp.content);
           }
-
-          this.showNotifications(resp);
         }),
       )
       .pipe(tap(() => this.patched.emit()))
@@ -158,63 +152,6 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
   }
 
   public delete(resourcePath: string): Observable<DeleteResponse> {
-    return this.http.delete<DeleteResponse>(resourcePath).pipe(
-      tap((resp) => {
-        this.showNotifications(resp);
-      }),
-    );
-  }
-
-  private showNotifications(
-    resp: PatchResponse<T> | CreateResponse | DeleteResponse,
-  ) {
-    /* Show notifications */
-    this.messageService.clear();
-
-    for (const msg of resp.notifications.successes) {
-      this.messageService.add({
-        severity: 'success',
-        detail: msg.message,
-        closable: false,
-        life: 2 * 1000,
-      });
-    }
-    for (const msg of resp.notifications.infos) {
-      this.messageService.add({
-        severity: 'info',
-        detail: msg.message,
-        closable: false,
-        life: 10 * 1000,
-      });
-    }
-    for (const msg of resp.notifications.warnings) {
-      this.messageService.add({
-        severity: 'warning',
-        detail: msg.message,
-        closable: false,
-        life: 10 * 1000,
-      });
-    }
-    for (const msg of resp.notifications.errors) {
-      this.messageService.add({
-        severity: 'error',
-        detail: msg.message,
-        sticky: true,
-      });
-    }
-    for (const msg of resp.notifications.invariants) {
-      this.messageService.add({
-        severity: 'error',
-        detail: msg.ruleMessage,
-        sticky: true,
-      });
-    }
-    for (const msg of resp.notifications.signals) {
-      this.messageService.add({
-        severity: 'error',
-        detail: msg.message,
-        sticky: true,
-      });
-    }
+    return this.http.delete<DeleteResponse>(resourcePath);
   }
 }
