@@ -55,7 +55,7 @@ export class HttpErrorInterceptor implements HttpInterceptor {
     this.messageService.add({
       severity: severity,
       summary: error.status.toString(),
-      detail: error.message,
+      detail: error.error?.msg ?? error.message,
       sticky: true,
     });
   }
