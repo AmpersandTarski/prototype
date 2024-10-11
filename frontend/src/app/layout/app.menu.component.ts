@@ -71,7 +71,7 @@ export class AppMenuComponent implements OnInit {
               items: [],
             };
 
-            this.model.push(menuItem);
+            this.model.unshift(menuItem);
             break;
           }
           case 1: {
@@ -155,7 +155,7 @@ export class AppMenuComponent implements OnInit {
       });
     });
 
-    this.model.push(addBtnsMenu);
+    this.model.unshift(addBtnsMenu);
   }
 
   addItemToParent(parentItem: MenuItem, menuItem: MenuItem) {
