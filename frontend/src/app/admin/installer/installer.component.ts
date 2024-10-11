@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { finalize } from 'rxjs';
 import { ButtonState } from 'src/app/shared/helper/button-state';
 import { InstallerService } from './installer.service';
+import { MenuService } from 'src/app/layout/app.menu.service';
 
 @Component({
   selector: 'app-installer',
@@ -14,7 +15,10 @@ export class InstallerComponent {
   buttonState3: ButtonState = new ButtonState();
   buttonState4: ButtonState = new ButtonState();
 
-  constructor(private installerService: InstallerService) {}
+  constructor(
+    private installerService: InstallerService,
+    private menuService: MenuService,
+  ) {}
 
   /**
    * Method to determine if there is a 'installer' call to the backend in progress, triggered by any of the buttons
@@ -60,7 +64,10 @@ export class InstallerComponent {
       .pipe(finalize(() => (buttonState.loading = false)))
       .subscribe({
         error: (_err) => (buttonState.error = true),
-        complete: () => (buttonState.success = true),
+        complete: () => {
+          buttonState.success = true;
+          this.menuService.refresh();
+        },
       });
   }
 

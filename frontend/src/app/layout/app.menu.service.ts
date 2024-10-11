@@ -12,9 +12,11 @@ export class MenuService {
 
   private menuSource = new Subject<MenuChangeEvent>();
   private resetSource = new Subject();
+  private refreshSource = new Subject();
 
   menuSource$ = this.menuSource.asObservable();
   resetSource$ = this.resetSource.asObservable();
+  refreshSource$ = this.refreshSource.asObservable();
 
   onMenuStateChange(event: MenuChangeEvent) {
     this.menuSource.next(event);
@@ -22,6 +24,10 @@ export class MenuService {
 
   reset() {
     this.resetSource.next(true);
+  }
+
+  refresh() {
+    this.refreshSource.next(true);
   }
 
   /* Obtain navbar navs and convert them to MenuItems */

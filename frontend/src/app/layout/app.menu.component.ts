@@ -23,6 +23,13 @@ export class AppMenuComponent implements OnInit {
 
   ngOnInit() {
     this.loadOrCreateMenu();
+
+    this.menuService.refreshSource$.subscribe(() => {
+      sessionStorage.removeItem('menuItems');
+      this.model = [];
+
+      this.loadOrCreateMenu();
+    });
   }
 
   /* Creates the menuItems from API data, or load from session storage when it already exists. */
