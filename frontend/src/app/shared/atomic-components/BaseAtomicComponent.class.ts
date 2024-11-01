@@ -4,7 +4,11 @@ import { ObjectBase } from '../objectBase.interface';
 @Component({
   template: '',
 })
-export abstract class BaseAtomicComponent<T, I extends ObjectBase | ObjectBase[]> implements OnInit {
+export abstract class BaseAtomicComponent<
+  T,
+  I extends ObjectBase | ObjectBase[],
+> implements OnInit
+{
   @Input({ required: true }) property: T | Array<T> | null = null;
 
   @Input({ required: true }) resource: any;
@@ -31,7 +35,13 @@ export abstract class BaseAtomicComponent<T, I extends ObjectBase | ObjectBase[]
    */
   newValue: T | undefined;
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (!(this.propertyName in this.resource)) {
+      throw new Error(
+        `Property '${this.propertyName}' not defined for object in '${this.resource._path_}'. It is likely that the backend data model is not in sync with the generated frontend.`,
+      );
+    }
+  }
 
   public canCreate(): boolean {
     return this.crud[0] == 'C';
@@ -62,8 +72,6 @@ export abstract class BaseAtomicComponent<T, I extends ObjectBase | ObjectBase[]
 
   // Remove for not isUni atomic-components
   public removeItem(index: number) {
-    if (!confirm('Remove?')) return;
-
     const val = this.data[index] as any;
 
     this.interfaceComponent

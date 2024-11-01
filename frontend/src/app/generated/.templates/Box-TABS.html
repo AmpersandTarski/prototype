@@ -1,24 +1,24 @@
 <!-- Box-TABS.html -->
-<div $if(isRoot)$*ngIf="resource?.data; else loading"$endif$>
+<div $if(isRoot)$*ngIf="resource?.data; else loading" $endif$>
     <app-box-tabs
-      $if(!isRoot)$*ngIf="resource.$name$"$else$isRootBox$endif$
-      crud="$crud$"
-      [interfaceComponent]="this"
-      [resource]="resource"
-      propertyName="$name$"
-      [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
-      tgtResourceType="$target$" 
-      placeholder="Add $target$"
-      $if(exprIsUni)$isUni$endif$
-      $if(exprIsTot)$isTot$endif$
-    >$subObjects:{subObj|
+        $if(isRoot)$isRootBox
+        $endif$crud="$crud$"
+        [interfaceComponent]="this"
+        [resource]="resource"
+        propertyName="$name$"
+        [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
+        tgtResourceType="$target$"
+        placeholder="Add $target$"
+        $if(exprIsUni)$isUni$endif$
+        $if(exprIsTot)$isTot$endif$
+        >$subObjects:{subObj|
         <ng-template tab label="$subObj.subObjLabel$" let-resource>
-            $subObj.subObjContents$
-        </ng-template>}$
+            $subObj.subObjContents$ </ng-template
+        >}$
     </app-box-tabs>
-</div>$if(isRoot)$
-
+</div>
+$if(isRoot)$
 
 <ng-template #loading>
-    <app-box-tabs-loading></app-box-tabs-loading>
-</ng-template>$endif$
+    <app-box-tabs-loading></app-box-tabs-loading> </ng-template
+>$endif$

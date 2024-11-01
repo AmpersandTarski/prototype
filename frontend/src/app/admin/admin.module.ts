@@ -22,7 +22,6 @@ import { RolesService } from './roles/roles.service';
 const routes: Routes = [
   {
     path: 'admin',
-    component: AppLayoutComponent,
     children: [
       {
         path: 'installer',
@@ -52,10 +51,22 @@ export const menuItems: MenuItem[] = [
   {
     label: 'Admin',
     items: [
-      { label: 'Installer', icon: 'pi pi-fw pi-replay', routerLink: ['/admin/installer'] },
+      {
+        label: 'Installer',
+        icon: 'pi pi-fw pi-replay',
+        routerLink: ['/admin/installer'],
+      },
       { label: 'Utils', icon: 'pi pi-fw pi-cog', routerLink: ['/admin/utils'] },
-      { label: 'Population', icon: 'pi pi-fw pi-users', routerLink: ['/admin/population'] },
-      { label: 'Report', icon: 'pi pi-fw pi-pencil', routerLink: ['/admin/report'] },
+      {
+        label: 'Population',
+        icon: 'pi pi-fw pi-users',
+        routerLink: ['/admin/population'],
+      },
+      {
+        label: 'Report',
+        icon: 'pi pi-fw pi-pencil',
+        routerLink: ['/admin/report'],
+      },
     ],
   },
 ];
@@ -69,7 +80,14 @@ export const menuItems: MenuItem[] = [
     ImportComponent,
     RolesComponent,
   ],
-  imports: [CommonModule, RouterModule.forChild(routes), CardModule, ButtonModule, NgxDropzoneModule, MenuModule],
+  imports: [
+    CommonModule,
+    RouterModule.forChild(routes),
+    CardModule,
+    ButtonModule,
+    NgxDropzoneModule,
+    MenuModule,
+  ],
   providers: [
     { provide: InstallerService, useClass: InstallerService },
     { provide: UtilsService, useClass: UtilsService },

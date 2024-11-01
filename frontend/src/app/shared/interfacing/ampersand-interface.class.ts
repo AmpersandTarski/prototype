@@ -25,7 +25,10 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
    */
   private pendingPatches: (Patch | PatchValue)[] = [];
 
-  constructor(protected http: HttpClient, private messageService: MessageService) {}
+  constructor(
+    protected http: HttpClient,
+    private messageService: MessageService,
+  ) {}
 
   public setResource(resourceType: string, resourceId: string, data: T) {
     this.resource = {
@@ -37,7 +40,9 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
     };
   }
 
-  public fetchDropdownMenuData<ResponseObject extends ObjectBase>(path: string): Observable<Array<ResponseObject>> {
+  public fetchDropdownMenuData<ResponseObject extends ObjectBase>(
+    path: string,
+  ): Observable<Array<ResponseObject>> {
     if (!(path in this.typeAheadData)) {
       const source = this.http.get<Array<ResponseObject>>(path);
       const sharedObservable = source.pipe(share());
@@ -47,14 +52,13 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
   }
 
   public post(path: string): Observable<CreateResponse> {
-    return this.http.post<CreateResponse>(path, {}).pipe(
-      tap((resp) => {
-        this.showNotifications(resp);
-      }),
-    );
+    return this.http.post<CreateResponse>(path, {});
   }
 
-  public patch(path: string, patches: Array<Patch | PatchValue>): Observable<PatchResponse<T>> {
+  public patch(
+    path: string,
+    patches: Array<Patch | PatchValue>,
+  ): Observable<PatchResponse<T>> {
     if (!this.resource.data) throw 'Cannot patch with no data set';
 
     const resourcePath = new ResourcePath(path);
@@ -101,7 +105,10 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
     }
 
     return this.http
-      .patch<PatchResponse<T>>(rootPath.toString(), [...this.pendingPatches, ...patches])
+      .patch<PatchResponse<T>>(rootPath.toString(), [
+        ...this.pendingPatches,
+        ...patches,
+      ])
       .pipe(
         tap((resp) => {
           if (resp.isCommitted) {
@@ -117,14 +124,14 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
            */
           if (Array.isArray(this.resource.data)) {
             mergeDeep(
-              this.resource.data.find((obj) => obj._path_ === rootPath.toString()),
+              this.resource.data.find(
+                (obj) => obj._path_ === rootPath.toString(),
+              ),
               resp.content,
             );
           } else {
             mergeDeep(this.resource.data, resp.content);
           }
-
-          this.showNotifications(resp);
         }),
       )
       .pipe(tap(() => this.patched.emit()))
@@ -145,61 +152,6 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
   }
 
   public delete(resourcePath: string): Observable<DeleteResponse> {
-    return this.http.delete<DeleteResponse>(resourcePath).pipe(
-      tap((resp) => {
-        this.showNotifications(resp);
-      }),
-    );
-  }
-
-  private showNotifications(resp: PatchResponse<T> | CreateResponse | DeleteResponse) {
-    /* Show notifications */
-    this.messageService.clear();
-
-    for (const msg of resp.notifications.successes) {
-      this.messageService.add({
-        severity: 'success',
-        detail: msg.message,
-        closable: false,
-        life: 2 * 1000,
-      });
-    }
-    for (const msg of resp.notifications.infos) {
-      this.messageService.add({
-        severity: 'info',
-        detail: msg.message,
-        closable: false,
-        life: 10 * 1000,
-      });
-    }
-    for (const msg of resp.notifications.warnings) {
-      this.messageService.add({
-        severity: 'warning',
-        detail: msg.message,
-        closable: false,
-        life: 10 * 1000,
-      });
-    }
-    for (const msg of resp.notifications.errors) {
-      this.messageService.add({
-        severity: 'error',
-        detail: msg.message,
-        sticky: true,
-      });
-    }
-    for (const msg of resp.notifications.invariants) {
-      this.messageService.add({
-        severity: 'error',
-        detail: msg.ruleMessage,
-        sticky: true,
-      });
-    }
-    for (const msg of resp.notifications.signals) {
-      this.messageService.add({
-        severity: 'error',
-        detail: msg.message,
-        sticky: true,
-      });
-    }
+    return this.http.delete<DeleteResponse>(resourcePath);
   }
 }

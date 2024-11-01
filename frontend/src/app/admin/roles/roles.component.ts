@@ -18,22 +18,14 @@ export class RolesComponent implements OnInit {
   }
 
   private loadOrCreateMenu() {
-    const rolesMenu = sessionStorage.getItem('rolesMenuItems');
-    if (rolesMenu != null) {
-      // Using menu items in session storage.
-      this.menuItems = JSON.parse(rolesMenu);
-    } else {
-      this.rolesService.getRoles().subscribe((roles) => {
-        // maps the roles into menuItems
-        this.menuItems = roles.map((role, index) => ({
-          label: role.label,
-          icon: role.active ? 'pi pi-check-circle' : 'pi pi-circle-off',
-          command: () => this.patchRole(roles, index),
-        }));
-        // Store menu items in session storage
-        this.rolesService.setSessionStorageItem('rolesMenuItems', JSON.stringify(this.menuItems));
-      });
-    }
+    this.rolesService.getRoles().subscribe((roles) => {
+      // maps the roles into menuItems
+      this.menuItems = roles.map((role, index) => ({
+        label: role.label,
+        icon: role.active ? 'pi pi-check-circle' : 'pi pi-circle-off',
+        command: () => this.patchRole(roles, index),
+      }));
+    });
   }
 
   private patchRole(roles: Array<SessionRole>, index: number): void {
@@ -43,7 +35,6 @@ export class RolesComponent implements OnInit {
         ? (this.menuItems[index].icon = 'pi pi-check-circle')
         : (this.menuItems[index].icon = 'pi pi-circle-off'),
     );
-    sessionStorage.clear();
-    location.reload();
+    this.loadOrCreateMenu();
   }
 }

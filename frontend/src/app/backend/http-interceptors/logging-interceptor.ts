@@ -1,4 +1,9 @@
-import { HttpHandler, HttpInterceptor, HttpRequest, HttpResponse } from '@angular/common/http';
+import {
+  HttpHandler,
+  HttpInterceptor,
+  HttpRequest,
+  HttpResponse,
+} from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { finalize, tap } from 'rxjs/operators';
@@ -26,7 +31,9 @@ export class LoggingInterceptor implements HttpInterceptor {
           if (response instanceof HttpResponse) {
             responseIsOk = true;
             patchResponse = response.body as PatchResponse<JSON>;
-            notifications = patchResponse.notifications ? patchResponse.notifications : response.body;
+            notifications = patchResponse.notifications
+              ? patchResponse.notifications
+              : response.body;
           }
         },
       }),
@@ -39,7 +46,8 @@ export class LoggingInterceptor implements HttpInterceptor {
           console.log(messageSummary);
 
           // If notifications have been found, the error field exists (possibly with empty array, but it exists)
-          if (notifications.errors) this.sendMessagesFromNotifications(notifications);
+          if (notifications.errors)
+            this.sendMessagesFromNotifications(notifications);
           if (patchResponse.sessionRefreshAdvice) {
             // clear session storage and reload page
             sessionStorage.clear();
@@ -52,10 +60,18 @@ export class LoggingInterceptor implements HttpInterceptor {
   }
 
   private sendMessagesFromNotifications(notifications: Notifications) {
-    notifications.errors.forEach((field) => this.sendMessage('error', field.message, field.details));
-    notifications.warnings.forEach((field) => this.sendMessage('warn', field.message));
-    notifications.infos.forEach((field) => this.sendMessage('info', field.message));
-    notifications.successes.forEach((field) => this.sendMessage('success', field.message));
+    notifications.errors.forEach((field) =>
+      this.sendMessage('error', field.message, field.details),
+    );
+    notifications.warnings.forEach((field) =>
+      this.sendMessage('warn', field.message),
+    );
+    notifications.infos.forEach((field) =>
+      this.sendMessage('info', field.message),
+    );
+    notifications.successes.forEach((field) =>
+      this.sendMessage('success', field.message),
+    );
 
     notifications.invariants.forEach((field) => {
       let violationMessages = '';

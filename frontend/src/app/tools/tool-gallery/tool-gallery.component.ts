@@ -21,7 +21,10 @@ export class ToolGalleryComponent extends AmpersandInterfaceComponent<TestDataIn
     super(http, messageService);
   }
 
-  override patch<TestDataInterface>(path: string, patches: PatchValue[]): Observable<PatchResponse<TestDataInterface>> {
+  override patch<TestDataInterface>(
+    path: string,
+    patches: PatchValue[],
+  ): Observable<PatchResponse<TestDataInterface>> {
     // Prepend path of patches with '/', because our backend has a different (probably wrong) implementation
     // of the JSON-Patch (RFC6902) standard. The applyPatch function below requires the '/'.
     patches.forEach((x) => (x.path = `/${x.path}`));

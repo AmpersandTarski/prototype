@@ -7,23 +7,11 @@ import { HomeComponent } from './layout/home/home.component';
 import { NotFoundComponentComponent } from './layout/not-found-component/not-found-component.component';
 
 const routes: Routes = [
-  {
-    path: '',
-    component: AppLayoutComponent,
-    children: [
-      { path: '', component: HomeComponent },
-      { path: '404', component: NotFoundComponentComponent },
-    ],
-  },
-  // {
-  //   path: 'tools',
-  //   component: AppLayoutComponent,
-  //   children: [
-  //     { path: '', component: ToolGalleryComponent },
-  //     { path: ':componentType/:componentName', component: ToolComponentDetailsComponent },
-  //   ],
-  // },
-  { path: '**', component: AppLayoutComponent, children: [{ path: '', component: NotFoundComponentComponent }] },
+  { path: '', component: HomeComponent },
+  // { path: 'tools/', component: ToolGalleryComponent },
+  // { path: 'tools/:componentType/:componentName', component: ToolComponentDetailsComponent },
+  { path: '404', component: NotFoundComponentComponent },
+  { path: '**', component: NotFoundComponentComponent },
 ];
 
 @NgModule({

@@ -1,5 +1,7 @@
 <div *ngFor="let item of data">
-    <ng-container *ngTemplateOutlet="template || defaultTemplate; context: { $implicit: item }"></ng-container>
+    <ng-container
+        *ngTemplateOutlet="template || defaultTemplate; context: { $implicit: item }"
+    ></ng-container>
 </div>
 
 <ng-template #defaultTemplate let-item>

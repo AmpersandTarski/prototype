@@ -5,7 +5,7 @@
         "**/node_modules": true,
         "**/bower_components": true
     },
-    "phpcs.standard": "./phpcs.xml",
+    "phpcs.standard": "./backend/.phpcs.xml",
     "phpcs.ignorePatterns": [
         "*/lib/**/*",
         "*/node_modules/**/*"

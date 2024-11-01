@@ -1,5 +1,5 @@
 # To run generated prototypes we require a apache webserver with php
-FROM php:8.3-apache-bullseye
+FROM php:8.3-apache-bookworm AS framework
 
 RUN apt-get update \
  && apt-get install -y \
@@ -22,7 +22,7 @@ RUN php  -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
  && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
  && php -r "unlink('composer-setup.php');" \
  && rm -rf /var/lib/apt/lists/*
-ENV COMPOSER_HOME /usr/local/bin/
+ENV COMPOSER_HOME=/usr/local/bin/
 
 # Install NodeJs with NPM
 RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
@@ -30,41 +30,51 @@ RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
   && node -v \
   && npm -v
 
-# Install Gulp-CLI (needed to package prototype framework frontend)
-RUN npm install -g gulp-cli
-
-# Install php backend dependencies using PHP Composer package specification (composer.json)
-COPY composer.json composer.lock /var/www/
-WORKDIR /var/www
-RUN composer install --prefer-dist --no-dev --profile
-
-# Install frontend dependencies using NPM package specification (package.json)
-COPY package.json package-lock.json /var/www/
-WORKDIR /var/www
-RUN npm install
-
-# We suppress any issues here, this is due to a cascading list of issues with old libraries used here.
-# Soon we'll have the new frontend, so let's not spent any time fixing these issues for the old frontend.
-# We set --audit-level=none to suppress
-# Don't use --force as it will downgrade amongst others Gulp to v3. We need v4.
-RUN npm audit fix --audit-level=none
-
 # Copy Ampersand compiler
 # NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
 COPY --from=ampersandtarski/ampersand:v4.7 /bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
 
+# Install php backend dependencies using PHP Composer package specification (composer.json)
+COPY composer.json composer.lock /var/www/
+WORKDIR /var/www
+RUN composer --version \
+ && composer check-platform-reqs
+RUN composer install --prefer-dist --no-dev --profile
+
 # Add default data folder that Apache can write to
 RUN mkdir /var/www/data && chown -R www-data:www-data /var/www/data
 
-# Change doc root. Let's move to apache conf file when more configuration is needed
-ENV APACHE_DOCUMENT_ROOT /var/www/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# Install frontend dependencies using NPM package specification (package.json)
+COPY frontend/package.json frontend/package-lock.json /var/www/frontend/
+WORKDIR /var/www/frontend
+RUN npm install
 
-# Copy the rest of the prototype framework
-COPY . /var/www
+# Copy remaining parts of framework
+COPY frontend /var/www/frontend
+COPY apache-conf/.htaccess /var/www/html
+COPY backend /var/www/backend
+RUN mv /var/www/backend/public/* /var/www/html/
 
-# Build ampersand frontend application
-WORKDIR /var/www
-RUN gulp build-ampersand
+FROM framework as project-administration
+FROM framework AS project-administration
+
+COPY test/assets/project-administration /usr/local/project/
+
+# Run ampersand compiler to generated new frontend and backend json model files (in generics folder)
+RUN ampersand proto --no-frontend /usr/local/project/model/ProjectAdministration.adl \
+  --proto-dir /var/www/backend \
+  --crud-defaults cRud \
+  --verbose
+
+RUN ampersand proto --frontend-version Angular --no-backend /usr/local/project/model/ProjectAdministration.adl \
+  --proto-dir /var/www/frontend/src/app/generated \
+  --crud-defaults cRud \
+  --verbose
+
+WORKDIR /var/www/frontend
+
+RUN npx ng build
+
+# Copy output from frontend build
+RUN cp -r /var/www/frontend/dist/prototype-frontend/* /var/www/html

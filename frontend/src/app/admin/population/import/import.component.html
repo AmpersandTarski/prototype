@@ -1,8 +1,15 @@
 <div class="flex flex-wrap">
     <div class="flex-2 mb-3 mr-3 min-h-full">
         <p-card header="Upload population file(s)" styleClass="p-card-shadow">
-            <div class="custom-dropzone" ngx-dropzone [expandable]="true" (change)="onSelect($event)">
-                <ngx-dropzone-label>Drag and drop files here, or click to select files.</ngx-dropzone-label>
+            <div
+                class="custom-dropzone"
+                ngx-dropzone
+                [expandable]="true"
+                (change)="onSelect($event)"
+            >
+                <ngx-dropzone-label
+                    >Drag and drop files here, or click to select files.</ngx-dropzone-label
+                >
                 <ngx-dropzone-preview
                     class="custom-dropzone-preview"
                     *ngFor="let file of files"

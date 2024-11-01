@@ -37,7 +37,12 @@
     <!-- Atomic select crud multi -->
 
     <div *ngFor="let object of data; let i = index" class="item">
-        <div class="pi pi-fw pi-minus" (click)="removeItem(i)" pTooltip="Remove" tooltipPosition="left"></div>
+        <div
+            class="pi pi-fw pi-minus"
+            (click)="removeItem(i)"
+            pTooltip="Remove"
+            tooltipPosition="left"
+        ></div>
 
         <span>
             {{ object._label_ }}

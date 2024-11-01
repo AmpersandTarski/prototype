@@ -1,7 +1,9 @@
 name: CI
 on:
   push:
-    branches: # empty list to only trigger on branches (i.e. not tags, ..)
+    branches:
+      - '*'
+      - '!main'
 
 env:
   DOCKER_AMPERSAND_IMAGE: ampersandtarski/prototype-framework

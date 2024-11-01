@@ -1,9 +1,9 @@
 <!-- Box-FORM.html -->
-<div $if(isRoot)$*ngIf="resource?.data; else loading"$endif$>
+<div $if(isRoot)$*ngIf="resource?.data; else loading" $endif$>
     <app-box-form
-        $if(!isRoot)$*ngIf="resource.$name$"$else$isRootBox$endif$
-        crud="$crud$" 
-        [interfaceComponent]="this" 
+        $if(isRoot)$isRootBox
+        $endif$crud="$crud$"
+        [interfaceComponent]="this"
         [resource]="resource"
         propertyName="$name$"
         [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
@@ -12,20 +12,23 @@
         $if(exprIsUni)$isUni$endif$
         $if(exprIsTot)$isTot$endif$
     >
-        <ng-template [boxFormTemplate]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$" let-resource>
-            <div class="formgrid grid">$subObjects:{subObj|
+        <ng-template
+            [boxFormTemplate]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
+            let-resource
+        >
+            <div class="formgrid grid">
+                $subObjects:{subObj|
                 <div class="field col-12 box-form-field">
                     <label class="box-form-label">$subObj.subObjLabel$</label>
-                    <div class="box-form-value">
-                        $subObj.subObjContents$
-                    </div>
-                </div>}$
+                    <div class="box-form-value">$subObj.subObjContents$</div>
+                </div>
+                }$
             </div>
         </ng-template>
     </app-box-form>
-</div>$if(isRoot)$
-
+</div>
+$if(isRoot)$
 
 <ng-template #loading>
-    <app-box-form-loading></app-box-form-loading>
-</ng-template>$endif$
+    <app-box-form-loading></app-box-form-loading> </ng-template
+>$endif$

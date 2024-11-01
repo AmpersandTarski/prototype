@@ -1,4 +1,9 @@
-<p-table [value]="data" #primengTable>
+<!-- 
+We need an array function here to shallow clone the array every time, otherwise prime-table
+fails to detect changes to the array, like new rows. Currently it is filterNullish(data),
+but can also be done with data.slice()
+ -->
+<p-table [value]="filterNullish(data)" #primengTable>
     <ng-template pTemplate="header">
         <tr>
             <ng-container
@@ -6,7 +11,7 @@
             ></ng-container>
             <th>
                 <span
-                    *ngIf="canCreate() && !isUni"
+                    *ngIf="canCreate()"
                     class="pi pi-fw pi-plus"
                     pTooltip="Add"
                     tooltipPosition="left"
@@ -16,14 +21,16 @@
             </th>
         </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-data let-i="rowIndex">
+    <ng-template pTemplate="body" let-data>
         <tr style="vertical-align: top">
-            <ng-container *ngTemplateOutlet="rows || defaultRowTemplate; context: { $implicit: data }"></ng-container>
+            <ng-container
+                *ngTemplateOutlet="rows || defaultRowTemplate; context: { $implicit: data }"
+            ></ng-container>
             <td>
                 <span
                     *ngIf="canUpdate()"
                     class="pi pi-fw pi-minus"
-                    (click)="removeItem(i)"
+                    (click)="removeItem(data)"
                     pTooltip="Remove"
                     tooltipPosition="left"
                     style="color: red; padding-bottom: 9px; cursor: pointer"
@@ -34,7 +41,7 @@
                     pTooltip="Delete"
                     tooltipPosition="left"
                     style="color: red; cursor: pointer"
-                    (click)="deleteItem(i)"
+                    (click)="deleteItem(data)"
                 ></span>
             </td>
         </tr>
@@ -42,7 +49,10 @@
 </p-table>
 
 <p-dropdown
-    *ngIf="canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects; else defaultDropdownMenu"
+    *ngIf="
+        canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects;
+        else defaultDropdownMenu
+    "
     [options]="dropdownMenuObjects"
     [formControl]="newItemControl"
     optionLabel="_label_"
@@ -55,7 +65,8 @@
 </p-dropdown>
 
 <ng-template #defaultDropdownMenu>
-    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder"> </p-dropdown>
+    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder">
+    </p-dropdown>
 </ng-template>
 
 <ng-template #defaultHeaderTemplate let-data>

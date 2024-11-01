@@ -3,7 +3,10 @@ import { Component, Inject, Input, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
-import { INTERFACE_ROUTE_MAPPING_TOKEN, InterfaceRouteMap } from 'src/app/config';
+import {
+  INTERFACE_ROUTE_MAPPING_TOKEN,
+  InterfaceRouteMap,
+} from 'src/app/config';
 import { ObjectBase } from 'src/app/shared/objectBase.interface';
 
 export type ExternalLink = {
@@ -31,7 +34,9 @@ export class IfcsDropdownComponent implements OnInit {
   // I don't understand why this is needed, but when using the externalLinks property directly in the template, the links don't work
   public processedExternalLinks: ExternalLink[] = [];
 
-  constructor(@Inject(INTERFACE_ROUTE_MAPPING_TOKEN) public routeMap: InterfaceRouteMap) {}
+  constructor(
+    @Inject(INTERFACE_ROUTE_MAPPING_TOKEN) public routeMap: InterfaceRouteMap,
+  ) {}
 
   ngOnInit(): void {
     this.processedExternalLinks = this.externalLinks ?? [];
@@ -44,7 +49,10 @@ export class IfcsDropdownComponent implements OnInit {
     if (!this.resource) return [];
 
     return this.resource._ifcs_.filter((ifc) => {
-      return document.location.pathname != `${this.routeMap[ifc.id]}/${this.resource?._id_}`;
+      return (
+        document.location.pathname !=
+        `${this.routeMap[ifc.id]}/${this.resource?._id_}`
+      );
     });
   }
 }

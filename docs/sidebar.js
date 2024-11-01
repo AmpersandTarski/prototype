@@ -6,5 +6,10 @@ module.exports = {
       type: "doc",
       id: "prototype/reference-material/prototype-framework",
     },
+    {
+      label: "Frontend components",
+      type: "doc",
+      id: "prototype/reference-material/frontend-components",
+    },
   ],
 };

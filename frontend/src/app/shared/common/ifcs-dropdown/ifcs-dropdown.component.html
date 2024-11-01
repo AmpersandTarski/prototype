@@ -10,7 +10,11 @@
     ></button>
 
     <!-- Small -->
-    <i *ngIf="size == 'small'" class="small-icon pi pi-ellipsis-v" (click)="dropdown.toggle($event)"></i>
+    <i
+        *ngIf="size == 'small'"
+        class="small-icon pi pi-ellipsis-v"
+        (click)="dropdown.toggle($event)"
+    ></i>
 
     <p-overlayPanel #dropdown>
         <ng-template pTemplate="content">

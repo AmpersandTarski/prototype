@@ -1,5 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor, HttpErrorResponse } from '@angular/common/http';
+import {
+  HttpRequest,
+  HttpHandler,
+  HttpEvent,
+  HttpInterceptor,
+  HttpErrorResponse,
+} from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { catchError } from 'rxjs';
@@ -10,7 +16,10 @@ export class HttpErrorInterceptor implements HttpInterceptor {
   constructor(private router: Router, private messageService: MessageService) {}
 
   /** HttpErrorResponses are intercepted here. Behaviour depends on the `error.status` of the caught error. */
-  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+  intercept(
+    req: HttpRequest<unknown>,
+    next: HttpHandler,
+  ): Observable<HttpEvent<unknown>> {
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
         console.log(error);
@@ -46,7 +55,7 @@ export class HttpErrorInterceptor implements HttpInterceptor {
     this.messageService.add({
       severity: severity,
       summary: error.status.toString(),
-      detail: error.message,
+      detail: error.error?.msg ?? error.message,
       sticky: true,
     });
   }

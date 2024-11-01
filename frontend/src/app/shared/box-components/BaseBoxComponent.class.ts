@@ -8,8 +8,10 @@ import { ObjectBase } from '../objectBase.interface';
 @Component({
   template: '',
 })
-export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends ObjectBase | ObjectBase[]>
-  implements OnInit
+export abstract class BaseBoxComponent<
+  TItem extends ObjectBase,
+  I extends ObjectBase | ObjectBase[],
+> implements OnInit
 {
   @Input() resource!: ObjectBase & { [key: string]: any };
   @Input({ required: true }) propertyName: string;
@@ -33,12 +35,20 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
         nonNullable: true,
         updateOn: 'change',
       });
-      this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
+      this.dropdownMenuObjects$ = this.getDropdownMenuItems(
+        this.tgtResourceType,
+      );
+    }
+
+    if (!this.isRootBox && !(this.propertyName in this.resource)) {
+      throw new Error(
+        `Property '${this.propertyName}' not defined for object in '${this.resource._path_}'. It is likely that the backend data model is not in sync with the generated frontend.`,
+      );
     }
   }
 
   public canCreate(): boolean {
-    return this.crud[0] == 'C';
+    return this.crud[0] == 'C' && (!this.isUni || this.isEmpty());
   }
   public canRead(): boolean {
     return this.crud[1] == 'R';
@@ -50,8 +60,12 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
     return this.crud[3] == 'D';
   }
 
+  public isEmpty(): boolean {
+    return this.filterNullish(this.data).length === 0;
+  }
+
   public createItem(): void {
-    const path = `${this.resource._path_}/${this.propertyName}`;
+    const path: string = `${this.resource._path_}/${this.propertyName}`;
     const propertyField = this.isRootBox ? 'data' : this.propertyName;
     this.interfaceComponent.post(path).subscribe((x) => {
       if (this.isUni) {
@@ -67,7 +81,6 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
 
   public addItem() {
     const val = this.newItemControl.value as ObjectBase;
-    const propertyField = this.isRootBox ? 'data' : this.propertyName;
 
     this.interfaceComponent
       .patch(this.resource._path_, [
@@ -79,10 +92,6 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
       ])
       .subscribe((x) => {
         if (x.isCommitted && x.invariantRulesHold) {
-          // TODO: fix ugly any type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          this.resource[propertyField] = (x.content as any)[this.propertyName] as TItem[];
-
           // remove the recently added item from the dropdown menu
           this.dropdownMenuObjects$ = this.dropdownMenuObjects$.pipe(
             tap((objects) =>
@@ -98,44 +107,47 @@ export abstract class BaseBoxComponent<TItem extends ObjectBase, I extends Objec
       });
   }
 
-  public removeItem(index: number): void {
-    if (!confirm('Remove?')) return;
-    const propertyField = this.isRootBox ? 'data' : this.propertyName;
-
+  public removeItem(item: TItem): void {
     this.interfaceComponent
       .patch(this.resource._path_, [
         {
           op: 'remove',
-          path: `${this.propertyName}/${this.data[index]._id_}`,
+          path: `${this.propertyName}/${item._id_}`,
         },
       ])
       .subscribe((x) => {
         if (x.isCommitted && x.invariantRulesHold) {
-          // TODO: fix ugly any type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          this.resource[propertyField] = (x.content as any)[this.propertyName] as TItem[];
-
-          this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
+          this.dropdownMenuObjects$ = this.getDropdownMenuItems(
+            this.tgtResourceType,
+          );
         }
       });
   }
 
-  public deleteItem(index: number): void {
+  public deleteItem(item: TItem): void {
     if (!confirm('Delete?')) return;
 
-    this.interfaceComponent.delete(this.data[index]._path_).subscribe((x) => {
+    this.interfaceComponent.delete(item._path_).subscribe((x) => {
       if (x.isCommitted && x.invariantRulesHold) {
-        this.data.splice(index, 1);
+        const index = this.data.indexOf(item);
+        if (index != -1) {
+          this.data.splice(index, 1);
+        }
       }
     });
   }
 
-  private getDropdownMenuItems(resourceType: string): Observable<Array<ObjectBase>> {
-    let objects: Observable<Array<ObjectBase>> = this.interfaceComponent.fetchDropdownMenuData(
-      `resource/${resourceType}`,
-    );
+  private getDropdownMenuItems(
+    resourceType: string,
+  ): Observable<Array<ObjectBase>> {
+    let objects: Observable<Array<ObjectBase>> =
+      this.interfaceComponent.fetchDropdownMenuData(`resource/${resourceType}`);
     objects = objects.pipe(
-      map((dropdownobjects) => dropdownobjects.filter((object) => !this.data.map((y) => y._id_).includes(object._id_))),
+      map((dropdownobjects) =>
+        dropdownobjects.filter(
+          (object) => !this.data.map((y) => y._id_).includes(object._id_),
+        ),
+      ),
     );
     return objects;
   }

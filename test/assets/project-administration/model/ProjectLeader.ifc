@@ -1,0 +1,20 @@
+CONTEXT ProjectAdministration IN ENGLISH
+
+--[ Interfaces for project leader ]--------------------------------------------
+  INTERFACE MyProjects LABEL "My projects" FOR Projectleader : V[SESSION*Project];pl BOX <TABLE>
+    [ "Projectleader"       : I
+    , "Projects"            : pl~
+    ]
+    
+  INTERFACE NewEditProject LABEL "New/edit project" FOR Projectleader : I[Project] CRuD BOX
+    [ "Name"                : projectName RU
+    , "Description"         : projectDescription RU
+    , "Start date"          : projectStartDate RU
+    , "Status"              : projectStatus RU
+    , "Active"              : projectActive RU
+    , "Keywords"            : projectKeyword RU
+    , "Current PL"          : pl RU
+    , "Project members"   : member RU
+    ]
+
+ENDCONTEXT

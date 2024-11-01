@@ -27,6 +27,8 @@ const INTERFACE_ROUTE_MAP: InterfaceRouteMap = {};
   declarations: [],
   exports: [],
   imports: [CommonModule, RouterModule.forChild(routes)],
-  providers: [{ provide: INTERFACE_ROUTE_MAPPING_TOKEN, useValue: INTERFACE_ROUTE_MAP }],
+  providers: [
+    { provide: INTERFACE_ROUTE_MAPPING_TOKEN, useValue: INTERFACE_ROUTE_MAP },
+  ],
 })
 export class ProjectModule {}

@@ -1,7 +1,13 @@
-<ng-container *ngFor="let item of data; let i = index">
+<div *ngIf="canCreate() && isEmpty()">
+    <p-button [rounded]="true" size="small" (click)="createItem()">
+        New {{ tgtResourceType }}
+    </p-button>
+</div>
+
+<ng-container *ngFor="let item of filterNullish(data)">
     <div style="float: right" class="options">
         <span
-            *ngIf="canCreate() && !isUni"
+            *ngIf="canCreate()"
             class="pi pi-fw pi-plus"
             pTooltip="Add"
             tooltipPosition="left"
@@ -11,7 +17,7 @@
         <span
             *ngIf="canUpdate()"
             class="pi pi-fw pi-minus"
-            (click)="removeItem(i)"
+            (click)="removeItem(item)"
             pTooltip="Remove"
             tooltipPosition="left"
             style="color: red; padding-bottom: 9px; cursor: pointer"
@@ -22,19 +28,24 @@
             pTooltip="Delete"
             tooltipPosition="left"
             style="color: red; cursor: pointer"
-            (click)="deleteItem(i)"
+            (click)="deleteItem(item)"
         ></span>
     </div>
     <p-tabView [scrollable]="true">
         <p-tabPanel *ngFor="let tab of tabs" header="{{ tab.label }}">
-            <ng-container *ngTemplateOutlet="tab.template || defaultTemplate; context: { $implicit: item }">
+            <ng-container
+                *ngTemplateOutlet="tab.template || defaultTemplate; context: { $implicit: item }"
+            >
             </ng-container>
         </p-tabPanel>
     </p-tabView>
 </ng-container>
 
 <p-dropdown
-    *ngIf="canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects; else defaultDropdownMenu"
+    *ngIf="
+        canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects;
+        else defaultDropdownMenu
+    "
     [options]="dropdownMenuObjects"
     [formControl]="newItemControl"
     optionLabel="_label_"
@@ -47,7 +58,8 @@
 </p-dropdown>
 
 <ng-template #defaultDropdownMenu>
-    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder"> </p-dropdown>
+    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder">
+    </p-dropdown>
 </ng-template>
 
 <ng-template #defaultTemplate let-item>

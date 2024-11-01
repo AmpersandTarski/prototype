@@ -12,9 +12,11 @@ export class MenuService {
 
   private menuSource = new Subject<MenuChangeEvent>();
   private resetSource = new Subject();
+  private refreshSource = new Subject();
 
   menuSource$ = this.menuSource.asObservable();
   resetSource$ = this.resetSource.asObservable();
+  refreshSource$ = this.refreshSource.asObservable();
 
   onMenuStateChange(event: MenuChangeEvent) {
     this.menuSource.next(event);
@@ -24,11 +26,17 @@ export class MenuService {
     this.resetSource.next(true);
   }
 
+  refresh() {
+    this.refreshSource.next(true);
+  }
+
   /* Obtain navbar navs and convert them to MenuItems */
   getMenuItems(): Observable<Array<Navs>> {
-    const navbar = this.http.get<Navbar>('app/navbar');
-    const navs: Observable<Array<Navs>> = navbar.pipe(map((x) => x.navs));
-    return navs;
+    return this.http.get<Navbar>('app/navbar').pipe(map((x) => x.navs));
+  }
+
+  getAddButtons(): Observable<Navbar['new']> {
+    return this.http.get<Navbar>('app/navbar').pipe(map((x) => x.new));
   }
 
   public setSessionStorageItem(name: string, data: string) {

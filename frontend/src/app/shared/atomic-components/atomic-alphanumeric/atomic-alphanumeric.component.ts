@@ -7,4 +7,6 @@ import { ObjectBase } from '../../objectBase.interface';
   templateUrl: './atomic-alphanumeric.component.html',
   styleUrls: ['./atomic-alphanumeric.component.css'],
 })
-export class AtomicAlphanumericComponent<I extends ObjectBase | ObjectBase[]> extends BaseAtomicComponent<string, I> {}
+export class AtomicAlphanumericComponent<
+  I extends ObjectBase | ObjectBase[],
+> extends BaseAtomicComponent<string, I> {}

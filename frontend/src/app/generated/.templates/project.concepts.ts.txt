@@ -7,5 +7,5 @@
 
 import { Object } from '../shared/objectBase.interface';
 
-$concepts:{concept|export type $concept.cptId$ = $concept.typescriptType$;
+$concepts:{concept|export type $concept.cptIdTmp$ = $concept.typescriptType$;
 }$
