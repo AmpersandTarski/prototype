@@ -391,9 +391,9 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     public function read(
         Atom $src,
         string $pathToSrc,
-        string $tgtId = null,
+        ?string $tgtId = null,
         int $options = Options::DEFAULT_OPTIONS,
-        int $depth = null,
+        ?int $depth = null,
         array $recursionArr = []
     ): mixed
     {

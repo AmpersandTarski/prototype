@@ -134,7 +134,7 @@ class Ifc
      * FACTORY METHODS FOR INTERFACE OBJECTS
     **********************************************************************************************/
 
-    public function newObject(array $objectDef, IfcPlugInterface $defaultPlug, InterfaceObjectInterface $parent = null): InterfaceObjectInterface
+    public function newObject(array $objectDef, IfcPlugInterface $defaultPlug, ?InterfaceObjectInterface $parent = null): InterfaceObjectInterface
     {
         switch ($objectDef['type']) {
             case 'ObjExpression':
@@ -153,7 +153,7 @@ class Ifc
         }
     }
 
-    public function newExprObject(array $objectDef, IfcPlugInterface $defaultPlug, InterfaceObjectInterface $parent = null): InterfaceExprObject
+    public function newExprObject(array $objectDef, IfcPlugInterface $defaultPlug, ?InterfaceObjectInterface $parent = null): InterfaceExprObject
     {
         if ($objectDef['type'] !== 'ObjExpression') {
             throw new FatalException("Interface expression object definition required, but '{$objectDef['type']}' provided.");

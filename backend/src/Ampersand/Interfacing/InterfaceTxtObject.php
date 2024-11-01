@@ -131,7 +131,7 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
      * METHODS to walk through interface
      *********************************************************************************************/
     
-    public function getTgtAtoms(Atom $src, string $selectTgt = null): array
+    public function getTgtAtoms(Atom $src, ?string $selectTgt = null): array
     {
         throw new FatalException("Method getTgtAtoms() is n.a. for InterfaceTxtObject and must not be called");
     }
@@ -184,9 +184,9 @@ class InterfaceTxtObject extends AbstractIfcObject implements InterfaceObjectInt
     public function read(
         Atom $src,
         string $pathToSrc,
-        string $tgtId = null,
+        ?string $tgtId = null,
         int $options = Options::DEFAULT_OPTIONS,
-        int $depth = null,
+        ?int $depth = null,
         array $recursionArr = []
     ): string
     {

@@ -328,7 +328,7 @@ class Resource extends Atom
         return $this;
     }
 
-    public function post($subIfcId, stdClass $resourceToPost = null): Resource
+    public function post($subIfcId, ?stdClass $resourceToPost = null): Resource
     {
         return $this->list($subIfcId)->post($resourceToPost);
     }

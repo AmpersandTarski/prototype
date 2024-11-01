@@ -137,7 +137,7 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
      *
      * @return \Ampersand\Core\Atom[]
      */
-    public function getTgtAtoms(Atom $src, string $selectTgt = null): array
+    public function getTgtAtoms(Atom $src, ?string $selectTgt = null): array
     {
         // Skip access when selectTgt is provided, because we don't know the interface that is requested (yet)
         // This is checked later when reading or walking the path further.
@@ -257,9 +257,10 @@ class InterfaceNullObject extends AbstractIfcObject implements InterfaceObjectIn
     public function read(
         Atom $src,
         string $pathToSrc,
-        string $tgtId = null,
+        ?string $tgtId = null,
         int $options = Options::DEFAULT_OPTIONS,
-        int $depth = null, array $recursionArr = []
+        ?int $depth = null,
+        array $recursionArr = []
     ): mixed
     {
         if (!$this->crudR()) {

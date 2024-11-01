@@ -35,7 +35,7 @@ class PopulationController extends AbstractController
         $extension = pathinfo($fileInfo['name'], PATHINFO_EXTENSION);
         switch ($extension) {
             case 'json':
-                $decoder = new JsonDecode(false);
+                $decoder = new JsonDecode();
                 $populationContent = $decoder->decode(file_get_contents($fileInfo['tmp_name']), JsonEncoder::FORMAT);
                 $population = new Population($this->app->getModel(), Logger::getLogger('IO'));
                 $population->loadFromPopulationFile($populationContent);

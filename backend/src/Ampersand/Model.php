@@ -545,7 +545,7 @@ class Model
      *
      * @return Rule[]
      */
-    public function getAllRules(string $type = null): array
+    public function getAllRules(?string $type = null): array
     {
         if (!in_array('rules', $this->initialized)) {
             throw new FatalException("Ampersand model is not yet initialized");
@@ -671,7 +671,7 @@ class Model
 
     protected function loadFile(string $filename): mixed
     {
-        $decoder = new JsonDecode(false);
+        $decoder = new JsonDecode();
         return $decoder->decode(file_get_contents($this->getFilePath($filename)), JsonEncoder::FORMAT);
     }
 
