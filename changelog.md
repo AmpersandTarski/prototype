@@ -11,6 +11,13 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased changes
 
+## v2.0.0-alpha.2 (16 nov 2024)
+* Update Flysystem library to v3
+
+## v2.0.0-alpha.1 (1 november 2024)
+* Library updates (in particular Symfony)
+* Refactoring configuration of logger
+
 ## v1.18.0 (27 april 2024)
 * [Issue 79](https://github.com/AmpersandTarski/prototype/issues/79) Add support for delimited multi value columns in excel importer
 * [Issue 115](https://github.com/AmpersandTarski/prototype/issues/115) Bugfix name ConceptNotDefinedException to match class filename
