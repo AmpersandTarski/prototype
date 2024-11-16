@@ -4,7 +4,7 @@ namespace Ampersand\Misc;
 
 use Ampersand\Exception\FatalException;
 use Exception;
-use League\Flysystem\FilesystemInterface;
+use League\Flysystem\FilesystemOperator;
 use Throwable;
 
 /**
@@ -40,7 +40,7 @@ function isSequential(array $arr): bool
  *
  * Filename is appended with '_i' just before the extension (e.g. dir/file_1.txt)
  */
-function getSafeFileName(FilesystemInterface $fileSystem, string $filePath): string
+function getSafeFileName(FilesystemOperator $fileSystem, string $filePath): string
 {
     if (!$fileSystem->has($filePath)) {
         return $filePath;

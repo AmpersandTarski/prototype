@@ -21,7 +21,7 @@ class FileObjectController extends AbstractController
 
         $fileResource = $fs->readStream($filePath);
         $stream = new Stream($fileResource); // create a stream instance for the response body
-        $mimeType = $fs->getMimetype($filePath);
+        $mimeType = $fs->mimeType($filePath);
         if ($mimeType === false) {
             $mimeType = 'application/octet-stream'; // the "octet-stream" subtype is used to indicate that a body contains arbitrary binary data.
         }

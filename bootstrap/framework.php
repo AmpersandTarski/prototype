@@ -14,8 +14,8 @@ use Ampersand\Misc\Settings;
 use Ampersand\Model;
 use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use Slim\App;
 use Slim\Container;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -110,7 +110,7 @@ $ampersandApp = new AmpersandApp(
     $logger,
     new EventDispatcher(),
     new Filesystem(
-        new Local($settings->getDataDirectory()) // local file system adapter
+        new LocalFilesystemAdapter($settings->getDataDirectory()) // local file system adapter
     )
 );
 $ampersandApp->setFrontend(new AngularJSApp($ampersandApp));

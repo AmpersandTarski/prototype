@@ -28,7 +28,7 @@
         "symfony/serializer": "^7",
         "symfony/filesystem": "^7",
         "easyrdf/easyrdf": "^1.0",
-        "league/flysystem": "^1.1",
+        "league/flysystem": "^3",
         "ramsey/uuid": "^4.1"
     },
     "autoload": {

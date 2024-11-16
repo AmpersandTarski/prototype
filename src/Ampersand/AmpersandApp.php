@@ -30,8 +30,8 @@ use Ampersand\Interfacing\Ifc;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Ampersand\Misc\Installer;
 use Ampersand\Interfacing\ResourceList;
-use League\Flysystem\FilesystemInterface;
 use Ampersand\Misc\ProtoContext;
+use League\Flysystem\FilesystemOperator;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class AmpersandApp
@@ -43,7 +43,7 @@ class AmpersandApp
      */
     protected UserLogger $userLogger;
 
-    protected FilesystemInterface $fileSystem;
+    protected FilesystemOperator $fileSystem;
 
     protected EventDispatcherInterface $eventDispatcher;
 
@@ -137,7 +137,7 @@ class AmpersandApp
         Settings $settings,
         LoggerInterface $logger,
         EventDispatcherInterface $eventDispatcher,
-        FilesystemInterface $fileSystem
+        FilesystemOperator $fileSystem
     ) {
         $this->logger = $logger;
         $this->userLogger = new UserLogger($this, $logger);
@@ -165,12 +165,12 @@ class AmpersandApp
         return $this->eventDispatcher;
     }
 
-    public function fileSystem(): FilesystemInterface
+    public function fileSystem(): FilesystemOperator
     {
         return $this->fileSystem;
     }
 
-    public function setFileSystem(FilesystemInterface $fs): self
+    public function setFileSystem(FilesystemOperator $fs): self
     {
         $this->fileSystem = $fs;
         return $this;
