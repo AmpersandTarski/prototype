@@ -13,6 +13,7 @@
 		}
 	},
 	"mounts": [
+		"type=bind,source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh/,target=/home/vscode/.ssh,readonly",
 		"source=${localWorkspaceFolder}/.devcontainer/php.ini,target=/usr/local/etc/php/php.ini,type=bind,consistency=cached"
 	],
 	// Set *default* container specific settings.json values on container create.
