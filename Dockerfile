@@ -55,27 +55,3 @@ COPY frontend /var/www/frontend
 COPY apache-conf/.htaccess /var/www/html
 COPY backend /var/www/backend
 RUN mv /var/www/backend/public/* /var/www/html/
-
-FROM framework as project-administration
-
-COPY test/assets/project-administration /usr/local/project/
-
-# Run ampersand compiler to generated backend json model files (in generics folder)
-RUN ampersand proto --no-frontend /usr/local/project/model/ProjectAdministration.adl \
-  --proto-dir /var/www/backend \
-  --crud-defaults cRud \
-  --verbose
-
-# Run ampersand compiler to generated new frontend
-RUN ampersand proto --frontend-version Angular --no-backend /usr/local/project/model/ProjectAdministration.adl \
-  --proto-dir /var/www/frontend/src/app/generated \
-  --crud-defaults cRud \
-  --verbose
-
-WORKDIR /var/www/frontend
-
-# Build + bundle Angular frontend
-RUN npx ng build
-
-# Copy Angular frontend to public folder in web server
-RUN cp -r /var/www/frontend/dist/prototype-frontend/* /var/www/html

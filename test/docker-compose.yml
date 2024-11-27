@@ -7,10 +7,10 @@ networks:
   db:
 
 services:
-  prototype:
+  project-administration:
     container_name: prototype
     build:
-      context: .
+      context: projects/project-administration
     environment:
       - AMPERSAND_DBHOST=prototype-db # refers to database service below
       - AMPERSAND_PRODUCTION_MODE=false

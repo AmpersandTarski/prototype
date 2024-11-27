@@ -10,5 +10,3 @@ ampersand.exe
 # Miscellaneous
 **/.angular/cache
 **/.sass-cache/
-
-.env
