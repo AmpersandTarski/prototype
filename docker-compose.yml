@@ -1,0 +1,55 @@
+version: '3.7'
+
+volumes:
+  db-data:
+
+networks:
+  db:
+
+services:
+  prototype:
+    container_name: prototype
+    build:
+      context: .
+    environment:
+      - AMPERSAND_DBHOST=prototype-db # refers to database service below
+      - AMPERSAND_PRODUCTION_MODE=false
+      - AMPERSAND_DEBUG_MODE=true
+      - AMPERSAND_SERVER_URL=${SERVER_HOST_NAME} # from .env file
+      - AMPERSAND_DBUSER=${MYSQL_USER} # from .env file
+      - AMPERSAND_DBPASS=${MYSQL_PASSWORD} # from .env file
+      - AMPERSAND_DBNAME=${DATABASE_NAME:?} # from .env file
+    restart: always
+    depends_on:
+      - prototype-db
+    ports:
+      - "80:80"
+    networks:
+      - db
+  
+  prototype-db:
+    container_name: prototype-db
+    image: mariadb:10.6
+    command: ["--sql-mode=ANSI,TRADITIONAL"]
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} # from .env file
+      - MYSQL_USER=${MYSQL_USER} # from .env file
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD} # from .env file
+      - MYSQL_DATABASE=${DATABASE_NAME} # from .env file
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - db
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    depends_on:
+      - prototype-db
+    ports:
+      - "8080:80"
+    networks:
+      - db
+    environment:
+      - PMA_HOST=prototype-db # https://hub.docker.com/r/phpmyadmin/phpmyadmin/
