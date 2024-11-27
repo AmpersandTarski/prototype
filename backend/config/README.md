@@ -1,12 +1,5 @@
 # Configuration of the prototpye
 
-## Logging configuration
-* The logging configuration is loaded from a `logging.yaml` file in the config folder
-* For the specification of the logging file, see: https://github.com/theorchard/monolog-cascade
-* The file should be located at: `config/logging.yaml` (default/production)
-* A debug logging configuration is available at: `config/logging.debug.yaml`
-* You can specify the log configuration via ENV variable `AMPERSAND_LOG_CONFIG`. Set it to 'logging.yaml' (default) or 'logging.debug.yaml'
-
 ## Project configuration
 The prototype framework automatically loads the following configuration files, in the following order:
 This order allows to have different environments with the same base project configuration
