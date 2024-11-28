@@ -15,6 +15,7 @@ Additional labels for pre-release and build metadata are available as extensions
   * It affects names and labels of all artefacts (concepts, relations, interfaces, rules, views, etc)
   * It affects metadata from PrototypeContext. Be sure to update those when used in application extensions or running environments
 * [Issue 161](https://github.com/AmpersandTarski/prototype/issues/161) Bugfix ConceptNotDefinedException
+* [Issue 210](https://github.com/AmpersandTarski/prototype/issues/210) Bugfix using TableType enum for method to empty a relation population
 
 ## v1.18.0 (27 april 2024)
 * [Issue 79](https://github.com/AmpersandTarski/prototype/issues/79) Add support for delimited multi value columns in excel importer
