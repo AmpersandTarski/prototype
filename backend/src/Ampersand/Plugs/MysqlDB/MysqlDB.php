@@ -712,13 +712,13 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $relationTable = $relation->getMysqlTable();
 
         switch ($relationTable->inTableOf()) {
-            case null: // If n-n table, remove all rows
+            case TableType::Binary: // If n-n table, remove all rows
                 $this->execute("DELETE FROM \"{$relationTable->getName()}\"");
                 break;
-            case 'src': // If in table of src concept, set tgt col to null
+            case TableType::Src: // If in table of src concept, set tgt col to null
                 $this->execute("UPDATE \"{$relationTable->getName()}\" SET \"{$relationTable->tgtCol()->getName()}\" = NULL");
                 break;
-            case 'tgt': // If in table of tgt concept, set src col to null
+            case TableType::Tgt: // If in table of tgt concept, set src col to null
                 $this->execute("UPDATE \"{$relationTable->getName()}\" SET \"{$relationTable->srcCol()->getName()}\" = NULL");
                 break;
             default:
