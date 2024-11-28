@@ -10,6 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
 ## Unreleased changes
+* [Issue 210](https://github.com/AmpersandTarski/prototype/issues/210) Bugfix using TableType enum for method to empty a relation population
 
 ## v2.0.0-alpha.2 (16 nov 2024)
 * Update Flysystem library to v3
