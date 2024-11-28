@@ -189,13 +189,9 @@ class ResourceList
                 $filePath = getSafeFileName($fs, $filePath);
                 
                 $stream = fopen($tmp_name, 'r+');
-                $result = $fs->writeStream($filePath, $stream);
+                $fs->writeStream($filePath, $stream);
                 if (is_resource($stream)) {
                     fclose($stream);
-                }
-                
-                if (!$result) {
-                    throw new AmpersandException("Error in file upload");
                 }
                 
                 // Populate filePath and originalFileName relations in database

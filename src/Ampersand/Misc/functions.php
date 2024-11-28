@@ -42,7 +42,7 @@ function isSequential(array $arr): bool
  */
 function getSafeFileName(FilesystemOperator $fileSystem, string $filePath): string
 {
-    if (!$fileSystem->has($filePath)) {
+    if (!$fileSystem->fileExists($filePath)) {
         return $filePath;
     }
 
@@ -51,7 +51,7 @@ function getSafeFileName(FilesystemOperator $fileSystem, string $filePath): stri
     $ext = pathinfo($filePath, PATHINFO_EXTENSION);
 
     $i = 1;
-    while ($fileSystem->has($dir . DIRECTORY_SEPARATOR . "{$filename}_{$i}.{$ext}")) {
+    while ($fileSystem->fileExists($dir . DIRECTORY_SEPARATOR . "{$filename}_{$i}.{$ext}")) {
         $i++;
     }
     return $dir . DIRECTORY_SEPARATOR . "{$filename}_{$i}.{$ext}";
