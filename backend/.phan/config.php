@@ -9,10 +9,6 @@ return [
     // Backwards Compatibility Checking (This is very slow)
     "backward_compatibility_checks" => false,
 
-    "file_list" => [
-        'public/index.php',
-    ],
-
     // A list of directories that should be parsed for class and
     // method information. After excluding the directories
     // defined in exclude_analysis_directory_list, the remaining
