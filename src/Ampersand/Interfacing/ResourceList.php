@@ -12,7 +12,6 @@ use Ampersand\Interfacing\Ifc;
 use Ampersand\Interfacing\InterfaceObjectInterface;
 use Ampersand\Interfacing\Resource;
 use Ampersand\Core\Concept;
-use Ampersand\Exception\AmpersandException;
 use Ampersand\Exception\AtomNotFoundException;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\UploadException;
