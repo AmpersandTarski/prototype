@@ -15,7 +15,7 @@ class FileObjectController extends AbstractController
         $filePath = $args['filePath'];
         
         // Check if filePath exists
-        if (!$fs->has($filePath)) {
+        if (!$fs->fileExists($filePath)) {
             throw new NotFoundException("File not found");
         }
 
