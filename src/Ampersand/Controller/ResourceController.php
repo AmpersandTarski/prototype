@@ -3,6 +3,7 @@
 namespace Ampersand\Controller;
 
 use Ampersand\Core\Concept;
+use Ampersand\Event\ResourceEvent;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\NotDefined\ConceptNotDefinedException;
@@ -97,6 +98,7 @@ class ResourceController extends AbstractController
             case 'PATCH':
                 $resource = $entry->walkPathToResource($pathList)->patch($body);
                 $successMessage = "{$resource->getLabel()} updated";
+                $this->app->eventDispatcher()->dispatch(new ResourceEvent($resource, $body, $transaction), ResourceEvent::PATCHED);
                 break;
             case 'POST':
                 $resource = $entry->walkPathToList($pathList)->post($body);
