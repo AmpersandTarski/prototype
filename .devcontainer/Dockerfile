@@ -34,3 +34,5 @@ RUN pecl install ast
 # Remove the predefined ini files that load PHP extensions like xdebug
 # We use our own .ini file. See mount in .devcontainer.json
 RUN rm -f /usr/local/etc/php/conf.d/*
+
+COPY welcome.txt /usr/local/etc/vscode-dev-containers/first-run-notice.txt
