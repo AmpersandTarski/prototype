@@ -232,8 +232,9 @@ class ExcelImporter
                 }
             // Header line 2 specifies concept names
             } elseif ($i === 2) {
+                $cellA2i = $worksheet->getCell('A'. $row->getRowIndex()); // 2nd row of block, not necessary row 2 in sheet
+                
                 try {
-                    $cellA2i = $worksheet->getCell('A'. $row->getRowIndex()); // 2nd row of block, not necessary row 2 in sheet
                     $leftConcept = $this->ampersandApp->getModel()->getConcept($cellA2i->getCalculatedValue());
                 } catch (Exception $e) {
                     $this->throwException($e, $cellA2i);
