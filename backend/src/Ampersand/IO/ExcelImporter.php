@@ -85,7 +85,13 @@ class ExcelImporter
         }
 
         // Determine $leftConcept from cell A1
-        $leftConcept = $this->ampersandApp->getModel()->getConcept((string)$worksheet->getCell('A1'));
+        $cellA1 = $worksheet->getCell('A1');
+        try {
+            $leftConcept = $this->ampersandApp->getModel()->getConcept((string) $cellA1);
+        } catch (Exception $e) {
+            $this->throwException($e, $cellA1);
+        }
+
         if ($leftConcept !== $ifc->getTgtConcept()) {
             throw new BadRequestException("Target concept of interface '{$ifc->getLabel()}' does not match concept specified in cell {$worksheet->getTitle()}!A1");
         }
@@ -136,7 +142,7 @@ class ExcelImporter
                     }
                 }
             } catch (Exception $e) {
-                throw new Exception("Error in cell '{$cell->getWorksheet()->getTitle()}!{$cell->getCoordinate()}': {$e->getMessage()}", $e->getCode(), $e);
+                $this->throwException($e, $cell);
             }
             
             // Process other columns of this row
@@ -159,7 +165,7 @@ class ExcelImporter
 
                     $subIfcObj->add($leftResource, $cellvalue);
                 } catch (Exception $e) {
-                    throw new Exception("Error in cell '{$cell->getWorksheet()->getTitle()}!{$cell->getCoordinate()}': {$e->getMessage()}", $e->getCode(), $e);
+                    $this->throwException($e, $cell);
                 }
             }
         }
@@ -226,7 +232,13 @@ class ExcelImporter
                 }
             // Header line 2 specifies concept names
             } elseif ($i === 2) {
-                $leftConcept = $this->ampersandApp->getModel()->getConcept($worksheet->getCell('A'. $row->getRowIndex())->getCalculatedValue());
+                $cellA2i = $worksheet->getCell('A'. $row->getRowIndex()); // 2nd row of block, not necessary row 2 in sheet
+                
+                try {
+                    $leftConcept = $this->ampersandApp->getModel()->getConcept($cellA2i->getCalculatedValue());
+                } catch (Exception $e) {
+                    $this->throwException($e, $cellA2i);
+                }
 
                 foreach ($row->getCellIterator() as $cell) {
                     try {
