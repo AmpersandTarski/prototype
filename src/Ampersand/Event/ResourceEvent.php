@@ -9,12 +9,15 @@ use Ampersand\Transaction;
 class ResourceEvent extends AbstractEvent
 {
     public const
-        PATCHED = 'ampersand.core.resource.patched';
+        POSTED  = 'ampersand.core.resource.post',
+        PUT     = 'ampersand.core.resource.put',
+        PATCHED = 'ampersand.core.resource.patched',
+        DELETED = 'ampersand.core.resource.deleted';
 
     public function __construct(
         public Resource $resource,
-        public array $patches,
-        public Transaction $transaction
+        public Transaction $transaction,
+        public ?mixed $body = null,
     ) {
     }
 
