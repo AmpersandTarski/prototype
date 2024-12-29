@@ -15,6 +15,7 @@ Additional labels for pre-release and build metadata are available as extensions
   * It affects names and labels of all artefacts (concepts, relations, interfaces, rules, views, etc)
   * It affects metadata from PrototypeContext. Be sure to update those when used in application extensions or running environments
 * [Issue 161](https://github.com/AmpersandTarski/prototype/issues/161) Bugfix ConceptNotDefinedException
+* [Issue 180](https://github.com/AmpersandTarski/prototype/issues/180) Bugfix Php warning about undefined array key 'ifcPath'
 * [Issue 210](https://github.com/AmpersandTarski/prototype/issues/210) Bugfix using TableType enum for method to empty a relation population
 * [Issue 218](https://github.com/AmpersandTarski/prototype/issues/218) Improve error reporting for exceptions in excel importer
 * [Issue 221](https://github.com/AmpersandTarski/prototype/issues/221) Bugfix typescript type object property naming by surrounding view labels with quotes
