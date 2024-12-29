@@ -42,8 +42,8 @@ jobs:
     - name: Install dependencies
       run: composer install --prefer-dist --no-dev --profile --optimize-autoloader --no-scripts --ignore-platform-reqs
 
-    - name: Phan version
-      run: phan --version
-
     - name: Run Phan
-      run: phan -p --color --config-file ./.phan/config.php
+      run: |
+        cd backend
+        phan --version
+        phan -p --color --config-file .phan/config.php
