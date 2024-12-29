@@ -61,7 +61,7 @@ class ResourceController extends AbstractController
     public function getResource(Request $request, Response $response, array $args): Response
     {
         // Input
-        $pathList = ResourcePath::makePathList($args['resourcePath']);
+        $pathList = ResourcePath::makePathList($args['resourcePath'] ?? null);
         $options = Options::getFromRequestParams($request->getQueryParams());
         $depth = $request->getQueryParam('depth');
 
@@ -79,7 +79,7 @@ class ResourceController extends AbstractController
     public function putPatchPostResource(Request $request, Response $response, array $args): Response
     {
         // Input
-        $pathList = ResourcePath::makePathList($args['ifcPath']);
+        $pathList = ResourcePath::makePathList($args['ifcPath'] ?? null);
         $options = Options::getFromRequestParams($request->getQueryParams());
         $depth = $request->getQueryParam('depth');
         $body = $request->reparseBody()->getParsedBody();
@@ -141,7 +141,7 @@ class ResourceController extends AbstractController
     public function deleteResource(Request $request, Response $response, array $args): Response
     {
         // Input
-        $pathList = ResourcePath::makePathList($args['ifcPath']);
+        $pathList = ResourcePath::makePathList($args['ifcPath'] ?? null);
 
         // Prepare
         $transaction = $this->app->newTransaction();
