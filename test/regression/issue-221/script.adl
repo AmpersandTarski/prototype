@@ -1,0 +1,13 @@
+CONTEXT Issue221
+
+RELATION r[A*B] [UNI]
+
+VIEW TestView: A DEFAULT
+    { "("  : TXT "("
+    , "id" : I
+    , ")"  : TXT ") "
+    , naam : r
+    }
+ENDVIEW
+
+ENDCONTEXT

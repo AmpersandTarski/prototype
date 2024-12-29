@@ -18,6 +18,7 @@ Additional labels for pre-release and build metadata are available as extensions
 * [Issue 210](https://github.com/AmpersandTarski/prototype/issues/210) Bugfix using TableType enum for method to empty a relation population
 * [Issue 218](https://github.com/AmpersandTarski/prototype/issues/218) Improve error reporting for exceptions in excel importer
 * [Issue 221](https://github.com/AmpersandTarski/prototype/issues/221) Bugfix typescript type object property naming by surrounding view labels with quotes
+* Add regression tests to automatically check if certain Ampersand (ADL) scripts generate valid backend and frontend files
 
 ## v1.18.0 (27 april 2024)
 * [Issue 79](https://github.com/AmpersandTarski/prototype/issues/79) Add support for delimited multi value columns in excel importer
