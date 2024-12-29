@@ -6,7 +6,7 @@
  */
 
 $views:{view|export type $view.viewIdTmp$View = {$view.viewSegments:{segment|
-  $segment.segmentLabel$: $segment.segmentTypescriptType$;}$$if(!view.viewIsEmpty)$
+  "$segment.segmentLabel$": $segment.segmentTypescriptType$;}$$if(!view.viewIsEmpty)$
 
 $endif$\};
 }$
