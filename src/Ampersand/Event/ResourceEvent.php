@@ -17,7 +17,7 @@ class ResourceEvent extends AbstractEvent
     public function __construct(
         public Resource $resource,
         public Transaction $transaction,
-        public ?mixed $body = null,
+        public mixed $body = null,
     ) {
     }
 

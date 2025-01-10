@@ -12,6 +12,9 @@ Additional labels for pre-release and build metadata are available as extensions
 ## Unreleased changes
 
 ## v2.0.0-alpha.4 (25 dec 2024)
+* Fix php 8.3 compatability
+
+## v2.0.0-alpha.4 (25 dec 2024)
 * Dispatch resource events for PUT, PATCH, POST and DELETE actions
 
 ## v2.0.0-alpha.3 (3 dec 2024)
