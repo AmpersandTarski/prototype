@@ -11,7 +11,7 @@ RUN apt-get update \
   # libpng needed for php-ext gd below
   libpng-dev \
   # vim for easy editing files in container
-  vim
+  vim unzip
 
 # Install additional php and apache extensions (see composer.json file)
 RUN docker-php-ext-install mysqli curl gd fileinfo zip \
@@ -23,6 +23,12 @@ RUN php  -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
  && php -r "unlink('composer-setup.php');" \
  && rm -rf /var/lib/apt/lists/*
 ENV COMPOSER_HOME=/usr/local/bin/
+
+# Install open telemetry
+RUN pecl install opentelemetry && \
+  echo [opentelemetry] > /usr/local/etc/php/conf.d/opentelemetry.ini && \
+  echo extension=opentelemetry.so >> /usr/local/etc/php/conf.d/opentelemetry.ini
+
 
 # Install NodeJs with NPM
 RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
@@ -39,7 +45,9 @@ RUN chmod +x /usr/local/bin/ampersand
 COPY composer.json composer.lock /var/www/
 WORKDIR /var/www
 RUN composer --version \
- && composer check-platform-reqs
+ && composer check-platform-reqs \
+ && composer update
+
 RUN composer install --prefer-dist --no-dev --profile
 
 # Add default data folder that Apache can write to
