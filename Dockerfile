@@ -30,6 +30,8 @@ RUN pecl install opentelemetry && \
   echo extension=opentelemetry.so >> /usr/local/etc/php/conf.d/opentelemetry.ini
 
 # Configure OTEL exporter for PHP
+# Default disable opentelemetry
+ENV OTEL_SDK_DISABLED=true
 ENV OTEL_PHP_AUTOLOAD_ENABLED=true 
 ENV OTEL_SERVICE_NAME=apmpersand 
 ENV OTEL_TRACES_EXPORTER=debug

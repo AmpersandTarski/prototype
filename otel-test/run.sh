@@ -1,0 +1,1 @@
+docker run --rm -it -e OTEL_SDK_DISABLED=false  -p 8080:80 ampersandtarski/ampersand-rap:dev-latest 
