@@ -29,6 +29,14 @@ RUN pecl install opentelemetry && \
   echo [opentelemetry] > /usr/local/etc/php/conf.d/opentelemetry.ini && \
   echo extension=opentelemetry.so >> /usr/local/etc/php/conf.d/opentelemetry.ini
 
+# Configure OTEL exporter for PHP
+ENV OTEL_PHP_AUTOLOAD_ENABLED=true 
+ENV OTEL_SERVICE_NAME=apmpersand 
+ENV OTEL_TRACES_EXPORTER=debug
+ENV OTEL_PROPAGATORS=baggage,tracecontext
+# ENV OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf 
+# ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318 
+
 
 # Install NodeJs with NPM
 RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
