@@ -110,7 +110,8 @@ $ampersandApp = new AmpersandApp(
     $logger,
     new EventDispatcher(),
     new Filesystem(
-        new Local($settings->getDataDirectory()) // local file system adapter
+        // new Local($settings->getDataDirectory()) // local file system adapter
+        new League\Flysystem\Local\LocalFilesystemAdapter($settings->getDataDirectory())
     )
 );
 $ampersandApp->setFrontend(new AngularJSApp($ampersandApp));
