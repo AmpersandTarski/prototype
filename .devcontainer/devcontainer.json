@@ -1,0 +1,10 @@
+{
+    "name": "PHP",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "forwardPorts": [8080],
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    }
+}

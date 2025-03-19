@@ -14,11 +14,12 @@ use Ampersand\Misc\Settings;
 use Ampersand\Model;
 use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
-use League\Flysystem\Adapter\Local;
-use League\Flysystem\Filesystem;
-use Slim\App;
-use Slim\Container;
+// use League\Flysystem\Filesystem;
+// use League\Flysystem\Local\LocalFilesystemAdapter;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+
+use Slim\Factory\AppFactory;
+use DI\Container; // Use PHP-DI as the container
 
 use function Ampersand\Misc\stackTrace;
 
@@ -109,9 +110,9 @@ $ampersandApp = new AmpersandApp(
     $settings,
     $logger,
     new EventDispatcher(),
-    new Filesystem(
+    new \League\Flysystem\Filesystem(
         // new Local($settings->getDataDirectory()) // local file system adapter
-        new League\Flysystem\Local\LocalFilesystemAdapter($settings->getDataDirectory())
+        new \League\Flysystem\Local\LocalFilesystemAdapter($settings->getDataDirectory())
     )
 );
 $ampersandApp->setFrontend(new AngularJSApp($ampersandApp));
@@ -135,31 +136,68 @@ $ampersandApp->setConjunctCache(new MysqlConjunctCache($mysqlDB));
  * API
  *************************************************************************************************/
 $apiContainer = new Container();
-$apiContainer['ampersand_app'] = $ampersandApp; // add AmpersandApp object to API DI-container
+$apiContainer->set('ampersand_app', $ampersandApp); // add AmpersandApp object to API DI-container
 
 // Custom NotFound handler when API path-method is not found
 // The AmpersandApp can also return a NotFoundException, this is handled by the errorHandler below
-$apiContainer['notFoundHandler'] = function ($container) {
+$apiContainer->set('notFoundHandler', function ($container) {
     return new NotFoundHandler();
-};
+});
 
-$apiContainer['errorHandler'] = function ($container) use ($ampersandApp) {
+$apiContainer->set('errorHandler', function ($container) use ($ampersandApp) {
     return new ExceptionHandler($ampersandApp);
-};
+});
 
-$apiContainer['phpErrorHandler'] = function ($container) use ($ampersandApp) {
+$apiContainer->set('phpErrorHandler', function ($container) use ($ampersandApp) {
     return new PhpErrorHandler($ampersandApp);
-};
+});
 
-$apiContainer->get('settings')->replace(
-    [ 'displayErrorDetails' => $ampersandApp->getSettings()->get('global.debugMode') // when true, additional information about exceptions are displayed by the default error handler
-    , 'determineRouteBeforeAppMiddleware' => true // the route is calculated before any middleware is executed. This means that you can inspect route parameters in middleware if you need to.
-    ]
-);
+// Add setting to the container.
+// Add settings directly to the container
+$apiContainer->set('settings', [
+    'displayErrorDetails' => $ampersandApp->getSettings()->get('global.debugMode'), // Show detailed error messages in debug mode
+    'determineRouteBeforeAppMiddleware' => true, // Calculate the route before middleware execution
+]);
+
+// Add the controller classes.
+$apiContainer->set(Ampersand\Controller\LoginController::class, function ($container) {
+    return new Ampersand\Controller\LoginController($container->get('ampersand_app'));
+});
+$apiContainer->set(Ampersand\Controller\SessionController::class, function ($container) {
+    return new Ampersand\Controller\SessionController($container->get('ampersand_app'));
+});
+$apiContainer->set(Ampersand\Controller\ResourceController::class, function ($container) {
+    return new Ampersand\Controller\ResourceController($container->get('ampersand_app'));
+});
+$apiContainer->set(Ampersand\Controller\ExecEngineController::class, function ($container) {
+    return new Ampersand\Controller\ExecEngineController($container->get('ampersand_app'));
+});
+$apiContainer->set(Ampersand\Controller\RuleEngineController::class, function ($container) {
+    return new Ampersand\Controller\RuleEngineController($container->get('ampersand_app'));
+});
+$apiContainer->set(Ampersand\Controller\PopulationController::class, function ($container) {
+    return new Ampersand\Controller\PopulationController($container->get('ampersand_app'));
+});
+$apiContainer->set(Ampersand\Controller\InstallerController::class, function ($container) {
+    return new Ampersand\Controller\InstallerController($container->get('ampersand_app'));
+});
+$apiContainer->set(Ampersand\Controller\ReportController::class, function ($container) {
+    return new Ampersand\Controller\ReportController($container->get('ampersand_app'));
+});
+$apiContainer->set(Ampersand\Controller\SessionController::class, function ($container) {
+    return new Ampersand\Controller\SessionController($container->get('ampersand_app'));
+});
+$apiContainer->set(Ampersand\Controller\FileObjectController::class, function ($container) {
+    return new Ampersand\Controller\FileObjectController($container->get('ampersand_app'));
+});
+$apiContainer->set(Ampersand\Controller\LoginController::class, function ($container) {
+    return new Ampersand\Controller\LoginController($container->get('ampersand_app'));
+});
 
 // Create and configure Slim app (version 3.x)
 // TODO: migrate to Slim v4
-$api = new App($apiContainer);
+AppFactory::setContainer($apiContainer);
+$api = AppFactory::create();
 
 foreach (glob(__DIR__ . '/api/*.php') as $filepath) {
     require_once($filepath);

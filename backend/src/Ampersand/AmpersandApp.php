@@ -36,14 +36,14 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class AmpersandApp
 {
-    protected LoggerInterface $logger;
+    protected \Psr\Log\LoggerInterface $logger;
 
     /**
      * User logger (i.e. logs are returned to user)
      */
     protected UserLogger $userLogger;
 
-    protected Filesystem $fileSystem;
+    protected \League\Flysystem\Filesystem $fileSystem;
 
     protected EventDispatcherInterface $eventDispatcher;
 
@@ -138,7 +138,7 @@ class AmpersandApp
         LoggerInterface $logger,
         EventDispatcherInterface $eventDispatcher,
         // FilesystemInterface $fileSystem
-        League\Flysystem\Filesystem $fileSystem
+        \League\Flysystem\Filesystem $fileSystem
     ) {
         $this->logger = $logger;
         $this->userLogger = new UserLogger($this, $logger);
