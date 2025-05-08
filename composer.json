@@ -40,7 +40,8 @@
         "http-interop/http-factory-slim": "^2.0",
         "open-telemetry/opentelemetry-auto-mysqli": "^0.0.2",
         "open-telemetry/opentelemetry-auto-curl": "^0.0.4",
-        "open-telemetry/opentelemetry-auto-io": "^0.0.13"
+        "open-telemetry/opentelemetry-auto-io": "^0.0.13",
+        "open-telemetry/opentelemetry-logger-monolog": "^1.1"
     },
     "autoload": {
         "psr-4": {

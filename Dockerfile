@@ -34,9 +34,11 @@ RUN pecl install opentelemetry && \
 # Configure OTEL exporter for PHP
 # Default disable opentelemetry
 ENV OTEL_SDK_DISABLED=true
-ENV OTEL_PHP_AUTOLOAD_ENABLED=true 
+ENV OTEL_PHP_AUTOLOAD_ENABLED="true" 
 ENV OTEL_SERVICE_NAME=apmpersand
-ENV OTEL_TRACES_EXPORTER=debug
+ENV OTEL_TRACES_EXPORTER=console
+ENV OTEL_METRICS_EXPORTER=console
+ENV OTEL_LOGSS_EXPORTER=console
 ENV OTEL_PROPAGATORS=baggage,tracecontext
 # ENV OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf 
 # ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318 

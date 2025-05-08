@@ -9,3 +9,18 @@ Prototype framework that transforms your Ampersand model into a web application
 
 ## OpenTelemetry dependencies
 
+[OpenTelemetry documentation]()
+
+### Test
+
+Run the php in server mode on the bare application
+
+```bash
+docker run --rm -it --name proto -p 8080:80 \
+    -e OTEL_SDK_DISABLED=false \
+    -e OTEL_TRACES_EXPORTER=console \
+    -e OTEL_METRICS_EXPORTER=console \
+    -e OTEL_LOGS_EXPORTER=console \
+    proto-test:latest \
+    php -S 0.0.0.0:80 -t /var/www/html/api/v1
+```
