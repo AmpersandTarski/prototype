@@ -16,7 +16,7 @@ RUN apt-get update \
   gcc make autoconf
 
 # Install additional php and apache extensions (see composer.json file)
-RUN docker-php-ext-install mysqli curl gd fileinfo zip opentelemetry \
+RUN docker-php-ext-install mysqli curl gd fileinfo zip \
  && a2enmod rewrite
 
 # Install composer (php's package manager)
@@ -25,6 +25,21 @@ RUN php  -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
  && php -r "unlink('composer-setup.php');" \
  && rm -rf /var/lib/apt/lists/*
 ENV COMPOSER_HOME=/usr/local/bin/
+
+# Install open telemetry
+RUN pecl install opentelemetry && \
+  echo [opentelemetry] > /usr/local/etc/php/conf.d/opentelemetry.ini && \
+  echo extension=opentelemetry.so >> /usr/local/etc/php/conf.d/opentelemetry.ini
+
+# Configure OTEL exporter for PHP
+# Default disable opentelemetry
+ENV OTEL_SDK_DISABLED=true
+ENV OTEL_PHP_AUTOLOAD_ENABLED=true 
+ENV OTEL_SERVICE_NAME=apmpersand
+ENV OTEL_TRACES_EXPORTER=debug
+ENV OTEL_PROPAGATORS=baggage,tracecontext
+# ENV OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf 
+# ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318 
 
 # Install NodeJs with NPM
 RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
