@@ -11,10 +11,12 @@ RUN apt-get update \
   # libpng needed for php-ext gd below
   libpng-dev \
   # vim for easy editing files in container
-  vim
+  vim \
+  # add packages for OpenTelemetry
+  gcc make autoconf
 
 # Install additional php and apache extensions (see composer.json file)
-RUN docker-php-ext-install mysqli curl gd fileinfo zip \
+RUN docker-php-ext-install mysqli curl gd fileinfo zip opentelemetry \
  && a2enmod rewrite
 
 # Install composer (php's package manager)
