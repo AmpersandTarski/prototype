@@ -21,6 +21,23 @@ Additional labels for pre-release and build metadata are available as extensions
 * [Issue 221](https://github.com/AmpersandTarski/prototype/issues/221) Bugfix typescript type object property naming by surrounding view labels with quotes
 * Add regression tests to automatically check if certain Ampersand (ADL) scripts generate valid backend and frontend files
 
+## v2.0.0-alpha.4 (25 dec 2024)
+* Fix php 8.3 compatability
+
+## v2.0.0-alpha.4 (25 dec 2024)
+* Dispatch resource events for PUT, PATCH, POST and DELETE actions
+
+## v2.0.0-alpha.3 (3 dec 2024)
+* [Issue 210](https://github.com/AmpersandTarski/prototype/issues/210) Bugfix using TableType enum for method to empty a relation population
+* Bugfixes for using Flysystem v3
+
+## v2.0.0-alpha.2 (16 nov 2024)
+* Update Flysystem library to v3
+
+## v2.0.0-alpha.1 (1 november 2024)
+* Library updates (in particular Symfony)
+* Refactoring configuration of logger
+
 ## v1.18.0 (27 april 2024)
 * [Issue 79](https://github.com/AmpersandTarski/prototype/issues/79) Add support for delimited multi value columns in excel importer
 * [Issue 115](https://github.com/AmpersandTarski/prototype/issues/115) Bugfix name ConceptNotDefinedException to match class filename

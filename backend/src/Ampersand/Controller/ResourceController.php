@@ -3,6 +3,7 @@
 namespace Ampersand\Controller;
 
 use Ampersand\Core\Concept;
+use Ampersand\Event\ResourceEvent;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\NotDefined\ConceptNotDefinedException;
@@ -93,14 +94,17 @@ class ResourceController extends AbstractController
             case 'PUT':
                 $resource = $entry->walkPathToResource($pathList)->put($body);
                 $successMessage = "{$resource->getLabel()} updated";
+                $this->app->eventDispatcher()->dispatch(new ResourceEvent($resource, $transaction, $body), ResourceEvent::PUT);
                 break;
             case 'PATCH':
                 $resource = $entry->walkPathToResource($pathList)->patch($body);
                 $successMessage = "{$resource->getLabel()} updated";
+                $this->app->eventDispatcher()->dispatch(new ResourceEvent($resource, $transaction, $body), ResourceEvent::PATCHED);
                 break;
             case 'POST':
                 $resource = $entry->walkPathToList($pathList)->post($body);
                 $successMessage = "{$resource->getLabel()} created";
+                $this->app->eventDispatcher()->dispatch(new ResourceEvent($resource, $transaction, $body), ResourceEvent::POSTED);
                 break;
             default:
                 throw new FatalException("Unsupported HTTP method");
@@ -148,7 +152,9 @@ class ResourceController extends AbstractController
         $entry = ResourceList::makeWithoutInterface($this->app->getModel()->getConcept($args['resourceType']))->one($args['resourceId']);
         
         // Perform delete
-        $entry->walkPathToResource($pathList)->delete();
+        $deletedResource = $entry->walkPathToResource($pathList)->delete();
+
+        $this->app->eventDispatcher()->dispatch(new ResourceEvent($deletedResource, $transaction), ResourceEvent::DELETED);
         
         // Close transaction
         $transaction->runExecEngine()->close();

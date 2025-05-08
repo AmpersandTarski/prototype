@@ -15,13 +15,13 @@ class FileObjectController extends AbstractController
         $filePath = $args['filePath'];
         
         // Check if filePath exists
-        if (!$fs->has($filePath)) {
+        if (!$fs->fileExists($filePath)) {
             throw new NotFoundException("File not found");
         }
 
         $fileResource = $fs->readStream($filePath);
         $stream = new Stream($fileResource); // create a stream instance for the response body
-        $mimeType = $fs->getMimetype($filePath);
+        $mimeType = $fs->mimeType($filePath);
         if ($mimeType === false) {
             $mimeType = 'application/octet-stream'; // the "octet-stream" subtype is used to indicate that a body contains arbitrary binary data.
         }
