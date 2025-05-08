@@ -9,15 +9,3 @@ Prototype framework that transforms your Ampersand model into a web application
 
 ## OpenTelemetry dependencies
 
-* open-telemetry/opentelemetry-auto-mysqli
-* open-telemetry/opentelemetry-auto-curl
-* open-telemetry/opentelemetry-auto-io
-
-```bash
-composer require --ignore-platform-reqs \
-    open-telemetry/sdk \
-    open-telemetry/opentelemetry-auto-mysqli \
-    open-telemetry/opentelemetry-auto-curl \
-    open-telemetry/opentelemetry-auto-io
-```
-
