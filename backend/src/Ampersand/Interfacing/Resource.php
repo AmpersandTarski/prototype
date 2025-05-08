@@ -18,7 +18,7 @@ use Ampersand\Interfacing\ResourcePath;
 use Ampersand\Interfacing\ResourceList;
 use Ampersand\Exception\AtomNotFoundException;
 use Ampersand\Exception\BadRequestException;
-use League\Flysystem\FileNotFoundException;
+use League\Flysystem\FilesystemException;
 
 /**
  *
@@ -352,7 +352,7 @@ class Resource extends Atom
             foreach ($filePaths as $path) {
                 try {
                     $this->concept->getApp()->fileSystem()->delete($path);
-                } catch (FileNotFoundException $e) {
+                } catch (FilesystemException $e) {
                     Logger::getLogger('INTERFACING')->warning("Corresponding file for deleted FileObject '{$this->id}' was not found at path '{$path}'. The filesystem and database might be out of sync if this occurs more often");
                 }
             }
