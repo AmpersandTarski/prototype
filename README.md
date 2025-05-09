@@ -11,6 +11,12 @@ Prototype framework that transforms your Ampersand model into a web application
 
 [OpenTelemetry documentation]()
 
+### Build test image for RAP
+
+```bash
+docker build --tag ampersandtarski/prototype-framework:latest .
+```
+
 ### Test
 
 Run the php in server mode on the bare application
