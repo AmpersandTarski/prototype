@@ -23,8 +23,8 @@
 </div>
 
 <p-dropdown
-    *ngIf="dropdownMenuObjects"
-    [options]="filteredDropdownMenuObjects()"
+    *ngIf="dropdownOptions"
+    [options]="filteredDropdownOptions"
     [(ngModel)]="newValue"
     optionLabel="_label_"
     [filter]="true"
@@ -35,4 +35,30 @@
     [required]="isNewItemInputRequired()"
     [disabled]="isNewItemInputDisabled()"
 >
+    <ng-template pTemplate="filter">
+        <div class="flex gap-1">
+            <div class="p-inputgroup" (click)="$event.stopPropagation()">
+                <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
+                <input
+                    type="text"
+                    pInputText
+                    pAutoFocus
+                    [autofocus]="true"
+                    [style]="{ minWidth: '10rem' }"
+                    [(ngModel)]="filterValue"
+                    (keyup)="handleFilterInput($event)"
+                />
+                <span
+                  class="p-inputgroup-addon"
+                  [ngStyle]="{ cursor: filterValueIsValidToCreate() ? 'pointer' : 'default' }"
+                  (click)="addFilterValue()"
+                >
+                    <i
+                        class="pi pi-plus"
+                        [ngStyle]="{ color: filterValueIsValidToCreate() ? 'green' : 'grey' }"
+                    ></i>
+                </span>
+            </div>
+        </div>
+    </ng-template>
 </p-dropdown>

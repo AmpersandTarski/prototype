@@ -11,7 +11,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   extends BaseAtomicComponent<ObjectBase, I>
   implements OnInit
 {
-  public dropdownMenuObjects: ObjectBase[] | undefined;
+  public dropdownOptions: ObjectBase[] | undefined;
+  public filteredDropdownOptions: ObjectBase[] | undefined;
+  public filterValue = '';
   @Input() public placeholder!: string;
   @Input() tgtResourceType!: string;
 
@@ -23,9 +25,52 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       this.interfaceComponent
         .fetchDropdownMenuData(`resource/${this.tgtResourceType}`)
         .subscribe((objects) => {
-          this.dropdownMenuObjects = objects;
+          this.dropdownOptions = objects;
+          this.filteredDropdownOptions = this.selectableDropdownOptions();
         });
     }
+  }
+
+  public handleFilterInput(e: KeyboardEvent): void {
+    if (e.code === 'Enter') {
+      this.addFilterValue();
+      return; // added item, so done!
+    }
+
+    if (this.filterValue === '') {
+      // reset filter
+      this.filteredDropdownOptions = this.selectableDropdownOptions();
+    } else {
+      // filter according to filterValue, case-insensitive
+      this.filteredDropdownOptions = this.selectableDropdownOptions().filter(
+        (option) => option._id_.toLowerCase().includes(this.filterValue.toLowerCase()),
+      );
+    }
+  }
+
+  public addFilterValue(): void {
+    if (!this.filterValueIsValidToCreate()) {
+      return; // value not allowed to create
+    }
+
+    const value = this.filterValue;
+    this.interfaceComponent
+      .patch(this.resource._path_, [
+        {
+          op: 'add',
+          path: this.propertyName,
+          value: value,
+        },
+      ])
+      .subscribe();
+  }
+
+  public filterValueIsValidToCreate(): boolean {
+    if (!this.filterValue.trim().length) {
+      return false; // empty value not allowed
+    }
+    // case-insensitive
+    return !this.dropdownOptions!.map((option) => option._id_.toLowerCase()).includes(this.filterValue.toLowerCase());
   }
 
   public override removeItem(index: number) {
@@ -52,13 +97,11 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   /**
    * Exclude current values from dropdown menu
    */
-  filteredDropdownMenuObjects: Signal<typeof this.dropdownMenuObjects> =
+  public selectableDropdownOptions: Signal<ObjectBase[]> =
     computed(() => {
       const ids = this.requireArray(this.resource[this.propertyName]).map(
         (d) => d._id_,
       );
-      return (
-        this.dropdownMenuObjects?.filter((o) => !ids.includes(o._id_)) ?? []
-      );
+      return this.dropdownOptions?.filter((o) => !ids.includes(o._id_)) ?? [];
     });
 }
