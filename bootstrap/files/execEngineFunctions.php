@@ -288,7 +288,9 @@ ExecEngine::registerFunction('MrgAtoms', function ($conceptA, $srcAtomId, $conce
     }
 
     if (!$srcAtom->exists() || !$tgtAtom->exists()) {
-        $this->notice("Skipping MrgAtoms function of {$srcAtom} and {$tgtAtom}, because one or both of them not exist (anymore)");
+        // I don't want MrgAtoms to fail. It must return silently when one or both atoms do not exist without doing anything.
+        // So, I have commented out the following line:
+        // $this->notice("Skipping MrgAtoms function of {$srcAtom} and {$tgtAtom}, because one or both of them not exist (anymore)");
         return;
     }
     
