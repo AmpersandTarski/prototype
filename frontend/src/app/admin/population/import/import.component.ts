@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { ButtonState } from 'src/app/shared/helper/button-state';
+import { Component, ViewChild } from '@angular/core';
+import { HttpEventType } from '@angular/common/http';
+import { FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { PopulationService } from '../population.service';
 
 @Component({
@@ -9,54 +10,48 @@ import { PopulationService } from '../population.service';
 })
 export class ImportComponent {
   /**
-   * ImportComponent allows the user to upload a .json file containing population data.
+   * ImportComponent allows the user to upload files containing population data.
    */
-  buttonState1: ButtonState = new ButtonState();
-  files: File[] = [];
+  @ViewChild('uploader') private uploader: FileUpload;
 
   constructor(private populationService: PopulationService) {}
 
-  /**
-   * Set the buttonState to its initial value
-   */
-  initButtonStates(): void {
-    this.buttonState1.init();
-  }
-
-  /**
-   * Determines whether a file is being chosen to upload.
-   * @returns true while busy
-   */
-  isLoading(): boolean {
-    return this.buttonState1.loading;
-  }
-
-  hasNoFiles(): boolean {
-    return this.files.length < 1;
-  }
-
-  uploadFiles() {
-    this.initButtonStates();
-    this.buttonState1.loading = true;
-
-    // send files to API (one by one)
-    while (!this.hasNoFiles()) {
-      // upload one file
-      this.populationService.importPopulation(this.files.pop()).subscribe();
+  public async handleUpload(event: FileUploadHandlerEvent): Promise<void> {
+    for (const file of event.files) {
+      // upload files one by one
+      await new Promise((resolve) => this.upload(file, resolve));
     }
 
-    this.buttonState1.loading = false;
+    // clean up uploader state
+    this.uploader.uploading = false;
+    this.uploader.progress = 0;
+    this.uploader.clear();
   }
 
-  /**
-   * Adds file(s) to queue.
-   */
-  onSelect(event: { addedFiles: File[] }) {
-    this.files.push(...event.addedFiles);
-  }
-
-  /* Removes file */
-  onRemove(event: File) {
-    this.files.splice(this.files.indexOf(event), 1);
+  private upload(file: File, resolve: (value: unknown) => void): void {
+    const uploader = this.uploader;
+    this.populationService.importPopulation(file).subscribe({
+      next(event) {
+        switch (event.type) {
+          case HttpEventType.UploadProgress: {
+            if (event.loaded && typeof event.total === 'number') {
+              // show the progress separate for each file,
+              // starting all over agina from 0 again on the next file
+              uploader.progress = Math.round(
+                (event.loaded * 100) / event.total,
+              );
+            }
+            break;
+          }
+          case HttpEventType.Response:
+            // we could check the response status here, but any http error will
+            // be caught by the http error interceptor, and runtime we'll never get here in that case...
+            uploader.uploadedFiles.push(file);
+            resolve(true); // resolve the promise to continue with the next file
+            break;
+        }
+        uploader.cd.markForCheck();
+      },
+    });
   }
 }
