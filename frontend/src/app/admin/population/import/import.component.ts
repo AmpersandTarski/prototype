@@ -47,10 +47,13 @@ export class ImportComponent {
             // we could check the response status here, but any http error will
             // be caught by the http error interceptor, and runtime we'll never get here in that case...
             uploader.uploadedFiles.push(file);
-            resolve(true); // resolve the promise to continue with the next file
             break;
         }
         uploader.cd.markForCheck();
+      },
+      complete(): void {
+        // by resolving here, we always continue with the next file, even on a failed upload or import error
+        resolve(true);
       },
     });
   }
