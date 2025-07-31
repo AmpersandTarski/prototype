@@ -3,7 +3,6 @@
 # Ampersand compiled output
 /src/app/generated/*
 !/src/app/generated/.templates
-!/src/app/generated/project.module.ts
 
 # Compiled output
 /dist
