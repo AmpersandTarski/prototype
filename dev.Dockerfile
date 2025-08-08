@@ -17,6 +17,9 @@ RUN apt-get update \
 RUN docker-php-ext-install mysqli curl gd fileinfo zip \
  && a2enmod rewrite
 
+# Copy site configuration file
+COPY ./docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
+
 # Install composer (php's package manager)
 RUN php  -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
  && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
