@@ -1,23 +1,57 @@
-# clear generated frontend
-cd frontend/src/app/
-mv generated generated.bak
-mkdir generated
-cp -r generated.bak/.templates generated/
-cp generated.bak/project.module.ts generated/
-rm -r generated.bak
-cd ../../../
+#!/usr/bin/env bash
 
-# generate backend and frontend
-docker exec -it prototype sh -c "ampersand proto --no-frontend /var/www/project/main.adl --proto-dir /var/www/backend --crud-defaults cRud --verbose"
-docker exec -it prototype sh -c "ampersand proto --frontend-version Angular --no-backend /var/www/project/main.adl --proto-dir /var/www/frontend/src/app/generated --crud-defaults cRud --verbose"
+# Make sure script stops on any error
+set -e
 
-# build fronted
-cd frontend
-npm i
+echo "🔄 Switching to frontend directory..."
+cd frontend/src/app/ || exit 1
+
+echo "🧹 Preparing generated directory..."
+if [ -d "generated" ]; then
+  echo "📦 Moving existing generated → generated.bak"
+  rm -rf generated.bak
+  mv generated generated.bak
+else
+  echo "ℹ️ No previous generated folder to back up"
+  rm -rf generated.bak
+fi
+
+mkdir -p generated
+
+if [ -d "generated.bak/.templates" ]; then
+  echo "📁 Restoring .templates"
+  cp -r generated.bak/.templates generated/
+fi
+
+if [ -f "generated.bak/project.module.ts" ]; then
+  echo "📄 Restoring project.module.ts"
+  cp generated.bak/project.module.ts generated/
+fi
+
+rm -rf generated.bak
+cd ../../../ || exit 1
+
+echo "⚙️ Compiling ADL into backend code ..."
+if ! docker exec -it prototype sh -c "ampersand proto --no-frontend /var/www/test/projects/project-administration/model/ProjectAdministration.adl  --proto-dir /var/www/backend --crud-defaults cRud --verbose"; then
+  echo "❌ Backend generation failed. Aborting script."
+  exit 1
+fi
+
+echo "⚙️ Compiling ADL into frontend source code ..."
+if ! docker exec -it prototype sh -c "ampersand proto --frontend-version Angular --no-backend /var/www/test/projects/project-administration/model/ProjectAdministration.adl  --proto-dir /var/www/frontend/src/app/generated --crud-defaults cRud --verbose"; then
+  echo "❌ Frontend generation failed. Aborting script."
+  exit 1
+fi
+
+echo "🧱 Building frontend from generated source code ..."
+cd frontend || exit 1
+npm install
 npm run build
 cd ../
 
-# copy generated files to html folder
-rm -r html/*
+echo "🚚 Copying generated files to html/"
+rm -rf html/*
 cp -r backend/public/ html/
 cp -r frontend/dist/prototype-frontend/* html/
+
+echo "✅ Done. Checkout your changes on: http://localhost"
