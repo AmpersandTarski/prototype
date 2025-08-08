@@ -3,6 +3,13 @@
 # Make sure script stops on any error
 set -e
 
+project=${1:-project-administration}
+model=${2:-ProjectAdministration.adl}
+
+echo "🛠️ Using project: $project"
+echo "📄 Using model: $model"
+
+
 echo "🔄 Switching to frontend directory..."
 cd frontend/src/app/ || exit 1
 
@@ -31,14 +38,16 @@ fi
 rm -rf generated.bak
 cd ../../../ || exit 1
 
+adl_path="/var/www/test/projects/${project}/model/${model}"
+
 echo "⚙️ Compiling ADL into backend code ..."
-if ! docker exec -it prototype sh -c "ampersand proto --no-frontend /var/www/test/projects/project-administration/model/ProjectAdministration.adl  --proto-dir /var/www/backend --crud-defaults cRud --verbose"; then
+if ! docker exec -it prototype sh -c "ampersand proto --no-frontend ${adl_path} --proto-dir /var/www/backend --crud-defaults cRud --verbose"; then
   echo "❌ Backend generation failed. Aborting script."
   exit 1
 fi
 
 echo "⚙️ Compiling ADL into frontend source code ..."
-if ! docker exec -it prototype sh -c "ampersand proto --frontend-version Angular --no-backend /var/www/test/projects/project-administration/model/ProjectAdministration.adl  --proto-dir /var/www/frontend/src/app/generated --crud-defaults cRud --verbose"; then
+if ! docker exec -it prototype sh -c "ampersand proto --frontend-version Angular --no-backend ${adl_path} --proto-dir /var/www/frontend/src/app/generated --crud-defaults cRud --verbose"; then
   echo "❌ Frontend generation failed. Aborting script."
   exit 1
 fi
