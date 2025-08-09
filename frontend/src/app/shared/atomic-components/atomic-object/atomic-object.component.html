@@ -1,38 +1,149 @@
-<div *ngFor="let object of data; let i = index" class="item">
-    <div
-        *ngIf="canUpdate()"
-        class="pi pi-fw pi-minus"
-        (click)="removeItem(i)"
-        pTooltip="Remove"
-        tooltipPosition="left"
-    ></div>
-
-    <div
-        *ngIf="canDelete()"
-        class="pi pi-fw pi-trash"
-        (click)="deleteItem(i)"
-        pTooltip="Delete"
-        tooltipPosition="left"
-    ></div>
-
-    <span>
-        {{ object._label_ }}
-    </span>
-
-    <app-ifcs-dropdown size="small" [resource]="object"></app-ifcs-dropdown>
+<div *ngIf="isUni && canRead() && !canUpdate()" class="select-wrap">
+    <ng-container *ngTemplateOutlet="uniRead"> </ng-container>
 </div>
 
-<p-dropdown
-    *ngIf="dropdownMenuObjects"
-    [options]="filteredDropdownMenuObjects()"
-    [(ngModel)]="newValue"
-    optionLabel="_label_"
-    [filter]="true"
-    filterBy="_label_"
-    [showClear]="false"
-    [placeholder]="placeholder"
-    (onChange)="addValue()"
-    [required]="isNewItemInputRequired()"
-    [disabled]="isNewItemInputDisabled()"
->
-</p-dropdown>
+<div *ngIf="isUni && canRead() && canUpdate()" class="select-wrap">
+    <ng-container *ngTemplateOutlet="uniUpdate"> </ng-container>
+</div>
+
+<div *ngIf="!isUni && canRead()" class="select-wrap">
+    <ng-container *ngTemplateOutlet="nonUni"> </ng-container>
+</div>
+
+<div *ngIf="!canRead()" class="select-wrap">
+    <span><i>Object is not readable</i></span>
+</div>
+
+<ng-template #uniRead>
+    <div *ngIf="resource[propertyName]" class="item">
+        <div
+            *ngIf="canDelete()"
+            class="pi pi-fw pi-trash"
+            style="margin: auto 0"
+            (click)="delete()"
+            pTooltip="Delete"
+            tooltipPosition="left"
+        ></div>
+        <span>{{ resource[propertyName]._label_ }}</span>
+        <app-ifcs-dropdown size="small" [resource]="resource[propertyName]"></app-ifcs-dropdown>
+    </div>
+    <span *ngIf="!resource[propertyName]">Object deleted</span>
+</ng-template>
+
+<ng-template #uniUpdate>
+    <div class="item">
+        <span
+            *ngIf="canUpdate()"
+            class="pi pi-minus"
+            style="margin: auto 0"
+            [ngStyle]="{
+                cursor: isObject(uniValue()) ? 'pointer' : 'default',
+                color: isObject(uniValue()) ? 'red' : 'grey'
+            }"
+            (click)="isObject(uniValue()) && remove()"
+            pTooltip="Remove"
+            tooltipPosition="left"
+        ></span>
+        <span
+            *ngIf="canDelete()"
+            class="pi pi-trash"
+            style="margin: auto 0"
+            [ngStyle]="{
+                cursor: isObject(uniValue()) ? 'pointer' : 'default',
+                color: isObject(uniValue()) ? 'red' : 'grey'
+            }"
+            (click)="isObject(uniValue()) && delete()"
+            pTooltip="Delete"
+            tooltipPosition="left"
+        ></span>
+        <p-dropdown
+            #dropdown
+            [options]="uniSelectableOptions()"
+            [ngModel]="uniValue()"
+            (ngModelChange)="uniValue.set($event); update()"
+            (keyup)="handleFilterInput(uniValue()!, $event)"
+            dataKey="_id_"
+            optionLabel="_label_"
+            [placeholder]="placeholder"
+            [editable]="true"
+            [required]="isNewItemInputRequired()"
+        >
+        </p-dropdown>
+        <button
+            *ngIf="canCreate()"
+            type="button"
+            pButton
+            pRipple
+            icon="pi pi-plus"
+            styleClass="p-button-success"
+            (click)="createAndAdd(uniValue()!)"
+            [disabled]="!isAllowedToCreate(uniValue()!)"
+        ></button>
+        <app-ifcs-dropdown
+            size="small"
+            style="margin: auto 0"
+            [resource]="resource[propertyName]"
+        ></app-ifcs-dropdown>
+    </div>
+</ng-template>
+
+<ng-template #nonUni>
+    <div *ngFor="let object of data; let i = index" class="item">
+        <div
+            *ngIf="canUpdate()"
+            class="pi pi-fw pi-minus"
+            (click)="remove(i)"
+            pTooltip="Remove"
+            tooltipPosition="left"
+        ></div>
+        <div
+            *ngIf="canDelete()"
+            class="pi pi-fw pi-trash"
+            (click)="delete(i)"
+            pTooltip="Delete"
+            tooltipPosition="left"
+        ></div>
+        <span>{{ object._label_ }}</span>
+        <app-ifcs-dropdown size="small" [resource]="object"></app-ifcs-dropdown>
+    </div>
+    <p-dropdown
+        #dropdown
+        *ngIf="allOptions() && canUpdate()"
+        [options]="nonUniSelectableOptions()"
+        [(ngModel)]="newValue"
+        optionLabel="_label_"
+        [filter]="true"
+        filterBy="_label_"
+        [placeholder]="placeholder"
+        (onChange)="add()"
+        [required]="isNewItemInputRequired()"
+    >
+        <ng-template pTemplate="filter">
+            <div class="flex gap-1">
+                <div class="p-inputgroup" (click)="$event.stopPropagation()">
+                    <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
+                    <input
+                        type="text"
+                        pInputText
+                        pAutoFocus
+                        [autofocus]="true"
+                        style="min-width: 10rem; border: 1px solid rgba(0, 0, 0, 0.38)"
+                        [ngModel]="filterValue()"
+                        (ngModelChange)="filterValue.set($event)"
+                        (keyup)="handleFilterInput(filterValue(), $event)"
+                    />
+                    <button
+                        *ngIf="canCreate()"
+                        type="button"
+                        pButton
+                        pRipple
+                        icon="pi pi-plus"
+                        styleClass="p-button-success"
+                        (click)="createAndAdd(filterValue())"
+                        [disabled]="!isAllowedToCreate(filterValue())"
+                    ></button>
+                </div>
+            </div>
+        </ng-template>
+    </p-dropdown>
+</ng-template>
