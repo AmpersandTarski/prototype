@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import {HttpClient, HttpEvent} from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { EMPTY, Observable } from 'rxjs';
 import { PatchResponse } from 'src/app/shared/interfacing/patch-response.interface';
@@ -40,14 +40,17 @@ export class PopulationService implements IPopulationService {
 
   /* Send one file to API. */
   public importPopulation(
-    file: File | undefined,
-  ): Observable<PatchResponse<JSON>> {
+    file: File,
+  ): Observable<HttpEvent<PatchResponse<JSON>>> {
     if (file === undefined) {
       return EMPTY;
     }
 
     const formData = new FormData();
     formData.append('file', file, file.name);
-    return this.http.post<PatchResponse<JSON>>(this.importUrl, formData);
+    return this.http.post<PatchResponse<JSON>>(this.importUrl, formData, {
+      observe: 'events',
+      reportProgress: true,
+    });
   }
 }
