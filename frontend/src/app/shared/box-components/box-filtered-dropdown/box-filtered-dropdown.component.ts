@@ -22,7 +22,16 @@ export class BoxFilteredDropdownComponent<
   }
 
   get selectFrom() {
-    return this.resource['selectFrom'] ?? [];
+    // First try the resource property (from ADL model: resource : eligibleEmployees)
+    if (this.resource['resource'] && Array.isArray(this.resource['resource'])) {
+      return this.resource['resource'];
+    }
+    // Fallback to selectFrom property
+    if (this.resource['selectFrom'] && Array.isArray(this.resource['selectFrom'])) {
+      return this.resource['selectFrom'];
+    }
+    // Fallback to dropdownMenuObjects$ from BaseBoxComponent
+    return [];
   }
 
   dirty = false;
