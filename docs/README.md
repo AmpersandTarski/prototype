@@ -25,10 +25,13 @@ Then make changes to your code in frontend/src
 
 To reflect your changes:
 > ./generate.sh
+(On MacOS, make sure the EndOfLine sequence is set to LF)
 
 ### Troubleshooting
 Clean your complete docker environment (pls be aware this applies to your complete machine)
 > docker system prune -a
+
+
 
 
 

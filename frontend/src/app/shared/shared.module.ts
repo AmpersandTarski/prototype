@@ -44,6 +44,7 @@ import { BoxPropButtonComponent } from './box-components/box-prop-button/box-pro
 import { AtomicUrlComponent } from './atomic-components/atomic-url/atomic-url.component';
 import { AtomicSelectComponent } from './atomic-components/atomic-select/atomic-select.component';
 import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.component';
+import { BoxFilteredDropdownComponent } from './box-components/box-filtered-dropdown/box-filtered-dropdown.component';
 
 @NgModule({
   declarations: [
@@ -66,6 +67,7 @@ import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.comp
     BoxTabsComponent,
     BoxTabsDirective,
     BoxTabsLoadingComponent,
+    BoxFilteredDropdownComponent,
     BoxFormComponent,
     BoxFormTemplateDirective,
     BoxFormLoadingComponent,
@@ -112,6 +114,7 @@ import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.comp
     BoxTabsComponent,
     BoxTabsDirective,
     BoxTabsLoadingComponent,
+    BoxFilteredDropdownComponent,
     BoxFormComponent,
     BoxFormTemplateDirective,
     BoxFormLoadingComponent,

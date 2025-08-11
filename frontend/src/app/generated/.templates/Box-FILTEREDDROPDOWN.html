@@ -1,0 +1,13 @@
+<p>Some first HTML in my Box-FILTEREDDROPDOWN html file</p>
+
+<div $if(isRoot)$*ngIf="resource?.data" $endif$>
+    <app-box-filtered-dropdown
+        [resource]="resource"
+        [interfaceComponent]="this"
+        propertyName="$name$"
+        [data]="resource.$name$"
+        tgtResourceType="$target$"
+        placeholder="$label$"
+        crud="$crud$"
+    ></app-box-filtered-dropdown>
+</div>
