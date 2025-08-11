@@ -1,0 +1,32 @@
+.select-wrap {
+  width: 100%;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding: 0.25rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+
+  .pi-minus {
+    cursor: pointer;
+    color: #dc3545;
+    margin-right: 0.5rem;
+    
+    &:hover {
+      color: #c82333;
+    }
+  }
+
+  span {
+    flex: 1;
+    margin-right: 0.5rem;
+  }
+}
+
+p-dropdown {
+  width: 100%;
+}
