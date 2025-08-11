@@ -10,3 +10,4 @@ backend/generics/*.sql
 html/
 project/
 .env
+frontend/src/app/generated/project.module.ts
