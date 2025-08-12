@@ -12,7 +12,7 @@ export class BoxFilteredDropdownComponent<
   TItem extends ObjectBase,
   I extends ObjectBase | ObjectBase[],
 > extends BaseBoxComponent<TItem, I> {
-  
+
   /**
    * Because we don't get correct isUni from template just check if prop is array
    * to see if multiple or single value.
@@ -22,6 +22,8 @@ export class BoxFilteredDropdownComponent<
   }
 
   get selectFrom() {
+    console.log('Data input:', this.data);
+
     // First try the resource property (from ADL model: resource : eligibleEmployees)
     if (this.resource['resource'] && Array.isArray(this.resource['resource'])) {
       return this.resource['resource'];
