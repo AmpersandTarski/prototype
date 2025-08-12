@@ -38,7 +38,7 @@ ENFORCE eligibleEmployees := status;"eligible";status~ /\ I
 INTERFACE PaginaMetDropwdown : "_SESSION"[SESSION]; V[SESSION*Project] BOX<FORM>
   [ "Project ID" : I
   , "Assign an employee" : projectMember BOX<FILTEREDDROPDOWN>
-       [ resource : eligibleEmployees ]  -- The drop down menu only shows the three eligible employees
+       [ select : eligibleEmployees ]  -- The drop down menu only shows the three eligible employees
   ]
     
 

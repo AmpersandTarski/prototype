@@ -24,15 +24,11 @@ export class BoxFilteredDropdownComponent<
   get selectFrom() {
     console.log('Data input:', this.data);
 
-    // First try the resource property (from ADL model: resource : eligibleEmployees)
-    if (this.resource['resource'] && Array.isArray(this.resource['resource'])) {
-      return this.resource['resource'];
+    // First try the select property 
+    if (this.resource['select'] && Array.isArray(this.resource['select'])) {
+      return this.resource['select'];
     }
-    // Fallback to selectFrom property
-    if (this.resource['selectFrom'] && Array.isArray(this.resource['selectFrom'])) {
-      return this.resource['selectFrom'];
-    }
-    // Fallback to dropdownMenuObjects$ from BaseBoxComponent
+
     return [];
   }
 
