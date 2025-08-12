@@ -1,0 +1,13 @@
+<app-atomic-object
+    [resource]="resource"
+    [interfaceComponent]="this"
+    [property]="resource.$name$"
+    propertyName="$name$"
+    label="$label$"
+    crud="$crud$"
+    placeholder="Add $target$"
+    tgtResourceType="$target$"
+    [selectOptions]="resource.$name$"
+    $if(exprIsUni)$isUni$endif$
+    $if(exprIsTot)$isTot$endif$
+></app-atomic-object>

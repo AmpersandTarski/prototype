@@ -1,8 +1,9 @@
 /*
- * Generated code by Ampersand compiler
- * File:        project.module.ts
- * Template:    project.module.ts.txt
- * Context:     FilteredDropdownExamples
+ * This is a dummy module. It will be overwritten by the compiler when
+ * generating a prototype application.
+ *
+ * This module and exported routes and menuItems constants are needed to
+ * integrate with other non-generated parts of the framework.
  */
 
 // Imports
@@ -10,106 +11,23 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 import { MenuItem } from 'primeng/api';
-import { BackendService } from './backend.service';
-import { SharedModule } from '../shared/shared.module';
 import { InterfaceRouteMap, INTERFACE_ROUTE_MAPPING_TOKEN } from '../config';
-import { TabViewModule } from 'primeng/tabview';
-import { TableModule } from 'primeng/table';
-
-import { AllfiltereddropdownsComponent } from './allfiltereddropdowns/allfiltereddropdowns.component';
-import { PrototypecontextEditinterfaceComponent } from './prototypecontext-editinterface/prototypecontext-editinterface.component';
-import { PrototypecontextEditmenuitemComponent } from './prototypecontext-editmenuitem/prototypecontext-editmenuitem.component';
-import { PrototypecontextEditnavigationmenuComponent } from './prototypecontext-editnavigationmenu/prototypecontext-editnavigationmenu.component';
-import { PrototypecontextListallinterfacesComponent } from './prototypecontext-listallinterfaces/prototypecontext-listallinterfaces.component';
 
 // Routes
-const routes: Routes = [
-  {
-    path: 'allfiltereddropdowns',
-    component: AllfiltereddropdownsComponent,
-    title: 'AllFilteredDropdowns',
-  },
-  {
-    path: 'prototypecontext-editinterface/:id',
-    component: PrototypecontextEditinterfaceComponent,
-    title: 'Edit interface',
-  },
-  {
-    path: 'prototypecontext-editmenuitem/:id',
-    component: PrototypecontextEditmenuitemComponent,
-    title: 'Edit menu item',
-  },
-  {
-    path: 'prototypecontext-editnavigationmenu',
-    component: PrototypecontextEditnavigationmenuComponent,
-    title: 'Edit navigation menu',
-  },
-  {
-    path: 'prototypecontext-listallinterfaces',
-    component: PrototypecontextListallinterfacesComponent,
-    title: 'List all interfaces',
-  },
-
-];
+const routes: Routes = [];
 
 // Menu
-export const menuItems: MenuItem[] = [
-  {
-    label: 'Project',
-    items: [
-      {
-        label: 'AllFilteredDropdowns',
-        icon: 'pi pi-fw pi-bars',
-        routerLink: ['/allfiltereddropdowns'],
-      },
-      {
-        label: 'Edit navigation menu',
-        icon: 'pi pi-fw pi-bars',
-        routerLink: ['/prototypecontext-editnavigationmenu'],
-      },
-      {
-        label: 'List all interfaces',
-        icon: 'pi pi-fw pi-bars',
-        routerLink: ['/prototypecontext-listallinterfaces'],
-      },
-    ],
-  },
-];
+export const menuItems: MenuItem[] = [];
 
 // Interface to route mapping
-const INTERFACE_ROUTE_MAP: InterfaceRouteMap = {
-  'AllFilteredDropdowns': '/allfiltereddropdowns',
-  'PrototypeContext.Editinterface': '/prototypecontext-editinterface',
-  'PrototypeContext.Editmenuitem': '/prototypecontext-editmenuitem',
-  'PrototypeContext.Editnavigationmenu': '/prototypecontext-editnavigationmenu',
-  'PrototypeContext.Listallinterfaces': '/prototypecontext-listallinterfaces',
-};
+const INTERFACE_ROUTE_MAP: InterfaceRouteMap = {};
 
 // Module
 @NgModule({
-  declarations: [
-    AllfiltereddropdownsComponent,
-    PrototypecontextEditinterfaceComponent,
-    PrototypecontextEditmenuitemComponent,
-    PrototypecontextEditnavigationmenuComponent,
-    PrototypecontextListallinterfacesComponent,
-  ],
-  exports: [
-    AllfiltereddropdownsComponent,
-    PrototypecontextEditinterfaceComponent,
-    PrototypecontextEditmenuitemComponent,
-    PrototypecontextEditnavigationmenuComponent,
-    PrototypecontextListallinterfacesComponent,
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    RouterModule.forChild(routes),
-    TabViewModule,
-    TableModule,
-  ],
+  declarations: [],
+  exports: [],
+  imports: [CommonModule, RouterModule.forChild(routes)],
   providers: [
-    { provide: BackendService, useClass: BackendService },
     { provide: INTERFACE_ROUTE_MAPPING_TOKEN, useValue: INTERFACE_ROUTE_MAP },
   ],
 })

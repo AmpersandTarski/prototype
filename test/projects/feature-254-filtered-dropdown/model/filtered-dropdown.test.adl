@@ -1,0 +1,55 @@
+CONTEXT FilteredDropdownsTests
+
+REPRESENT Name TYPE ALPHANUMERIC
+REPRESENT Status TYPE ALPHANUMERIC
+
+RELATION name[Employee*Name] [UNI]
+RELATION status[Employee*Status] [UNI]
+RELATION projectMember[Project*Employee]
+POPULATION name[Employee*Name] CONTAINS
+  [ ("m1", "Jan Jansen")
+  , ("m2", "Piet Peters")
+  , ("m3", "Marie Bakker")
+  , ("m4", "Klaas Klaasen")
+  , ("m5", "Anna Annasson")
+  ]
+
+POPULATION status[Employee*Status] CONTAINS
+  [ ("m1", "eligible")
+  , ("m2", "on leave")
+  , ("m4", "eligible")
+  , ("m3", "fired")
+  , ("m5", "eligible")
+  ]
+
+POPULATION projectMember[Project*Employee] CONTAINS
+  [ ("project 1", "m1")
+  , ("project 2", "m1")
+  , ("project 2", "m2")
+  ]
+
+-- Desired filtering: eligible employees only
+RELATION eligibleEmployees[Employee] [PROP]
+ENFORCE eligibleEmployees := status;"eligible";status~ /\ I
+-- As a result, eligibleEmployees contains [ ("m1","m1"), ("m4","m4"), ("m5","m5")]
+
+-- I want the user to pick project members in the relation `projectMember`, using `eligibleEmployees` to select from.
+
+INTERFACE AllFilteredDropdowns : "_SESSION"[SESSION]; V[SESSION*Project] cRUd BOX<FORM>
+  [ "Project ID" : I
+  , "Assign an employee (cRud)" : projectMember cRud BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (cRUd)" : projectMember cRUd BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (cRUD)" : projectMember cRUD BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (CRUD)" : projectMember CRUD BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (no permissions)" : projectMember  BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  -- , "Assign an employee (crud)" : projectMember crud BOX<FILTEREDDROPDOWN>
+  -- [ select : eligibleEmployees ]  
+  ]
+    
+
+ENDCONTEXT
