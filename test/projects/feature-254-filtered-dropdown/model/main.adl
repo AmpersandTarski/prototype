@@ -1,7 +1,8 @@
 CONTEXT FilteredDropdownExamples IN ENGLISH
-INCLUDE "basic-population-and-relations.adl"
--- INCLUDE "filtered-dropdown-default.test.adl"
+
+INCLUDE "filtered-dropdown-uni-tot.test.adl"
+INCLUDE "filtered-dropdown-tot.test.adl"
 INCLUDE "filtered-dropdown-uni.test.adl"
--- INCLUDE "filtered-dropdown-tot.test.adl"
--- INCLUDE "filtered-dropdown-uni-tot.test.adl"
+INCLUDE "filtered-dropdown-default.test.adl"
+
 ENDCONTEXT

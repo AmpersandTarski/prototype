@@ -1,34 +1,60 @@
 CONTEXT FilteredDropdownsTestsUniTot
 
--- Only define the UNI,TOT relation and its population - other relations are defined in the default file
+REPRESENT UniTotName TYPE ALPHANUMERIC
+REPRESENT UniTotStatus TYPE ALPHANUMERIC
+
+RELATION uniTotName[Employee*UniTotName] [UNI]
+RELATION uniTotStatus[Employee*UniTotStatus] [UNI]
 RELATION projectMemberUniTot[Project*Employee] [UNI, TOT]
+
+POPULATION uniTotName[Employee*UniTotName] CONTAINS
+  [ ("m1", "Jan Jansen")
+  , ("m2", "Piet Peters")
+  , ("m3", "Marie Bakker")
+  , ("m4", "Klaas Klaasen")
+  , ("m5", "Anna Annasson")
+  ]
+
+POPULATION uniTotStatus[Employee*UniTotStatus] CONTAINS
+  [ ("m1", "eligible")
+  , ("m2", "on leave")
+  , ("m4", "eligible")
+  , ("m3", "fired")
+  , ("m5", "eligible")
+  ]
+
 POPULATION projectMemberUniTot[Project*Employee] CONTAINS
   [ ("project 1", "m1")
   , ("project 2", "m1")
   ]
 
--- I want the user to pick project members in the relation `projectMemberUniTot`, using `eligibleEmployees` to select from.
+-- Desired filtering: eligible employees only
+RELATION uniTotEligibleEmployees[Employee] [PROP]
+ENFORCE uniTotEligibleEmployees := uniTotStatus;"eligible";uniTotStatus~ /\ I
+-- As a result, uniTotEligibleEmployees contains [ ("m1","m1"), ("m4","m4"), ("m5","m5")]
+
+-- I want the user to pick project members in the relation `projectMemberUniTot`, using `uniTotEligibleEmployees` to select from.
 
 INTERFACE DropdownsUniTot : "_SESSION"[SESSION]; V[SESSION*Project] cRUd BOX<FORM>
   [ "Project ID" : I
   , "Section Header" : TXT "ALL 8 VARIATIONS with the R permission"
 
   , "Assign an employee (cRud)" : projectMemberUniTot cRud BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : uniTotEligibleEmployees ]  
   , "Assign an employee (cRUd)" : projectMemberUniTot cRUd BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : uniTotEligibleEmployees ]  
   , "Assign an employee (cRuD)" : projectMemberUniTot cRuD BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : uniTotEligibleEmployees ]  
   , "Assign an employee (cRUD)" : projectMemberUniTot cRUD BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : uniTotEligibleEmployees ]  
   , "Assign an employee (CRud)" : projectMemberUniTot CRud BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : uniTotEligibleEmployees ]  
   , "Assign an employee (CRUd)" : projectMemberUniTot CRUd BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : uniTotEligibleEmployees ]  
   , "Assign an employee (CRuD)" : projectMemberUniTot CRuD BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : uniTotEligibleEmployees ]  
   , "Assign an employee (CRUD)" : projectMemberUniTot CRUD BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : uniTotEligibleEmployees ]  
 
   , "Section Header 2" : TXT "ALL 8 VARIATIONS without the R permission"
   , "Note" : TXT "(These result in: object is not readable, but also generate red box)"

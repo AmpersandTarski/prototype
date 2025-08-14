@@ -16,7 +16,10 @@ import { InterfaceRouteMap, INTERFACE_ROUTE_MAPPING_TOKEN } from '../config';
 import { TabViewModule } from 'primeng/tabview';
 import { TableModule } from 'primeng/table';
 
+import { DropdownsdefaultComponent } from './dropdownsdefault/dropdownsdefault.component';
+import { DropdownstotComponent } from './dropdownstot/dropdownstot.component';
 import { DropdownsuniComponent } from './dropdownsuni/dropdownsuni.component';
+import { DropdownsunitotComponent } from './dropdownsunitot/dropdownsunitot.component';
 import { PrototypecontextEditinterfaceComponent } from './prototypecontext-editinterface/prototypecontext-editinterface.component';
 import { PrototypecontextEditmenuitemComponent } from './prototypecontext-editmenuitem/prototypecontext-editmenuitem.component';
 import { PrototypecontextEditnavigationmenuComponent } from './prototypecontext-editnavigationmenu/prototypecontext-editnavigationmenu.component';
@@ -25,9 +28,24 @@ import { PrototypecontextListallinterfacesComponent } from './prototypecontext-l
 // Routes
 const routes: Routes = [
   {
+    path: 'dropdownsdefault',
+    component: DropdownsdefaultComponent,
+    title: 'DropdownsDefault',
+  },
+  {
+    path: 'dropdownstot',
+    component: DropdownstotComponent,
+    title: 'DropdownsTot',
+  },
+  {
     path: 'dropdownsuni',
     component: DropdownsuniComponent,
     title: 'DropdownsUni',
+  },
+  {
+    path: 'dropdownsunitot',
+    component: DropdownsunitotComponent,
+    title: 'DropdownsUniTot',
   },
   {
     path: 'prototypecontext-editinterface/:id',
@@ -58,9 +76,24 @@ export const menuItems: MenuItem[] = [
     label: 'Project',
     items: [
       {
+        label: 'DropdownsDefault',
+        icon: 'pi pi-fw pi-bars',
+        routerLink: ['/dropdownsdefault'],
+      },
+      {
+        label: 'DropdownsTot',
+        icon: 'pi pi-fw pi-bars',
+        routerLink: ['/dropdownstot'],
+      },
+      {
         label: 'DropdownsUni',
         icon: 'pi pi-fw pi-bars',
         routerLink: ['/dropdownsuni'],
+      },
+      {
+        label: 'DropdownsUniTot',
+        icon: 'pi pi-fw pi-bars',
+        routerLink: ['/dropdownsunitot'],
       },
       {
         label: 'Edit navigation menu',
@@ -78,7 +111,10 @@ export const menuItems: MenuItem[] = [
 
 // Interface to route mapping
 const INTERFACE_ROUTE_MAP: InterfaceRouteMap = {
+  'DropdownsDefault': '/dropdownsdefault',
+  'DropdownsTot': '/dropdownstot',
   'DropdownsUni': '/dropdownsuni',
+  'DropdownsUniTot': '/dropdownsunitot',
   'PrototypeContext.Editinterface': '/prototypecontext-editinterface',
   'PrototypeContext.Editmenuitem': '/prototypecontext-editmenuitem',
   'PrototypeContext.Editnavigationmenu': '/prototypecontext-editnavigationmenu',
@@ -88,14 +124,20 @@ const INTERFACE_ROUTE_MAP: InterfaceRouteMap = {
 // Module
 @NgModule({
   declarations: [
+    DropdownsdefaultComponent,
+    DropdownstotComponent,
     DropdownsuniComponent,
+    DropdownsunitotComponent,
     PrototypecontextEditinterfaceComponent,
     PrototypecontextEditmenuitemComponent,
     PrototypecontextEditnavigationmenuComponent,
     PrototypecontextListallinterfacesComponent,
   ],
   exports: [
+    DropdownsdefaultComponent,
+    DropdownstotComponent,
     DropdownsuniComponent,
+    DropdownsunitotComponent,
     PrototypecontextEditinterfaceComponent,
     PrototypecontextEditmenuitemComponent,
     PrototypecontextEditnavigationmenuComponent,
