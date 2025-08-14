@@ -23,7 +23,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 {
   @Input() public placeholder!: string;
   @Input() public tgtResourceType!: string;
-  @Input() public selectOptions?: ObjectBase[];
+  @Input() public selectOptions?: ObjectBase[] | ObjectBase;
 
   // stores all options for the dropdown
   public allOptions = signal<ObjectBase[]>([]);
@@ -54,7 +54,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   // excludes selected ids and applies search filter
   public nonUniSelectableOptions: Signal<ObjectBase[]> = computed(() => {
     // For filtered dropdowns (when selectOptions is provided), show all filtered options
-    if (this.selectOptions && Array.isArray(this.selectOptions)) {
+    if (this.selectOptions) {
       const allOptions = this.allOptions();
       
       // check if a filter is applied
@@ -111,18 +111,22 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
     if (this.canUpdate()) {
       // Check if we have selectOptions input (for filtered dropdowns)
-      if (this.selectOptions && Array.isArray(this.selectOptions)) {
+      if (this.selectOptions) {
+        // Handle both array and single object cases
+        const selectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
+        
         console.log(`AtomicObjectComponent: using selectOptions`, this.selectOptions);
-        console.log(`AtomicObjectComponent: selectOptions length:`, this.selectOptions.length);
+        console.log(`AtomicObjectComponent: selectOptions is array:`, Array.isArray(this.selectOptions));
+        console.log(`AtomicObjectComponent: selectOptionsArray length:`, selectOptionsArray.length);
         
         // Log each item to see the structure
-        this.selectOptions.forEach((item: any, index: number) => {
+        selectOptionsArray.forEach((item: any, index: number) => {
           console.log(`AtomicObjectComponent: item ${index}:`, item);
           console.log(`AtomicObjectComponent: item ${index} select property:`, item.select, typeof item.select);
         });
         
         // Filter the options based on the 'select' property
-        const filteredOptions = this.selectOptions.filter((item: any) => {
+        const filteredOptions = selectOptionsArray.filter((item: any) => {
           const shouldInclude = item.select === true;
           console.log(`AtomicObjectComponent: item ${item._id_} select=${item.select}, shouldInclude=${shouldInclude}`);
           return shouldInclude;
@@ -143,8 +147,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         // on a data patch, we want to update the dropdown options
         this.interfaceComponent.patched.subscribe(() => {
           // Update from the selectOptions if it exists
-          if (this.selectOptions && Array.isArray(this.selectOptions)) {
-            this.allOptions.set([...this.selectOptions]); // spread to trigger change
+          if (this.selectOptions) {
+            const updatedSelectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
+            this.allOptions.set([...updatedSelectOptionsArray]); // spread to trigger change
           }
         });
       } else if (this.resource['select'] && Array.isArray(this.resource['select'])) {

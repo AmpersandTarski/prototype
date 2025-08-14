@@ -8,7 +8,7 @@ POPULATION projectMemberUni[Project*Employee] CONTAINS
 
 -- I want the user to pick project members in the relation `projectMemberUni`, using `eligibleEmployees` to select from.
 
-INTERFACE DropdownsUni : "_SESSION"[SESSION]; V[SESSION*Project] cRUd BOX<FORM>
+INTERFACE DropdownsUni : "_SESSION"[SESSION]; V[SESSION*Project] cRud BOX<FORM>
   [ "Project ID" : I
   , "Section Header" : TXT "ALL 8 VARIATIONS with the R permission"
 
@@ -29,7 +29,7 @@ INTERFACE DropdownsUni : "_SESSION"[SESSION]; V[SESSION*Project] cRUd BOX<FORM>
   , "Assign an employee (CRUD)" : projectMemberUni CRUD BOX<FILTEREDDROPDOWN>
   [ select : eligibleEmployees ]  
 
-  , "Section Header 2" : TXT "One VARIATIONS without the R permission"
+  , "Section Header 2" : TXT "One VARIATION without the R permission"
   , "Note" : TXT "(These result in: object is not readable, but also generate red box)"
   -- , "Assign an employee (crud)" : projectMemberUni crud BOX<FILTEREDDROPDOWN>
   -- [ select : eligibleEmployees ]  

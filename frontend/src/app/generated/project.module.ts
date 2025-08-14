@@ -16,7 +16,6 @@ import { InterfaceRouteMap, INTERFACE_ROUTE_MAPPING_TOKEN } from '../config';
 import { TabViewModule } from 'primeng/tabview';
 import { TableModule } from 'primeng/table';
 
-import { DropdownsdefaultComponent } from './dropdownsdefault/dropdownsdefault.component';
 import { DropdownsuniComponent } from './dropdownsuni/dropdownsuni.component';
 import { PrototypecontextEditinterfaceComponent } from './prototypecontext-editinterface/prototypecontext-editinterface.component';
 import { PrototypecontextEditmenuitemComponent } from './prototypecontext-editmenuitem/prototypecontext-editmenuitem.component';
@@ -25,11 +24,6 @@ import { PrototypecontextListallinterfacesComponent } from './prototypecontext-l
 
 // Routes
 const routes: Routes = [
-  {
-    path: 'dropdownsdefault',
-    component: DropdownsdefaultComponent,
-    title: 'DropdownsDefault',
-  },
   {
     path: 'dropdownsuni',
     component: DropdownsuniComponent,
@@ -64,11 +58,6 @@ export const menuItems: MenuItem[] = [
     label: 'Project',
     items: [
       {
-        label: 'DropdownsDefault',
-        icon: 'pi pi-fw pi-bars',
-        routerLink: ['/dropdownsdefault'],
-      },
-      {
         label: 'DropdownsUni',
         icon: 'pi pi-fw pi-bars',
         routerLink: ['/dropdownsuni'],
@@ -89,7 +78,6 @@ export const menuItems: MenuItem[] = [
 
 // Interface to route mapping
 const INTERFACE_ROUTE_MAP: InterfaceRouteMap = {
-  'DropdownsDefault': '/dropdownsdefault',
   'DropdownsUni': '/dropdownsuni',
   'PrototypeContext.Editinterface': '/prototypecontext-editinterface',
   'PrototypeContext.Editmenuitem': '/prototypecontext-editmenuitem',
@@ -100,7 +88,6 @@ const INTERFACE_ROUTE_MAP: InterfaceRouteMap = {
 // Module
 @NgModule({
   declarations: [
-    DropdownsdefaultComponent,
     DropdownsuniComponent,
     PrototypecontextEditinterfaceComponent,
     PrototypecontextEditmenuitemComponent,
@@ -108,7 +95,6 @@ const INTERFACE_ROUTE_MAP: InterfaceRouteMap = {
     PrototypecontextListallinterfacesComponent,
   ],
   exports: [
-    DropdownsdefaultComponent,
     DropdownsuniComponent,
     PrototypecontextEditinterfaceComponent,
     PrototypecontextEditmenuitemComponent,
