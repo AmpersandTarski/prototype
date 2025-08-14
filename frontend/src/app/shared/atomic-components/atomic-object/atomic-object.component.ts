@@ -101,13 +101,6 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   override ngOnInit(): void {
     super.ngOnInit();
 
-    console.log(`AtomicObjectComponent: initializing for resource type ${this.tgtResourceType}`);
-    console.log(`AtomicObjectComponent: propertyName is ${this.propertyName}`);
-    console.log(`AtomicObjectComponent: isUni is ${this.isUni}`);
-    console.log(`AtomicObjectComponent: canUpdate is ${this.canUpdate()}`);
-    console.log(`AtomicObjectComponent: canCreate is ${this.canCreate()}`);
-    console.log(`AtomicObjectComponent: data is`, this.data);
-    console.log(`AtomicObjectComponent: resource is`, this.resource);
 
     if (this.canUpdate()) {
       // Check if we have selectOptions input (for filtered dropdowns)
