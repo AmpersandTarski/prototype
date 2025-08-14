@@ -1,35 +1,61 @@
 CONTEXT FilteredDropdownsTestsTot
 
--- Only define the TOT relation and its population - other relations are defined in the default file
+REPRESENT TotName TYPE ALPHANUMERIC
+REPRESENT TotStatus TYPE ALPHANUMERIC
+
+RELATION totName[Employee*TotName] [UNI]
+RELATION totStatus[Employee*TotStatus] [UNI]
 RELATION projectMemberTot[Project*Employee] [TOT] -- at least one employee per project
+
+POPULATION totName[Employee*TotName] CONTAINS
+  [ ("m1", "Jan Jansen")
+  , ("m2", "Piet Peters")
+  , ("m3", "Marie Bakker")
+  , ("m4", "Klaas Klaasen")
+  , ("m5", "Anna Annasson")
+  ]
+
+POPULATION totStatus[Employee*TotStatus] CONTAINS
+  [ ("m1", "eligible")
+  , ("m2", "on leave")
+  , ("m4", "eligible")
+  , ("m3", "fired")
+  , ("m5", "eligible")
+  ]
+
 POPULATION projectMemberTot[Project*Employee] CONTAINS
   [ ("project 1", "m1")
   , ("project 2", "m1")
   , ("project 2", "m2")
   ]
 
--- I want the user to pick project members in the relation `projectMemberTot`, using `eligibleEmployees` to select from.
+-- Desired filtering: eligible employees only
+RELATION totEligibleEmployees[Employee] [PROP]
+ENFORCE totEligibleEmployees := totStatus;"eligible";totStatus~ /\ I
+-- As a result, totEligibleEmployees contains [ ("m1","m1"), ("m4","m4"), ("m5","m5")]
+
+-- I want the user to pick project members in the relation `projectMemberTot`, using `totEligibleEmployees` to select from.
 
 INTERFACE DropdownsTot : "_SESSION"[SESSION]; V[SESSION*Project] cRUd BOX<FORM>
   [ "Project ID" : I
   , "Section Header" : TXT "ALL 8 VARIATIONS with the R permission"
 
   , "Assign an employee (cRud)" : projectMemberTot cRud BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : totEligibleEmployees ]  
   , "Assign an employee (cRUd)" : projectMemberTot cRUd BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : totEligibleEmployees ]  
   , "Assign an employee (cRuD)" : projectMemberTot cRuD BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : totEligibleEmployees ]  
   , "Assign an employee (cRUD)" : projectMemberTot cRUD BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : totEligibleEmployees ]  
   , "Assign an employee (CRud)" : projectMemberTot CRud BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : totEligibleEmployees ]  
   , "Assign an employee (CRUd)" : projectMemberTot CRUd BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : totEligibleEmployees ]  
   , "Assign an employee (CRuD)" : projectMemberTot CRuD BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : totEligibleEmployees ]  
   , "Assign an employee (CRUD)" : projectMemberTot CRUD BOX<FILTEREDDROPDOWN>
-  [ select : eligibleEmployees ]  
+  [ select : totEligibleEmployees ]  
 
   , "Section Header 2" : TXT "ALL 8 VARIATIONS without the R permission"
   , "Note" : TXT "(These result in: object is not readable, but also generate red box)"
