@@ -270,7 +270,7 @@ In addition to the `addItem()` and `removeItem()`, the Atomic-Object also has a 
 
 ### How does it work in an ampersand script:
 
-To use the integer component in your script, add the following statement:
+To use the object component in your script, add the following statement:
 
 ```
 REPRESENT Project TYPE OBJECT
@@ -289,6 +289,75 @@ The different attributes that the front-end component accepts are listed in the 
 | attribute | value        | description                                                                                            |
 | --------- | ------------ | ------------------------------------------------------------------------------------------------------ |
 | property  | Array\<any\> | Display's the name of the object and adds links to desired actions, like editing or viewing the entity |
+
+## Filtered Dropdown Component
+
+The filtered dropdown component is a specialized version of the object component that allows users to select from a pre-filtered list of options. This is particularly useful when you want to restrict the available choices based on business rules or conditions.
+
+The FILTEREDDROPDOWN uses a `select` property to define which objects should be available for selection, effectively creating a filtered subset of all possible objects.
+
+### How does it work in an ampersand script:
+
+To use the filtered dropdown component in your script, you need to:
+
+1. Define a filtering relation (typically a PROP relation)
+2. Use the FILTEREDDROPDOWN box type with a select property
+
+```
+-- Define eligible employees based on status
+RELATION eligibleEmployees[Employee] [PROP]
+ENFORCE eligibleEmployees := status;"eligible";status~ /\ I
+
+-- Use in interface with FILTEREDDROPDOWN
+INTERFACE ProjectForm : "_SESSION"[SESSION]; V[SESSION*Project] cRud BOX<FORM>
+  [ "Assign employee" : projectMember cRud BOX<FILTEREDDROPDOWN>
+    [ select : eligibleEmployees ]
+  ]
+```
+
+### How does it work in the front-end:
+
+The FILTEREDDROPDOWN generates the same atomic-object component as regular object relations, but with additional `selectOptions` input that contains the filtered data. The component automatically handles both array (for non-UNI relations) and single object (for UNI relations) cases.
+
+```html
+<app-atomic-object
+  [resource]="resource"
+  [interfaceComponent]="this"
+  [property]="resource.projectMember"
+  propertyName="projectMember"
+  label="Assign employee"
+  crud="cRud"
+  placeholder="Add Employee"
+  tgtResourceType="Employee"
+  [selectOptions]="resource.eligibleEmployees"
+  isUni
+></app-atomic-object>
+```
+
+### Multiplicity Constraint Support:
+
+The FILTEREDDROPDOWN works with all multiplicity constraints:
+
+- **Default (no constraints)**: Many-to-many relations, generates arrays in TypeScript
+- **UNI**: Each source can relate to at most one target, generates single objects in TypeScript  
+- **TOT**: Each source must relate to at least one target
+- **UNI+TOT**: Each source relates to exactly one target (functional relation)
+
+### Key Features:
+
+- **Automatic filtering**: Only shows objects where the `select` property evaluates to `true`
+- **Type flexibility**: Handles both array and single object data structures
+- **CRUD support**: Full Create, Read, Update, Delete functionality on filtered options
+- **Search capability**: Users can search within the filtered options
+- **Constraint awareness**: Respects UNI, TOT, and combined constraints
+
+### Example Use Cases:
+
+- Selecting eligible employees for project assignment
+- Choosing active products for order creation  
+- Picking available time slots for appointment booking
+- Filtering valid options based on business rules
+
 
 ## Password Component
 

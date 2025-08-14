@@ -1,0 +1,67 @@
+# How to develop frontend components?
+
+## Setup
+1. Install Docker
+
+2. Open the prototype framework in VS Code
+
+3. Run: 
+> Docker compose up -d -- build
+this will use the compose.yaml in root folder and creates containers for the ampersand compiler, database and phpmyadmin.
+
+4. Open a New VS Code Window
+
+5. Open the project again, but now in a dev container 
+(this will use the devcontainer.json and Dockerfile in the .devcontainer folder to open an environment that works on Mac Intel/Mac Apple Silicon, and Windows)
+
+6. Now run a test project in the test folder:
+./generate.sh 
+(the default is the hello world app)
+
+7. Visit localhost
+http://localhost
+
+The Hello World App should now be running.
+
+If you already had localhost open in your browser, refresh your page
+
+Optional steps:
+8. Clean/Refresh your application
+The prototype framework might hold an 'old' application. You might see that in the navigation bar through items that not belong to the 'Hello World' app. Also, you might receive some popup errors. In that case
+
+9. Install application 
+Click on 'Installer', followed by 'With Default Population'. 
+
+10. Visit localhost
+http://localhost
+
+
+## Add your own test project
+Now it's time to specify your own test project.
+
+1. Create your project
+Create your project in /test/projects. Take the existing projects as an example. 
+
+2. Run your test project
+./generate.sh <project-name> <entry-file>
+
+for example: 
+./generate.sh feature-254-filtered-dropdown main.adl
+
+This will compile your ADL to an actual application running the browser.
+
+## Make changes: your first component
+
+For a new Ampersand construct, you'll need to create a new template manually. Add your template to:
+
+src/app/generated/.template 
+
+Don't feel confused that you are adding something manual to a 'generated' folder. Maybe counter intuitive, but that's how it works
+
+Templates will eventually bind to Angular components, typically in the src/app/shared folder. 
+
+Read the frontend-components.md for more info.
+
+## Deploy
+
+Now 
