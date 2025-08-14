@@ -1,0 +1,54 @@
+CONTEXT FilteredDropdownsTestsUniTot
+
+-- Only define the UNI,TOT relation and its population - other relations are defined in the default file
+RELATION projectMemberUniTot[Project*Employee] [UNI, TOT]
+POPULATION projectMemberUniTot[Project*Employee] CONTAINS
+  [ ("project 1", "m1")
+  , ("project 2", "m1")
+  ]
+
+-- I want the user to pick project members in the relation `projectMemberUniTot`, using `eligibleEmployees` to select from.
+
+INTERFACE DropdownsUniTot : "_SESSION"[SESSION]; V[SESSION*Project] cRUd BOX<FORM>
+  [ "Project ID" : I
+  , "Section Header" : TXT "ALL 8 VARIATIONS with the R permission"
+
+  , "Assign an employee (cRud)" : projectMemberUniTot cRud BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (cRUd)" : projectMemberUniTot cRUd BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (cRuD)" : projectMemberUniTot cRuD BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (cRUD)" : projectMemberUniTot cRUD BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (CRud)" : projectMemberUniTot CRud BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (CRUd)" : projectMemberUniTot CRUd BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (CRuD)" : projectMemberUniTot CRuD BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (CRUD)" : projectMemberUniTot CRUD BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+
+  , "Section Header 2" : TXT "ALL 8 VARIATIONS without the R permission"
+  , "Note" : TXT "(These result in: object is not readable, but also generate red box)"
+  -- , "Assign an employee (crud)" : projectMemberUniTot crud BOX<FILTEREDDROPDOWN>
+  -- [ select : eligibleEmployees ]  
+  -- , "Assign an employee (crUd)" : projectMemberUniTot crUd BOX<FILTEREDDROPDOWN>
+  -- [ select : eligibleEmployees ]  
+  -- , "Assign an employee (cruD)" : projectMemberUniTot cruD BOX<FILTEREDDROPDOWN>
+  -- [ select : eligibleEmployees ]  
+  -- , "Assign an employee (crUD)" : projectMemberUniTot crUD BOX<FILTEREDDROPDOWN>
+  -- [ select : eligibleEmployees ]  
+  -- , "Assign an employee (Crud)" : projectMemberUniTot Crud BOX<FILTEREDDROPDOWN>
+  -- [ select : eligibleEmployees ]  
+  -- , "Assign an employee (CrUd)" : projectMemberUniTot CrUd BOX<FILTEREDDROPDOWN>
+  -- [ select : eligibleEmployees ]  
+  -- , "Assign an employee (CruD)" : projectMemberUniTot CruD BOX<FILTEREDDROPDOWN>
+  -- [ select : eligibleEmployees ]  
+  -- , "Assign an employee (CrUD)" : projectMemberUniTot CrUD BOX<FILTEREDDROPDOWN>
+  -- [ select : eligibleEmployees ]  
+  ]
+    
+
+ENDCONTEXT

@@ -1,0 +1,40 @@
+CONTEXT FilteredDropdownsTestsUni
+
+-- Only define the UNI relation and its population - other relations are defined in the default file
+RELATION projectMemberUni[Project*Employee] [UNI] -- UNI Each project can be related to one employee only
+POPULATION projectMemberUni[Project*Employee] CONTAINS
+  [ ("project 1", "m1")
+  ]
+
+-- I want the user to pick project members in the relation `projectMemberUni`, using `eligibleEmployees` to select from.
+
+INTERFACE DropdownsUni : "_SESSION"[SESSION]; V[SESSION*Project] cRUd BOX<FORM>
+  [ "Project ID" : I
+  , "Section Header" : TXT "ALL 8 VARIATIONS with the R permission"
+
+  , "Assign an employee (cRud)" : projectMemberUni cRud BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (cRUd)" : projectMemberUni cRUd BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (cRuD)" : projectMemberUni cRuD BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (cRUD)" : projectMemberUni cRUD BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (CRud)" : projectMemberUni CRud BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (CRUd)" : projectMemberUni CRUd BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (CRuD)" : projectMemberUni CRuD BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+  , "Assign an employee (CRUD)" : projectMemberUni CRUD BOX<FILTEREDDROPDOWN>
+  [ select : eligibleEmployees ]  
+
+  , "Section Header 2" : TXT "One VARIATIONS without the R permission"
+  , "Note" : TXT "(These result in: object is not readable, but also generate red box)"
+  -- , "Assign an employee (crud)" : projectMemberUni crud BOX<FILTEREDDROPDOWN>
+  -- [ select : eligibleEmployees ]  
+
+  ]
+    
+
+ENDCONTEXT
