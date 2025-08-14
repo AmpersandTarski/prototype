@@ -1,6 +1,0 @@
-👋 Welcome to the prototype developer environment! This 
-   environment should help you with the development of the 
-   prototype frontend repo. 
-
-🛠️  Your environment is fully setup with all the required software.
-    If you think something is missing, please ask @hanjoosten
