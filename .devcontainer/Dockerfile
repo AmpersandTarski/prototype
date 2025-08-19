@@ -1,5 +1,5 @@
 # Use a lightweight Linux base 
-FROM node:18-bookworm-slim
+FROM node:20-bookworm-slim
 
 # Install essential development tools and Docker CLI
 RUN apt-get update && apt-get install -y \
