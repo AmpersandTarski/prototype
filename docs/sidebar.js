@@ -5,11 +5,6 @@ module.exports = {
       type: "doc",
       id: "prototype/guides/creating-custom-box-templates",
     },
-    {
-      label: "Documenting Prototype Changes",
-      type: "doc",
-      id: "prototype/guides/documenting-prototype-changes",
-    },
   ],
   prototypeReferenceSidebar: [
     {
