@@ -16,7 +16,8 @@
   // Mount the project directory
   "mounts": [
     "source=${localWorkspaceFolder},target=/var/www,type=bind,consistency=cached",
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+    "type=bind,source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh/,target=/home/vscode/.ssh,readonly"
   ],
 
   // VS Code customizations
