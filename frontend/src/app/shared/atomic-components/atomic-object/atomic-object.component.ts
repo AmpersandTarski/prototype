@@ -99,10 +99,13 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   override ngOnInit(): void {
     super.ngOnInit();
 
+    // Log only 'select' and 'selectOptions' parameters for optimization analysis
+    console.log('🔍 AtomicObject - selectOptions:', this.selectOptions);
 
     if (this.canUpdate()) {
       // Check if we have selectOptions input (for filtered dropdowns)
       if (this.selectOptions) {
+        console.log('🔵 Using selectOptions path');
         // Handle both array and single object cases
         const selectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
 
@@ -130,25 +133,8 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
             this.allOptions.set([...updatedSelectOptionsArray]); // spread to trigger change
           }
         });
-      } else if (this.resource['select'] && Array.isArray(this.resource['select'])) {
-        // Use the filtered options from the 'select' property
-        this.allOptions.set(this.resource['select']);
-
-        // Set selected option(s) signals
-        if (this.isUni) {
-          this.uniValue.set(this.resource[this.propertyName] ?? null);
-        } else {
-          this.selectedOptions.set(this.data);
-        }
-
-        // on a data patch, we want to update the dropdown options
-        this.interfaceComponent.patched.subscribe(() => {
-          // Update from the select property if it exists
-          if (this.resource['select'] && Array.isArray(this.resource['select'])) {
-            this.allOptions.set([...this.resource['select']]); // spread to trigger change
-          }
-        });
-      } else {
+      } else  {
+        console.log('🔴 Using fallback backend fetch path');
         // Fallback to original behavior: fetch from backend
         this.interfaceComponent
           .fetchDropdownMenuData(`resource/${this.tgtResourceType}`)
