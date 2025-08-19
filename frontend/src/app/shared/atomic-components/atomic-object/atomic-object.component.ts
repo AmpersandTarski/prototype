@@ -99,13 +99,10 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   override ngOnInit(): void {
     super.ngOnInit();
 
-    // Log only 'select' and 'selectOptions' parameters for optimization analysis
-    console.log('🔍 AtomicObject - selectOptions:', this.selectOptions);
 
     if (this.canUpdate()) {
       // Check if we have selectOptions input (for filtered dropdowns)
       if (this.selectOptions) {
-        console.log('🔵 Using selectOptions path');
         // Handle both array and single object cases
         const selectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
 
@@ -134,7 +131,6 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           }
         });
       } else  {
-        console.log('🔴 Using fallback backend fetch path');
         // Fallback to original behavior: fetch from backend
         this.interfaceComponent
           .fetchDropdownMenuData(`resource/${this.tgtResourceType}`)
