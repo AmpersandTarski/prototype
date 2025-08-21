@@ -62,6 +62,12 @@ Templates will eventually bind to Angular components, typically in the src/app/s
 
 Read the frontend-components.md for more info.
 
-## Deploy
+## Unit testing
 
-Now 
+Jest is installed.
+
+Run: `cd frontend && npm run test` to run the unit tests.
+
+Check the `/coverage` folder for the coverage of your code, and open the `index.html`.
+
+You need to have a Live Server or equivalent to open the coverage report directly from there.

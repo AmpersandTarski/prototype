@@ -23,7 +23,7 @@
     "strictPropertyInitialization": false,
     "lib": ["es2020", "dom"],
     "noImplicitAny": true,
-    "useDefineForClassFields": false,
+    "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

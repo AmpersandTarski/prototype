@@ -68,8 +68,8 @@
     }
   },
 
-  // Post-create commands to set up the environment
-  "postCreateCommand": "echo '🎉 Ampersand Prototype Dev Container Ready!' && echo '📁 Workspace: /var/www' && echo '🔧 Node version:' && node --version && echo '📦 NPM version:' && npm --version",
+  // Post-start commands to set up the environment (runs every time container starts)
+  "postStartCommand": "chmod +x .devcontainer/setup.sh && .devcontainer/setup.sh",
 
   // Run as root to avoid permission issues
   "remoteUser": "root",

@@ -130,25 +130,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
             this.allOptions.set([...updatedSelectOptionsArray]); // spread to trigger change
           }
         });
-      } else if (this.resource['select'] && Array.isArray(this.resource['select'])) {
-        // Use the filtered options from the 'select' property
-        this.allOptions.set(this.resource['select']);
-
-        // Set selected option(s) signals
-        if (this.isUni) {
-          this.uniValue.set(this.resource[this.propertyName] ?? null);
-        } else {
-          this.selectedOptions.set(this.data);
-        }
-
-        // on a data patch, we want to update the dropdown options
-        this.interfaceComponent.patched.subscribe(() => {
-          // Update from the select property if it exists
-          if (this.resource['select'] && Array.isArray(this.resource['select'])) {
-            this.allOptions.set([...this.resource['select']]); // spread to trigger change
-          }
-        });
-      } else {
+      } else  {
         // Fallback to original behavior: fetch from backend
         this.interfaceComponent
           .fetchDropdownMenuData(`resource/${this.tgtResourceType}`)
