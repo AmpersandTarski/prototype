@@ -12,3 +12,10 @@ This documentation is intended for developers of the framework and more advanced
 
 ## Publication
 This documentation is integrated in the documentation of Ampersand (several repositories). It is published at https://ampersandtarski.github.io/
+
+### Troubleshooting
+Clean your complete docker environment (pls be aware this applies to your complete machine)
+> docker system prune -a
+
+
+

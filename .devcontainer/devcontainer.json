@@ -1,0 +1,79 @@
+{
+  "name": "Ampersand Prototype Development",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".",
+    "args": {
+      "BUILDPLATFORM": "linux/amd64",
+      "TARGETPLATFORM": "linux/amd64"
+    }
+  },
+  "workspaceFolder": "/var/www",
+  
+  // Configure container behavior
+  "shutdownAction": "none",
+  
+  // Mount the project directory
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/var/www,type=bind,consistency=cached",
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+    "type=bind,source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh/,target=/home/vscode/.ssh,readonly"
+  ],
+
+  // VS Code customizations
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash"
+          }
+        },
+        "cline.apiProvider": "anthropic",
+        "cline.maxRequestsPerTask": 50,
+        "cline.alwaysAllowReadOnly": true,
+        "extensions.autoUpdate": false
+      },
+      "extensions": [
+        "ampersandtarski.language-ampersand",
+        "angular.ng-template",
+        "christian-kohler.path-intellisense",
+        "github.copilot",
+        "github.copilot-chat",
+        "ms-vscode.vscode-typescript-next",
+        "roscop.activefileinstatusbar",
+        "saoudrizwan.cline",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-json"
+      ]
+    }
+  },
+
+  // Forward ports for development
+  "forwardPorts": [80, 8080, 3000, 4200],
+  "portsAttributes": {
+    "80": {
+      "label": "Ampersand Prototype",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "phpMyAdmin",
+      "onAutoForward": "ignore"
+    },
+    "4200": {
+      "label": "Angular Dev Server",
+      "onAutoForward": "notify"
+    }
+  },
+
+  // Post-create commands to set up the environment
+  "postCreateCommand": "echo '🎉 Ampersand Prototype Dev Container Ready!' && echo '📁 Workspace: /var/www' && echo '🔧 Node version:' && node --version && echo '📦 NPM version:' && npm --version",
+
+  // Run as root to avoid permission issues
+  "remoteUser": "root",
+  
+  // Keep container running
+  "overrideCommand": false
+}

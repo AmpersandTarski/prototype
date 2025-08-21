@@ -23,6 +23,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 {
   @Input() public placeholder!: string;
   @Input() public tgtResourceType!: string;
+  @Input() public selectOptions?: ObjectBase[] | ObjectBase;
 
   // stores all options for the dropdown
   public allOptions = signal<ObjectBase[]>([]);
@@ -52,7 +53,25 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
   // excludes selected ids and applies search filter
   public nonUniSelectableOptions: Signal<ObjectBase[]> = computed(() => {
-    // grab all options without the selected ones
+    // For filtered dropdowns (when selectOptions is provided), show all filtered options
+    if (this.selectOptions) {
+      const allOptions = this.allOptions();
+
+      // check if a filter is applied
+      const lowerCaseFilterValue = this.filterValue().trim().toLowerCase();
+      const filterIsApplied = lowerCaseFilterValue.length !== 0;
+      if (!filterIsApplied) {
+        return allOptions;
+      }
+
+      // filter options by search term
+      const searchFiltered = allOptions.filter((option) =>
+        option._label_.toLowerCase().includes(lowerCaseFilterValue),
+      );
+      return searchFiltered;
+    }
+
+    // Original behavior for non-filtered dropdowns: exclude selected ids
     const selectedIds = this.selectedOptions().map((d) => d._id_);
     const allOptionsWithoutSelected = this.allOptions().filter(
       (option) => !selectedIds.includes(option._id_),
@@ -80,29 +99,79 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   override ngOnInit(): void {
     super.ngOnInit();
 
+
     if (this.canUpdate()) {
-      // Find which entities are able to be added to the dropdown menu
-      this.interfaceComponent
-        .fetchDropdownMenuData(`resource/${this.tgtResourceType}`)
-        .subscribe((objects) => {
-          // we need to set some signals to compute the selectable option(s)
-          // set allOptions first ...
-          this.allOptions.set(objects);
+      // Check if we have selectOptions input (for filtered dropdowns)
+      if (this.selectOptions) {
+        // Handle both array and single object cases
+        const selectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
 
-          // ... and then the selected option(s) signals
-          if (this.isUni) {
-            this.uniValue.set(this.resource[this.propertyName] ?? null);
-          } else {
-            this.selectedOptions.set(this.data);
-          }
-
-          // on a data patch, we want to update the dropdown options
-          // this does not reflect delete operations and 'add' patches through which a new item is created
-          this.interfaceComponent.patched.subscribe(() => {
-            // reset all options, so the selectable options (uni and non uni) are recomputed
-            this.allOptions.set([...this.allOptions()]); // spread to trigger change
-          });
+        // Filter the options based on the 'select' property
+        const filteredOptions = selectOptionsArray.filter((item: any) => {
+          const shouldInclude = item.select === true;
+          return shouldInclude;
         });
+
+        // Use the filtered options
+        this.allOptions.set(filteredOptions);
+
+        // Set selected option(s) signals
+        if (this.isUni) {
+          this.uniValue.set(this.resource[this.propertyName] ?? null);
+        } else {
+          this.selectedOptions.set(this.data);
+        }
+
+        // on a data patch, we want to update the dropdown options
+        this.interfaceComponent.patched.subscribe(() => {
+          // Update from the selectOptions if it exists
+          if (this.selectOptions) {
+            const updatedSelectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
+            this.allOptions.set([...updatedSelectOptionsArray]); // spread to trigger change
+          }
+        });
+      } else if (this.resource['select'] && Array.isArray(this.resource['select'])) {
+        // Use the filtered options from the 'select' property
+        this.allOptions.set(this.resource['select']);
+
+        // Set selected option(s) signals
+        if (this.isUni) {
+          this.uniValue.set(this.resource[this.propertyName] ?? null);
+        } else {
+          this.selectedOptions.set(this.data);
+        }
+
+        // on a data patch, we want to update the dropdown options
+        this.interfaceComponent.patched.subscribe(() => {
+          // Update from the select property if it exists
+          if (this.resource['select'] && Array.isArray(this.resource['select'])) {
+            this.allOptions.set([...this.resource['select']]); // spread to trigger change
+          }
+        });
+      } else {
+        // Fallback to original behavior: fetch from backend
+        this.interfaceComponent
+          .fetchDropdownMenuData(`resource/${this.tgtResourceType}`)
+          .subscribe((objects) => {
+            // we need to set some signals to compute the selectable option(s)
+            // set allOptions first ...
+            this.allOptions.set(objects);
+
+            // ... and then the selected option(s) signals
+            if (this.isUni) {
+              this.uniValue.set(this.resource[this.propertyName] ?? null);
+            } else {
+              this.selectedOptions.set(this.data);
+            }
+
+            // on a data patch, we want to update the dropdown options
+            // this does not reflect delete operations and 'add' patches through which a new item is created
+            this.interfaceComponent.patched.subscribe(() => {
+              // reset all options, so the selectable options (uni and non uni) are recomputed
+              this.allOptions.set([...this.allOptions()]); // spread to trigger change
+            });
+          });
+      }
     }
   }
 
