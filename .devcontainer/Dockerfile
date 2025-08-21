@@ -1,4 +1,5 @@
 # Use a lightweight Linux base 
+# NOTE: Make sure this Node version matches .github/workflows/frontend-tests.yml
 FROM node:20-bookworm-slim
 
 # Install essential development tools and Docker CLI

@@ -1,0 +1,42 @@
+name: Frontend Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-tests.yml'
+
+jobs:
+  frontend-tests:
+    name: Frontend tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        # NOTE: Make sure this Node version matches .devcontainer/Dockerfile
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+        
+    - name: Run tests
+      run: |
+        cd frontend
+        npm run test -- --watch=false --ci
+        
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        directory: frontend/coverage
+        flags: frontend
