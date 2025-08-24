@@ -1,0 +1,142 @@
+# This workflow triggers on a new release that is being created
+# It builds and pushes a release image to DockerHub
+# and it attaches release artifacts to the GitHub release
+name: Release
+on:
+  release:
+    types: [created]
+
+jobs:
+  add-release-notes:
+    name: Add release notes to artifacts
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload changelog
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_name: CHANGELOG.md
+          asset_path: changelog.md
+          asset_content_type: text/markdown
+
+  docker-hub:
+    name: Build push image to DockerHub
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            ampersandtarski/prototype-framework
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}.{{minor}}
+            type=semver,pattern=v{{major}}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      - name: Build and push to Docker Hub
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          target: framework
+          tags: ${{ steps.meta.outputs.tags }} # see meta step above
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            GIT_SHA=${{github.sha}}
+            GIT_Branch=${{github.ref}}
+
+  add-release-artifacts:
+    name: Add artifacts to release
+    needs: [build-framework-archive]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: framework-archive
+          path: release/
+
+      - name: get-version
+        run: |
+          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          echo "theReleaseName=$(echo "${GITHUB_REF#refs/tags/} ($(date '+%_d %B %Y'))")" >> $GITHUB_OUTPUT
+        id: get-version
+
+      - name: Upload framework archive
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_name: ampersand-prototype-framework-${{ steps.get-version.outputs.version }}.tar.gz
+          asset_path: release/prototype-framework-${{ steps.get-version.outputs.version }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload framework archive (zip)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_name: ampersand-prototype-framework-${{ steps.get-version.outputs.version }}.zip
+          asset_path: release/prototype-framework-${{ steps.get-version.outputs.version }}.zip
+          asset_content_type: application/zip
+
+  build-framework-archive:
+    name: Build framework archive
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout project contents 📡
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 🧰
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mysqli, curl, gd, fileinfo, zip
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-dev --optimize-autoloader --no-scripts
+
+      - name: get-version
+        run: |
+          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        id: get-version
+
+      - name: Create optimized archive
+        run: |
+          mkdir -p release
+          # Create tar.gz archive
+          tar --exclude='.git*' --exclude='test' --exclude='docs' --exclude='.devcontainer' \
+              --exclude='.vscode' --exclude='dev.Dockerfile' --exclude='dev-container-test.sh' \
+              -czf release/prototype-framework-${{ steps.get-version.outputs.version }}.tar.gz .
+          
+          # Create zip archive
+          zip -r release/prototype-framework-${{ steps.get-version.outputs.version }}.zip . \
+              -x '.git*' 'test/*' 'docs/*' '.devcontainer/*' '.vscode/*' 'dev.Dockerfile' 'dev-container-test.sh'
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: framework-archive
+          path: release/
