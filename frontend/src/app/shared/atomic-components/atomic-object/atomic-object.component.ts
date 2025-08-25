@@ -8,7 +8,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { takeUntil, tap, switchMap, map } from 'rxjs/operators';
-import { iif, of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { BaseAtomicComponent } from '../BaseAtomicComponent.class';
 import { Dropdown } from 'primeng/dropdown';
 import { isObject } from '../../helper/deepmerge';
@@ -25,7 +25,17 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 {
   @Input() public placeholder!: string;
   @Input() public tgtResourceType!: string;
-  @Input() public selectOptions?: ObjectBase[] | ObjectBase;
+  
+  private _selectOptions?: ObjectBase[] | ObjectBase;
+  private selectOptions$ = new BehaviorSubject<ObjectBase[] | ObjectBase | undefined>(undefined);
+  
+  @Input() set selectOptions(value: ObjectBase[] | ObjectBase | undefined) {
+    this._selectOptions = value;
+    this.selectOptions$.next(value);
+  }
+  get selectOptions(): ObjectBase[] | ObjectBase | undefined {
+    return this._selectOptions;
+  }
 
   // stores all options for the dropdown
   public allOptions = signal<ObjectBase[]>([]);
@@ -98,6 +108,26 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   // to programmatically control the dropdown
   @ViewChild('dropdown') private dropdown: Dropdown;
 
+  private getSelectOptionsObservable(selectOptions: ObjectBase[] | ObjectBase) {
+    return of(selectOptions).pipe(
+      map((selectOptions) => {
+        const selectOptionsArray = Array.isArray(selectOptions) 
+          ? selectOptions 
+          : [selectOptions];
+        
+        // Filter the options based on the 'selectOptions' property
+        return selectOptionsArray.filter((item: any) => {
+          const shouldInclude = item.select === true;
+          return shouldInclude;
+        });
+      })
+    );
+  }
+
+  private getBackendDataObservable() {
+    return this.interfaceComponent.fetchDropdownMenuData(`resource/${this.tgtResourceType}`);
+  }
+
   override ngOnInit(): void {
     super.ngOnInit();
 
@@ -106,26 +136,16 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       return;
     }
 
-    // Unified RxJS chain: start with either selectOptions or canUpdate
-    of(!!this.selectOptions).pipe(
-      switchMap((hasSelectOptions) => 
-        hasSelectOptions
-          ? of(this.selectOptions).pipe(
-              map((selectOptions) => {
-                const selectOptionsArray = Array.isArray(selectOptions) 
-                  ? selectOptions 
-                  : [selectOptions!];
-                
-                // Filter the options based on the 'selectOptions' property
-                return selectOptionsArray.filter((item: any) => {
-                  const shouldInclude = item.select === true;
-                  return shouldInclude;
-                });
-              })
-            )
-          : this.interfaceComponent.fetchDropdownMenuData(`resource/${this.tgtResourceType}`)
+    // Reactive chain: respond to selectOptions changes using BehaviorSubject
+    this.selectOptions$.pipe(
+      switchMap((selectOptions) => 
+        selectOptions
+          ? this.getSelectOptionsObservable(selectOptions)
+          : this.canUpdate() 
+            ? this.getBackendDataObservable()
+            : of([])
       ),
-      tap((optionsToDisplay) => {
+      tap((optionsToDisplay: ObjectBase[]) => {
         // Set initial options and signals
         this.allOptions.set(optionsToDisplay);
         
@@ -152,7 +172,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         )
       ),
       takeUntil(this.destroy$)
-    ).subscribe((updatedOptions) => {
+    ).subscribe((updatedOptions: ObjectBase[]) => {
       this.allOptions.set(updatedOptions);
     });
   }
