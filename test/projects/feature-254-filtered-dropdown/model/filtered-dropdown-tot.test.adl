@@ -1,13 +1,19 @@
-CONTEXT FilteredDropdownsTestsTot
+-- ALL VARIABLES IN THIS SCRIPT NEEDS TO BE PREFIXED WITH CTXT ID BELOW AS 'CONTEXT' IS NOT OPERATIONAL YET IN ADL.
+-- WE'LL NEED TO SEPARATE CONTEXT AS WE'LL HAVE MULTIPLE PAGE IN THIS TEST PROJECT USING THE SAME ATOMS NAMES AND
+-- RELATIONS AND THEY WILL BE MIXED WITHOUT THIS PREFIX.
+--
+-- Define atoms with Capital like CtxTot and relations without like ctxTot
 
-REPRESENT TotName TYPE ALPHANUMERIC
-REPRESENT TotStatus TYPE ALPHANUMERIC
+CONTEXT CtxTot
 
-RELATION totName[Employee*TotName] [UNI]
-RELATION totStatus[Employee*TotStatus] [UNI]
-RELATION projectMemberTot[Project*Employee] [TOT] -- at least one employee per project
+REPRESENT CtxTotName TYPE ALPHANUMERIC
+REPRESENT CtxTotStatus TYPE ALPHANUMERIC
 
-POPULATION totName[Employee*TotName] CONTAINS
+RELATION ctxTotEmployeeName[CtxTotEmployee*CtxTotName] [UNI]
+RELATION ctxTotStatus[CtxTotEmployee*CtxTotStatus] [UNI]
+RELATION ctxTotProjectMember[CtxTotProject*CtxTotEmployee] [TOT] -- at least one employee per project
+
+POPULATION ctxTotEmployeeName[CtxTotEmployee*CtxTotName] CONTAINS
   [ ("m1", "Jan Jansen")
   , ("m2", "Piet Peters")
   , ("m3", "Marie Bakker")
@@ -15,7 +21,7 @@ POPULATION totName[Employee*TotName] CONTAINS
   , ("m5", "Anna Annasson")
   ]
 
-POPULATION totStatus[Employee*TotStatus] CONTAINS
+POPULATION ctxTotStatus[CtxTotEmployee*CtxTotStatus] CONTAINS
   [ ("m1", "eligible")
   , ("m2", "on leave")
   , ("m4", "eligible")
@@ -23,58 +29,44 @@ POPULATION totStatus[Employee*TotStatus] CONTAINS
   , ("m5", "eligible")
   ]
 
-POPULATION projectMemberTot[Project*Employee] CONTAINS
+POPULATION ctxTotProjectMember[CtxTotProject*CtxTotEmployee] CONTAINS
   [ ("project 1", "m1")
   , ("project 2", "m1")
   , ("project 2", "m2")
   ]
 
 -- Desired filtering: eligible employees only
-RELATION totEligibleEmployees[Employee] [PROP]
-ENFORCE totEligibleEmployees := totStatus;"eligible";totStatus~ /\ I
--- As a result, totEligibleEmployees contains [ ("m1","m1"), ("m4","m4"), ("m5","m5")]
+RELATION ctxTotEligibleEmployee[CtxTotEmployee] [PROP]
+ENFORCE ctxTotEligibleEmployee := ctxTotStatus;"eligible";ctxTotStatus~ /\ I
+-- As a result, ctxTotEligibleEmployee contains [ ("m1","m1"), ("m4","m4"), ("m5","m5")]
 
--- I want the user to pick project members in the relation `projectMemberTot`, using `totEligibleEmployees` to select from.
+-- I want the user to pick project members in the relation `ctxTotProjectMember`, using `ctxTotEligibleEmployee` to select from.
 
-INTERFACE DropdownsTot : "_SESSION"[SESSION]; V[SESSION*Project] cRUd BOX<FORM>
+INTERFACE DropdownsTot : "_SESSION"[SESSION]; V[SESSION*CtxTotProject] cRUd BOX<FORM>
   [ "Project ID" : I
   , "Section Header" : TXT "ALL 8 VARIATIONS with the R permission"
 
-  , "Assign an employee (cRud)" : projectMemberTot cRud BOX<FILTEREDDROPDOWN>
-  [ select : totEligibleEmployees ]  
-  , "Assign an employee (cRUd)" : projectMemberTot cRUd BOX<FILTEREDDROPDOWN>
-  [ select : totEligibleEmployees ]  
-  , "Assign an employee (cRuD)" : projectMemberTot cRuD BOX<FILTEREDDROPDOWN>
-  [ select : totEligibleEmployees ]  
-  , "Assign an employee (cRUD)" : projectMemberTot cRUD BOX<FILTEREDDROPDOWN>
-  [ select : totEligibleEmployees ]  
-  , "Assign an employee (CRud)" : projectMemberTot CRud BOX<FILTEREDDROPDOWN>
-  [ select : totEligibleEmployees ]  
-  , "Assign an employee (CRUd)" : projectMemberTot CRUd BOX<FILTEREDDROPDOWN>
-  [ select : totEligibleEmployees ]  
-  , "Assign an employee (CRuD)" : projectMemberTot CRuD BOX<FILTEREDDROPDOWN>
-  [ select : totEligibleEmployees ]  
-  , "Assign an employee (CRUD)" : projectMemberTot CRUD BOX<FILTEREDDROPDOWN>
-  [ select : totEligibleEmployees ]  
+  , "Assign an employee (cRud)" : ctxTotProjectMember cRud BOX<FILTEREDDROPDOWN>
+  [ select : ctxTotEligibleEmployee ]  
+  , "Assign an employee (cRUd)" : ctxTotProjectMember cRUd BOX<FILTEREDDROPDOWN>
+  [ select : ctxTotEligibleEmployee ]  
+  , "Assign an employee (cRuD)" : ctxTotProjectMember cRuD BOX<FILTEREDDROPDOWN>
+  [ select : ctxTotEligibleEmployee ]  
+  , "Assign an employee (cRUD)" : ctxTotProjectMember cRUD BOX<FILTEREDDROPDOWN>
+  [ select : ctxTotEligibleEmployee ]  
+  , "Assign an employee (CRud)" : ctxTotProjectMember CRud BOX<FILTEREDDROPDOWN>
+  [ select : ctxTotEligibleEmployee ]  
+  , "Assign an employee (CRUd)" : ctxTotProjectMember CRUd BOX<FILTEREDDROPDOWN>
+  [ select : ctxTotEligibleEmployee ]  
+  , "Assign an employee (CRuD)" : ctxTotProjectMember CRuD BOX<FILTEREDDROPDOWN>
+  [ select : ctxTotEligibleEmployee ]  
+  , "Assign an employee (CRUD)" : ctxTotProjectMember CRUD BOX<FILTEREDDROPDOWN>
+  [ select : ctxTotEligibleEmployee ]
 
-  , "Section Header 2" : TXT "ALL 8 VARIATIONS without the R permission"
+  , "Section Header 2" : TXT "One VARIATION without the R permission"
   , "Note" : TXT "(These result in: object is not readable, but also generate red box)"
-  -- , "Assign an employee (crud)" : projectMemberTot crud BOX<FILTEREDDROPDOWN>
-  -- [ select : eligibleEmployees ]  
-  -- , "Assign an employee (crUd)" : projectMemberTot crUd BOX<FILTEREDDROPDOWN>
-  -- [ select : eligibleEmployees ]  
-  -- , "Assign an employee (cruD)" : projectMemberTot cruD BOX<FILTEREDDROPDOWN>
-  -- [ select : eligibleEmployees ]  
-  -- , "Assign an employee (crUD)" : projectMemberTot crUD BOX<FILTEREDDROPDOWN>
-  -- [ select : eligibleEmployees ]  
-  -- , "Assign an employee (Crud)" : projectMemberTot Crud BOX<FILTEREDDROPDOWN>
-  -- [ select : eligibleEmployees ]  
-  -- , "Assign an employee (CrUd)" : projectMemberTot CrUd BOX<FILTEREDDROPDOWN>
-  -- [ select : eligibleEmployees ]  
-  -- , "Assign an employee (CruD)" : projectMemberTot CruD BOX<FILTEREDDROPDOWN>
-  -- [ select : eligibleEmployees ]  
-  -- , "Assign an employee (CrUD)" : projectMemberTot CrUD BOX<FILTEREDDROPDOWN>
-  -- [ select : eligibleEmployees ]  
+  -- , "Assign an employee (crud)" : ctxTotProjectMember crud BOX<FILTEREDDROPDOWN>
+  -- [ select : ctxTotEligibleEmployee ]
   ]
     
 
