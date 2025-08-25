@@ -1,13 +1,23 @@
-CONTEXT FilteredDropdownsTestsUni
+-- ALL VARIABLES IN THIS SCRIPT NEEDS TO BE PREFIXED WITH CTXT ID BELOW AS 'CONTEXT' IS NOT OPERATIONAL YET IN ADL.
+-- WE'LL NEED TO SEPARATE CONTEXT AS WE'LL HAVE MULTIPLE PAGE IN THIS TEST PROJECT USING THE SAME ATOMS NAMES AND
+-- RELATIONS AND THEY WILL BE MIXED WITHOUT THIS PREFIX.
+--
+-- Define atoms with Capital like CtxUni and relations without like ctxUni
 
-REPRESENT UniName TYPE ALPHANUMERIC
-REPRESENT UniStatus TYPE ALPHANUMERIC
+CONTEXT CtxUni
 
-RELATION uniName[Employee*UniName] [UNI]
-RELATION uniStatus[Employee*UniStatus] [UNI]
-RELATION projectMemberUni[Project*Employee] [UNI] -- UNI Each project can be related to one employee only
+-- define name and status explicitly
 
-POPULATION uniName[Employee*UniName] CONTAINS
+REPRESENT CtxUniName TYPE ALPHANUMERIC
+REPRESENT CtxUniStatus TYPE ALPHANUMERIC
+
+-- define name and employee implicitly
+
+RELATION ctxUniEmployeeName[CtxUniEmployee*CtxUniName] [UNI]
+RELATION ctxUniStatus[CtxUniEmployee*CtxUniStatus] [UNI]
+RELATION ctxUniProjectMember[CtxUniProject*CtxUniEmployee] [UNI] -- UNI Each project can be related to one employee only
+
+POPULATION ctxUniEmployeeName[CtxUniEmployee*CtxUniName] CONTAINS
   [ ("m1", "Jan Jansen")
   , ("m2", "Piet Peters")
   , ("m3", "Marie Bakker")
@@ -15,7 +25,7 @@ POPULATION uniName[Employee*UniName] CONTAINS
   , ("m5", "Anna Annasson")
   ]
 
-POPULATION uniStatus[Employee*UniStatus] CONTAINS
+POPULATION ctxUniStatus[CtxUniEmployee*CtxUniStatus] CONTAINS
   [ ("m1", "eligible")
   , ("m2", "on leave")
   , ("m4", "eligible")
@@ -23,42 +33,42 @@ POPULATION uniStatus[Employee*UniStatus] CONTAINS
   , ("m5", "eligible")
   ]
 
-POPULATION projectMemberUni[Project*Employee] CONTAINS
+POPULATION ctxUniProjectMember[CtxUniProject*CtxUniEmployee] CONTAINS
   [ ("project 1", "m1")
   ]
 
 -- Desired filtering: eligible employees only
-RELATION uniEligibleEmployees[Employee] [PROP]
-ENFORCE uniEligibleEmployees := uniStatus;"eligible";uniStatus~ /\ I
--- As a result, uniEligibleEmployees contains [ ("m1","m1"), ("m4","m4"), ("m5","m5")]
+RELATION ctxUniEligibleEmployee[CtxUniEmployee] [PROP]
+ENFORCE ctxUniEligibleEmployee := ctxUniStatus;"eligible";ctxUniStatus~ /\ I
+-- As a result, ctxUniEligibleEmployee contains [ ("m1","m1"), ("m4","m4"), ("m5","m5")]
 
--- I want the user to pick project members in the relation `projectMemberUni`, using `uniEligibleEmployees` to select from.
+-- I want the user to pick project members in the relation `ctxUniProjectMember`, using `ctxUniEligibleEmployee` to select from.
 
-INTERFACE DropdownsUni : "_SESSION"[SESSION]; V[SESSION*Project] cRud BOX<FORM>
+INTERFACE DropdownsUni : "_SESSION"[SESSION]; V[SESSION*CtxUniProject] cRud BOX<FORM>
   [ "Project ID" : I
   , "Section Header" : TXT "ALL 8 VARIATIONS with the R permission"
 
-  , "Assign an employee (cRud)" : projectMemberUni cRud BOX<FILTEREDDROPDOWN>
-  [ select : uniEligibleEmployees ]  
-  , "Assign an employee (cRUd)" : projectMemberUni cRUd BOX<FILTEREDDROPDOWN>
-  [ select : uniEligibleEmployees ]  
-  , "Assign an employee (cRuD)" : projectMemberUni cRuD BOX<FILTEREDDROPDOWN>
-  [ select : uniEligibleEmployees ]  
-  , "Assign an employee (cRUD)" : projectMemberUni cRUD BOX<FILTEREDDROPDOWN>
-  [ select : uniEligibleEmployees ]  
-  , "Assign an employee (CRud)" : projectMemberUni CRud BOX<FILTEREDDROPDOWN>
-  [ select : uniEligibleEmployees ]  
-  , "Assign an employee (CRUd)" : projectMemberUni CRUd BOX<FILTEREDDROPDOWN>
-  [ select : uniEligibleEmployees ]  
-  , "Assign an employee (CRuD)" : projectMemberUni CRuD BOX<FILTEREDDROPDOWN>
-  [ select : uniEligibleEmployees ]  
-  , "Assign an employee (CRUD)" : projectMemberUni CRUD BOX<FILTEREDDROPDOWN>
-  [ select : uniEligibleEmployees ]  
+  , "Assign an employee (cRud)" : ctxUniProjectMember cRud BOX<FILTEREDDROPDOWN>
+  [ select : ctxUniEligibleEmployee ]
+  , "Assign an employee (cRUd)" : ctxUniProjectMember cRUd BOX<FILTEREDDROPDOWN>
+  [ select : ctxUniEligibleEmployee ]
+  , "Assign an employee (cRuD)" : ctxUniProjectMember cRuD BOX<FILTEREDDROPDOWN>
+  [ select : ctxUniEligibleEmployee ]
+  , "Assign an employee (cRUD)" : ctxUniProjectMember cRUD BOX<FILTEREDDROPDOWN>
+  [ select : ctxUniEligibleEmployee ]
+  , "Assign an employee (CRud)" : ctxUniProjectMember CRud BOX<FILTEREDDROPDOWN>
+  [ select : ctxUniEligibleEmployee ]
+  , "Assign an employee (CRUd)" : ctxUniProjectMember CRUd BOX<FILTEREDDROPDOWN>
+  [ select : ctxUniEligibleEmployee ]
+  , "Assign an employee (CRuD)" : ctxUniProjectMember CRuD BOX<FILTEREDDROPDOWN>
+  [ select : ctxUniEligibleEmployee ]
+  , "Assign an employee (CRUD)" : ctxUniProjectMember CRUD BOX<FILTEREDDROPDOWN>
+  [ select : ctxUniEligibleEmployee ]
 
   , "Section Header 2" : TXT "One VARIATION without the R permission"
   , "Note" : TXT "(These result in: object is not readable, but also generate red box)"
-  -- , "Assign an employee (crud)" : projectMemberUni crud BOX<FILTEREDDROPDOWN>
-  -- [ select : eligibleEmployees ]  
+  -- , "Assign an employee (crud)" : ctxUniProjectMember crud BOX<FILTEREDDROPDOWN>
+  -- [ select : ctxUniEligibleEmployees ]
 
   ]
     
