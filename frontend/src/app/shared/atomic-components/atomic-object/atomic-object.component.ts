@@ -7,7 +7,8 @@ import {
   signal,
   ViewChild,
 } from '@angular/core';
-import { takeUntil, tap, switchMap } from 'rxjs/operators';
+import { takeUntil, tap, switchMap, map } from 'rxjs/operators';
+import { iif, of } from 'rxjs';
 import { BaseAtomicComponent } from '../BaseAtomicComponent.class';
 import { Dropdown } from 'primeng/dropdown';
 import { isObject } from '../../helper/deepmerge';
@@ -128,12 +129,18 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
         // on a data patch, we want to update the dropdown options
         this.interfaceComponent.patched
-          .pipe(takeUntil(this.destroy$))
-          .subscribe(() => {
-            if (this.selectOptions) {
-              const updatedSelectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
-              this.allOptions.set([...updatedSelectOptionsArray]); // spread to trigger change
-            } 
+          .pipe(
+            takeUntil(this.destroy$),
+            map(() => {
+              if (this.selectOptions) {
+                const updatedSelectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
+                return [...updatedSelectOptionsArray]; // spread to trigger change
+              }
+              return [] as ObjectBase[];
+            })
+          )
+          .subscribe((options) => {
+            this.allOptions.set(options);
           });
       }
 
@@ -165,7 +172,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   }
 
   // used in uni case
-  public update() {
+  public update(): void {
     const uniValue = this.uniValue();
     if (!uniValue || typeof uniValue !== 'object') {
       return; // we need an object
