@@ -72,7 +72,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     }
 
     // Original behavior for non-filtered dropdowns: exclude selected ids
-    const selectedIds = this.selectedOptions().map((d) => d._id_);
+    const selectedIds = this.selection().map((d) => d._id_);
     const allOptionsWithoutSelected = this.allOptions().filter(
       (option) => !selectedIds.includes(option._id_),
     );
@@ -91,7 +91,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   });
 
   // used in the non uni case
-  private selectedOptions = signal([] as ObjectBase[]);
+  private selection = signal([] as ObjectBase[]);
 
   // to programmatically control the dropdown
   @ViewChild('dropdown') private dropdown: Dropdown;
@@ -99,14 +99,17 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   override ngOnInit(): void {
     super.ngOnInit();
 
+    // is there anything to choose from? Else just a list is displayed
+    if (!(this.canUpdate() || this.selectOptions)) {
+      return;
+    }
 
-    if (this.canUpdate()) {
       // Check if we have selectOptions input (for filtered dropdowns)
       if (this.selectOptions) {
         // Handle both array and single object cases
         const selectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
 
-        // Filter the options based on the 'select' property
+        // Filter the options based on the 'selectOptions' property
         const filteredOptions = selectOptionsArray.filter((item: any) => {
           const shouldInclude = item.select === true;
           return shouldInclude;
@@ -119,19 +122,21 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         if (this.isUni) {
           this.uniValue.set(this.resource[this.propertyName] ?? null);
         } else {
-          this.selectedOptions.set(this.data);
+          this.selection.set(this.data);
         }
 
         // on a data patch, we want to update the dropdown options
         this.interfaceComponent.patched.subscribe(() => {
-          // Update from the selectOptions if it exists
           if (this.selectOptions) {
             const updatedSelectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
             this.allOptions.set([...updatedSelectOptionsArray]); // spread to trigger change
           }
         });
-      } else  {
-        // Fallback to original behavior: fetch from backend
+      }
+
+      // update allowed in the regular atomic object?
+      if (this.canUpdate()) {
+
         this.interfaceComponent
           .fetchDropdownMenuData(`resource/${this.tgtResourceType}`)
           .subscribe((objects) => {
@@ -143,7 +148,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
             if (this.isUni) {
               this.uniValue.set(this.resource[this.propertyName] ?? null);
             } else {
-              this.selectedOptions.set(this.data);
+              this.selection.set(this.data);
             }
 
             // on a data patch, we want to update the dropdown options
@@ -154,7 +159,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
             });
           });
       }
-    }
+
   }
 
   // used in uni case
@@ -193,7 +198,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       ])
       .subscribe(() => {
         this.newValue = undefined; // reset newValue
-        this.selectedOptions.set([...this.data]); // spread to trigger change
+        this.selection.set([...this.data]); // spread to trigger change
       });
   }
 
@@ -279,8 +284,8 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           // clear filter
           this.filterValue.set('');
 
-          // update selected options
-          this.selectedOptions.set([...this.data]); // spread to trigger change
+          // update selection
+          this.selection.set([...this.data]); // spread to trigger change
         }
       });
   }
@@ -299,7 +304,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         if (this.isUni) {
           this.uniValue.set(null);
         } else {
-          this.selectedOptions.set([...this.data]); // spread to trigger change
+          this.selection.set([...this.data]); // spread to trigger change
         }
       });
   }
@@ -325,7 +330,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
             this.resource[this.propertyName] = this.data.filter(
               (option) => option._id_ !== id,
             );
-            this.selectedOptions.set([...this.data]); // spread to trigger change
+            this.selection.set([...this.data]); // spread to trigger change
           }
 
           // remove from allOptions

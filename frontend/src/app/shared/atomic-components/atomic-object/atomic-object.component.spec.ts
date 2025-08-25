@@ -18,10 +18,10 @@ class MockAmpersandInterfaceComponent {
   typeAheadData: any = {};
   pendingPatches: any[] = [];
   http: any = {};
-  
+
   patch(path: string, operations: any[]) {
-    return of({ 
-      isCommitted: true, 
+    return of({
+      isCommitted: true,
       invariantRulesHold: true,
       content: null,
       patches: [],
@@ -30,10 +30,10 @@ class MockAmpersandInterfaceComponent {
       navTo: null
     });
   }
-  
+
   delete(path: string) {
-    return of({ 
-      isCommitted: true, 
+    return of({
+      isCommitted: true,
       invariantRulesHold: true,
       patches: [],
       notifications: [],
@@ -41,7 +41,7 @@ class MockAmpersandInterfaceComponent {
       navTo: null
     });
   }
-  
+
   fetchDropdownMenuData<T extends ObjectBase>(endpoint: string) {
     return of([
       { _id_: '1', _label_: 'Option 1', _path_: '/1', _ifcs_: [] },
@@ -64,7 +64,7 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
     // Create component instance directly
     component = new AtomicObjectComponent<ObjectBase | ObjectBase[]>();
     mockInterfaceComponent = new MockAmpersandInterfaceComponent();
-    
+
     // Set up required inputs
     component.property = null;
     component.resource = { testProperty: [], _path_: '/test' };
@@ -75,7 +75,7 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
     component.crud = 'CRUD';
     component.placeholder = 'Test Placeholder';
     component.tgtResourceType = 'TestResource';
-    
+
     // Mock the dropdown ViewChild
     component['dropdown'] = new MockDropdown() as any;
   });
@@ -84,14 +84,14 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
     it('should create component and fetch from backend when selectOptions is not provided', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       const fetchSpy = jest.spyOn(mockInterfaceComponent, 'fetchDropdownMenuData');
-      
-      component.resource = { 
-        testProperty: [], 
+
+      component.resource = {
+        testProperty: [],
         _path_: '/test'
       };
-      
+
       component.ngOnInit();
-      
+
       expect(component).toBeTruthy();
       expect(fetchSpy).toHaveBeenCalledWith('resource/TestResource');
       expect(component.allOptions()).toEqual([
@@ -99,50 +99,50 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
         { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] },
         { _id_: '3', _label_: 'Option 3', _path_: '/3', _ifcs_: [] }
       ]);
-      
+
       consoleSpy.mockRestore();
     });
 
     it('should set uniValue for uni case with backend fetch', () => {
       const selectedItem = { _id_: '1', _label_: 'Option 1', _path_: '/1', _ifcs_: [] };
-      component.resource = { 
-        testProperty: selectedItem, 
+      component.resource = {
+        testProperty: selectedItem,
         _path_: '/test'
       };
       component.isUni = true;
-      
+
       component.ngOnInit();
-      
+
       expect(component.uniValue()).toEqual(selectedItem);
     });
 
-    it('should set selectedOptions for non-uni case with backend fetch', () => {
+    it('should set selection for non-uni case with backend fetch', () => {
       const testData = [
         { _id_: '1', _label_: 'Option 1', _path_: '/1', _ifcs_: [] }
       ];
-      component.resource = { 
-        testProperty: testData, 
+      component.resource = {
+        testProperty: testData,
         _path_: '/test'
       };
       component.isUni = false;
-      
+
       component.ngOnInit();
-      
-      expect(component['selectedOptions']()).toEqual(testData);
+
+      expect(component['selection']()).toEqual(testData);
     });
 
     it('should handle patched events and update options', () => {
-      component.resource = { 
-        testProperty: [], 
+      component.resource = {
+        testProperty: [],
         _path_: '/test'
       };
-      
+
       component.ngOnInit();
       const initialOptions = component.allOptions();
-      
+
       // Trigger patched event
       mockInterfaceComponent.patched.emit();
-      
+
       // Should trigger change detection (spread operator creates new array)
       expect(component.allOptions()).toEqual(initialOptions);
     });
@@ -150,17 +150,17 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
     it('should not initialize when canUpdate returns false', () => {
       const fetchSpy = jest.spyOn(mockInterfaceComponent, 'fetchDropdownMenuData');
       component.crud = ''; // No CRUD permissions
-      
+
       component.ngOnInit();
-      
+
       expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
 
   describe('Computed Properties', () => {
     beforeEach(() => {
-      component.resource = { 
-        testProperty: [], 
+      component.resource = {
+        testProperty: [],
         _path_: '/test'
       };
       component.ngOnInit();
@@ -169,28 +169,28 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
     describe('uniSelectableOptions', () => {
       it('should return all options when uniValue is not a string', () => {
         component.uniValue.set(null);
-        
+
         const options = component.uniSelectableOptions();
         expect(options).toEqual(component.allOptions());
       });
 
       it('should return all options when uniValue is empty string', () => {
         component.uniValue.set('');
-        
+
         const options = component.uniSelectableOptions();
         expect(options).toEqual(component.allOptions());
       });
 
       it('should return all options when uniValue is whitespace only', () => {
         component.uniValue.set('   ');
-        
+
         const options = component.uniSelectableOptions();
         expect(options).toEqual(component.allOptions());
       });
 
       it('should filter options by uniValue string (case insensitive)', () => {
         component.uniValue.set('option 2');
-        
+
         const options = component.uniSelectableOptions();
         expect(options).toEqual([
           { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] }
@@ -199,7 +199,7 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
       it('should filter options by uniValue string with different case', () => {
         component.uniValue.set('OPTION');
-        
+
         const options = component.uniSelectableOptions();
         expect(options).toEqual([
           { _id_: '1', _label_: 'Option 1', _path_: '/1', _ifcs_: [] },
@@ -212,9 +212,9 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
     describe('nonUniSelectableOptions - Backend Fetch Path', () => {
       it('should exclude selected options when no filter is applied', () => {
         const selectedData = [{ _id_: '1', _label_: 'Option 1', _path_: '/1', _ifcs_: [] }];
-        component['selectedOptions'].set(selectedData);
+        component['selection'].set(selectedData);
         component.filterValue.set('');
-        
+
         const options = component.nonUniSelectableOptions();
         expect(options).toEqual([
           { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] },
@@ -224,9 +224,9 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
       it('should exclude selected options and apply filter', () => {
         const selectedData = [{ _id_: '1', _label_: 'Option 1', _path_: '/1', _ifcs_: [] }];
-        component['selectedOptions'].set(selectedData);
+        component['selection'].set(selectedData);
         component.filterValue.set('option 2');
-        
+
         const options = component.nonUniSelectableOptions();
         expect(options).toEqual([
           { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] }
@@ -235,9 +235,9 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
       it('should handle empty filter value (whitespace)', () => {
         const selectedData = [{ _id_: '1', _label_: 'Option 1', _path_: '/1', _ifcs_: [] }];
-        component['selectedOptions'].set(selectedData);
+        component['selection'].set(selectedData);
         component.filterValue.set('   ');
-        
+
         const options = component.nonUniSelectableOptions();
         expect(options).toEqual([
           { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] },
@@ -251,8 +251,8 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
           { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] },
           { _id_: '3', _label_: 'Option 3', _path_: '/3', _ifcs_: [] }
         ];
-        component['selectedOptions'].set(allData);
-        
+        component['selection'].set(allData);
+
         const options = component.nonUniSelectableOptions();
         expect(options).toEqual([]);
       });
@@ -261,8 +261,8 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
   describe('Component Methods', () => {
     beforeEach(() => {
-      component.resource = { 
-        testProperty: [{ _id_: '1', _label_: 'Test Item', _path_: '/1', _ifcs_: [] }], 
+      component.resource = {
+        testProperty: [{ _id_: '1', _label_: 'Test Item', _path_: '/1', _ifcs_: [] }],
         _path_: '/test'
       };
       component.ngOnInit();
@@ -277,10 +277,10 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       it('should patch resource when uniValue is a valid object', () => {
         const patchSpy = jest.spyOn(mockInterfaceComponent, 'patch');
         const newValue = { _id_: '2', _label_: 'New Value', _path_: '/2', _ifcs_: [] };
-        
+
         component.uniValue.set(newValue);
         component.update();
-        
+
         expect(patchSpy).toHaveBeenCalledWith('/test', [
           {
             op: 'replace',
@@ -292,29 +292,29 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
       it('should not patch when uniValue is null', () => {
         const patchSpy = jest.spyOn(mockInterfaceComponent, 'patch');
-        
+
         component.uniValue.set(null);
         component.update();
-        
+
         expect(patchSpy).not.toHaveBeenCalled();
       });
 
       it('should not patch when uniValue is a string', () => {
         const patchSpy = jest.spyOn(mockInterfaceComponent, 'patch');
-        
+
         component.uniValue.set('some string');
         component.update();
-        
+
         expect(patchSpy).not.toHaveBeenCalled();
       });
 
       it('should update uniValue after successful patch', () => {
         const newValue = { _id_: '2', _label_: 'New Value', _path_: '/2', _ifcs_: [] };
         component.resource.testProperty = newValue;
-        
+
         component.uniValue.set(newValue);
         component.update();
-        
+
         expect(component.uniValue()).toEqual(newValue);
       });
     });
@@ -328,10 +328,10 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       it('should patch resource when newValue is set', () => {
         const patchSpy = jest.spyOn(mockInterfaceComponent, 'patch');
         const newValue = { _id_: '2', _label_: 'New Value', _path_: '/2', _ifcs_: [] };
-        
+
         component.newValue = newValue;
         component.add();
-        
+
         expect(patchSpy).toHaveBeenCalledWith('/test', [
           {
             op: 'add',
@@ -343,35 +343,35 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
       it('should not patch when newValue is undefined', () => {
         const patchSpy = jest.spyOn(mockInterfaceComponent, 'patch');
-        
+
         component.newValue = undefined;
         component.add();
-        
+
         expect(patchSpy).not.toHaveBeenCalled();
       });
 
-      it('should reset newValue and update selectedOptions after successful patch', () => {
+      it('should reset newValue and update selection after successful patch', () => {
         const newValue = { _id_: '2', _label_: 'New Value', _path_: '/2', _ifcs_: [] };
         const updatedData = [
           { _id_: '1', _label_: 'Test Item', _path_: '/1', _ifcs_: [] },
           newValue
         ];
         component.resource.testProperty = updatedData;
-        
+
         component.newValue = newValue;
         component.add();
-        
+
         expect(component.newValue).toBeUndefined();
-        expect(component['selectedOptions']()).toEqual(updatedData);
+        expect(component['selection']()).toEqual(updatedData);
       });
     });
 
     describe('remove method', () => {
       it('should patch resource to remove item at specified index', () => {
         const patchSpy = jest.spyOn(mockInterfaceComponent, 'patch');
-        
+
         component.remove(0);
-        
+
         expect(patchSpy).toHaveBeenCalledWith('/test', [
           {
             op: 'remove',
@@ -382,9 +382,9 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
       it('should default to index 0 when no index provided', () => {
         const patchSpy = jest.spyOn(mockInterfaceComponent, 'patch');
-        
+
         component.remove();
-        
+
         expect(patchSpy).toHaveBeenCalledWith('/test', [
           {
             op: 'remove',
@@ -396,30 +396,30 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       it('should set uniValue to null after successful patch (uni case)', () => {
         component.isUni = true;
         component.ngOnInit();
-        
+
         component.remove(0);
-        
+
         expect(component.uniValue()).toBeNull();
       });
 
-      it('should update selectedOptions after successful patch (non-uni case)', () => {
+      it('should update selection after successful patch (non-uni case)', () => {
         component.isUni = false;
         // Keep the original test data so remove() can access it
         const originalData = [{ _id_: '1', _label_: 'Test Item', _path_: '/1', _ifcs_: [] }];
         component.resource.testProperty = originalData;
         component.ngOnInit();
-        
+
         // After remove operation, update the data to simulate successful removal
         const updatedData: ObjectBase[] = [];
-        
+
         component.remove(0);
-        
+
         // Simulate the data being updated after successful patch
         component.resource.testProperty = updatedData;
-        // Manually update the selectedOptions signal to reflect the change
-        component['selectedOptions'].set(updatedData);
-        
-        expect(component['selectedOptions']()).toEqual(updatedData);
+        // Manually update the selection signal to reflect the change
+        component['selection'].set(updatedData);
+
+        expect(component['selection']()).toEqual(updatedData);
       });
     });
 
@@ -427,35 +427,35 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       it('should delete item when user confirms', () => {
         const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
         const deleteSpy = jest.spyOn(mockInterfaceComponent, 'delete');
-        
+
         component.delete(0);
-        
+
         expect(confirmSpy).toHaveBeenCalledWith('Delete?');
         expect(deleteSpy).toHaveBeenCalledWith('/test/testProperty/1');
-        
+
         confirmSpy.mockRestore();
       });
 
       it('should not delete when user cancels confirmation', () => {
         const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
         const deleteSpy = jest.spyOn(mockInterfaceComponent, 'delete');
-        
+
         component.delete(0);
-        
+
         expect(confirmSpy).toHaveBeenCalledWith('Delete?');
         expect(deleteSpy).not.toHaveBeenCalled();
-        
+
         confirmSpy.mockRestore();
       });
 
       it('should default to index 0 when no index provided', () => {
         const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
         const deleteSpy = jest.spyOn(mockInterfaceComponent, 'delete');
-        
+
         component.delete();
-        
+
         expect(deleteSpy).toHaveBeenCalledWith('/test/testProperty/1');
-        
+
         confirmSpy.mockRestore();
       });
 
@@ -463,15 +463,15 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
         const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
         component.isUni = true;
         component.ngOnInit();
-        
+
         component.delete(0);
-        
+
         expect(component.uniValue()).toBeNull();
         expect(component.allOptions()).toEqual([
           { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] },
           { _id_: '3', _label_: 'Option 3', _path_: '/3', _ifcs_: [] }
         ]);
-        
+
         confirmSpy.mockRestore();
       });
 
@@ -479,16 +479,16 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
         const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
         component.isUni = false;
         component.ngOnInit();
-        
+
         component.delete(0);
-        
+
         expect(component.resource.testProperty).toEqual([]);
-        expect(component['selectedOptions']()).toEqual([]);
+        expect(component['selection']()).toEqual([]);
         expect(component.allOptions()).toEqual([
           { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] },
           { _id_: '3', _label_: 'Option 3', _path_: '/3', _ifcs_: [] }
         ]);
-        
+
         confirmSpy.mockRestore();
       });
 
@@ -497,15 +497,15 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
         const deleteSpy = jest.spyOn(mockInterfaceComponent, 'delete').mockReturnValue(
           of({ isCommitted: false, invariantRulesHold: true, patches: [], notifications: [], sessionRefreshAdvice: null, navTo: null })
         );
-        
+
         const originalData = [...component.resource.testProperty];
         const originalOptions = [...component.allOptions()];
-        
+
         component.delete(0);
-        
+
         expect(component.resource.testProperty).toEqual(originalData);
         expect(component.allOptions()).toEqual(originalOptions);
-        
+
         confirmSpy.mockRestore();
         deleteSpy.mockRestore();
       });
@@ -515,15 +515,15 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
         const deleteSpy = jest.spyOn(mockInterfaceComponent, 'delete').mockReturnValue(
           of({ isCommitted: true, invariantRulesHold: false, patches: [], notifications: [], sessionRefreshAdvice: null, navTo: null })
         );
-        
+
         const originalData = [...component.resource.testProperty];
         const originalOptions = [...component.allOptions()];
-        
+
         component.delete(0);
-        
+
         expect(component.resource.testProperty).toEqual(originalData);
         expect(component.allOptions()).toEqual(originalOptions);
-        
+
         confirmSpy.mockRestore();
         deleteSpy.mockRestore();
       });
@@ -532,8 +532,8 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
   describe('Helper Methods', () => {
     beforeEach(() => {
-      component.resource = { 
-        testProperty: [], 
+      component.resource = {
+        testProperty: [],
         _path_: '/test'
       };
       component.crud = 'CRUD'; // Enable create permission
@@ -564,7 +564,7 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
       it('should return false when canCreate returns false', () => {
         component.crud = 'RUD'; // No create permission
-        
+
         expect(component.isAllowedToCreate('new-item')).toBe(false);
       });
     });
@@ -591,18 +591,18 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       it('should call createAndAdd when Enter key is pressed', () => {
         const createAndAddSpy = jest.spyOn(component, 'createAndAdd');
         const event = new KeyboardEvent('keydown', { code: 'Enter' });
-        
+
         component.handleFilterInput('new-item', event);
-        
+
         expect(createAndAddSpy).toHaveBeenCalledWith('new-item');
       });
 
       it('should not call createAndAdd for other keys', () => {
         const createAndAddSpy = jest.spyOn(component, 'createAndAdd');
         const event = new KeyboardEvent('keydown', { code: 'Space' });
-        
+
         component.handleFilterInput('new-item', event);
-        
+
         expect(createAndAddSpy).not.toHaveBeenCalled();
       });
 
@@ -610,9 +610,9 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
         const createAndAddSpy = jest.spyOn(component, 'createAndAdd');
         const event = new KeyboardEvent('keydown', { code: 'Enter' });
         const obj = { _id_: '1', _label_: 'Test' } as any;
-        
+
         component.handleFilterInput(obj, event);
-        
+
         expect(createAndAddSpy).toHaveBeenCalledWith(obj);
       });
     });
@@ -621,25 +621,25 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       it('should not proceed with object input', () => {
         const patchSpy = jest.spyOn(mockInterfaceComponent, 'patch');
         const obj = { _id_: '1', _label_: 'Test' } as any;
-        
+
         component.createAndAdd(obj);
-        
+
         expect(patchSpy).not.toHaveBeenCalled();
       });
 
       it('should not proceed when isAllowedToCreate returns false', () => {
         const patchSpy = jest.spyOn(mockInterfaceComponent, 'patch');
-        
+
         component.createAndAdd(''); // Empty string not allowed
-        
+
         expect(patchSpy).not.toHaveBeenCalled();
       });
 
       it('should patch resource for valid string input', () => {
         const patchSpy = jest.spyOn(mockInterfaceComponent, 'patch');
-        
+
         component.createAndAdd('new-item');
-        
+
         expect(patchSpy).toHaveBeenCalledWith('/test', [
           {
             op: 'add',
@@ -654,11 +654,11 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
         const newItem = { _id_: 'new-item', _label_: 'New Item', _path_: '/new', _ifcs_: [] };
         component.resource.testProperty = [newItem];
         component.ngOnInit();
-        
+
         const hideSpy = jest.spyOn(component['dropdown'], 'hide');
-        
+
         component.createAndAdd('new-item');
-        
+
         expect(hideSpy).toHaveBeenCalled();
         expect(component.uniValue()).toEqual(newItem);
         expect(component.allOptions()).toContainEqual(newItem);
@@ -669,15 +669,15 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
         const newItem = { _id_: 'new-item', _label_: 'New Item', _path_: '/new', _ifcs_: [] };
         component.resource.testProperty = [newItem];
         component.ngOnInit();
-        
+
         const hideSpy = jest.spyOn(component['dropdown'], 'hide');
         component.filterValue.set('some-filter');
-        
+
         component.createAndAdd('new-item');
-        
+
         expect(hideSpy).toHaveBeenCalled();
         expect(component.filterValue()).toBe('');
-        expect(component['selectedOptions']()).toEqual([newItem]);
+        expect(component['selection']()).toEqual([newItem]);
         expect(component.allOptions()).toContainEqual(newItem);
       });
 
@@ -685,9 +685,9 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
         const newItem = { _id_: 'a-new-item', _label_: 'A New Item', _path_: '/new', _ifcs_: [] };
         component.resource.testProperty = [newItem];
         component.ngOnInit();
-        
+
         component.createAndAdd('a-new-item');
-        
+
         const options = component.allOptions();
         const labels = options.map(o => o._label_);
         const sortedLabels = [...labels].sort();
@@ -696,9 +696,9 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
       it('should trim whitespace from input value', () => {
         const patchSpy = jest.spyOn(mockInterfaceComponent, 'patch');
-        
+
         component.createAndAdd('  new-item  ');
-        
+
         expect(patchSpy).toHaveBeenCalledWith('/test', [
           {
             op: 'add',
@@ -712,42 +712,42 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
   describe('Edge Cases and Error Handling', () => {
     it('should handle empty allOptions array', () => {
-      component.resource = { 
-        testProperty: [], 
+      component.resource = {
+        testProperty: [],
         _path_: '/test'
       };
-      
+
       // Mock empty response from backend
       jest.spyOn(mockInterfaceComponent, 'fetchDropdownMenuData').mockReturnValue(of([]));
-      
+
       component.ngOnInit();
-      
+
       expect(component.allOptions()).toEqual([]);
       expect(component.uniSelectableOptions()).toEqual([]);
       expect(component.nonUniSelectableOptions()).toEqual([]);
     });
 
     it('should handle null/undefined resource properties', () => {
-      component.resource = { 
-        testProperty: null, 
+      component.resource = {
+        testProperty: null,
         _path_: '/test'
       };
       component.isUni = true;
-      
+
       component.ngOnInit();
-      
+
       expect(component.uniValue()).toBeNull();
     });
 
     it('should handle undefined data property', () => {
-      component.resource = { 
+      component.resource = {
         testProperty: undefined,
         _path_: '/test'
       };
-      
+
       component.ngOnInit();
-      
-      expect(component['selectedOptions']()).toEqual([]);
+
+      expect(component['selection']()).toEqual([]);
     });
 
     it('should handle isObject utility function', () => {
@@ -760,7 +760,7 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
     it('should handle missing dropdown ViewChild gracefully', () => {
       component['dropdown'] = undefined as any;
-      
+
       // Should not throw error when trying to hide dropdown
       expect(() => {
         component.createAndAdd('new-item');
@@ -768,49 +768,49 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
     });
 
     it('should handle patch operation failures', () => {
-      component.resource = { 
-        testProperty: [], 
+      component.resource = {
+        testProperty: [],
         _path_: '/test'
       };
       component.ngOnInit();
-      
+
       const patchSpy = jest.spyOn(mockInterfaceComponent, 'patch').mockReturnValue(
         of({ isCommitted: false, invariantRulesHold: true, content: null, patches: [], notifications: [], sessionRefreshAdvice: null, navTo: null })
       );
-      
+
       component.isUni = true;
       const newValue = { _id_: '2', _label_: 'New Value', _path_: '/2', _ifcs_: [] };
       component.uniValue.set(newValue);
-      
+
       component.update();
-      
+
       // Should still call patch but not update the value since it failed
       expect(patchSpy).toHaveBeenCalled();
-      
+
       patchSpy.mockRestore();
     });
 
     it('should handle delete operation failures', () => {
-      component.resource = { 
-        testProperty: [{ _id_: '1', _label_: 'Test Item', _path_: '/1', _ifcs_: [] }], 
+      component.resource = {
+        testProperty: [{ _id_: '1', _label_: 'Test Item', _path_: '/1', _ifcs_: [] }],
         _path_: '/test'
       };
       component.ngOnInit();
-      
+
       const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
       const deleteSpy = jest.spyOn(mockInterfaceComponent, 'delete').mockReturnValue(
         of({ isCommitted: false, invariantRulesHold: false, patches: [], notifications: [], sessionRefreshAdvice: null, navTo: null })
       );
-      
+
       const originalData = [...component.resource.testProperty];
       const originalOptions = [...component.allOptions()];
-      
+
       component.delete(0);
-      
+
       // Data should remain unchanged when delete fails
       expect(component.resource.testProperty).toEqual(originalData);
       expect(component.allOptions()).toEqual(originalOptions);
-      
+
       confirmSpy.mockRestore();
       deleteSpy.mockRestore();
     });
@@ -818,8 +818,8 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
   describe('Signal Reactivity', () => {
     beforeEach(() => {
-      component.resource = { 
-        testProperty: [], 
+      component.resource = {
+        testProperty: [],
         _path_: '/test'
       };
       component.ngOnInit();
@@ -829,30 +829,30 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       const newOptions = [
         { _id_: '4', _label_: 'New Option', _path_: '/4', _ifcs_: [] }
       ];
-      
+
       component.allOptions.set(newOptions);
-      
+
       expect(component.uniSelectableOptions()).toEqual(newOptions);
       expect(component.nonUniSelectableOptions()).toEqual(newOptions);
     });
 
     it('should update computed properties when filterValue signal changes', () => {
       component.filterValue.set('option 1');
-      
+
       const filteredOptions = component.nonUniSelectableOptions();
       expect(filteredOptions).toEqual([
         { _id_: '1', _label_: 'Option 1', _path_: '/1', _ifcs_: [] }
       ]);
     });
 
-    it('should update computed properties when selectedOptions signal changes', () => {
+    it('should update computed properties when selection signal changes', () => {
       const selectedData = [
         { _id_: '1', _label_: 'Option 1', _path_: '/1', _ifcs_: [] },
         { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] }
       ];
-      
-      component['selectedOptions'].set(selectedData);
-      
+
+      component['selection'].set(selectedData);
+
       const availableOptions = component.nonUniSelectableOptions();
       expect(availableOptions).toEqual([
         { _id_: '3', _label_: 'Option 3', _path_: '/3', _ifcs_: [] }
@@ -861,7 +861,7 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
     it('should update computed properties when uniValue signal changes', () => {
       component.uniValue.set('option');
-      
+
       const filteredOptions = component.uniSelectableOptions();
       expect(filteredOptions.length).toBe(3); // All options contain 'option'
     });
@@ -870,13 +870,13 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
   describe('Input Properties', () => {
     it('should handle placeholder input', () => {
       component.placeholder = 'Custom Placeholder';
-      
+
       expect(component.placeholder).toBe('Custom Placeholder');
     });
 
     it('should handle tgtResourceType input', () => {
       component.tgtResourceType = 'CustomResource';
-      
+
       expect(component.tgtResourceType).toBe('CustomResource');
     });
 
@@ -887,8 +887,8 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
   describe('Inheritance from BaseAtomicComponent', () => {
     beforeEach(() => {
-      component.resource = { 
-        testProperty: [], 
+      component.resource = {
+        testProperty: [],
         _path_: '/test'
       };
       component.ngOnInit();
@@ -911,7 +911,7 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
     it('should inherit newValue property', () => {
       expect(component.newValue).toBeUndefined(); // Initially undefined
-      
+
       const testValue = { _id_: 'test', _label_: 'Test', _path_: '/test', _ifcs_: [] };
       component.newValue = testValue;
       expect(component.newValue).toEqual(testValue);
