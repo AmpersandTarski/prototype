@@ -7,6 +7,7 @@ import {
   signal,
   ViewChild,
 } from '@angular/core';
+import { takeUntil, tap, switchMap } from 'rxjs/operators';
 import { BaseAtomicComponent } from '../BaseAtomicComponent.class';
 import { Dropdown } from 'primeng/dropdown';
 import { isObject } from '../../helper/deepmerge';
@@ -72,7 +73,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     }
 
     // Original behavior for non-filtered dropdowns: exclude selected ids
-    const selectedIds = this.selection().map((d) => d._id_);
+    const selectedIds = this.selection().map((d: ObjectBase) => d._id_);
     const allOptionsWithoutSelected = this.allOptions().filter(
       (option) => !selectedIds.includes(option._id_),
     );
@@ -126,40 +127,41 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         }
 
         // on a data patch, we want to update the dropdown options
-        this.interfaceComponent.patched.subscribe(() => {
-          if (this.selectOptions) {
-            const updatedSelectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
-            this.allOptions.set([...updatedSelectOptionsArray]); // spread to trigger change
-          }
-        });
+        this.interfaceComponent.patched
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(() => {
+            if (this.selectOptions) {
+              const updatedSelectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
+              this.allOptions.set([...updatedSelectOptionsArray]); // spread to trigger change
+            } 
+          });
       }
 
       // update allowed in the regular atomic object?
       if (this.canUpdate()) {
-
         this.interfaceComponent
           .fetchDropdownMenuData(`resource/${this.tgtResourceType}`)
-          .subscribe((objects) => {
-            // we need to set some signals to compute the selectable option(s)
-            // set allOptions first ...
-            this.allOptions.set(objects);
+          .pipe(
+            takeUntil(this.destroy$),
+            tap((objects) => {
+              // we need to set some signals to compute the selectable option(s)
+              // set allOptions first ...
+              this.allOptions.set(objects);
 
-            // ... and then the selected option(s) signals
-            if (this.isUni) {
-              this.uniValue.set(this.resource[this.propertyName] ?? null);
-            } else {
-              this.selection.set(this.data);
-            }
-
-            // on a data patch, we want to update the dropdown options
-            // this does not reflect delete operations and 'add' patches through which a new item is created
-            this.interfaceComponent.patched.subscribe(() => {
-              // reset all options, so the selectable options (uni and non uni) are recomputed
-              this.allOptions.set([...this.allOptions()]); // spread to trigger change
-            });
+              // ... and then the selected option(s) signals
+              if (this.isUni) {
+                this.uniValue.set(this.resource[this.propertyName] ?? null);
+              } else {
+                this.selection.set(this.data);
+              }
+            }),
+            switchMap(() => this.interfaceComponent.patched.pipe(takeUntil(this.destroy$)))
+          )
+          .subscribe(() => {
+            // reset all options, so the selectable options (uni and non uni) are recomputed
+            this.allOptions.set([...this.allOptions()]); // spread to trigger change
           });
       }
-
   }
 
   // used in uni case
@@ -284,7 +286,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           // clear filter
           this.filterValue.set('');
 
-          // update selection
+          // update selected options
           this.selection.set([...this.data]); // spread to trigger change
         }
       });

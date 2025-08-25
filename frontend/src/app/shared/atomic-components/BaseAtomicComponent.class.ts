@@ -1,4 +1,5 @@
-import { Component, Input, OnInit, booleanAttribute } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, booleanAttribute } from '@angular/core';
+import { Subject } from 'rxjs';
 import { AmpersandInterfaceComponent } from '../interfacing/ampersand-interface.class';
 import { ObjectBase } from '../objectBase.interface';
 @Component({
@@ -7,8 +8,9 @@ import { ObjectBase } from '../objectBase.interface';
 export abstract class BaseAtomicComponent<
   T,
   I extends ObjectBase | ObjectBase[],
-> implements OnInit
+> implements OnInit, OnDestroy
 {
+  protected destroy$ = new Subject<void>();
   @Input({ required: true }) property: T | Array<T> | null = null;
 
   @Input({ required: true }) resource: any;
@@ -41,6 +43,11 @@ export abstract class BaseAtomicComponent<
         `Property '${this.propertyName}' not defined for object in '${this.resource._path_}'. It is likely that the backend data model is not in sync with the generated frontend.`,
       );
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   public canCreate(): boolean {
