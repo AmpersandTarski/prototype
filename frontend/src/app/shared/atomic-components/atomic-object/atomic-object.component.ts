@@ -106,69 +106,71 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       return;
     }
 
-      // Check if we have selectOptions input (for filtered dropdowns)
-      if (this.selectOptions) {
-        // Handle both array and single object cases
-        const selectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
+    // Check if we have selectOptions input (for filtered dropdowns)
+    if (this.selectOptions) {
+      // Handle both array and single object cases
+      const selectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
 
-        // Filter the options based on the 'selectOptions' property
-        const filteredOptions = selectOptionsArray.filter((item: any) => {
-          const shouldInclude = item.select === true;
-          return shouldInclude;
+      // Filter the options based on the 'selectOptions' property
+      const filteredOptions = selectOptionsArray.filter((item: any) => {
+        const shouldInclude = item.select === true;
+        return shouldInclude;
+      });
+
+      // Use the filtered options
+      this.allOptions.set(filteredOptions);
+
+      // Set selected option(s) signals
+      if (this.isUni) {
+        this.uniValue.set(this.resource[this.propertyName] ?? null);
+      } else {
+        this.selection.set(this.data);
+      }
+
+      // on a data patch, we want to update the dropdown options
+      this.interfaceComponent.patched
+        .pipe(
+          takeUntil(this.destroy$),
+          map(() => {
+            if (this.selectOptions) {
+              const updatedSelectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
+              return [...updatedSelectOptionsArray]; // spread to trigger change
+            }
+            return [] as ObjectBase[];
+          })
+        )
+        .subscribe((options) => {
+          this.allOptions.set(options);
+        });
+    }
+
+    // update allowed in the regular atomic object?
+    if (this.canUpdate()) {
+      // Initial setup: fetch dropdown data and set initial state
+      this.interfaceComponent
+        .fetchDropdownMenuData(`resource/${this.tgtResourceType}`)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((objects) => {
+          // we need to set some signals to compute the selectable option(s)
+          // set allOptions first ...
+          this.allOptions.set(objects);
+
+          // ... and then the selected option(s) signals
+          if (this.isUni) {
+            this.uniValue.set(this.resource[this.propertyName] ?? null);
+          } else {
+            this.selection.set(this.data);
+          }
         });
 
-        // Use the filtered options
-        this.allOptions.set(filteredOptions);
-
-        // Set selected option(s) signals
-        if (this.isUni) {
-          this.uniValue.set(this.resource[this.propertyName] ?? null);
-        } else {
-          this.selection.set(this.data);
-        }
-
-        // on a data patch, we want to update the dropdown options
-        this.interfaceComponent.patched
-          .pipe(
-            takeUntil(this.destroy$),
-            map(() => {
-              if (this.selectOptions) {
-                const updatedSelectOptionsArray = Array.isArray(this.selectOptions) ? this.selectOptions : [this.selectOptions];
-                return [...updatedSelectOptionsArray]; // spread to trigger change
-              }
-              return [] as ObjectBase[];
-            })
-          )
-          .subscribe((options) => {
-            this.allOptions.set(options);
-          });
-      }
-
-      // update allowed in the regular atomic object?
-      if (this.canUpdate()) {
-        this.interfaceComponent
-          .fetchDropdownMenuData(`resource/${this.tgtResourceType}`)
-          .pipe(
-            takeUntil(this.destroy$),
-            tap((objects) => {
-              // we need to set some signals to compute the selectable option(s)
-              // set allOptions first ...
-              this.allOptions.set(objects);
-
-              // ... and then the selected option(s) signals
-              if (this.isUni) {
-                this.uniValue.set(this.resource[this.propertyName] ?? null);
-              } else {
-                this.selection.set(this.data);
-              }
-            }),
-            switchMap(() => this.interfaceComponent.patched.pipe(takeUntil(this.destroy$)))
-          )
-          .subscribe(() => {
-            // reset all options, so the selectable options (uni and non uni) are recomputed
-            this.allOptions.set([...this.allOptions()]); // spread to trigger change
-          });
-      }
+      // Separate subscription: listen for patches and refresh options
+      this.interfaceComponent.patched
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          // reset all options, so the selectable options (uni and non uni) are recomputed
+          this.allOptions.set([...this.allOptions()]); // spread to trigger change
+        });
+    }
   }
 
   // used in uni case
