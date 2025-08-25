@@ -1,8 +1,0 @@
-CONTEXT FilteredDropdownExamples IN ENGLISH
-
-INCLUDE "filtered-dropdown-uni-tot.test.adl"
-INCLUDE "filtered-dropdown-tot.test.adl"
-INCLUDE "filtered-dropdown-uni.test.adl"
-INCLUDE "filtered-dropdown-default.test.adl"
-
-ENDCONTEXT

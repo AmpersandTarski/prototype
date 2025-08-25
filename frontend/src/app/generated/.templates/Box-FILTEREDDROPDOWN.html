@@ -1,14 +1,8 @@
-<!--just use atomic object component, the select property will be detected inside the atomic object code-->
 <app-atomic-object
-    [resource]="resource"
+    [resource]="resource.$name$"
     [interfaceComponent]="this"
-    [property]="resource.$name$"
-    propertyName="$name$"
+    [property]="resource.$name$?.setRelation"
+    propertyName="setRelation"
     label="$label$"
-    crud="$crud$"
-    placeholder="Add $target$"
-    tgtResourceType="$target$"
-    [selectOptions]="resource.$name$"
-    $if(exprIsUni)$isUni$endif$
-    $if(exprIsTot)$isTot$endif$
+    mode="box-filtereddropdown"
 ></app-atomic-object>

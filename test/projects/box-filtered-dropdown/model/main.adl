@@ -1,0 +1,274 @@
+CONTEXT FilteredDropDownTests
+
+REPRESENT Name TYPE ALPHANUMERIC
+REPRESENT Location TYPE ALPHANUMERIC
+
+RELATION name[Employee*Name] [UNI]
+RELATION eligible[Project*Employee]
+RELATION projectMember[Project*Employee]
+RELATION projectMaster[Project*Employee] [UNI]
+RELATION projectFounder[Project*Employee] [TOT]
+RELATION projectResponsible[Project*Employee] [UNI,TOT]
+RELATION projectLocation[Project*Location]
+
+POPULATION name[Employee*Name] CONTAINS
+  [ ("m1", "Jan Jansen")
+  , ("m2", "Piet Peters")
+  , ("m3", "Marie Bakker")
+  , ("m4", "Klaas Klaasen")
+  , ("m5", "Anna Annasson")
+  , ("m6", "Berent Boudewijn")
+  ]
+
+-- Desired filtering: eligible employees only
+POPULATION eligible[Project*Employee] CONTAINS
+  [ ("project 1", "m1")
+  , ("project 1", "m4")
+  , ("project 1", "m5")
+  , ("project 2", "m3")
+  , ("project 2", "m5")
+  , ("project 3", "m5")
+  ]
+
+POPULATION projectMember[Project*Employee] CONTAINS
+  [ ("project 1", "m1")
+  , ("project 1", "m2")
+  , ("project 1", "m4")
+  , ("project 1", "m5")
+  , ("project 4", "m6")
+  ]
+
+POPULATION projectMaster[Project*Employee] CONTAINS --UNI
+  [ ("project 1", "m3")
+  ]
+
+POPULATION projectFounder[Project*Employee] CONTAINS -- TOT
+  [ ("project 1", "m1")
+  , ("project 2", "m5")
+  , ("project 3", "m5")
+  , ("project 4", "m6")
+  ]
+
+POPULATION projectResponsible[Project*Employee] CONTAINS -- UNI,TOT
+  [ ("project 1", "m3") 
+  , ("project 2", "m5")
+  , ("project 3", "m5")
+  , ("project 4", "m6") -- m6 is not eligible at all
+  ]
+
+-- Intentionally created a separate relation of a different type for the error page
+POPULATION projectLocation[Project*Location] CONTAINS
+  [ ("project 1", "Amsterdam")
+  , ("project 1", "Rotterdam")
+  ]
+
+-- Dedicated page to preview data
+INTERFACE "Dropdown data in Form" : "_SESSION"[SESSION] cRUd BOX<TABS>
+  [ "Table Preview" : V[SESSION*Project] cRUd BOX<Table>
+      [ "Project ID" : I cRud
+      , selectFromPreview : eligible cRud   
+      , projectMember : projectMember cRud  
+      , "projectMaster(UNI)" : projectMaster cRud
+      , "projectFounder(TOT)" : projectFounder cRud
+      , "projectResponsible(UNI,TOT)" : projectResponsible cRud
+      , "ProjectLocation" : projectLocation cRud
+      ]
+  ]
+
+INTERFACE "Box-Filtered-Dropdown tests" : "_SESSION"[SESSION] cRUd BOX<TABS>
+  [ "Default": V[SESSION*Project] cRUd BOX<FORM>
+      [ "Project ID" : I cRud
+      , setRelationPreview : projectMember cRud  -- preview projectMember for testing purposes
+      , selectFromPreview : eligible cRud        -- preview the selection for testing purposes
+
+      , "1. Assign an employee (cRud)" : I BOX<FILTEREDDROPDOWN>
+          [ "selectFrom"   : eligible
+          , "setRelation"  : projectMember cRud
+          , "emptyOption"  : TXT "- Add Project Member -"
+          , "noOptionsTxt" : TXT "No project members to select from"
+          ]
+      , "2. Assign an employee (cRUd)" : I BOX<FILTEREDDROPDOWN>
+          [ "selectFrom"   : eligible cRUd
+          , "setRelation"  : projectMember cRUd
+          , "emptyOption"  : TXT "- Add ProjectMember -"
+          , "noOptionsTxt" : TXT "No project members to select from"
+          ]
+      , "3. Assign an employee (cRuD)" : I BOX<FILTEREDDROPDOWN>
+          [ "selectFrom"   : eligible cRuD
+          , "setRelation"  : projectMember cRuD
+          , "emptyOption"  : TXT "- Add ProjectMember -"
+          , "noOptionsTxt" : TXT "No project members to select from"
+          ]
+      , "4. Assign an employee (cRUD)" : I BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMember cRUD
+          , selectFrom : eligible
+          ]
+      , "5. Assign an employee (CRud)" : I BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMember CRud
+          , selectFrom : eligible
+          ]
+      , "6. Assign an employee (CRUd)" : I BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMember CRUd
+          , selectFrom : eligible
+          ]
+      , "7. Assign an employee (CRuD)" : I BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMember CRuD
+          , selectFrom : eligible
+          ]
+      , "8. Assign an employee (CRUD)" : I BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMember CRUD
+          , selectFrom : eligible
+          ]
+      ]
+
+  , "Project Master (UNI)" : V[SESSION*Project] cRUd BOX<FORM>
+      [ "Project ID" : I cRud
+      , setRelationPreview : projectMaster cRud  
+      , selectFromPreview : eligible cRud  
+
+      , "1. Project Master (cRud)" : I cRud BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMaster cRud
+          , selectFrom : eligible
+          ]
+      , "2. Project Master (cRUd)" : I cRUd BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMaster cRUd
+          , selectFrom : eligible
+          ]
+      , "3. Project Master (cRuD)" : I cRuD BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMaster cRuD
+          , selectFrom : eligible
+          ]
+      , "4. Project Master (cRUD)" : I cRUD BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMaster cRUD
+          , selectFrom : eligible
+          ]
+      , "5. Project Master (CRud)" : I CRud BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMaster CRud
+          , selectFrom : eligible
+          ]
+      , "6. Project Master (CRUd)" : I CRUd BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMaster CRUd
+          , selectFrom : eligible
+          ]
+      , "7. Project Master (CRuD)" : I CRuD BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMaster CRuD
+          , selectFrom : eligible
+          ]
+      , "8. Project Master (CRUD)" : I CRUD BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectMaster CRUD
+          , selectFrom : eligible
+          ]
+      ]
+
+  , "Project Founder (TOT)" : V[SESSION*Project] cRUd BOX<FORM>
+      [ "Project ID" : I cRud
+      , setRelationPreview : projectFounder cRud 
+      , selectFromPreview : eligible cRud  
+
+      , "1. Project Founder (cRud)" : I cRud BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectFounder cRud
+          , selectFrom : eligible
+          ]
+      , "2. Project Founder (cRUd)" : I cRUd BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectFounder cRUd
+          , selectFrom : eligible
+          ]
+      , "3. Project Founder (cRuD)" : I cRuD BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectFounder cRuD
+          , selectFrom : eligible
+          ]
+      , "4. Project Founder (cRUD)" : I cRUD BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectFounder cRUD
+          , selectFrom : eligible
+          ]
+      , "5. Project Founder (CRud)" : I CRud BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectFounder CRud
+          , selectFrom : eligible
+          ]
+      , "6. Project Founder (CRUd)" : I CRUd BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectFounder CRUd
+          , selectFrom : eligible
+          ]
+      , "7. Project Founder (CRuD)" : I CRuD BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectFounder CRuD
+          , selectFrom : eligible
+          ]
+      , "8. Project Founder (CRUD)" : I CRUD BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectFounder CRUD
+          , selectFrom : eligible
+          ]
+      ]
+
+  , "Project Responsible (UNI TOT)" : V[SESSION*Project] cRUd BOX<FORM>
+      [ "Project ID" : I cRud
+      , setRelationPreview : projectResponsible cRud  
+      , selectFromPreview : eligible cRud  
+
+      , "1. Responsible (cRud)" : I cRud BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectResponsible cRud
+          , selectFrom : eligible
+          ]
+      , "2. Responsible (cRUd)" : I cRUd BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectResponsible cRUd
+          , selectFrom : eligible
+          ]
+      , "3. Responsible (cRuD)" : I cRuD BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectResponsible cRuD
+          , selectFrom : eligible
+          ]
+      , "4. Responsible (cRUD)" : I cRUD BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectResponsible cRUD
+          , selectFrom : eligible
+          ]
+      , "5. Responsible (CRud)" : I CRud BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectResponsible CRud
+          , selectFrom : eligible
+          ]
+      , "6. Responsible (CRUd)" : I CRUd BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectResponsible CRUd
+          , selectFrom : eligible
+          ]
+      , "7. Responsible (CRuD)" : I CRuD BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectResponsible CRuD
+          , selectFrom : eligible
+          ]
+      , "8. Responsible (CRUD)" : I CRUD BOX<FILTEREDDROPDOWN>
+          [ setRelation : projectResponsible CRUD
+          , selectFrom : eligible
+          ]
+      ]
+  ]
+
+-- uncomment an item to see the errors appearing in red notification and in console
+INTERFACE "Box-Filtered-Dropdown-errors" : "_SESSION"[SESSION] cRUd BOX<TABS>
+  [ "Section Header Errors" : TXT "This section creates errors as red notification and in console. These errors are expected."
+  , "Default": V[SESSION*Project] cRUd BOX<FORM>
+      [ "Project ID" : I cRud
+      , "setRelation(ProjectMember)Preview" : projectMember cRud  
+      , "setRelation(ProjectLocation)Preview" : projectLocation cRud  
+      , selectFromPreview : eligible cRud     
+
+    --   , "1. Assign an employee (crud/crud)" : I crud BOX<FILTEREDDROPDOWN> -- box not readable
+    --       [ setRelation : projectLocation crud
+    --       , selectFrom : eligible
+    --       ]
+    --   , "2. Assign an employee (crud/cRud)" : I crud BOX<FILTEREDDROPDOWN> -- box not readable
+    --       [ setRelation : projectMember cRud
+    --       , selectFrom : eligible
+    --       ]
+    --   , "3. Assign an employee (cRud/crud)" : I cRud BOX<FILTEREDDROPDOWN> -- relation not readable
+    --       [ setRelation : projectMember crud
+    --       , selectFrom : eligible
+    --       ]
+    --   , "4. Assign an employee (cRud)" : I BOX<FILTEREDDROPDOWN> -- relation and selectFrom of different type
+    --       [ "setRelation"   : projectLocation cRud
+    --       , "selectFrom"  : eligible
+    --       ]
+    --   , "5. Assign an employee (cRud)" : I BOX<FILTEREDDROPDOWN> -- relation and selectFrom of different type, swapped
+    --       [ "setRelation"   : eligible cRud
+    --       , "selectFrom"  : projectLocation 
+    --       ]
+      ]
+  ]
+
+ENDCONTEXT

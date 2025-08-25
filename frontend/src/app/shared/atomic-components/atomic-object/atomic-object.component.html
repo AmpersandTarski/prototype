@@ -17,7 +17,7 @@
 <ng-template #uniRead>
     <div *ngIf="resource[propertyName]" class="item">
         <div
-            *ngIf="canDelete()"
+            *ngIf="canDelete() && matchTotConstraint()"
             class="pi pi-fw pi-trash"
             style="margin: auto 0"
             (click)="delete()"
@@ -33,24 +33,24 @@
 <ng-template #uniUpdate>
     <div class="item">
         <span
-            *ngIf="canUpdate()"
+            *ngIf="canUpdate() && matchTotConstraint()"
             class="pi pi-minus"
             style="margin: auto 0"
             [ngStyle]="{
                 cursor: isObject(uniValue()) ? 'pointer' : 'default',
-                color: isObject(uniValue()) ? 'red' : 'grey'
+                color: isObject(uniValue()) ? 'red' : 'grey',
             }"
             (click)="isObject(uniValue()) && remove()"
             pTooltip="Remove"
             tooltipPosition="left"
         ></span>
         <span
-            *ngIf="canDelete()"
+            *ngIf="canDelete() && matchTotConstraint()"
             class="pi pi-trash"
             style="margin: auto 0"
             [ngStyle]="{
                 cursor: isObject(uniValue()) ? 'pointer' : 'default',
-                color: isObject(uniValue()) ? 'red' : 'grey'
+                color: isObject(uniValue()) ? 'red' : 'grey',
             }"
             (click)="isObject(uniValue()) && delete()"
             pTooltip="Delete"
@@ -59,7 +59,7 @@
         <p-dropdown
             #dropdown
             [options]="uniSelectableOptions()"
-            [ngModel]="uniValue()"
+            [ngModel]="selectableUniValue()"
             (ngModelChange)="uniValue.set($event); update()"
             (keyup)="handleFilterInput(uniValue()!, $event)"
             dataKey="_id_"
@@ -90,14 +90,14 @@
 <ng-template #nonUni>
     <div *ngFor="let object of data; let i = index" class="item">
         <div
-            *ngIf="canUpdate()"
+            *ngIf="canUpdate() && matchTotConstraint()"
             class="pi pi-fw pi-minus"
             (click)="remove(i)"
             pTooltip="Remove"
             tooltipPosition="left"
         ></div>
         <div
-            *ngIf="canDelete()"
+            *ngIf="canDelete() && matchTotConstraint()"
             class="pi pi-fw pi-trash"
             (click)="delete(i)"
             pTooltip="Delete"
