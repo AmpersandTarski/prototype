@@ -56,7 +56,7 @@ fi
 echo "🧱 Building frontend from generated source code ..."
 cd frontend || exit 1
 npm install
-npm run build
+npm run build:dev
 cd ../
 
 echo "🚚 Copying generated files to html/"
