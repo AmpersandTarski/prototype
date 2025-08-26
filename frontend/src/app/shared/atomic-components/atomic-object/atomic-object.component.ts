@@ -115,11 +115,37 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           ? selectOptions 
           : [selectOptions];
         
+        // Debug logging for CRUd case to see what's being filtered
+        if (this.isUni && this.crud === 'CRUd') {
+          console.log('🔍 FILTER DEBUG [CRUd] selectOptionsArray before filter:', selectOptionsArray);
+          selectOptionsArray.forEach((item: any, index: number) => {
+            console.log(`🔍 FILTER DEBUG [CRUd] item[${index}]:`, item);
+            console.log(`🔍 FILTER DEBUG [CRUd] item[${index}].select:`, item.select);
+            console.log(`🔍 FILTER DEBUG [CRUd] item[${index}].select === true:`, item.select === true);
+          });
+        }
+        
         // Filter the options based on the 'selectOptions' property
-        return selectOptionsArray.filter((item: any) => {
+        // Handle cases where select might be missing for newly created items
+        const filtered = selectOptionsArray.filter((item: any) => {
           const shouldInclude = item.select === true;
           return shouldInclude;
         });
+        
+        // If filtering results in empty array but we have items, 
+        // it might be that newly created items don't have select property yet
+        if (filtered.length === 0 && selectOptionsArray.length > 0) {
+          console.log('⚠️ WARNING [CRUd]: All items filtered out! Possible issue with select property on new items');
+          // For debugging: temporarily show all items if filtering fails completely
+          // return selectOptionsArray;
+        }
+        
+        // Debug logging for CRUd case to see filtering result
+        if (this.isUni && this.crud === 'CRUd') {
+          console.log('🔍 FILTER DEBUG [CRUd] filtered result:', filtered);
+        }
+        
+        return filtered;
       })
     );
   }
@@ -146,6 +172,13 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
             : of([])
       ),
       tap((optionsToDisplay: ObjectBase[]) => {
+        // Debug logging for uni CRUd case
+        if (this.isUni && this.crud === 'CRUd') {
+          console.log('🔍 ATOMIC-OBJECT [CRUd] selectOptions:', this.selectOptions);
+          console.log('🔍 ATOMIC-OBJECT [CRUd] optionsToDisplay:', optionsToDisplay);
+          console.log('🔍 ATOMIC-OBJECT [CRUd] resource[propertyName]:', this.resource[this.propertyName]);
+        }
+        
         // Set initial options and signals
         this.allOptions.set(optionsToDisplay);
         

@@ -917,4 +917,169 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       expect(component.newValue).toEqual(testValue);
     });
   });
+
+  describe.only('Select Options', () => {
+    it('Test for dropdownsdefault - CRUd permissions with employee assignment', () => {
+      // Setup: Configure component for non-uni case with CRUd permissions (no Delete)
+      component.isUni = false;
+      component.isTot = false;
+      component.crud = 'CRUd'; // Create, Read, update, but no Delete
+      
+      // Start with one project and m1 as starting point
+      const initialEmployee = { _id_: 'm1', _label_: 'm1', _path_: '/m1', _ifcs_: [] };
+      component.resource = {
+        testProperty: [initialEmployee], // Start with m1 in the list
+        _path_: '/test'
+      };
+      
+      // Set up selectOptions with predefined employees
+      const employeeOptions = [
+        { _id_: 'm1', _label_: 'm1', _path_: '/m1', _ifcs_: [] },
+        { _id_: 'm3', _label_: 'm3', _path_: '/m3', _ifcs_: [] },
+        { _id_: 'm4', _label_: 'm4', _path_: '/m4', _ifcs_: [] }
+      ];
+      component.selectOptions = employeeOptions;
+      
+      // Initialize component
+      component.ngOnInit();
+      
+      // Verify initial state - m1 should be in the displayed data
+      expect(component.data).toEqual([initialEmployee]);
+      expect(component.data[0]._label_).toBe('m1');
+      
+      // Step 1: Simulate clicking on dropdown and typing 'm2' in the filter
+      component.filterValue.set('m2');
+      
+      // Step 2: Simulate clicking the '+' button to add m2
+      // Mock the successful creation response
+      const newEmployee = { _id_: 'm2', _label_: 'm2', _path_: '/m2', _ifcs_: [] };
+      
+      // Update resource to simulate backend adding m2
+      component.resource.testProperty = [initialEmployee, newEmployee];
+      
+      // Call createAndAdd to simulate the '+' button click
+      component.createAndAdd('m2');
+      
+      // Step 3: Verify m2 appears in the data list (what gets displayed in the template)
+      expect(component.data).toHaveLength(2);
+      expect(component.data[0]._label_).toBe('m1'); // Original employee still there
+      expect(component.data[1]._label_).toBe('m2'); // New employee added
+      
+      // Verify the component's selection signal is updated
+      expect(component['selection']()).toEqual([initialEmployee, newEmployee]);
+      
+      // Verify m2 is now in allOptions (available for future selections)
+      const updatedOptions = [...employeeOptions, newEmployee];
+      component.allOptions.set(updatedOptions);
+      expect(component.allOptions()).toContain(newEmployee);
+      
+      // Verify filter is cleared after adding
+      expect(component.filterValue()).toBe('');
+      
+      // Verify permissions - should be able to create and update, but not delete
+      expect(component.canCreate()).toBe(true);
+      expect(component.canUpdate()).toBe(true);
+      expect(component.canDelete()).toBe(false); // 'd' is lowercase in 'CRUd'
+    });
+
+    it('Test #70: should not display "object object" after createAndAdd and page refresh', () => {
+      // Setup: Configure component as uni (but not tot) with CRUD permissions
+      component.isUni = true;
+      component.isTot = false; // uni case (not tot)
+      component.crud = 'CRUD';
+      component.resource = {
+        testProperty: null, // Initially empty uni relation
+        _path_: '/test'
+      };
+      
+      // Set up selectOptions to avoid backend fetching and control the test data
+      const predefinedOptions = [
+        { _id_: '1', _label_: 'Option 1', _path_: '/1', _ifcs_: [] },
+        { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] },
+        { _id_: '3', _label_: 'Option 3', _path_: '/3', _ifcs_: [] }
+      ];
+      component.selectOptions = predefinedOptions;
+      
+      // Initialize component (simulates page load)
+      component.ngOnInit();
+
+      // Step 1: User types 'm6' in the dropdown input
+      component.uniValue.set('m6');
+
+      // Step 2: User presses Enter ('+' key) to create new atom
+      // This simulates the createAndAdd functionality
+      const originalData = component.resource.testProperty;
+
+      // Mock the successful creation response - this is where the bug might occur
+      // The created item should have proper _label_ but might be malformed
+      const createdItem = {
+        _id_: 'm6',
+        _label_: 'm6', // This should be a proper label, not undefined
+        _path_: '/m6',
+        _ifcs_: []
+      };
+
+      // Update the resource to simulate the item being created on the backend
+      component.resource.testProperty = createdItem;
+
+      // Simulate the createAndAdd operation
+      component.createAndAdd('m6');
+
+      // Console log BEFORE refresh
+      console.log('BEFORE REFRESH - allOptions:', component.allOptions());
+
+      // Step 3: Simulate page refresh by reinitializing the component
+      // This is where the 'object object' bug typically manifests
+      const refreshedComponent = new AtomicObjectComponent<ObjectBase | ObjectBase[]>();
+      refreshedComponent.property = component.property;
+      refreshedComponent.resource = { ...component.resource }; // Copy current state
+      refreshedComponent.propertyName = component.propertyName;
+      refreshedComponent.interfaceComponent = mockInterfaceComponent as any;
+      refreshedComponent.isUni = true;
+      refreshedComponent.isTot = false;
+      refreshedComponent.crud = 'CRUD';
+      refreshedComponent.placeholder = 'Test Placeholder';
+      refreshedComponent.tgtResourceType = 'TestResource';
+      refreshedComponent['dropdown'] = new MockDropdown() as any;
+
+      // Set up selectOptions for the refreshed component to include the created item
+      const optionsWithCreatedItem = [
+        { _id_: '1', _label_: 'Option 1', _path_: '/1', _ifcs_: [] },
+        { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] },
+        { _id_: '3', _label_: 'Option 3', _path_: '/3', _ifcs_: [] },
+        createdItem // The newly created item should be in the options
+      ];
+      refreshedComponent.selectOptions = optionsWithCreatedItem;
+
+      // Initialize the refreshed component (simulates page refresh)
+      refreshedComponent.ngOnInit();
+
+      // Console log AFTER refresh
+      console.log('AFTER REFRESH - allOptions:', refreshedComponent.allOptions());
+
+      // Verify: Check that the dropdown options contain proper labels, not 'object object'
+      const allOptions = refreshedComponent.allOptions();
+
+      // All options should have proper _label_ properties
+      allOptions.forEach(option => {
+        expect(option._label_).toBeDefined();
+        expect(typeof option._label_).toBe('string');
+        expect(option._label_).not.toBe('[object Object]');
+        expect(option._label_).not.toBe('object object');
+        expect(option._label_.length).toBeGreaterThan(0);
+      });
+
+      // The created item should be properly displayed
+      const createdOption = allOptions.find(opt => opt._id_ === 'm6');
+      expect(createdOption).toBeDefined();
+      expect(createdOption!._label_).toBe('m6');
+
+      // The uniValue should be set to the created object, not a malformed version
+      expect(refreshedComponent.uniValue()).toEqual(createdItem);
+
+      // Verify that the created item displays properly in uniSelectableOptions
+      const selectableOptions = refreshedComponent.uniSelectableOptions();
+      expect(selectableOptions).toContain(createdOption);
+    });
+  });
 });
