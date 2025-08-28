@@ -25,16 +25,27 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 {
   @Input() public placeholder!: string;
   @Input() public tgtResourceType!: string;
-  
-  private _selectOptions?: ObjectBase[] | ObjectBase;
-  private selectOptions$ = new BehaviorSubject<ObjectBase[] | ObjectBase | undefined>(undefined);
-  
-  @Input() set selectOptions(value: ObjectBase[] | ObjectBase | undefined) {
-    this._selectOptions = value;
-    this.selectOptions$.next(value);
+
+  private _select?: ObjectBase[] | ObjectBase;
+  private select$ = new BehaviorSubject<ObjectBase[] | ObjectBase | undefined>(undefined);
+
+  @Input() set select(value: ObjectBase[] | ObjectBase | undefined) {
+    this._select = value;
+    this.select$.next(value);
   }
-  get selectOptions(): ObjectBase[] | ObjectBase | undefined {
-    return this._selectOptions;
+  get select(): ObjectBase[] | ObjectBase | undefined {
+    return this._select;
+  }
+
+  private _content?: ObjectBase[] | ObjectBase;
+  private content$ = new BehaviorSubject<ObjectBase[] | ObjectBase | undefined>(undefined);
+
+  @Input() set content(value: ObjectBase[] | ObjectBase | undefined) {
+    this._content = value;
+    this.content$.next(value);
+  }
+  get content(): ObjectBase[] | ObjectBase | undefined {
+    return this._content;
   }
 
   // stores all options for the dropdown
@@ -65,8 +76,8 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
   // excludes selected ids and applies search filter
   public nonUniSelectableOptions: Signal<ObjectBase[]> = computed(() => {
-    // For filtered dropdowns (when selectOptions is provided), show all filtered options
-    if (this.selectOptions) {
+    // For filtered dropdowns (when select is provided), show all filtered options
+    if (this.select) {
       const allOptions = this.allOptions();
 
       // check if a filter is applied
@@ -108,43 +119,46 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   // to programmatically control the dropdown
   @ViewChild('dropdown') private dropdown: Dropdown;
 
-  private getSelectOptionsObservable(selectOptions: ObjectBase[] | ObjectBase) {
-    return of(selectOptions).pipe(
-      map((selectOptions) => {
-        const selectOptionsArray = Array.isArray(selectOptions) 
-          ? selectOptions 
-          : [selectOptions];
-        
+  private getSelectOptionsObservable(select: ObjectBase[] | ObjectBase) {
+    return of(select).pipe(
+      map((select) => {
+        const selectArray = Array.isArray(select)
+          ? select
+          : [select];
+
         // Debug logging for CRUd case to see what's being filtered
         if (this.isUni && this.crud === 'CRUd') {
-          console.log('🔍 FILTER DEBUG [CRUd] selectOptionsArray before filter:', selectOptionsArray);
-          selectOptionsArray.forEach((item: any, index: number) => {
+          console.log(
+            '🔍 FILTER DEBUG [CRUd] selectArray before filter:',
+            selectArray,
+          );
+          selectArray.forEach((item: any, index: number) => {
             console.log(`🔍 FILTER DEBUG [CRUd] item[${index}]:`, item);
             console.log(`🔍 FILTER DEBUG [CRUd] item[${index}].select:`, item.select);
             console.log(`🔍 FILTER DEBUG [CRUd] item[${index}].select === true:`, item.select === true);
           });
         }
-        
-        // Filter the options based on the 'selectOptions' property
+
+        // Filter the options based on the 'select' property
         // Handle cases where select might be missing for newly created items
-        const filtered = selectOptionsArray.filter((item: any) => {
+        const filtered = selectArray.filter((item: any) => {
           const shouldInclude = item.select === true;
           return shouldInclude;
         });
-        
-        // If filtering results in empty array but we have items, 
+
+        // If filtering results in empty array but we have items,
         // it might be that newly created items don't have select property yet
-        if (filtered.length === 0 && selectOptionsArray.length > 0) {
+        if (filtered.length === 0 && selectArray.length > 0) {
           console.log('⚠️ WARNING [CRUd]: All items filtered out! Possible issue with select property on new items');
           // For debugging: temporarily show all items if filtering fails completely
-          // return selectOptionsArray;
+          // return selectArray;
         }
-        
+
         // Debug logging for CRUd case to see filtering result
         if (this.isUni && this.crud === 'CRUd') {
           console.log('🔍 FILTER DEBUG [CRUd] filtered result:', filtered);
         }
-        
+
         return filtered;
       })
     );
@@ -157,31 +171,36 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   override ngOnInit(): void {
     super.ngOnInit();
 
+    console.log('PROJECT NAME:', this.resource._id_);
+    console.log('resource', this.resource);
+    console.log('content set to', this.content);
+    console.log('select set to', this.select);
+
     // is there anything to choose from? Else just a list is displayed
-    if (!(this.canUpdate() || this.selectOptions)) {
+    if (!(this.canUpdate() || this.select)) {
       return;
     }
 
-    // Reactive chain: respond to selectOptions changes using BehaviorSubject
-    this.selectOptions$.pipe(
-      switchMap((selectOptions) => 
-        selectOptions
-          ? this.getSelectOptionsObservable(selectOptions)
-          : this.canUpdate() 
+    // Reactive chain: respond to select changes using BehaviorSubject
+    this.select$.pipe(
+        switchMap((select) =>
+        select
+          ? this.getSelectOptionsObservable(select)
+          : this.canUpdate()
             ? this.getBackendDataObservable()
             : of([])
       ),
       tap((optionsToDisplay: ObjectBase[]) => {
         // Debug logging for uni CRUd case
         if (this.isUni && this.crud === 'CRUd') {
-          console.log('🔍 ATOMIC-OBJECT [CRUd] selectOptions:', this.selectOptions);
+          console.log('🔍 ATOMIC-OBJECT [CRUd] select:', this.select);
           console.log('🔍 ATOMIC-OBJECT [CRUd] optionsToDisplay:', optionsToDisplay);
           console.log('🔍 ATOMIC-OBJECT [CRUd] resource[propertyName]:', this.resource[this.propertyName]);
         }
-        
+
         // Set initial options and signals
         this.allOptions.set(optionsToDisplay);
-        
+
         // Set selected option(s) signals
         if (this.isUni) {
           this.uniValue.set(this.resource[this.propertyName] ?? null);
@@ -189,15 +208,15 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           this.selection.set(this.data);
         }
       }),
-      switchMap(() => 
+      switchMap(() =>
         this.interfaceComponent.patched.pipe(
           map(() => {
-            // For selectOptions case, return updated options
-            if (this.selectOptions) {
-              const updatedSelectOptionsArray = Array.isArray(this.selectOptions) 
-                ? this.selectOptions 
-                : [this.selectOptions];
-              return [...updatedSelectOptionsArray]; // spread to trigger change
+            // For select case, return updated options
+            if (this.select) {
+              const updatedSelectArray = Array.isArray(this.select)
+                ? this.select
+                : [this.select];
+              return [...updatedSelectArray]; // spread to trigger change
             }
             // For canUpdate case, return current options with spread to trigger change
             return [...this.allOptions()];
