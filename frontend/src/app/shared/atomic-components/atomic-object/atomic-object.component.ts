@@ -8,7 +8,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { takeUntil, tap, switchMap, map } from 'rxjs/operators';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { BaseAtomicComponent } from '../BaseAtomicComponent.class';
 import { Dropdown } from 'primeng/dropdown';
 import { isObject } from '../../helper/deepmerge';
@@ -26,23 +26,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   @Input() public placeholder!: string;
   @Input() public tgtResourceType!: string;
 
-  private select$ = new BehaviorSubject<ObjectBase[] | ObjectBase | undefined>(undefined);
-
-  @Input() set select(value: ObjectBase[] | ObjectBase | undefined) {
-    this.select$.next(value);
-  }
-  get select(): ObjectBase[] | ObjectBase | undefined {
-    return this.select$.value;
-  }
-
-  private content$ = new BehaviorSubject<ObjectBase[] | ObjectBase | undefined>(undefined);
-
-  @Input() set content(value: ObjectBase[] | ObjectBase | undefined) {
-    this.content$.next(value);
-  }
-  get content(): ObjectBase[] | ObjectBase | undefined {
-    return this.content$.value;
-  }
+  @Input() select : ObjectBase[] | ObjectBase | undefined;
+  @Input() content : ObjectBase[] | ObjectBase | undefined;
+  @Input()  strict = false;
 
   // stores all options for the dropdown
   public allOptions = signal<ObjectBase[]>([]);
@@ -115,22 +101,29 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   // to programmatically control the dropdown
   @ViewChild('dropdown') private dropdown: Dropdown;
 
-  private getSelectObservable(select: ObjectBase[] | ObjectBase) {
-    return of(select).pipe(
-      map((select) => {
-        const selectArray = Array.isArray(select)
-          ? select
-          : [select];
+  private getSelectOptions: Signal<ObjectBase[] | ObjectBase > = computed((select: ObjectBase[] | ObjectBase | undefined, content: ObjectBase[] | ObjectBase| undefined, strict: boolean) => {
+    if (select == undefined || content == undefined) {
+      return undefined
+    }
 
-        // Debug logging for CRUd case to see what's being filtered
+    if ((select !== undefined && content == undefined)  || (select == undefined && content !== undefined)) {
+      console.error('select and content property should always be set as pair in select mode');
+      return undefined
+    }
 
-          selectArray.forEach((item: any, index: number) => {
-            console.log(`🔍 FILTER DEBUG [CRUd] item[${index}]:`, item);
-            console.log(`🔍 FILTER DEBUG [CRUd] item[${index}].select:`, item.select);
-            console.log(`🔍 FILTER DEBUG [CRUd] item[${index}].select === true:`, item.select === true);
-          });
+    const selectArray = Array.isArray(select)
+      ? select
+      : [select];
+    const contentArray = Array.isArray(content)
+      ? content
+      : [content];
 
-        // Filter the options based on the 'select' property
+    console.log('contentArray', contentArray);
+    console.log('selectArray', selectArray);
+
+    return map((select) => {
+        // Filter the options based on the 'select' property on the objecct, added by the user in the this section
+      // don't be confused: the select property on the component is something different than on the items.
         // Handle cases where select might be missing for newly created items
         const filtered = selectArray.filter((item: any) => {
           const shouldInclude = item.select === true;
@@ -151,8 +144,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         }
 
         return filtered;
-      })
-    );
+      });
   }
 
   private getBackendDataObservable() {
@@ -176,7 +168,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     this.select$.pipe(
         switchMap((select) =>
         select
-          ? this.getSelectObservable(select)
+          ? this.getSelectOptions(this.content, this.select, this.strict)
           : this.canUpdate()
             ? this.getBackendDataObservable()
             : of([])
