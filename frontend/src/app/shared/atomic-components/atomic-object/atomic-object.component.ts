@@ -174,31 +174,26 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     console.log('resource', this.resource);
     console.log('field set to', this.field);
     console.log('select set to', this.select);
-    this.selectOptions = this.getSelectOptions(this.field, this.select, this.strict)
+
+    // Determine if we're using filtered dropdown (select + field) or default behavior
+    const filteredOptions = this.getSelectOptions(this.select, this.field, this.strict);
 
     // is there anything to choose from? Else just a list is displayed
-    if (!(this.canUpdate() || this.selectOptions !== undefined)) {
+    if (!(this.canUpdate() || filteredOptions !== undefined)) {
       return;
     }
 
+    console.log('filtered Options:', filteredOptions);
 
-    of([]).pipe(
-    // Reactive chain: respond to select changes using BehaviorSubject
-        switchMap((select) =>
-        select
-          ? this.getSelectOptions(this.field, this.select, this.strict)
-          : this.canUpdate()
-            ? this.getBackendDataObservable()
-            : of([])
-      ),
+    // Set up the reactive chain
+    const optionsObservable = filteredOptions !== undefined
+      ? of(Array.isArray(filteredOptions) ? filteredOptions : [filteredOptions])
+      : this.canUpdate()
+        ? this.getBackendDataObservable()
+        : of([]);
+
+    optionsObservable.pipe(
       tap((optionsToDisplay: ObjectBase[]) => {
-        // Debug logging for uni CRUd case
-        if (this.isUni && this.crud === 'CRUd') {
-          console.log('🔍 ATOMIC-OBJECT [CRUd] select:', this.select);
-          console.log('🔍 ATOMIC-OBJECT [CRUd] optionsToDisplay:', optionsToDisplay);
-          console.log('🔍 ATOMIC-OBJECT [CRUd] resource[propertyName]:', this.resource[this.propertyName]);
-        }
-
         // Set initial options and signals
         this.allOptions.set(optionsToDisplay);
 
@@ -212,14 +207,15 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       switchMap(() =>
         this.interfaceComponent.patched.pipe(
           map(() => {
-            // For select case, return updated options
-            if (this.select) {
-              const updatedSelectArray = Array.isArray(this.select)
-                ? this.select
-                : [this.select];
-              return [...updatedSelectArray]; // spread to trigger change
+            // For filtered dropdown case, return updated options from select
+            if (filteredOptions !== undefined) {
+              const currentFilteredOptions = this.getSelectOptions(this.select, this.field, this.strict);
+              const optionsArray = currentFilteredOptions !== undefined
+                ? (Array.isArray(currentFilteredOptions) ? currentFilteredOptions : [currentFilteredOptions])
+                : [];
+              return [...optionsArray]; // spread to trigger change
             }
-            // For canUpdate case, return current options with spread to trigger change
+            // For default case, return current options with spread to trigger change
             return [...this.allOptions()];
           })
         )
