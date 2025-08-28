@@ -28,8 +28,10 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
   @Input() select : ObjectBase[] | ObjectBase | undefined;
   @Input() field : ObjectBase[] | ObjectBase | undefined;
-  @Input() selectOptions : ObjectBase[] | ObjectBase | undefined;
   @Input()  strict = false;
+
+  selectOptions : ObjectBase[] | ObjectBase | undefined;
+
 
   // stores all options for the dropdown
   public allOptions = signal<ObjectBase[]>([]);
