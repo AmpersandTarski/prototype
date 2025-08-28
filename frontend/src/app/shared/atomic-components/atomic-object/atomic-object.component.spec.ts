@@ -918,7 +918,7 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
     });
   });
 
-  describe.only('Select Options', () => {
+  describe('Select Options', () => {
     it('Test for dropdownsdefault - CRUd permissions with employee assignment', () => {
       // Setup: Configure component for non-uni case with CRUd permissions (no Delete)
       component.isUni = false;
