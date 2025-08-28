@@ -8,8 +8,8 @@
     crud="$crud$"
     placeholder="Add $target$"
     tgtResourceType="$target$"
-    [select]="resource.$name$"
-    [content]="resource.$name$"
+    [select]="resource.$name$.select"
+    [content]="resource.$name$.content"
     $if(exprIsUni)$isUni$endif$
     $if(exprIsTot)$isTot$endif$
 ></app-atomic-object>

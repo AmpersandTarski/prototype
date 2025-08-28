@@ -26,26 +26,22 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   @Input() public placeholder!: string;
   @Input() public tgtResourceType!: string;
 
-  private _select?: ObjectBase[] | ObjectBase;
   private select$ = new BehaviorSubject<ObjectBase[] | ObjectBase | undefined>(undefined);
 
   @Input() set select(value: ObjectBase[] | ObjectBase | undefined) {
-    this._select = value;
     this.select$.next(value);
   }
   get select(): ObjectBase[] | ObjectBase | undefined {
-    return this._select;
+    return this.select$.value;
   }
 
-  private _content?: ObjectBase[] | ObjectBase;
   private content$ = new BehaviorSubject<ObjectBase[] | ObjectBase | undefined>(undefined);
 
   @Input() set content(value: ObjectBase[] | ObjectBase | undefined) {
-    this._content = value;
     this.content$.next(value);
   }
   get content(): ObjectBase[] | ObjectBase | undefined {
-    return this._content;
+    return this.content$.value;
   }
 
   // stores all options for the dropdown
@@ -119,7 +115,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   // to programmatically control the dropdown
   @ViewChild('dropdown') private dropdown: Dropdown;
 
-  private getSelectOptionsObservable(select: ObjectBase[] | ObjectBase) {
+  private getSelectObservable(select: ObjectBase[] | ObjectBase) {
     return of(select).pipe(
       map((select) => {
         const selectArray = Array.isArray(select)
@@ -127,17 +123,12 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           : [select];
 
         // Debug logging for CRUd case to see what's being filtered
-        if (this.isUni && this.crud === 'CRUd') {
-          console.log(
-            '🔍 FILTER DEBUG [CRUd] selectArray before filter:',
-            selectArray,
-          );
+
           selectArray.forEach((item: any, index: number) => {
             console.log(`🔍 FILTER DEBUG [CRUd] item[${index}]:`, item);
             console.log(`🔍 FILTER DEBUG [CRUd] item[${index}].select:`, item.select);
             console.log(`🔍 FILTER DEBUG [CRUd] item[${index}].select === true:`, item.select === true);
           });
-        }
 
         // Filter the options based on the 'select' property
         // Handle cases where select might be missing for newly created items
@@ -185,7 +176,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     this.select$.pipe(
         switchMap((select) =>
         select
-          ? this.getSelectOptionsObservable(select)
+          ? this.getSelectObservable(select)
           : this.canUpdate()
             ? this.getBackendDataObservable()
             : of([])
