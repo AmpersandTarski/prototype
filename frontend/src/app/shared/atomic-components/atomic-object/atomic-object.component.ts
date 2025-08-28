@@ -27,7 +27,8 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   @Input() public tgtResourceType!: string;
 
   @Input() select : ObjectBase[] | ObjectBase | undefined;
-  @Input() content : ObjectBase[] | ObjectBase | undefined;
+  @Input() field : ObjectBase[] | ObjectBase | undefined;
+  @Input() selectOptions : ObjectBase[] | ObjectBase | undefined;
   @Input()  strict = false;
 
   // stores all options for the dropdown
@@ -101,50 +102,65 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   // to programmatically control the dropdown
   @ViewChild('dropdown') private dropdown: Dropdown;
 
-  private getSelectOptions: Signal<ObjectBase[] | ObjectBase > = computed((select: ObjectBase[] | ObjectBase | undefined, content: ObjectBase[] | ObjectBase| undefined, strict: boolean) => {
-    if (select == undefined || content == undefined) {
-      return undefined
+  // using for dynamic dropdowns
+  private getSelectOptions(
+    select: ObjectBase[] | ObjectBase | undefined,
+    field: ObjectBase[] | ObjectBase | undefined,
+    strict: boolean
+  ): ObjectBase[] | ObjectBase | undefined {
+    if ((select !== undefined && field == undefined)  || (select == undefined && field !== undefined)) {
+      console.error('select and field property should always be set as pair in select mode');
+      return undefined;
     }
 
-    if ((select !== undefined && content == undefined)  || (select == undefined && content !== undefined)) {
-      console.error('select and content property should always be set as pair in select mode');
-      return undefined
+    // simply not appplicable at all?
+    if (select == undefined || field == undefined) {
+      return undefined;
     }
 
+    // convert to arrays for convenience.
     const selectArray = Array.isArray(select)
       ? select
       : [select];
-    const contentArray = Array.isArray(content)
-      ? content
-      : [content];
+    const fieldArray = Array.isArray(field)
+      ? field
+      : [field];
 
-    console.log('contentArray', contentArray);
+    console.log('fieldArray', fieldArray);
     console.log('selectArray', selectArray);
 
-    return map((select) => {
-        // Filter the options based on the 'select' property on the objecct, added by the user in the this section
-      // don't be confused: the select property on the component is something different than on the items.
-        // Handle cases where select might be missing for newly created items
-        const filtered = selectArray.filter((item: any) => {
-          const shouldInclude = item.select === true;
-          return shouldInclude;
-        });
+    // simple case: if strict is false, simply return all options (they have been filtered by the adl already)
+    if (! strict) {
+      return selectArray;
+    }
 
-        // If filtering results in empty array but we have items,
-        // it might be that newly created items don't have select property yet
-        if (filtered.length === 0 && selectArray.length > 0) {
-          console.log('⚠️ WARNING [CRUd]: All items filtered out! Possible issue with select property on new items');
-          // For debugging: temporarily show all items if filtering fails completely
-          // return selectArray;
-        }
-
-        // Debug logging for CRUd case to see filtering result
-        if (this.isUni && this.crud === 'CRUd') {
-          console.log('🔍 FILTER DEBUG [CRUd] filtered result:', filtered);
-        }
-
-        return filtered;
-      });
+    return selectArray;
+    //
+    // // strict case: you can only use values that are selected.
+    // return selectArray.map((selectArray) => {
+    //     // Filter the options based on the 'select' property on the objecct, added by the user in the this section
+    //   // don't be confused: the select property on the component is something different than on the items.
+    //     // Handle cases where select might be missing for newly created items
+    //     const filtered = selectArray.filter((item: any) => {
+    //       const shouldInclude = item.select === true;
+    //       return shouldInclude;
+    //     });
+    //
+    //     // If filtering results in empty array but we have items,
+    //     // it might be that newly created items don't have select property yet
+    //     if (filtered.length === 0 && selectArray.length > 0) {
+    //       console.log('⚠️ WARNING [CRUd]: All items filtered out! Possible issue with select property on new items');
+    //       // For debugging: temporarily show all items if filtering fails completely
+    //       // return selectArray;
+    //     }
+    //
+    //     // Debug logging for CRUd case to see filtering result
+    //     if (this.isUni && this.crud === 'CRUd') {
+    //       console.log('🔍 FILTER DEBUG [CRUd] filtered result:', filtered);
+    //     }
+    //
+    //     return filtered;
+    //   });
   }
 
   private getBackendDataObservable() {
@@ -156,19 +172,21 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
     console.log('PROJECT NAME:', this.resource._id_);
     console.log('resource', this.resource);
-    console.log('content set to', this.content);
+    console.log('field set to', this.field);
     console.log('select set to', this.select);
+    this.selectOptions = this.getSelectOptions(this.field, this.select, this.strict)
 
     // is there anything to choose from? Else just a list is displayed
-    if (!(this.canUpdate() || this.select)) {
+    if (!(this.canUpdate() || this.selectOptions !== undefined)) {
       return;
     }
 
+
+    of([]).pipe(
     // Reactive chain: respond to select changes using BehaviorSubject
-    this.select$.pipe(
         switchMap((select) =>
         select
-          ? this.getSelectOptions(this.content, this.select, this.strict)
+          ? this.getSelectOptions(this.field, this.select, this.strict)
           : this.canUpdate()
             ? this.getBackendDataObservable()
             : of([])

@@ -33,10 +33,10 @@ ENDVIEW
  -}
 
 INTERFACE DropdownsDynamicDefault : "_SESSION"[SESSION]; V[SESSION*Project] cRUd BOX<FORM>
-  [ "Project ID" : I
-    , "Assign an employee" : I[Project] cRUd  BOX<FILTEREDDROPDOWN>
-         [ content : projectMember
-         , select : V[Project*Status];"eligible";status~   -- The drop down menu only shows the three eligible employees
+  [ "Project ID" : I cRud
+    , "Assign an employee(cRud)" : I cRUd  BOX<FILTEREDDROPDOWN>
+         [ field : projectMember cRud
+         , select : V[Project*Status];"eligible";status~
          ]
   
   ]
