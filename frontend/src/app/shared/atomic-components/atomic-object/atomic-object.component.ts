@@ -172,7 +172,6 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   override ngOnInit(): void {
     super.ngOnInit();
 
-    console.log('PROJECT NAME:', this.resource._id_);
     console.log('resource', this.resource);
     console.log('field set to', this.field);
     console.log('select set to', this.select);

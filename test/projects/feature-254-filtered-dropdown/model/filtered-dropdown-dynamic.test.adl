@@ -51,7 +51,7 @@ POPULATION projectResponsible[Project*Employee] CONTAINS
 
 -- I want the user to pick project members in the relation `projectMember`, using `eligible` to select from.
 
-INTERFACE Test : "_SESSION"[SESSION] cRUd BOX<TABS>
+INTERFACE "Box-Filtered-Dropdown tests" : "_SESSION"[SESSION] cRUd BOX<TABS>
 [ "Default": V[SESSION*Project] cRUd BOX<FORM>
   [ "Project ID" : I cRUd
   , "Section Header" : TXT "Default Dropdowns"
@@ -73,6 +73,22 @@ INTERFACE Test : "_SESSION"[SESSION] cRUd BOX<TABS>
      [ field : projectMember
      , select : eligible
      ]
+       , "5. Assign an employee (CRud)" : I CRud BOX<FILTEREDDROPDOWN>
+          [ field : projectMember
+          , select : eligible
+          ]
+       , "6. Assign an employee (CRUd)" : I CRUd BOX<FILTEREDDROPDOWN>
+          [ field : projectMember
+          , select : eligible
+          ]
+       , "7. Assign an employee (CRuD)" : I CRuD BOX<FILTEREDDROPDOWN>
+          [ field : projectMember
+          , select : eligible
+          ]
+       , "8. Assign an employee (CRUD)" : I CRUD BOX<FILTEREDDROPDOWN>
+          [ field : projectMember
+          , select : eligible
+          ]
   ]
 ]
 
