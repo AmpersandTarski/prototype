@@ -1,45 +1,62 @@
 CONTEXT FilteredDropDownExample
 
-RELATION name[Employee*Name] [UNI]
-RELATION status[Employee*Status] [UNI]
-RELATION projectMember[Project*Employee]
+REPRESENT Name TYPE ALPHANUMERIC
+REPRESENT Status TYPE ALPHANUMERIC
 
-POPULATION projectMember[Project*Employee] CONTAINS
-  [ ("project 1", "m1")
-  , ("project 2", "m1")
-  , ("project 2", "m2")
-  ]
+RELATION name[Employee*Name] [UNI]
+RELATION eligible[Project*Employee]
+RELATION projectMember[Project*Employee]
+RELATION projectMaster[Project*Employee] [UNI]
+RELATION projectFounder[Project*Employee] [TOT]
+RELATION projectResponsible[Project*Employee] [UNI,TOT]
 
 POPULATION name[Employee*Name] CONTAINS
   [ ("m1", "Jan Jansen")
-  , ("m2", "Piet Peters") 
+  , ("m2", "Piet Peters")
   , ("m3", "Marie Bakker")
   , ("m4", "Klaas Klaasen")
   , ("m5", "Anna Annasson")
   ]
 
-POPULATION status[Employee*Status] CONTAINS
-  [ ("m1", "eligible")
-  , ("m2", "on leave")
-  , ("m4", "eligible") 
-  , ("m3", "fired")
-  , ("m5", "eligible")
+-- Desired filtering: eligible employees only
+POPULATION eligible[Project*Employee] CONTAINS
+  [ ("project 1", "m1")
+  , ("project 2", "m2")
+  , ("project 1", "m4")
+  , ("project 2", "m3")
+  , ("project 1", "m5")
+  , ("project 3", "m5")
+  , ("project 2", "m5")
   ]
 
-{-  -- Optional: VIEW, if you  don't want to see "m1", "m2" but "Jan Jansen" and "Piet Peters"
-VIEW Employeelabel : Employee DEFAULT
-  { "naam" : name }
-ENDVIEW
- -}
+POPULATION projectMember[Project*Employee] CONTAINS
+  [ ("project 1", "m1")
+  , ("project 1", "m2")
+  , ("project 1", "m4")
+  , ("project 1", "m5")
+  ]
 
-INTERFACE DropdownsDynamicDefault : "_SESSION"[SESSION]; V[SESSION*Project] cRUd BOX<FORM>
-  [ "Project ID" : I cRud
-    , "Assign an employee(cRud)" : I cRUd  BOX<FILTEREDDROPDOWN>
-         [ field : projectMember cRud
-         , select : V[Project*Status];"eligible";status~
-         ]
-  
+POPULATION projectFounder[Project*Employee] CONTAINS
+  [ ("project 1", "m1")
+  , ("project 3", "m5")
+  , ("project 2", "m5")
+  ]
+
+POPULATION projectResponsible[Project*Employee] CONTAINS
+  [ ("project 1", "m3")
+  , ("project 3", "m5")
+  , ("project 2", "m5")
   ]
 
 
-ENDCONTEXT
+-- I want the user to pick project members in the relation `projectMember`, using `eligible` to select from.
+
+INTERFACE Test : "_SESSION"[SESSION] cRUd BOX<TABS>
+[ Dropdowns : V[SESSION*Project] cRUd BOX<FORM>
+  [ "Project ID" : I cRUd
+  , "Section Header" : TXT "Dropdown with cRUd"
+  , select : eligible cRUd
+  ]
+]
+
+  ENDCONTEXT
