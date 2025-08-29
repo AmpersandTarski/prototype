@@ -178,8 +178,12 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     strict: boolean
   ): ObjectBase[]  | undefined {
     if ((select !== undefined && field == undefined)  || (select == undefined && field !== undefined)) {
-      console.error('select and field property should always be set as pair in select mode');
-      return undefined;
+      console.error('');
+      console.log('select', select);
+      console.log('field', field);
+      throw new Error(
+        `Select and field property should always be set as pair for BOX-FILTEREDDOWN for object in '${this.resource._path_}'. `,
+      );
     }
 
     // simply not appplicable at all?

@@ -36,11 +36,16 @@ POPULATION projectMember[Project*Employee] CONTAINS
   , ("project 1", "m5")
   ]
 
+  POPULATION projectMaster[Project*Employee] CONTAINS
+  [ ("project 1", "m1")
+  ]
+
 POPULATION projectFounder[Project*Employee] CONTAINS
   [ ("project 1", "m1")
   , ("project 3", "m5")
   , ("project 2", "m5")
   ]
+
 
 POPULATION projectResponsible[Project*Employee] CONTAINS
   [ ("project 1", "m3")

@@ -1,18 +1,12 @@
 <div *ngIf="isUni && canRead() && !canUpdate()" class="select-wrap">
-    <span>item = uniRead. Werkelijk?????</span>
-    <span>uni = {{ isUni }}</span>
-    <span>canRead = {{ canRead() }}</span>
-    <span>canUpdate = {{ canUpdate() }}</span>
     <ng-container *ngTemplateOutlet="uniRead"> </ng-container>
 </div>
 
 <div *ngIf="isUni && canRead() && canUpdate()" class="select-wrap">
-    <span>item = uniUpdate</span>
     <ng-container *ngTemplateOutlet="uniUpdate"> </ng-container>
 </div>
 
 <div *ngIf="!isUni && canRead()" class="select-wrap">
-    <span>item = nonUni</span>
     <ng-container *ngTemplateOutlet="nonUni"> </ng-container>
 </div>
 
@@ -94,7 +88,6 @@
 </ng-template>
 
 <ng-template #nonUni>
-    <span>item = nonUni</span>
     <div *ngFor="let object of data; let i = index" class="item">
         <div
             *ngIf="canUpdate()"
