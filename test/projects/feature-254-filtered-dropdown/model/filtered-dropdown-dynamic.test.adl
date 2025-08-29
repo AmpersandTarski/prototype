@@ -56,9 +56,9 @@ INTERFACE "Box-Filtered-Dropdown tests" : "_SESSION"[SESSION] cRUd BOX<TABS>
   [ "Project ID" : I cRUd
   , "Section Header" : TXT "Default Dropdowns"
     , fieldPreview : projectMember cRud  -- preview projectMember for testing purposes
-    , selectPreview : eligible-projectMember cRud  -- preview the selection for testing purposes
-  , "1. Assign an employee (cRud)" : I cRud BOX<FILTEREDDROPDOWN>
-     [ field : projectMember
+    , selectPreview : eligible cRud  -- preview the selection for testing purposes
+  , "1. Assign an employee (cRUD)" : I cRUD BOX<FILTEREDDROPDOWN>
+     [ field: projectMember
      , select : eligible
      ]
   , "2. Assign an employee (cRUd)" : I cRUd BOX<FILTEREDDROPDOWN>
@@ -69,7 +69,7 @@ INTERFACE "Box-Filtered-Dropdown tests" : "_SESSION"[SESSION] cRUd BOX<TABS>
      [ field : projectMember
      , select : eligible
      ]
-  , "4. Assign an employee (cRUD)" : I cRUD BOX<FILTEREDDROPDOWN>
+  , "4. Assign an employee (cRud)" : I cRud BOX<FILTEREDDROPDOWN>
      [ field : projectMember
      , select : eligible
      ]

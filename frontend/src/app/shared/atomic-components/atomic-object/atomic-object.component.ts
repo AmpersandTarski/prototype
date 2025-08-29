@@ -30,8 +30,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   @Input() field : ObjectBase[] | ObjectBase | undefined;
   @Input()  strict = false;
 
-  selectOptions : ObjectBase[] | ObjectBase | undefined;
-
+  public selectOptions : ObjectBase[] | undefined;
 
   // stores all options for the dropdown
   public allOptions = signal<ObjectBase[]>([]);
@@ -47,6 +46,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
   // includes selected id and applies search filter
   public uniSelectableOptions: Signal<ObjectBase[]> = computed(() => {
+    console.log('computing uniSelectableOptions');
+
+
     const allOptions = this.allOptions();
     const uniValue = this.uniValue();
     if (typeof uniValue !== 'string' || uniValue.trim().length === 0) {
@@ -61,9 +63,13 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
   // excludes selected ids and applies search filter
   public nonUniSelectableOptions: Signal<ObjectBase[]> = computed(() => {
+    console.log('computing nonUniSelectableOptions');
+
     // For filtered dropdowns (when select is provided), show all filtered options
     if (this.select) {
       const allOptions = this.allOptions();
+
+      console.log(allOptions);
 
       // check if a filter is applied
       const lowerCaseFilterValue = this.filterValue().trim().toLowerCase();
@@ -104,12 +110,73 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   // to programmatically control the dropdown
   @ViewChild('dropdown') private dropdown: Dropdown;
 
+  override ngOnInit(): void {
+    super.ngOnInit();
+
+    console.log('resource', this.resource);
+    console.log('field set to', this.field);
+    console.log('select set to', this.select);
+    console.log('crud set to', this.crud);
+    console.log('uni set to', this.isUni);
+
+    // Determine if we're using filtered dropdown (select + field) or default behavior
+    this.selectOptions = this.getSelectOptions(this.select, this.field, this.strict);
+
+    console.log('select Options:', this.selectOptions);
+
+    // is there anything to choose from? Else just a list is displayed
+    if (!(this.canUpdate() || this.selectOptions !== undefined)) {
+      return;
+    }
+
+    console.log('select Options (after validation):', this.selectOptions);
+
+    // Set up the reactive chain
+    const optionsObservable = (this.selectOptions !== undefined) ? of(this.selectOptions) : this.getBackendDataObservable();
+
+    optionsObservable.pipe(
+      tap((optionsToDisplay: ObjectBase[]) => {
+        // Debug logging for uni CRUd case
+        console.log('setting initial..', optionsToDisplay);
+
+        // Set initial options and signals
+        this.allOptions.set(optionsToDisplay);
+
+        // Set selected option(s) signals
+        if (this.isUni) {
+          this.uniValue.set(this.resource[this.propertyName] ?? null);
+        } else {
+          this.selection.set(this.data);
+        }
+      }),
+      switchMap(() =>
+        this.interfaceComponent.patched.pipe(
+          tap((patched) => {console.log('patched', patched)}),
+          map(() => {
+            // For selectOptions case, return updated options
+            if (this.selectOptions) {
+              const updatedSelectOptionsArray = Array.isArray(this.selectOptions)
+                ? this.selectOptions
+                : [this.selectOptions];
+              return [...updatedSelectOptionsArray]; // spread to trigger change
+            }
+            // For canUpdate case, return current options with spread to trigger change
+            return [...this.allOptions()];
+          })
+        )
+      ),
+      takeUntil(this.destroy$)
+    ).subscribe((updatedOptions: ObjectBase[]) => {
+      this.allOptions.set(updatedOptions);
+    });
+  }
+
   // using for dynamic dropdowns
   private getSelectOptions(
     select: ObjectBase[] | ObjectBase | undefined,
     field: ObjectBase[] | ObjectBase | undefined,
     strict: boolean
-  ): ObjectBase[] | ObjectBase | undefined {
+  ): ObjectBase[]  | undefined {
     if ((select !== undefined && field == undefined)  || (select == undefined && field !== undefined)) {
       console.error('select and field property should always be set as pair in select mode');
       return undefined;
@@ -167,64 +234,6 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
   private getBackendDataObservable() {
     return this.interfaceComponent.fetchDropdownMenuData(`resource/${this.tgtResourceType}`);
-  }
-
-  override ngOnInit(): void {
-    super.ngOnInit();
-
-    console.log('resource', this.resource);
-    console.log('field set to', this.field);
-    console.log('select set to', this.select);
-
-    // Determine if we're using filtered dropdown (select + field) or default behavior
-    const filteredOptions = this.getSelectOptions(this.select, this.field, this.strict);
-
-    // is there anything to choose from? Else just a list is displayed
-    if (!(this.canUpdate() || filteredOptions !== undefined)) {
-      return;
-    }
-
-    console.log('filtered Options:', filteredOptions);
-
-    // Set up the reactive chain
-    const optionsObservable = filteredOptions !== undefined
-      ? of(Array.isArray(filteredOptions) ? filteredOptions : [filteredOptions])
-      : this.canUpdate()
-        ? this.getBackendDataObservable()
-        : of([]);
-
-    optionsObservable.pipe(
-      tap((optionsToDisplay: ObjectBase[]) => {
-        // Set initial options and signals
-        this.allOptions.set(optionsToDisplay);
-
-        // Set selected option(s) signals
-        if (this.isUni) {
-          this.uniValue.set(this.resource[this.propertyName] ?? null);
-        } else {
-          this.selection.set(this.data);
-        }
-      }),
-      switchMap(() =>
-        this.interfaceComponent.patched.pipe(
-          map(() => {
-            // For filtered dropdown case, return updated options from select
-            if (filteredOptions !== undefined) {
-              const currentFilteredOptions = this.getSelectOptions(this.select, this.field, this.strict);
-              const optionsArray = currentFilteredOptions !== undefined
-                ? (Array.isArray(currentFilteredOptions) ? currentFilteredOptions : [currentFilteredOptions])
-                : [];
-              return [...optionsArray]; // spread to trigger change
-            }
-            // For default case, return current options with spread to trigger change
-            return [...this.allOptions()];
-          })
-        )
-      ),
-      takeUntil(this.destroy$)
-    ).subscribe((updatedOptions: ObjectBase[]) => {
-      this.allOptions.set(updatedOptions);
-    });
   }
 
   // used in uni case
