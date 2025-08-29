@@ -1,9 +1,357 @@
-CONTEXT FilteredDropdownExamples IN ENGLISH
+CONTEXT FilteredDropDownExample
 
-INCLUDE "filtered-dropdown-dynamic.test.adl"
--- INCLUDE "filtered-dropdown-uni-tot.test.adl"
--- INCLUDE "filtered-dropdown-tot.test.adl"
--- INCLUDE "filtered-dropdown-uni.test.adl"
--- INCLUDE "filtered-dropdown-default.test.adl"
+REPRESENT Name TYPE ALPHANUMERIC
+REPRESENT Status TYPE ALPHANUMERIC
 
-ENDCONTEXT
+RELATION name[Employee*Name] [UNI]
+RELATION eligible[Project*Employee]
+RELATION projectMember[Project*Employee]
+RELATION projectMaster[Project*Employee] [UNI]
+RELATION projectFounder[Project*Employee] [TOT]
+RELATION projectResponsible[Project*Employee] [UNI,TOT]
+
+POPULATION name[Employee*Name] CONTAINS
+  [ ("m1", "Jan Jansen")
+  , ("m2", "Piet Peters")
+  , ("m3", "Marie Bakker")
+  , ("m4", "Klaas Klaasen")
+  , ("m5", "Anna Annasson")
+  ]
+
+-- Desired filtering: eligible employees only
+POPULATION eligible[Project*Employee] CONTAINS
+  [ ("project 1", "m1")
+  , ("project 2", "m2")
+  , ("project 1", "m4")
+  , ("project 2", "m3")
+  , ("project 1", "m5")
+  , ("project 3", "m5")
+  , ("project 2", "m5")
+  ]
+
+POPULATION projectMember[Project*Employee] CONTAINS
+  [ ("project 1", "m1")
+  , ("project 1", "m2")
+  , ("project 1", "m4")
+  , ("project 1", "m5")
+  ]
+
+POPULATION projectFounder[Project*Employee] CONTAINS
+  [ ("project 1", "m1")
+  , ("project 3", "m5")
+  , ("project 2", "m5")
+  ]
+
+POPULATION projectResponsible[Project*Employee] CONTAINS
+  [ ("project 1", "m3")
+  , ("project 3", "m5")
+  , ("project 2", "m5")
+  ]
+
+
+INTERFACE "Box-Filtered-Dropdown tests" : "_SESSION"[SESSION] cRUd BOX<TABS>
+[ "Default": V[SESSION*Project] cRUd BOX<FORM>
+    [ "Project ID" : I cRud
+  , "Section Header" : TXT "ALL 8 VARIATIONS with the R permission"
+      , fieldPreview : projectMember cRud  -- preview projectMember for testing purposes
+    , selectPreview : eligible cRud  -- preview the selection for testing purposes
+  , select : eligible cRud
+
+  , "1. Assign an employee (cRud)" : I cRud BOX<FILTEREDDROPDOWN>
+     [ field : projectMember cRud
+     , select : eligible
+     ]
+  , "2. Assign an employee (cRUd)" : I cRUd BOX<FILTEREDDROPDOWN>
+     [ field : projectMember cRUd
+     , select : eligible
+     ]
+  , "3. Assign an employee (cRuD)" : I cRuD BOX<FILTEREDDROPDOWN>
+     [ field : projectMember cRuD
+     , select : eligible
+     ]
+  , "4. Assign an employee (cRUD)" : I cRUD BOX<FILTEREDDROPDOWN>
+     [ field : projectMember cRUD
+     , select : eligible
+     ]
+  , "5. Assign an employee (CRud)" : I CRud BOX<FILTEREDDROPDOWN>
+     [ field : projectMember CRud
+     , select : eligible
+     ]
+  , "6. Assign an employee (CRUd)" : I CRUd BOX<FILTEREDDROPDOWN>
+     [ field : projectMember CRUd
+     , select : eligible
+     ]
+  , "7. Assign an employee (CRuD)" : I CRuD BOX<FILTEREDDROPDOWN>
+     [ field : projectMember CRuD
+     , select : eligible
+     ]
+  , "8. Assign an employee (CRUD)" : I CRUD BOX<FILTEREDDROPDOWN>
+     [ field : projectMember CRUD
+     , select : eligible
+     ]
+
+--   , "Section Header 2" : TXT "ALL 8 VARIATIONS without the R permission"
+--   , "Note" : TXT "(These result in: object is not readable, but also generate red box)"
+--   , employee9crud : I crud BOX<FILTEREDDROPDOWN>
+--      [ field : projectMember crud
+--      , select : eligible
+--      ]
+--   , employee10crUd : I crUd BOX<FILTEREDDROPDOWN>
+--      [ field : projectMember crUd
+--      , select : eligible
+--      ]
+--   , employee11cruD : I cruD BOX<FILTEREDDROPDOWN>
+--      [ field : projectMember cruD
+--      , select : eligible
+--      ]
+--   , employee12crUD : I crUD BOX<FILTEREDDROPDOWN>
+--      [ field : projectMember crUD
+--      , select : eligible
+--      ]
+--   , employee13Crud : I Crud BOX<FILTEREDDROPDOWN>
+--      [ field : projectMember Crud
+--      , select : eligible
+--      ]
+--   , employee14CrUd : I CrUd BOX<FILTEREDDROPDOWN>
+--      [ field : projectMember CrUd
+--      , select : eligible
+--      ]
+--   , employee15CruD : I CruD BOX<FILTEREDDROPDOWN>
+--      [ field : projectMember CruD
+--      , select : eligible
+--      ]
+--   , employee16CrUD : I CrUD BOX<FILTEREDDROPDOWN>
+--      [ field : projectMember CrUD
+--      , select : eligible
+--      ]
+  ]
+
+, "Project Master (UNI)" : V[SESSION*Project] cRUd BOX<FORM>
+  [ "Project ID" : I
+  , "Section Header" : TXT "ALL 8 VARIATIONS with the R permission"
+      , fieldPreview : projectMember cRud  -- preview projectMember for testing purposes
+    , selectPreview : eligible cRud  -- preview the selection for testing purposes
+
+  , "1. Project Master (cRud)" : I cRud BOX<FILTEREDDROPDOWN>
+     [ field : projectMaster cRud
+     , select : eligible
+     ]
+  , "2. Project Master (cRUd)" : I cRUd BOX<FILTEREDDROPDOWN>
+     [ field : projectMaster cRUd
+     , select : eligible
+     ]
+  , "3. Project Master (cRuD)" : I cRuD BOX<FILTEREDDROPDOWN>
+     [ field : projectMaster cRuD
+     , select : eligible
+     ]
+  , "4. Project Master (cRUD)" : I cRUD BOX<FILTEREDDROPDOWN>
+     [ field : projectMaster cRUD
+     , select : eligible
+     ]
+  , "5. Project Master (CRud)" : I CRud BOX<FILTEREDDROPDOWN>
+     [ field : projectMaster CRud
+     , select : eligible
+     ]
+  , "6. Project Master (CRUd)" : I CRUd BOX<FILTEREDDROPDOWN>
+     [ field : projectMaster CRUd
+     , select : eligible
+     ]
+  , "7. Project Master (CRuD)" : I CRuD BOX<FILTEREDDROPDOWN>
+     [ field : projectMaster CRuD
+     , select : eligible
+     ]
+  , "8. Project Master (CRUD)" : I CRUD BOX<FILTEREDDROPDOWN>
+     [ field : projectMaster CRUD
+     , select : eligible
+     ]
+
+--   , "Section Header 2" : TXT "ALL 8 VARIATIONS without the R permission"
+--   , "Note" : TXT "(These result in: object is not readable, but also generate red box)"
+--   , master9crud : I crud BOX<FILTEREDDROPDOWN>
+--      [ field : projectMaster crud
+--      , select : eligible
+--      ]
+--   , master10crUd : I crUd BOX<FILTEREDDROPDOWN>
+--      [ field : projectMaster crUd
+--      , select : eligible
+--      ]
+--   , master11cruD : I cruD BOX<FILTEREDDROPDOWN>
+--      [ field : projectMaster cruD
+--      , select : eligible
+--      ]
+--   , master12crUD : I crUD BOX<FILTEREDDROPDOWN>
+--      [ field : projectMaster crUD
+--      , select : eligible
+--      ]
+--   , master13Crud : I Crud BOX<FILTEREDDROPDOWN>
+--      [ field : projectMaster Crud
+--      , select : eligible
+--      ]
+--   , master14CrUd : I CrUd BOX<FILTEREDDROPDOWN>
+--      [ field : projectMaster CrUd
+--      , select : eligible
+--      ]
+--   , master15CruD : I CruD BOX<FILTEREDDROPDOWN>
+--      [ field : projectMaster CruD
+--      , select : eligible
+--      ]
+--   , master16CrUD : I CrUD BOX<FILTEREDDROPDOWN>
+--      [ field : projectMaster CrUD
+--      , select : eligible
+--      ]
+  ]
+
+-- , "Project Founder (TOT)" : V[SESSION*Project] cRUd BOX<FORM>
+--   [ "Project ID" : I
+--   , "Section Header" : TXT "ALL 8 VARIATIONS with the R permission"
+
+--   , "1. Project Founder (cRud)" : I cRud BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder cRud
+--      , select : eligible
+--      ]
+--   , "2. Project Founder (cRUd)" : I cRUd BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder cRUd
+--      , select : eligible
+--      ]
+--   , "3. Project Founder (cRuD)" : I cRuD BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder cRuD
+--      , select : eligible
+--      ]
+--   , "4. Project Founder (cRUD)" : I cRUD BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder cRUD
+--      , select : eligible
+--      ]
+--   , "5. Project Founder (CRud)" : I CRud BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder CRud
+--      , select : eligible
+--      ]
+--   , "6. Project Founder (CRUd)" : I CRUd BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder CRUd
+--      , select : eligible
+--      ]
+--   , "7. Project Founder (CRuD)" : I CRuD BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder CRuD
+--      , select : eligible
+--      ]
+--   , "8. Project Founder (CRUD)" : I CRUD BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder CRUD
+--      , select : eligible
+--      ]
+
+--   , "Section Header 2" : TXT "ALL 8 VARIATIONS without the R permission"
+--   , "Note" : TXT "(These result in: object is not readable, but also generate red box)"
+--   , founder9crud : I crud BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder crud
+--      , select : eligible
+--      ]
+--   , founder10crUd : I crUd BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder crUd
+--      , select : eligible
+--      ]
+--   , founder11cruD : I cruD BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder cruD
+--      , select : eligible
+--      ]
+--   , founder12crUD : I crUD BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder crUD
+--      , select : eligible
+--      ]
+--   , founder13Crud : I Crud BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder Crud
+--      , select : eligible
+--      ]
+--   , founder14CrUd : I CrUd BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder CrUd
+--      , select : eligible
+--      ]
+--   , founder15CruD : I CruD BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder CruD
+--      , select : eligible
+--      ]
+--   , founder16CrUD : I CrUD BOX<FILTEREDDROPDOWN>
+--      [ field : projectFounder CrUD
+--      , select : eligible
+--      ]
+--   ]
+
+-- , ResponsibleEmployeeUNITOT : V[SESSION*Project] cRUd BOX<FORM>
+--   [ "Project ID" : I
+--   , "Section Header" : TXT "ALL 8 VARIATIONS with the R permission"
+
+--   , "1. Responsible (cRud)" : I cRud BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible cRud
+--      , select : eligible
+--      ]
+--   , "2. Responsible (cRUd)" : I cRUd BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible cRUd
+--      , select : eligible
+--      ]
+--   , "3. Responsible (cRuD)" : I cRuD BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible cRuD
+--      , select : eligible
+--      ]
+--   , "4. Responsible (cRUD)" : I cRUD BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible cRUD
+--      , select : eligible
+--      ]
+--   , "5. Responsible (CRud)" : I CRud BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible CRud
+--      , select : eligible
+--      ]
+--   , "6. Responsible (CRUd)" : I CRUd BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible CRUd
+--      , select : eligible
+--      ]
+--   , "7. Responsible (CRuD)" : I CRuD BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible CRuD
+--      , select : eligible
+--      ]
+--   , "8. Responsible (CRUD)" : I CRUD BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible CRUD
+--      , select : eligible
+--      ]
+
+--   , "Section Header 2" : TXT "ALL 8 VARIATIONS without the R permission"
+--   , "Note" : TXT "(These result in: object is not readable, but also generate red box)"
+--   , responsible9crud : I crud BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible crud
+--      , select : eligible
+--      ]
+--   , responsible10crUd : I crUd BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible crUd
+--      , select : eligible
+--      ]
+--   , responsible11cruD : I cruD BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible cruD
+--      , select : eligible
+--      ]
+--   , responsible12crUD : I crUD BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible crUD
+--      , select : eligible
+--      ]
+--   , responsible13Crud : I Crud BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible Crud
+--      , select : eligible
+--      ]
+--   , responsible14CrUd : I CrUd BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible CrUd
+--      , select : eligible
+--      ]
+--   , responsible15CruD : I CruD BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible CruD
+--      , select : eligible
+--      ]
+--   , responsible16CrUD : I CrUD BOX<FILTEREDDROPDOWN>
+--      [ field : projectResponsible CrUD
+--      , select : eligible
+--      ]
+--   ]
+
+-- , Status : V[SESSION*Employee] cRUd BOX<FORM>
+--   [ "Project ID" : I
+--   , employee : I
+--   , name     : name   CRUD
+--   , eligible   : eligible~ CRUD
+--   ]
+]
+  ENDCONTEXT

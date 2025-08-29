@@ -1,4 +1,7 @@
-<!--just use atomic object component, the select property will be detected inside the atomic object code-->
+$! The $ usage is 'String Template' language used by the Ampersand compiler !$
+$! The 'field' property contains the data for the dropdown. The uni and tot property of that object needs to be bound !$
+$! to the component. !$
+<!-- Using field subobject's isUni and isTot properties instead of main interface properties -->
 <app-atomic-object
     [resource]="resource"
     [interfaceComponent]="this"
@@ -10,6 +13,11 @@
     tgtResourceType="$target$"
     [field]="resource.$name$?.field"
     [select]="resource.$name$?.select"
-    $subObjects:{subObj|$if(subObj.subObjLabel)$$if(subObj.subObjLabel.fisseld)$$if(subObj.subObjExprIsUni)$isUni$endif$$endif$$endif$}$
-    $if(exprIsTot)$isTot$endif$
+
+    $! bind isUni of the field property !$
+    $subObjects:{subObj|$if(subObj.subObjLabel)$$if(subObj.subObjLabel.field)$$if(subObj.subObjExprIsUni)$isUni$endif$$endif$$endif$}$
+
+    $! bind isTot of the field property !$
+
+    $subObjects:{subObj|$if(subObj.subObjLabel)$$if(subObj.subObjLabel.field)$$if(subObj.subObjExprIsTot)$isTot$endif$$endif$$endif$}$
 ></app-atomic-object>
