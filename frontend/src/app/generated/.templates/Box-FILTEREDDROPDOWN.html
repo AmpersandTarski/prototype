@@ -10,6 +10,6 @@
     tgtResourceType="$target$"
     [field]="resource.$name$?.field"
     [select]="resource.$name$?.select"
-    $if(first(subObjects).subObjExprIsUni)$isUni$endif$
+    $subObjects:{subObj|$if(subObj.subObjLabel)$$if(subObj.subObjLabel.fisseld)$$if(subObj.subObjExprIsUni)$isUni$endif$$endif$$endif$}$
     $if(exprIsTot)$isTot$endif$
 ></app-atomic-object>
