@@ -3,15 +3,6 @@
 # Make sure script stops on any error
 set -e
 
-# Check if running in dev container mode
-echo "🔍 Checking runtime environment..."
-if [ -n "$VSCODE_IPC_HOOK_CLI" ] || [ -f "/.dockerenv" ] && [ -d "/var/www/.devcontainer" ]; then
-    echo "✅ Running in dev container mode - proceeding..."
-else
-    echo "❌ Generate script only runs in a dev container"
-    echo "   Please run this script from within the VS Code dev container"
-    exit 1
-fi
 
 project=${1:-project-administration}
 model=${2:-ProjectAdministration.adl}
@@ -65,7 +56,7 @@ fi
 echo "🧱 Building frontend from generated source code ..."
 cd frontend || exit 1
 npm install
-npm run build
+npm run build:dev
 cd ../
 
 echo "🚚 Copying generated files to html/"
@@ -73,7 +64,5 @@ rm -rf html/*
 cp -r backend/public/ html/
 cp -r frontend/dist/prototype-frontend/* html/
 
-echo "🔗 Creating API symlink for proper routing, allowing the script to run in dev container ..."
-cd html && ln -sf /var/www/backend/public/api api && cd ..
 
 echo "✅ Done. Checkout your changes on: http://localhost"

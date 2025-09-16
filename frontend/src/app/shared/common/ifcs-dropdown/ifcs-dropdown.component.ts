@@ -46,7 +46,10 @@ export class IfcsDropdownComponent implements OnInit {
    * @returns only ifcs that don't point to current page.
    */
   filteredIfcs() {
-    if (!this.resource) return [];
+    if (!this.resource || !this.resource._ifcs_) return [];
+
+    if (!this.resource._ifcs_ || !Array.isArray(this.resource._ifcs_))
+      return [];
 
     return this.resource._ifcs_.filter((ifc) => {
       return (
