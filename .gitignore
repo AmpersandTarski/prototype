@@ -11,3 +11,6 @@ html/
 project/
 .env
 frontend/src/app/generated/project.module.ts
+
+# Cypress screenshots
+frontend/cypress/screenshots/

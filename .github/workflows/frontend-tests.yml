@@ -35,6 +35,11 @@ jobs:
         cd frontend
         npm run test -- --watch=false --ci
         
+    - name: Run Cypress Stories tests
+      run: |
+        cd frontend
+        npm run test:stories
+        
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       with:

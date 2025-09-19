@@ -6,7 +6,7 @@ import {
   HttpInterceptor,
   HttpErrorResponse,
 } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { catchError } from 'rxjs';
 import { MessageService } from 'primeng/api';
@@ -24,6 +24,13 @@ export class HttpErrorInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
         console.log(error);
 
+        // Let import requests pass through without interception - let service handle intelligence
+        const isImportRequest = req.url.includes('admin/import');
+        if (isImportRequest) {
+          return throwError(() => error);
+        }
+
+        // Standard error handling for all non-import requests
         switch (error.status) {
           case 401:
           case 403:
