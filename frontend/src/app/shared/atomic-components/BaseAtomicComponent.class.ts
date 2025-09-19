@@ -46,6 +46,7 @@ export abstract class BaseAtomicComponent<
 
   ngOnInit(): void {
     if (!(this.propertyName in this.resource)) {
+
       throw new Error(
         `Property '${this.propertyName}' not defined for object in '${this.resource._path_}'. It is likely that the backend data model is not in sync with the generated frontend.`,
       );
@@ -66,10 +67,14 @@ export abstract class BaseAtomicComponent<
   }
 
   get data(): T[] {
+  if (typeof this.resource !== 'object') {
+    return [];
+  }
+
     return this.requireArray(this.resource[this.propertyName]);
   }
 
-  public requireArray(property: T | Array<T> | null) {
+  private requireArray(property: T | Array<T> | null) {
     if (Array.isArray(property)) {
       return property;
     } else if (property === null) {

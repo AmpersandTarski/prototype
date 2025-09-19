@@ -56,13 +56,33 @@ class MockDropdown {
   hide = jest.fn();
 }
 
+// Mock MessageService
+class MockMessageService {
+  add = jest.fn();
+}
+
+// Mock ChangeDetectorRef
+class MockChangeDetectorRef {
+  markForCheck = jest.fn();
+  detectChanges = jest.fn();
+}
+
 describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOptions)', () => {
   let component: AtomicObjectComponent<ObjectBase | ObjectBase[]>;
   let mockInterfaceComponent: MockAmpersandInterfaceComponent;
+  let mockMessageService: MockMessageService;
+  let mockChangeDetectorRef: MockChangeDetectorRef;
 
   beforeEach(() => {
+    // Create mock dependencies
+    mockMessageService = new MockMessageService();
+    mockChangeDetectorRef = new MockChangeDetectorRef();
+    
     // Create component instance directly
-    component = new AtomicObjectComponent<ObjectBase | ObjectBase[]>();
+    component = new AtomicObjectComponent<ObjectBase | ObjectBase[]>(
+      mockMessageService as any,
+      mockChangeDetectorRef as any
+    );
     mockInterfaceComponent = new MockAmpersandInterfaceComponent();
 
     // Set up required inputs
@@ -82,7 +102,6 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
   describe('Component Initialization - Backend Fetch Path', () => {
     it('should create component and fetch from backend when selectOptions is not provided', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       const fetchSpy = jest.spyOn(
         mockInterfaceComponent,
         'fetchDropdownMenuData',
@@ -102,8 +121,6 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
         { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] },
         { _id_: '3', _label_: 'Option 3', _path_: '/3', _ifcs_: [] },
       ]);
-
-      consoleSpy.mockRestore();
     });
 
     it('should set uniValue for uni case with backend fetch', () => {
@@ -1327,14 +1344,15 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       // Simulate the createAndAdd operation
       component.createAndAdd('m6');
 
-      // Console log BEFORE refresh
-      console.log('BEFORE REFRESH - allOptions:', component.allOptions());
 
       // Step 3: Simulate page refresh by reinitializing the component
       // This is where the 'object object' bug typically manifests
       const refreshedComponent = new AtomicObjectComponent<
         ObjectBase | ObjectBase[]
-      >();
+      >(
+        mockMessageService as any,
+        mockChangeDetectorRef as any
+      );
       refreshedComponent.property = component.property;
       refreshedComponent.resource = { ...component.resource }; // Copy current state
       refreshedComponent.propertyName = component.propertyName;
@@ -1358,11 +1376,6 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       // Initialize the refreshed component (simulates page refresh)
       refreshedComponent.ngOnInit();
 
-      // Console log AFTER refresh
-      console.log(
-        'AFTER REFRESH - allOptions:',
-        refreshedComponent.allOptions(),
-      );
 
       // Verify: Check that the dropdown options contain proper labels, not 'object object'
       const allOptions = refreshedComponent.allOptions();
