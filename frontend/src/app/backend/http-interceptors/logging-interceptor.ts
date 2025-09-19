@@ -45,8 +45,11 @@ export class LoggingInterceptor implements HttpInterceptor {
           } in ${elapsed} ms.`;
           console.log(messageSummary);
 
+          // Let import requests handle their own messaging - don't show automatic notifications
+          const isImportRequest = req.url.includes('admin/import');
+          
           // If notifications have been found, the error field exists (possibly with empty array, but it exists)
-          if (notifications.errors)
+          if (notifications.errors && !isImportRequest)
             this.sendMessagesFromNotifications(notifications);
           if (patchResponse.sessionRefreshAdvice) {
             // clear session storage and reload page
