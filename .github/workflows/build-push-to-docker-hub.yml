@@ -1,13 +1,12 @@
 # This workflow builds and pushes Ampersand prototype framework images to Docker Hub
-# We want to have images for branches 'main' (latest) and for all tags (i.e. releases, like e.g. v4.0.2)
+# We want to have images for branches 'main' (latest)
+# For release tags (v*), see the release.yml workflow instead
 # We use a Github Action from the market place. See: https://github.com/marketplace/actions/build-and-push-docker-images
 name: Build push to DockerHub
 on:
   push:
-    branches: # empty list to trigger all branches
+    branches:
     - main
-    tags:
-    - 'v*'
 
 jobs:
   build-push:
