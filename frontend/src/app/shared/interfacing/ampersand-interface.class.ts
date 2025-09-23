@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, share, tap, throwError } from 'rxjs';
 import { ObjectBase } from '../objectBase.interface';
 import { Patch, PatchValue } from './patch.interface';
@@ -110,7 +110,7 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
         ...patches,
       ])
       .pipe(
-        tap((resp) => {
+        tap((resp: PatchResponse<T>) => {
           if (resp.isCommitted) {
             this.pendingPatches = [];
           } else {
@@ -136,13 +136,13 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
       )
       .pipe(tap(() => this.patched.emit()))
       .pipe(
-        catchError((error) => {
+        catchError((error: HttpErrorResponse) => {
           this.messageService.clear();
 
           this.messageService.add({
             severity: 'error',
             summary: `HTTP error ${error.status}`,
-            detail: error.msg,
+            detail: error.error?.html ?? error.error?.msg ?? error.message,
             sticky: true,
           });
 

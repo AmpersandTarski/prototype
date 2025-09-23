@@ -13,7 +13,7 @@ export class GlobalErrorHandler implements ErrorHandler {
     // Assign message content
     if (error instanceof HttpErrorResponse) {
       messageSummary = error.status ? error.status.toString() : 'Error';
-      messageDetail = error.message ? error.message : '';
+      messageDetail = error.error?.html ?? error.error?.msg ?? error.message ?? '';
     } else {
       messageSummary = error.name;
       messageDetail = error.message;

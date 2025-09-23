@@ -125,8 +125,15 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         // Call parent init. This will generate an error, with a suggestion to sync backend. However, in this case it is likely that the backend is fine, but the CRUD of the relation does not allow reading.
         super.ngOnInit();
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
+        let errorMessage = '';
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (error && typeof error === 'object' && 'error' in error) {
+          const httpError = error as any;
+          errorMessage = httpError.error?.html ?? httpError.error?.msg ?? httpError.message ?? String(error);
+        } else {
+          errorMessage = String(error);
+        }
         throw new Error(errorMessage + ' OR CRUD of relation not readable');
       }
 
