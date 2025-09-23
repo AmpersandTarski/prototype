@@ -1,9 +1,9 @@
 module.exports = {
   prototypeGuideSidebar: [
     {
-      label: "Creating Custom BOX Templates",
+      label: "BOX Template Development Guide",
       type: "doc",
-      id: "prototype/guides/creating-custom-box-templates",
+      id: "prototype/guides/box-template-development-guide",
     },
   ],
   prototypeReferenceSidebar: [
@@ -21,6 +21,11 @@ module.exports = {
       label: "Frontend components",
       type: "doc",
       id: "prototype/reference-material/frontend-components",
+    },
+    {
+      label: "PROPBUTTON Template",
+      type: "doc",
+      id: "prototype/reference-material/propbutton-template",
     },
   ],
 };
