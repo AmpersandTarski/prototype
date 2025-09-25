@@ -2,6 +2,7 @@ import {
   Component,
   computed,
   Input,
+  OnDestroy,
   OnInit,
   Signal,
   signal,
@@ -26,7 +27,7 @@ enum Mode {
 })
 export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   extends BaseAtomicComponent<ObjectBase, I>
-  implements OnInit
+  implements OnInit, OnDestroy
 {
   @Input() public placeholder!: string;
   @Input() public tgtResourceType!: string;
@@ -214,6 +215,15 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       });
   }
 
+  override ngOnDestroy(): void {
+    // Clean up ViewChild reference to prevent memory leaks
+    if (this.dropdown) {
+      // Clear the reference to help with garbage collection
+      (this.dropdown as any) = null;
+    }
+    super.ngOnDestroy();
+  }
+
   private computeUniSelectableOptions(): ObjectBase[] {
     const allOptions = this.allOptions();
     const uniValue = this.uniValue();
@@ -280,6 +290,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           value: uniValue._id_,
         },
       ])
+      .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.uniValue.set(this.resource[this.propertyName]);
       });
@@ -299,6 +310,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           value: this.newValue._id_,
         },
       ])
+      .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.newValue = undefined; // reset newValue
         this.selection.set([...this.data]); // spread to trigger change
@@ -355,6 +367,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           value: trimmedValue,
         },
       ])
+      .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         // hide dropdown
         this.dropdown.hide();
@@ -403,6 +416,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           path: `${this.propertyName}/${id}`,
         },
       ])
+      .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         if (this.isUni) {
           this.uniValue.set(null);
@@ -421,6 +435,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
     this.interfaceComponent
       .delete(`${this.resource._path_}/${this.propertyName}/${id}`)
+      .pipe(takeUntil(this.destroy$))
       .subscribe((x) => {
         if (x.isCommitted && x.invariantRulesHold) {
           // delete does not update the data (as patch does),

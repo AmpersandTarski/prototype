@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { takeUntil } from 'rxjs/operators';
 import { BaseBoxComponent } from '../BaseBoxComponent.class';
 import { ObjectBase } from '../../objectBase.interface';
 type PropButtonItem = ObjectBase & {
@@ -34,6 +35,7 @@ export class BoxPropButtonComponent<
 
     this.interfaceComponent
       .patch(item._path_, [{ op: 'replace', path: 'property', value: value }])
+      .pipe(takeUntil(this.destroy$))
       .subscribe((x) => {
         if (x.isCommitted) {
           this.data = [x.content as any as TItem];

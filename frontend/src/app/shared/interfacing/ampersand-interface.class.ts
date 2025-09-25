@@ -1,23 +1,26 @@
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, share, tap, throwError } from 'rxjs';
+import { catchError, Observable, share, Subject, takeUntil, tap, throwError } from 'rxjs';
 import { ObjectBase } from '../objectBase.interface';
 import { Patch, PatchValue } from './patch.interface';
 import { PatchResponse } from './patch-response.interface';
 import { DeleteResponse } from './delete-response.interface';
 import { CreateResponse } from './create-response.interface';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 import { mergeDeep } from 'src/app/shared/helper/deepmerge';
 import { MessageService } from 'primeng/api';
 import { ResourcePath } from '../helper/resource-path';
 
 @Component({ template: '' })
-export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
+export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> implements OnDestroy {
   @Input() resourceId?: string;
   public resource: ObjectBase & {
     data: T;
   };
   public typeAheadData: { [path: string]: Observable<Array<ObjectBase>> } = {};
   @Output() patched = new EventEmitter<void>();
+
+  // Subject for managing subscriptions lifecycle
+  private destroy$ = new Subject<void>();
 
   /**
    * These patches weren't committed by the backend yet because some
@@ -29,6 +32,15 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
     protected http: HttpClient,
     private messageService: MessageService,
   ) {}
+
+  ngOnDestroy(): void {
+    // Clear the typeAheadData cache to prevent memory leaks
+    this.typeAheadData = {};
+
+    // Complete the destroy subject to clean up all subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   public setResource(resourceType: string, resourceId: string, data: T) {
     this.resource = {
@@ -45,14 +57,17 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
   ): Observable<Array<ResponseObject>> {
     if (!(path in this.typeAheadData)) {
       const source = this.http.get<Array<ResponseObject>>(path);
-      const sharedObservable = source.pipe(share());
-      this.typeAheadData[path] = sharedObservable;
+      // Use takeUntil to automatically clean up the observable when component is destroyed
+
+      this.typeAheadData[path] = source.pipe(takeUntil(this.destroy$), share());
     }
     return this.typeAheadData[path] as Observable<Array<ResponseObject>>;
   }
 
   public post(path: string): Observable<CreateResponse> {
-    return this.http.post<CreateResponse>(path, {});
+    return this.http.post<CreateResponse>(path, {}).pipe(
+      takeUntil(this.destroy$)
+    );
   }
 
   public patch(
@@ -110,6 +125,7 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
         ...patches,
       ])
       .pipe(
+        takeUntil(this.destroy$),
         tap((resp) => {
           if (resp.isCommitted) {
             this.pendingPatches = [];
@@ -152,6 +168,8 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> {
   }
 
   public delete(resourcePath: string): Observable<DeleteResponse> {
-    return this.http.delete<DeleteResponse>(resourcePath);
+    return this.http.delete<DeleteResponse>(resourcePath).pipe(
+      takeUntil(this.destroy$)
+    );
   }
 }
