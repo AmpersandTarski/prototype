@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   computed,
   Input,
@@ -14,6 +15,7 @@ import { BaseAtomicComponent } from '../BaseAtomicComponent.class';
 import { Dropdown } from 'primeng/dropdown';
 import { isObject } from '../../helper/deepmerge';
 import { ObjectBase } from '../../objectBase.interface';
+import { MessageService } from 'primeng/api';
 
 enum Mode {
   Default = '',
@@ -70,26 +72,44 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   // html helpers
   public isObject = isObject;
 
+  constructor(
+    private messageService: MessageService,
+    private cd: ChangeDetectorRef
+  ) {
+    super();
+  }
+
   override ngOnInit(): void {
+
     // When using this component, it should at least be readable, to be detected through testing the path.
     if (!this.resource || !this.resource._path_) {
-      throw new Error(
-        'Contents of BOX<> are not readable. Has the BOX<> read property?',
-      );
-    }
+      this.messageService.add({
+        severity: 'error',
+        summary: 'ADL error',
+        detail: 'Contents of BOX<> are not readable. Has the BOX<> read property?',
+        life: 7000,
 
-    const resourceName = this.resource._path_ || '';
+      })
+      return // nothing more to do but don't let it break the page
+      } 
+    
+
+    const resourceName = this.resource._path_;
 
     // In BOX<FILTEREDDROPDOWN> we'll the crud, uni and tot from the relation, not from the box itself
     if (this.mode === 'box-filtereddropdown') {
-      // Validate required properties; throw if either is missing
+      // Validate required properties; show error message if either is missing
       if (
         !('setRelation' in this.resource) ||
         !('selectFrom' in this.resource)
       ) {
-        throw new Error(
-          'BOX-FILTEREDDROPDOWN requires both setRelation and selectFrom properties defined.',
-        );
+        this.messageService.add({
+          severity: 'error',
+          summary: 'ADL error',
+          detail: 'BOX-FILTEREDDROPDOWN requires both setRelation and selectFrom properties defined.',
+          life: 7000,
+        });
+        return;
       }
 
       // Runtime type checks for setRelation and selectFrom
@@ -113,9 +133,13 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       // It seems that if one of those properties isn't a valid type, for example an array of strings, they probably aren't of the same type either.
       // It would be better to do the type check on compiler level
       if (!relationTypeOk || !selectFromTypeOk) {
-        throw new Error(
-          'BOX-FILTEREDDROPDOWN requires equal types of setRelation and selectFrom.',
-        );
+        this.messageService.add({
+          severity: 'error',
+          summary: 'ADL error',
+          detail: 'BOX-FILTEREDDROPDOWN requires equal types of setRelation and selectFrom.',
+          life: 7000,
+        });
+        return;
       }
 
       // patching the crud of the relation, replacing the crud of the box itself
@@ -128,7 +152,13 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
-        throw new Error(errorMessage + ' OR CRUD of relation not readable');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'ADL error',
+          detail: errorMessage + ' OR CRUD of relation not readable',
+          life: 7000,
+        });
+        return;
       }
 
       // Extract isUni and isTot from resource path and override the input values

@@ -10,7 +10,18 @@
     "test": "ng test",
     "lint": "ng lint",
     "eslint": "eslint src",
-    "eslint:fix": "eslint --fix src"
+    "eslint:fix": "eslint --fix src",
+    "storybook": "ng run prototype-frontend:storybook",
+    "build-storybook": "ng run prototype-frontend:build-storybook",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "cypress:test:import": "cypress run --spec \"cypress/e2e/import-component-storybook.cy.ts\"",
+    "cypress:open:import": "cypress open --e2e",
+    "test:import": "cypress run --spec \"cypress/e2e/import-population.cy.ts\"",
+    "test:import:headless": "cypress run --spec \"cypress/e2e/import-population.cy.ts\"",
+    "test:stories": "cypress run --spec \"cypress/stories/**/*.cy.ts\"",
+    "e2e": "cypress run",
+    "e2e:open": "cypress open"
   },
   "private": true,
   "dependencies": {
@@ -41,10 +52,17 @@
     "@angular-eslint/template-parser": "^17.5.0",
     "@angular/cli": "~17.3.8",
     "@angular/compiler-cli": "^17.3.10",
+    "@storybook/addon-essentials": "^7.6.17",
+    "@storybook/addon-interactions": "^7.6.17",
+    "@storybook/angular": "^7.6.17",
+    "@storybook/test-runner": "^0.16.0",
+    "@storybook/testing-angular": "^1.0.3",
     "@types/jest": "^30.0.0",
     "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
+    "cypress": "^15.2.0",
+    "esbuild": "^0.25.9",
     "eslint": "^8.39.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
@@ -53,6 +71,8 @@
     "jest-preset-angular": "^14.6.1",
     "prettier": "^2.7.1",
     "prettier-eslint": "^15.0.1",
-    "typescript": "~5.4.5"
+    "storybook": "^7.6.17",
+    "typescript": "~5.4.5",
+    "webpack-dev-server": "^5.2.2"
   }
 }
