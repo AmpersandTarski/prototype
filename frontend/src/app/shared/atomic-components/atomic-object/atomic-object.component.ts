@@ -149,10 +149,15 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
             this.resource.noOptionsTxt ??
             ' - No items to choose from - ';
         } else {
-          this.placeholder =
-            this.resource.emptyOption ??
-            this.resource.emptyOption ??
-            ' - Add item - ';
+          // For UNI + canUpdate case, show existing value if present instead of "- Add item -"
+          if (this.isUni && this.canUpdate() && this.resource[this.propertyName]?._label_) {
+            this.placeholder = this.resource[this.propertyName]._label_;
+          } else {
+            this.placeholder =
+              this.resource.emptyOption ??
+              this.resource.emptyOption ??
+              ' - Add item - ';
+          }
         }
       }
     } else {
