@@ -1,15 +1,7 @@
-import { EventEmitter } from '@angular/core';
-import { of } from 'rxjs';
-import { AtomicObjectComponent } from './atomic-object.component';
-import { ObjectBase } from '../../objectBase.interface';
-
-// Mock ObjectBase for testing
-interface TestObjectBase extends ObjectBase {
-  _id_: string;
-  _label_: string;
-  _path_: string;
-  _ifcs_: any[];
-}
+import {EventEmitter} from '@angular/core';
+import {of} from 'rxjs';
+import {AtomicObjectComponent} from './atomic-object.component';
+import {ObjectBase} from '../../objectBase.interface';
 
 // Mock AmpersandInterfaceComponent
 class MockAmpersandInterfaceComponent {
@@ -72,17 +64,27 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
   let mockInterfaceComponent: MockAmpersandInterfaceComponent;
   let mockMessageService: MockMessageService;
   let mockChangeDetectorRef: MockChangeDetectorRef;
+  let mockInterfacesJsonService: any;
 
   beforeEach(() => {
+    // Create mock service
+    mockInterfacesJsonService = {
+      findSubObject: jest.fn().mockResolvedValue(null),
+      isLoaded: jest.fn().mockReturnValue(true),
+      loadInterfaces: jest.fn().mockResolvedValue(undefined),
+      getInterfaces: jest.fn().mockReturnValue([]),
+      mapResourcePathToInterfaces: jest.fn()
+    };
+
+    // Create component instance directly with mock service
+    component = new AtomicObjectComponent<ObjectBase | ObjectBase[]>(   mockMessageService as any,
+      mockChangeDetectorRef as any
+    );
     // Create mock dependencies
     mockMessageService = new MockMessageService();
     mockChangeDetectorRef = new MockChangeDetectorRef();
-    
+
     // Create component instance directly
-    component = new AtomicObjectComponent<ObjectBase | ObjectBase[]>(
-      mockMessageService as any,
-      mockChangeDetectorRef as any
-    );
     mockInterfaceComponent = new MockAmpersandInterfaceComponent();
 
     // Set up required inputs
@@ -801,191 +803,6 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
     });
   });
 
-  describe('Static Methods', () => {
-    describe('AtomicObjectComponent.extractCrudFromResourceName', () => {
-      it('should extract the last CRUD value when multiple CRUD patterns exist', () => {
-        const resourceName =
-          'resource/SESSION/1/BoxFilteredDropdownTests/97d304fe763d09e981a2c34068d8819f/Default/project 2/_49_1_46__32_Assign_32_an_32_employee_32__40_cRud_47_crud_41_';
-        const result =
-          AtomicObjectComponent.extractCrudFromResourceName(resourceName);
-
-        expect(result).toBe('crud'); // Should return the LAST CRUD value
-      });
-
-      it('should extract single CRUD value from resource path', () => {
-        const resourceName =
-          'resource/SESSION/1/BoxFilteredDropdownTests/project/_CRUd_/end';
-        const result =
-          AtomicObjectComponent.extractCrudFromResourceName(resourceName);
-
-        expect(result).toBe('CRUd');
-      });
-
-      it('should return undefined when no CRUD patterns found', () => {
-        const resourceName =
-          'resource/SESSION/1/BoxFilteredDropdownTests/simple/path';
-        const result =
-          AtomicObjectComponent.extractCrudFromResourceName(resourceName);
-
-        expect(result).toBeUndefined();
-      });
-
-      it('should handle empty string input', () => {
-        const resourceName = '';
-        const result =
-          AtomicObjectComponent.extractCrudFromResourceName(resourceName);
-
-        expect(result).toBeUndefined();
-      });
-
-      it('should return the last CRUD value when multiple exist', () => {
-        const resourceName = 'path/_CRUD_/middle/_cRud_/end';
-        const result =
-          AtomicObjectComponent.extractCrudFromResourceName(resourceName);
-
-        expect(result).toBe('cRud'); // Should return the LAST value
-      });
-
-      it('should handle mixed case CRUD patterns and return the last one', () => {
-        const resourceName = 'path/_CrUd_/other/_cRUD_';
-        const result =
-          AtomicObjectComponent.extractCrudFromResourceName(resourceName);
-
-        expect(result).toBe('cRUD'); // Should return the LAST value
-      });
-
-      it('should only match exactly 4 character CRUD patterns', () => {
-        const resourceName = 'path/_CRU_/invalid/_CRUDD_/valid/_cRud_';
-        const result =
-          AtomicObjectComponent.extractCrudFromResourceName(resourceName);
-
-        expect(result).toBe('cRud'); // Should return the only valid 4-character CRUD
-      });
-
-      it('should handle patterns with URL-encoded parentheses', () => {
-        const resourceName = 'resource/path/_40_cRud_47_crud_41_';
-        const result =
-          AtomicObjectComponent.extractCrudFromResourceName(resourceName);
-
-        expect(result).toBe('crud'); // Should return the last CRUD from the pattern
-      });
-
-      it('should return first CRUD when only one exists', () => {
-        const resourceName = 'path/_CRUD_/simple';
-        const result =
-          AtomicObjectComponent.extractCrudFromResourceName(resourceName);
-
-        expect(result).toBe('CRUD');
-      });
-    });
-
-    describe('AtomicObjectComponent.extractIsUniFromResourceName', () => {
-      it('should return true when _40_UNI_41_ pattern is found', () => {
-        const resourceName =
-          'resource/SESSION/1/BoxFilteredDropdownTests/56fa2d480c85e0db8b2c345867baa386/Project_32_Master_32__40_UNI_41_/project 1/_55__46__32_Project_32_Master_32__40_CRuD_41_';
-        const result =
-          AtomicObjectComponent.extractIsUniFromResourceName(resourceName);
-
-        expect(result).toBe(true);
-      });
-
-      it('should return null when UNI pattern is not found', () => {
-        const resourceName =
-          'resource/SESSION/1/BoxFilteredDropdownTests/simple/path';
-        const result =
-          AtomicObjectComponent.extractIsUniFromResourceName(resourceName);
-
-        expect(result).toBeNull();
-      });
-
-      it('should return null for empty string', () => {
-        const resourceName = '';
-        const result =
-          AtomicObjectComponent.extractIsUniFromResourceName(resourceName);
-
-        expect(result).toBeNull();
-      });
-
-      it('should handle path with other patterns but no UNI', () => {
-        const resourceName = 'resource/path/_40_TOT_41_/other/_CRUd_';
-        const result =
-          AtomicObjectComponent.extractIsUniFromResourceName(resourceName);
-
-        expect(result).toBeNull();
-      });
-
-      it('should handle path with both UNI and TOT patterns', () => {
-        const resourceName = 'resource/path/_40_UNI_41_/middle/_40_TOT_41_';
-        const result =
-          AtomicObjectComponent.extractIsUniFromResourceName(resourceName);
-
-        expect(result).toBe(true);
-      });
-
-      it('should detect generic encoded UNI with variable numbers (e.g., _40_UNI_32_)', () => {
-        const resourceName =
-          'resource/SESSION/1/BoxFilteredDropdownTests/49322ef0b7b551c3858b4405455d1fe5/ResponsibleEmployee_32__40_UNI_32_TOT_41_/project 4/_55__46__32_Responsible_32__40_CRuD_41_';
-        const result =
-          AtomicObjectComponent.extractIsUniFromResourceName(resourceName);
-
-        expect(result).toBe(true);
-      });
-    });
-
-    describe('AtomicObjectComponent.extractIsTotFromResourceName', () => {
-      it('should return true when _40_TOT_41_ pattern is found', () => {
-        const resourceName =
-          'resource/SESSION/1/BoxFilteredDropdownTests/56fa2d480c85e0db8b2c345867baa386/Project_32_Founder_32__40_TOT_41_/project 1/_55__46__32_Project_32_Founder_32__40_CRuD_41_';
-        const result =
-          AtomicObjectComponent.extractIsTotFromResourceName(resourceName);
-
-        expect(result).toBe(true);
-      });
-
-      it('should return null when TOT pattern is not found', () => {
-        const resourceName =
-          'resource/SESSION/1/BoxFilteredDropdownTests/simple/path';
-        const result =
-          AtomicObjectComponent.extractIsTotFromResourceName(resourceName);
-
-        expect(result).toBeNull();
-      });
-
-      it('should return null for empty string', () => {
-        const resourceName = '';
-        const result =
-          AtomicObjectComponent.extractIsTotFromResourceName(resourceName);
-
-        expect(result).toBeNull();
-      });
-
-      it('should handle path with other patterns but no TOT', () => {
-        const resourceName = 'resource/path/_40_UNI_41_/other/_CRUd_';
-        const result =
-          AtomicObjectComponent.extractIsTotFromResourceName(resourceName);
-
-        expect(result).toBeNull();
-      });
-
-      it('should handle path with both UNI and TOT patterns', () => {
-        const resourceName = 'resource/path/_40_UNI_41_/middle/_40_TOT_41_';
-        const result =
-          AtomicObjectComponent.extractIsTotFromResourceName(resourceName);
-
-        expect(result).toBe(true);
-      });
-
-      it('should detect generic encoded TOT with variable numbers (e.g., _32_TOT_41_)', () => {
-        const resourceName =
-          'resource/SESSION/1/BoxFilteredDropdownTests/49322ef0b7b551c3858b4405455d1fe5/ResponsibleEmployee_32__40_UNI_32_TOT_41_/project 4/_55__46__32_Responsible_32__40_CRuD_41_';
-        const result =
-          AtomicObjectComponent.extractIsTotFromResourceName(resourceName);
-
-        expect(result).toBe(true);
-      });
-    });
-  });
-
   describe('Edge Cases and Error Handling', () => {
     it('should handle empty allOptions array', () => {
       component.resource = {
@@ -1344,7 +1161,6 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       // Simulate the createAndAdd operation
       component.createAndAdd('m6');
 
-
       // Step 3: Simulate page refresh by reinitializing the component
       // This is where the 'object object' bug typically manifests
       const refreshedComponent = new AtomicObjectComponent<
@@ -1365,13 +1181,13 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       refreshedComponent['dropdown'] = new MockDropdown() as any;
 
       // Set up selectOptions for the refreshed component to include the created item
-      const optionsWithCreatedItem = [
+
+      refreshedComponent.selectOptions = [
         { _id_: '1', _label_: 'Option 1', _path_: '/1', _ifcs_: [] },
         { _id_: '2', _label_: 'Option 2', _path_: '/2', _ifcs_: [] },
         { _id_: '3', _label_: 'Option 3', _path_: '/3', _ifcs_: [] },
         createdItem, // The newly created item should be in the options
       ];
-      refreshedComponent.selectOptions = optionsWithCreatedItem;
 
       // Initialize the refreshed component (simulates page refresh)
       refreshedComponent.ngOnInit();

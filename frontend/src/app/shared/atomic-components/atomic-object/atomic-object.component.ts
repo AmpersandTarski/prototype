@@ -16,6 +16,7 @@ import { Dropdown } from 'primeng/dropdown';
 import { isObject } from '../../helper/deepmerge';
 import { ObjectBase } from '../../objectBase.interface';
 import { MessageService } from 'primeng/api';
+import { InterfacesJsonService, SubObjectMeta } from '../../services/interfaces-json.service';
 
 enum Mode {
   Default = '',
@@ -72,14 +73,11 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   // html helpers
   public isObject = isObject;
 
-  constructor(
-    private messageService: MessageService,
-    private cd: ChangeDetectorRef
-  ) {
+  constructor(private interfacesLoader: InterfacesJsonService,     private messageService: MessageService) {
     super();
   }
 
-  override ngOnInit(): void {
+  override async ngOnInit(): Promise<void> {
 
     // When using this component, it should at least be readable, to be detected through testing the path.
     if (!this.resource || !this.resource._path_) {
@@ -91,8 +89,8 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
       })
       return // nothing more to do but don't let it break the page
-      } 
-    
+      }
+
 
     const resourceName = this.resource._path_;
 
@@ -112,67 +110,33 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         return;
       }
 
-      // Runtime type checks for setRelation and selectFrom
-      const relation = this.resource.setRelation;
-      const selectFrom = this.resource.selectFrom;
+      // Load and find subobjects information from interfaces.json
+      let relation: SubObjectMeta | null = null;
+      let selectFrom: SubObjectMeta | null = null;
 
-      // Inline function to validate allowed shapes: null, ObjectBase, or ObjectBase[]
-      const checkType = (o: any): boolean => {
-        const isObjBase = (x: any) =>
-          !!x && typeof x === 'object' && '_id_' in x && '_label_' in x;
-        return (
-          o === null ||
-          isObjBase(o) ||
-          (Array.isArray(o) && (o.length === 0 || o.every(isObjBase)))
-        );
-      };
+      try {
+        selectFrom = await this.interfacesLoader.findSubObject(this.resource._path_, 'selectFrom');
+        relation = await this.interfacesLoader.findSubObject(this.resource._path_, 'setRelation');
 
-      const relationTypeOk = checkType(relation);
-      const selectFromTypeOk = checkType(selectFrom);
+      } catch (error) {
+        console.error('Error finding selectFrom:', error);
+      }
 
-      // It seems that if one of those properties isn't a valid type, for example an array of strings, they probably aren't of the same type either.
-      // It would be better to do the type check on compiler level
-      if (!relationTypeOk || !selectFromTypeOk) {
+      this.crud = relation?.crud ?? 'cRud';
+      this.isUni = relation?.isUni ?? false;
+      this.isTot = relation?.isTot ?? false;
+
+      // Runtime type checks for setRelation and selectFrom from resource properties
+      if (relation?.conceptType !== selectFrom?.conceptType) {
         this.messageService.add({
           severity: 'error',
           summary: 'ADL error',
           detail: 'BOX-FILTEREDDROPDOWN requires equal types of setRelation and selectFrom.',
           life: 7000,
         });
-        return;
       }
 
-      // patching the crud of the relation, replacing the crud of the box itself
-      this.crud =
-        AtomicObjectComponent.extractCrudFromResourceName(resourceName);
-
-      try {
-        // Call parent init. This will generate an error, with a suggestion to sync backend. However, in this case it is likely that the backend is fine, but the CRUD of the relation does not allow reading.
-        super.ngOnInit();
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'ADL error',
-          detail: errorMessage + ' OR CRUD of relation not readable',
-          life: 7000,
-        });
-        return;
-      }
-
-      // Extract isUni and isTot from resource path and override the input values
-      const extractedIsUni =
-        AtomicObjectComponent.extractIsUniFromResourceName(resourceName);
-      const extractedIsTot =
-        AtomicObjectComponent.extractIsTotFromResourceName(resourceName);
-
-      if (extractedIsUni !== null) {
-        this.isUni = extractedIsUni;
-      }
-      if (extractedIsTot !== null) {
-        this.isTot = extractedIsTot;
-      }
+      super.ngOnInit();
 
       // Now extract the select options from selectFrom
       this.selectOptions = this.selectFrom;
@@ -185,10 +149,15 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
             this.resource.noOptionsTxt ??
             ' - No items to choose from - ';
         } else {
-          this.placeholder =
-            this.resource.emptyOption ??
-            this.resource.emptyOption ??
-            ' - Add item - ';
+          // For UNI + canUpdate case, show existing value if present instead of "- Add item -"
+          if (this.isUni && this.canUpdate() && this.resource[this.propertyName]?._label_) {
+            this.placeholder = this.resource[this.propertyName]._label_;
+          } else {
+            this.placeholder =
+              this.resource.emptyOption ??
+              this.resource.emptyOption ??
+              ' - Add item - ';
+          }
         }
       }
     } else {
@@ -507,49 +476,4 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     }
   }
 
-  /**
-   * Extracts CRUD values from resource name
-   * @param resourceName The resource path containing CRUD patterns
-   * @returns Array of CRUD strings found in the resource name
-   */
-  public static extractCrudFromResourceName(resourceName: string): string {
-    // Look for _<crud>_ patterns (4-character CRUD strings surrounded by underscores)
-    const crudPattern = /_([CRUDcrud]{4})_/g;
-    const matches = Array.from(resourceName.matchAll(crudPattern));
-    const result = matches.map((match) => match[1]); // Extract just the CRUD part
-
-    return result[result.length - 1]; // return the last found CRUD
-  }
-
-  /**
-   * Extracts isUni value from resource name by looking for encoded pattern: _<number>_UNI_<number>_
-   * Numbers are generator-encoded ASCII code points (e.g. 40='(', 41=')', 32=' ').
-   * The pattern may appear anywhere in the full resource path.
-   * @param resourceName The resource path that may contain UNI constraint info
-   * @returns true if UNI pattern is found, null if not found
-   */
-  public static extractIsUniFromResourceName(
-    resourceName: string,
-  ): boolean | null {
-    // Match generic encoded pattern: _<number>_UNI_<number>_
-    // Examples: _40_UNI_41_, _40_UNI_32_, etc.
-    const uniPattern = /_(\d+)_UNI_(\d+)_/;
-    return uniPattern.test(resourceName) ? true : null;
-  }
-
-  /**
-   * Extracts isTot value from resource name by looking for encoded pattern: _<number>_TOT_<number>_
-   * Numbers are generator-encoded ASCII code points (e.g. 40='(', 41=')', 32=' ').
-   * The pattern may appear anywhere in the full resource path.
-   * @param resourceName The resource path that may contain TOT constraint info
-   * @returns true if TOT pattern is found, null if not found
-   */
-  public static extractIsTotFromResourceName(
-    resourceName: string,
-  ): boolean | null {
-    // Match generic encoded pattern: _<number>_TOT_<number>_
-    // Examples: _40_TOT_41_, _32_TOT_41_, etc.
-    const totPattern = /_(\d+)_TOT_(\d+)_/;
-    return totPattern.test(resourceName) ? true : null;
-  }
 }
