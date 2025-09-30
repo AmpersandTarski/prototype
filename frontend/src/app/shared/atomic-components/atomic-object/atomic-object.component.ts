@@ -242,21 +242,28 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
   private computeNonUniSelectableOptions(): ObjectBase[] {
 
-    // Compute all options, those without exclude selected ids
-    const selectedIds = this.selection().map((d: ObjectBase) => d._id_);
-    const allOptionsWithoutSelected = this.allOptions().filter(
-      (option) => !selectedIds.includes(option._id_),
-    );
+    // In box-filtereddropdown mode, don't automatically remove selected items
+    // Let the user control filtering through ADL expressions like eligible-projectMember
+    let optionsToFilter: ObjectBase[];
+    if (this.mode === Mode.BoxFilteredDropdown) {
+      optionsToFilter = this.allOptions();
+    } else {
+      // For regular mode, exclude selected ids (original behavior)
+      const selectedIds = this.selection().map((d: ObjectBase) => d._id_);
+      optionsToFilter = this.allOptions().filter(
+        (option) => !selectedIds.includes(option._id_),
+      );
+    }
 
     // check if a search filter is applied
     const lowerCaseFilterValue = this.filterValue().trim().toLowerCase();
     const filterIsApplied = lowerCaseFilterValue.length !== 0;
     if (!filterIsApplied) {
-      return allOptionsWithoutSelected;
+      return optionsToFilter;
     }
 
-    // filter options
-    return allOptionsWithoutSelected.filter((option) =>
+    // filter options by search term
+    return optionsToFilter.filter((option) =>
       option._label_.toLowerCase().includes(lowerCaseFilterValue),
     );
   }
