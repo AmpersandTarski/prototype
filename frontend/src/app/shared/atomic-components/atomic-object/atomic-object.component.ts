@@ -1,5 +1,4 @@
 import {
-  ChangeDetectorRef,
   Component,
   computed,
   Input,
@@ -16,7 +15,10 @@ import { Dropdown } from 'primeng/dropdown';
 import { isObject } from '../../helper/deepmerge';
 import { ObjectBase } from '../../objectBase.interface';
 import { MessageService } from 'primeng/api';
-import { InterfacesJsonService, SubObjectMeta } from '../../services/interfaces-json.service';
+import {
+  InterfacesJsonService,
+  SubObjectMeta,
+} from '../../services/interfaces-json.service';
 
 enum Mode {
   Default = '',
@@ -79,23 +81,22 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
   override async ngOnInit(): Promise<void> {
 
+    // In BOX<FILTEREDDROPDOWN> we'll use the crud, uni and tot from setRelation, not from the box itself
+    if (this.mode === 'box-filtereddropdown') {
+
     // When using this component, it should at least be readable, to be detected through testing the path.
     if (!this.resource || !this.resource._path_) {
+
       this.messageService.add({
         severity: 'error',
         summary: 'ADL error',
-        detail: 'Contents of BOX<> are not readable. Has the BOX<> read property?',
+        detail: 'Contents of BOX<FILTEREDDROPDOWN> are not readable. Has the BOX read property?',
         life: 7000,
 
       })
       return // nothing more to do but don't let it break the page
       }
 
-
-    const resourceName = this.resource._path_;
-
-    // In BOX<FILTEREDDROPDOWN> we'll the crud, uni and tot from the relation, not from the box itself
-    if (this.mode === 'box-filtereddropdown') {
       // Validate required properties; show error message if either is missing
       if (
         !('setRelation' in this.resource) ||
@@ -104,7 +105,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         this.messageService.add({
           severity: 'error',
           summary: 'ADL error',
-          detail: 'BOX-FILTEREDDROPDOWN requires both setRelation and selectFrom properties defined.',
+          detail: 'BOX<FILTEREDDROPDOWN> requires both setRelation and selectFrom properties defined.',
           life: 7000,
         });
         return;
@@ -119,7 +120,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         relation = await this.interfacesLoader.findSubObject(this.resource._path_, 'setRelation');
 
       } catch (error) {
-        console.error('Error finding selectFrom:', error);
+        console.error('Error finding setRelation or selectFrom in BOX-FILTEREDDROPDOWN:', error);
       }
 
       this.crud = relation?.crud ?? 'cRud';
@@ -143,12 +144,14 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
       // override place holders when provided
       if (this.selectOptions !== undefined) {
+
         if (this.selectOptions.length === 0) {
           this.placeholder =
             this.resource.noOptionsTxt ??
             this.resource.noOptionsTxt ??
             ' - No items to choose from - ';
         } else {
+
           // For UNI + canUpdate case, show existing value if present instead of "- Add item -"
           if (this.isUni && this.canUpdate() && this.resource[this.propertyName]?._label_) {
             this.placeholder = this.resource[this.propertyName]._label_;
@@ -170,7 +173,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       return;
     }
 
-    // Set up the reactive chain
+    // Set up the reactive chain, selectOptions is already provided when in BOX<FILTEREDDROPDOWN> mode
     const optionsObservable =
       this.selectOptions !== undefined
         ? of(this.selectOptions)
@@ -191,7 +194,6 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         }),
         switchMap(() =>
           this.interfaceComponent.patched.pipe(
-            tap((patched) => {}),
             map(() => {
               // For selectOptions case, return updated options
               if (this.selectOptions) {
@@ -215,6 +217,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   }
 
   override ngOnDestroy(): void {
+
     // Clean up ViewChild reference to prevent memory leaks
     if (this.dropdown) {
       // Clear the reference to help with garbage collection
@@ -224,6 +227,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   }
 
   private computeUniSelectableOptions(): ObjectBase[] {
+
     const allOptions = this.allOptions();
     const uniValue = this.uniValue();
     if (typeof uniValue !== 'string' || uniValue.trim().length === 0) {
@@ -237,13 +241,14 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   }
 
   private computeNonUniSelectableOptions(): ObjectBase[] {
+
     // Compute all options, those without exclude selected ids
     const selectedIds = this.selection().map((d: ObjectBase) => d._id_);
     const allOptionsWithoutSelected = this.allOptions().filter(
       (option) => !selectedIds.includes(option._id_),
     );
 
-    // check if a filter is applied
+    // check if a search filter is applied
     const lowerCaseFilterValue = this.filterValue().trim().toLowerCase();
     const filterIsApplied = lowerCaseFilterValue.length !== 0;
     if (!filterIsApplied) {
@@ -258,6 +263,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
   // used in uni case to get the selected object or null
   public selectableUniValue(): ObjectBase | null {
+
     const v = this.uniValue();
     // Only an object can be considered selected; strings/null are typing states
     if (!v || typeof v !== 'object') {
@@ -268,6 +274,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     return found ? (v as ObjectBase) : null;
   }
 
+  // fetch options from backend
   private getBackendDataObservable() {
     return this.interfaceComponent.fetchDropdownMenuData(
       `resource/${this.tgtResourceType}`,
