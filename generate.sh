@@ -4,8 +4,8 @@
 set -e
 
 
-project=${1:-project-administration}
-model=${2:-ProjectAdministration.adl}
+project=${1:-hello-world}
+model=${2:-main.adl}
 
 echo "🛠️ Using project: $project"
 echo "📄 Using model: $model"
