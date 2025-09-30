@@ -5,13 +5,17 @@ import {
   RouterStateSnapshot,
 } from '@angular/router';
 import { Observable } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { BaseComponent } from '../../shared/BaseComponent.class';
 import { RolesService } from './roles.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RolesGuard {
-  constructor(private rolesService: RolesService, private router: Router) {}
+export class RolesGuard extends BaseComponent {
+  constructor(private rolesService: RolesService, private router: Router) {
+    super();
+  }
 
   // can only activate if it has the required role
   canActivate(
@@ -21,7 +25,7 @@ export class RolesGuard {
     const isRole$: Observable<boolean> = this.rolesService.isRole(
       route.data['role'],
     );
-    isRole$.subscribe((x) => {
+    isRole$.pipe(takeUntil(this.destroy$)).subscribe((x) => {
       if (!x) {
         this.router.navigate(['']);
       }

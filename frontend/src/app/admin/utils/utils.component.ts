@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { finalize } from 'rxjs';
+import { finalize, takeUntil } from 'rxjs';
 import { ButtonState } from 'src/app/shared/helper/button-state';
+import { BaseComponent } from 'src/app/shared/BaseComponent.class';
 import { UtilsService } from './utils.service';
 
 @Component({
@@ -8,13 +9,15 @@ import { UtilsService } from './utils.service';
   templateUrl: './utils.component.html',
   styleUrls: ['./utils.component.scss'],
 })
-export class UtilsComponent {
+export class UtilsComponent extends BaseComponent {
   buttonState1: ButtonState = new ButtonState();
   buttonState2: ButtonState = new ButtonState();
   buttonState3: ButtonState = new ButtonState();
   buttonState4: ButtonState = new ButtonState();
 
-  constructor(private utilsService: UtilsService) {}
+  constructor(private utilsService: UtilsService) {
+    super();
+  }
 
   /**
    * Method to determine if there is a 'utils' call to the backend in progress, triggered by any of the buttons
@@ -50,7 +53,7 @@ export class UtilsComponent {
     buttonState.loading = true;
     this.utilsService
       .getEvaluateAllRules()
-      .pipe(finalize(() => (buttonState.loading = false)))
+      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -66,7 +69,7 @@ export class UtilsComponent {
     buttonState.loading = true;
     this.utilsService
       .getRunExecutionEngine()
-      .pipe(finalize(() => (buttonState.loading = false)))
+      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -82,7 +85,7 @@ export class UtilsComponent {
     buttonState.loading = true;
     this.utilsService
       .getRegenerateAllAtomIds()
-      .pipe(finalize(() => (buttonState.loading = false)))
+      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -98,7 +101,7 @@ export class UtilsComponent {
     buttonState.loading = true;
     this.utilsService
       .getRegenerateAtom(concept)
-      .pipe(finalize(() => (buttonState.loading = false)))
+      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),

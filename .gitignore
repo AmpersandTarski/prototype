@@ -11,3 +11,9 @@ html/
 project/
 .env
 frontend/src/app/generated/project.module.ts
+
+# this will be regenerated and copied to assets during the build phase, so don't check it in
+frontend/src/assets/interfaces.son
+
+# Cypress screenshots
+frontend/cypress/screenshots/

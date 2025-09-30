@@ -2,8 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { Component, Input, OnInit, booleanAttribute } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { map, Observable, of, tap } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AmpersandInterfaceComponent } from '../interfacing/ampersand-interface.class';
 import { ObjectBase } from '../objectBase.interface';
+import { BaseComponent } from '../BaseComponent.class';
 
 @Component({
   template: '',
@@ -11,7 +13,7 @@ import { ObjectBase } from '../objectBase.interface';
 export abstract class BaseBoxComponent<
   TItem extends ObjectBase,
   I extends ObjectBase | ObjectBase[],
-> implements OnInit
+> extends BaseComponent implements OnInit
 {
   @Input() resource!: ObjectBase & { [key: string]: any };
   @Input({ required: true }) propertyName: string;
@@ -27,7 +29,9 @@ export abstract class BaseBoxComponent<
   @Input({ transform: booleanAttribute }) isUni = false;
   @Input({ transform: booleanAttribute }) isTot = false;
 
-  constructor(private http: HttpClient) {}
+  constructor() {
+    super();
+  }
 
   ngOnInit(): void {
     if (this.canUpdate()) {
@@ -67,7 +71,7 @@ export abstract class BaseBoxComponent<
   public createItem(): void {
     const path: string = `${this.resource._path_}/${this.propertyName}`;
     const propertyField = this.isRootBox ? 'data' : this.propertyName;
-    this.interfaceComponent.post(path).subscribe((x) => {
+    this.interfaceComponent.post(path).pipe(takeUntil(this.destroy$)).subscribe((x) => {
       if (this.isUni) {
         this.resource[propertyField] = x.content as TItem;
       } else {
@@ -90,6 +94,7 @@ export abstract class BaseBoxComponent<
           value: val._id_,
         },
       ])
+      .pipe(takeUntil(this.destroy$))
       .subscribe((x) => {
         if (x.isCommitted && x.invariantRulesHold) {
           // remove the recently added item from the dropdown menu
@@ -115,6 +120,7 @@ export abstract class BaseBoxComponent<
           path: `${this.propertyName}/${item._id_}`,
         },
       ])
+      .pipe(takeUntil(this.destroy$))
       .subscribe((x) => {
         if (x.isCommitted && x.invariantRulesHold) {
           this.dropdownMenuObjects$ = this.getDropdownMenuItems(
@@ -127,7 +133,7 @@ export abstract class BaseBoxComponent<
   public deleteItem(item: TItem): void {
     if (!confirm('Delete?')) return;
 
-    this.interfaceComponent.delete(item._path_).subscribe((x) => {
+    this.interfaceComponent.delete(item._path_).pipe(takeUntil(this.destroy$)).subscribe((x) => {
       if (x.isCommitted && x.invariantRulesHold) {
         const index = this.data.indexOf(item);
         if (index != -1) {

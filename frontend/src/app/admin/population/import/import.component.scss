@@ -41,3 +41,187 @@
     width: auto;
   }
 }
+
+/* --------------------------------------------------------
+   File list UI (columns + subtle per-file progress row)
+---------------------------------------------------------*/
+:host {
+  /* Remove PrimeNG's content area entirely (no inner list/slot) */
+  ::ng-deep .p-fileupload .p-fileupload-content {
+    display: none !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  .file-list {
+    margin: 1rem 0;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius);
+    background: var(--surface-card);
+  }
+
+  .file-row {
+    display: grid;
+    grid-template-columns: 1fr 120px 48px;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .file-row.header {
+    font-weight: 600;
+    color: var(--text-color-secondary);
+    background: var(--surface-50);
+    border-bottom: 1px solid var(--surface-border);
+  }
+
+  .file-item {
+    border-bottom: 1px solid var(--surface-border);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  .col.action {
+    justify-self: end;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .filename {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &.done {
+      color: var(--green-600);
+    }
+    &.error {
+      color: var(--red-500);
+    }
+    &.queued,
+    &.uploading {
+      color: var(--text-color);
+    }
+  }
+
+  .filesize {
+    color: var(--text-color-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .progress-row {
+    padding: 0 1rem 0.75rem 1rem;
+  }
+
+  /* Subtle full-width progress bar style */
+  ::ng-deep .subtle-progress.p-progressbar {
+    height: 6px;
+    border-radius: 6px;
+    background: var(--surface-200);
+    width: 100%;
+    display: block;
+  }
+
+  ::ng-deep .subtle-progress.p-progressbar .p-progressbar-value {
+    background: var(--primary-color);
+    border-radius: 6px;
+    transition: width 0.1s linear;
+  }
+
+  /* Full-width error message row styling */
+  .error-row {
+    padding: 0 1rem 0.75rem 1rem;
+  }
+
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--red-50);
+    border: 1px solid var(--red-200);
+    border-radius: var(--border-radius);
+    padding: 0.75rem;
+    color: var(--red-700);
+    font-size: 0.875rem;
+    line-height: 1.4;
+
+    i {
+      color: var(--red-500);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    span {
+      flex: 1;
+      word-break: break-word;
+    }
+  }
+
+  /* Red square per-item cancel button (white cross) */
+  .square-btn.p-button {
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .square-btn.p-button .p-button-icon {
+    color: #fff;
+  }
+
+  /* "Cancel all" smaller and red */
+  ::ng-deep
+    .p-fileupload
+    .p-fileupload-buttonbar
+    .p-fileupload-cancel.p-button {
+    background: var(--red-500);
+    border-color: var(--red-500);
+    color: #fff;
+    padding: 0.25rem 0.5rem; /* smaller */
+    font-size: 0.875rem;
+  }
+  ::ng-deep
+    .p-fileupload
+    .p-fileupload-buttonbar
+    .p-fileupload-cancel.p-button
+    .p-button-icon {
+    color: #fff;
+  }
+
+  /* Button bar container styling */
+  ::ng-deep .p-fileupload .p-fileupload-buttonbar {
+    border-bottom: 1px solid #e5e7eb !important; /* reintroduce bottom border */
+    border-radius: 4px !important; /* rounded corners */
+  }
+
+  /* Grey out "Cancel all" when everything is done */
+  ::ng-deep
+    .p-fileupload.cancel-disabled
+    .p-fileupload-buttonbar
+    .p-fileupload-cancel.p-button {
+    background: var(--surface-300) !important;
+    border-color: var(--surface-300) !important;
+    color: var(--surface-700) !important;
+    cursor: not-allowed;
+    opacity: 0.65;
+    pointer-events: none; /* effectively disabled */
+  }
+
+  /* Hide overall progress bar always */
+  ::ng-deep .p-fileupload .p-fileupload-progressbar {
+    display: none !important;
+  }
+
+  /* Hide overall progress when not needed */
+  ::ng-deep .p-fileupload.hide-overall-progress .p-fileupload-progressbar {
+    display: none !important;
+  }
+}

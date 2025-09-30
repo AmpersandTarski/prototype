@@ -1,7 +1,9 @@
 import { Inject, OnInit } from '@angular/core';
 import { Component } from '@angular/core';
+import { takeUntil } from 'rxjs/operators';
 import { MenuItem } from 'primeng/api';
 import { menuItems as adminMenuItems } from '../admin/admin.module';
+import { BaseComponent } from '../shared/BaseComponent.class';
 import { LayoutService } from './service/app.layout.service';
 import { MenuService } from './app.menu.service';
 import { InterfaceRouteMap, INTERFACE_ROUTE_MAPPING_TOKEN } from '../config';
@@ -11,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
   selector: 'app-menu',
   templateUrl: './app.menu.component.html',
 })
-export class AppMenuComponent implements OnInit {
+export class AppMenuComponent extends BaseComponent implements OnInit {
   model: MenuItem[] = [];
 
   constructor(
@@ -19,12 +21,14 @@ export class AppMenuComponent implements OnInit {
     public menuService: MenuService,
     @Inject(INTERFACE_ROUTE_MAPPING_TOKEN)
     private interfaceRouteMap: InterfaceRouteMap,
-  ) {}
+  ) {
+    super();
+  }
 
   ngOnInit() {
     this.loadOrCreateMenu();
 
-    this.menuService.refreshSource$.subscribe(() => {
+    this.menuService.refreshSource$.pipe(takeUntil(this.destroy$)).subscribe(() => {
       sessionStorage.removeItem('menuItems');
       this.model = [];
 
@@ -51,7 +55,7 @@ export class AppMenuComponent implements OnInit {
   /* Adds MenuItems to the navigation menu */
   private addMenuItems() {
     const childItems = new Array<MenuItem>(); // Storage for child items where parent is not added yet.
-    this.menuService.getMenuItems().subscribe((navs) => {
+    this.menuService.getMenuItems().pipe(takeUntil(this.destroy$)).subscribe((navs) => {
       // Add fetched menu items
       navs.forEach((nav) => {
         let menuItem: MenuItem;
@@ -138,7 +142,7 @@ export class AppMenuComponent implements OnInit {
       items: [],
     };
 
-    this.menuService.getAddButtons().subscribe((addBtns) => {
+    this.menuService.getAddButtons().pipe(takeUntil(this.destroy$)).subscribe((addBtns) => {
       addBtns.forEach((addBtn) => {
         // Lookup and convert
         var id = addBtn.ifcs[0].id;

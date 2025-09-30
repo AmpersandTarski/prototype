@@ -1,4 +1,89 @@
 <h3>Import population file(s)</h3>
+
+<!-- Selected files list (queued + in-progress + done/error) -->
+<div class="file-list" *ngIf="selectedFiles.length">
+    <div class="file-row header">
+        <div class="col name">File name</div>
+        <div class="col size">Size</div>
+        <div class="col action"></div>
+    </div>
+
+    <div class="file-item" *ngFor="let item of selectedFiles">
+        <div class="file-row">
+            <div class="col name">
+                <span class="filename" [ngClass]="item.status">{{ item.name }}</span>
+            </div>
+            <div class="col size">
+                <span class="filesize">{{ formatSize(item.size) }}</span>
+            </div>
+            <div class="col action">
+                <!-- Show per-item action based on status -->
+                <button
+                    *ngIf="item.status === 'uploading'"
+                    pButton
+                    type="button"
+                    icon="pi pi-times"
+                    class="p-button-danger p-button-sm square-btn"
+                    (click)="cancelItem(item)"
+                    aria-label="Cancel upload"
+                    title="cancel upload"
+                ></button>
+
+                <button
+                    *ngIf="item.status === 'error'"
+                    pButton
+                    type="button"
+                    icon="pi pi-refresh"
+                    class="p-button-text p-button-warning p-button-sm"
+                    (click)="retryItem(item)"
+                    aria-label="Retry upload"
+                    title="retry upload"
+                ></button>
+
+                <!-- Canceled: show both Retry and Clear -->
+                <button
+                    *ngIf="item.status === 'canceled'"
+                    pButton
+                    type="button"
+                    icon="pi pi-refresh"
+                    class="p-button-text p-button-warning p-button-sm"
+                    (click)="retryItem(item)"
+                    aria-label="Retry upload"
+                    title="retry upload"
+                ></button>
+                <button
+                    *ngIf="item.status === 'canceled'"
+                    pButton
+                    type="button"
+                    icon="pi pi-trash"
+                    class="p-button-danger p-button-sm square-btn"
+                    (click)="clearItem(item)"
+                    aria-label="Clear item"
+                    title="clear"
+                ></button>
+            </div>
+        </div>
+
+        <!-- Subtle full-width progress bar under each item while uploading -->
+        <div class="progress-row" *ngIf="item.status === 'uploading'">
+            <p-progressBar
+                [value]="item.progress"
+                [showValue]="false"
+                styleClass="subtle-progress"
+            ></p-progressBar>
+        </div>
+
+        <!-- Full-width error message under each item when there's an error -->
+        <div class="error-row" *ngIf="item.status === 'error' && item.errorMessage">
+            <div class="error-message">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span>{{ item.errorMessage }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PrimeNG FileUpload -->
 <p-fileUpload
     #uploader
     name="file[]"
@@ -6,16 +91,13 @@
     accept="application/json, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.oasis.opendocument.spreadsheet"
     maxFileSize="10000000"
     [customUpload]="true"
+    [showUploadButton]="false"
+    chooseLabel="Select files"
+    [cancelLabel]="CANCEL_ALL_LABEL"
+    [disabled]="false"
+    [styleClass]="fileUploadClasses"
     (uploadHandler)="handleUpload($event)"
+    (onSelect)="onSelect($event)"
+    (onClear)="onClear()"
 >
-    <ng-template pTemplate="content">
-        <div *ngIf="uploader.uploadedFiles.length">
-            <h5>Imported files</h5>
-            <ul>
-                <li *ngFor="let file of uploader.uploadedFiles">
-                    {{ file.name }} - {{ file.size }} B
-                </li>
-            </ul>
-        </div>
-    </ng-template>
 </p-fileUpload>

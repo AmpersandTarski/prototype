@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { finalize } from 'rxjs';
+import { finalize, takeUntil } from 'rxjs';
 import { ButtonState } from 'src/app/shared/helper/button-state';
+import { BaseComponent } from 'src/app/shared/BaseComponent.class';
 import { PopulationService } from './population.service';
 
 @Component({
@@ -8,11 +9,13 @@ import { PopulationService } from './population.service';
   templateUrl: './population.component.html',
   styleUrls: ['./population.component.scss'],
 })
-export class PopulationComponent {
+export class PopulationComponent extends BaseComponent {
   buttonState1: ButtonState = new ButtonState();
   buttonState2: ButtonState = new ButtonState();
 
-  constructor(private populationService: PopulationService) {}
+  constructor(private populationService: PopulationService) {
+    super();
+  }
 
   /**
    * Method to determine if there is a 'population' call to the backend in progress, triggered by any of the buttons
@@ -41,7 +44,7 @@ export class PopulationComponent {
     buttonState.loading = true;
     this.populationService
       .getExportPopulation()
-      .pipe(finalize(() => (buttonState.loading = false)))
+      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -59,7 +62,7 @@ export class PopulationComponent {
     buttonState.loading = true;
     this.populationService
       .getExportPopulationMetaModel()
-      .pipe(finalize(() => (buttonState.loading = false)))
+      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { finalize } from 'rxjs';
+import { finalize, takeUntil } from 'rxjs';
 import { ButtonState } from 'src/app/shared/helper/button-state';
+import { BaseComponent } from 'src/app/shared/BaseComponent.class';
 import { ReportService } from './report.service';
 
 @Component({
@@ -8,14 +9,16 @@ import { ReportService } from './report.service';
   templateUrl: './report.component.html',
   styleUrls: ['./report.component.scss'],
 })
-export class ReportComponent {
+export class ReportComponent extends BaseComponent {
   buttonState1: ButtonState = new ButtonState();
   buttonState2: ButtonState = new ButtonState();
   buttonState3: ButtonState = new ButtonState();
   buttonState4: ButtonState = new ButtonState();
   buttonState5: ButtonState = new ButtonState();
 
-  constructor(private reportService: ReportService) {}
+  constructor(private reportService: ReportService) {
+    super();
+  }
 
   /**
    * Method to determine if there is a 'report' call to the backend in progress, triggered by any of the buttons
@@ -53,7 +56,7 @@ export class ReportComponent {
     buttonState.loading = true;
     this.reportService
       .getRelations()
-      .pipe(finalize(() => (buttonState.loading = false)))
+      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -69,7 +72,7 @@ export class ReportComponent {
     buttonState.loading = true;
     this.reportService
       .getConjunctUsage()
-      .pipe(finalize(() => (buttonState.loading = false)))
+      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -85,7 +88,7 @@ export class ReportComponent {
     buttonState.loading = true;
     this.reportService
       .getConjunctPerformance()
-      .pipe(finalize(() => (buttonState.loading = false)))
+      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -101,7 +104,7 @@ export class ReportComponent {
     buttonState.loading = true;
     this.reportService
       .getInterfaces()
-      .pipe(finalize(() => (buttonState.loading = false)))
+      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -117,7 +120,7 @@ export class ReportComponent {
     buttonState.loading = true;
     this.reportService
       .getInterfaceIssues()
-      .pipe(finalize(() => (buttonState.loading = false)))
+      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),

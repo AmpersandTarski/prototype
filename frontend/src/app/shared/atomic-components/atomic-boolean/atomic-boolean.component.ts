@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { takeUntil } from 'rxjs/operators';
 import { BaseAtomicComponent } from '../BaseAtomicComponent.class';
 import { ObjectBase } from '../../objectBase.interface';
 
@@ -19,6 +20,7 @@ export class AtomicBooleanComponent<
           value: this.resource[this.propertyName],
         },
       ])
+      .pipe(takeUntil(this.destroy$))
       .subscribe();
   }
 }

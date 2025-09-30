@@ -1,0 +1,42 @@
+CONTEXT ImportTesting IN ENGLISH
+
+-- Simple concepts for testing import functionality
+CONCEPT Person "A person in the system"
+CONCEPT Organization "An organization"
+
+-- Basic relations
+RELATION name[Person*Name] [UNI,TOT]
+MEANING "Every person has a name"
+RELATION worksFor[Person*Organization] [UNI]
+MEANING "A person may work for an organization"
+RELATION orgName[Organization*Name] [UNI,TOT] 
+MEANING "Every organization has a name"
+
+-- Population for testing
+POPULATION name[Person*Name] CONTAINS
+  [ ("P1", "John Doe")
+  ; ("P2", "Jane Smith")
+  ]
+
+POPULATION orgName[Organization*Name] CONTAINS
+  [ ("O1", "Acme Corp")
+  ; ("O2", "Tech Solutions")
+  ]
+
+POPULATION worksFor[Person*Organization] CONTAINS
+  [ ("P1", "O1")
+  ; ("P2", "O2")  
+  ]
+
+-- Basic interface to display data
+INTERFACE "People" : V[SESSION*Person] 
+  BOX [ "Name" : name
+      , "Works for" : worksFor;orgName
+      ]
+
+INTERFACE "Organizations" : V[SESSION*Organization]
+  BOX [ "Name" : orgName
+      , "Employees" : worksFor~;name
+      ]
+
+ENDCONTEXT

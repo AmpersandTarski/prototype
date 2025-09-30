@@ -2,12 +2,12 @@ import {
   Component,
   Input,
   OnInit,
-  OnDestroy,
   booleanAttribute,
 } from '@angular/core';
-import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AmpersandInterfaceComponent } from '../interfacing/ampersand-interface.class';
 import { ObjectBase } from '../objectBase.interface';
+import { BaseComponent } from '../BaseComponent.class';
 @Component({
   template: '',
 })
@@ -15,9 +15,9 @@ export abstract class BaseAtomicComponent<
     T,
     I extends ObjectBase | ObjectBase[],
   >
-  implements OnInit, OnDestroy
+  extends BaseComponent
+  implements OnInit
 {
-  protected destroy$ = new Subject<void>();
   @Input({ required: true }) property: T | Array<T> | null = null;
 
   @Input({ required: true }) resource: any;
@@ -46,15 +46,11 @@ export abstract class BaseAtomicComponent<
 
   ngOnInit(): void {
     if (!(this.propertyName in this.resource)) {
+
       throw new Error(
         `Property '${this.propertyName}' not defined for object in '${this.resource._path_}'. It is likely that the backend data model is not in sync with the generated frontend.`,
       );
     }
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   public canCreate(): boolean {
@@ -71,10 +67,14 @@ export abstract class BaseAtomicComponent<
   }
 
   get data(): T[] {
+  if (typeof this.resource !== 'object') {
+    return [];
+  }
+
     return this.requireArray(this.resource[this.propertyName]);
   }
 
-  public requireArray(property: T | Array<T> | null) {
+  private requireArray(property: T | Array<T> | null) {
     if (Array.isArray(property)) {
       return property;
     } else if (property === null) {
@@ -96,6 +96,7 @@ export abstract class BaseAtomicComponent<
           value: val._id_ ? val._id_ : val,
         },
       ])
+      .pipe(takeUntil(this.destroy$))
       .subscribe();
   }
 
@@ -126,6 +127,7 @@ export abstract class BaseAtomicComponent<
           value: val?._id_ ? val._id_ : val,
         },
       ])
+      .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.dirty = false;
       });
@@ -144,6 +146,7 @@ export abstract class BaseAtomicComponent<
           value: val?._id_ ? val._id_ : val,
         },
       ])
+      .pipe(takeUntil(this.destroy$))
       .subscribe((x) => {
         if (x.isCommitted && x.invariantRulesHold) {
           this.newValue = undefined;
