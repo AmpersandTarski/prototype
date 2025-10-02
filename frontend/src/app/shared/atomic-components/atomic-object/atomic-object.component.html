@@ -27,7 +27,7 @@
         <span>{{ resource[propertyName]._label_ }}</span>
         <app-ifcs-dropdown size="small" [resource]="resource[propertyName]"></app-ifcs-dropdown>
     </div>
-    <span *ngIf="!resource[propertyName]">Object deleted</span>
+    <span *ngIf="!resource[propertyName]">{{ getUniEmptyText() }}</span>
 </ng-template>
 
 <ng-template #uniUpdate>
@@ -64,7 +64,7 @@
             (keyup)="handleFilterInput(uniValue()!, $event)"
             dataKey="_id_"
             optionLabel="_label_"
-            [placeholder]="placeholder"
+            [placeholder]="placeHolder$()"
             [editable]="true"
             [required]="isNewItemInputRequired()"
         >
@@ -114,7 +114,7 @@
         optionLabel="_label_"
         [filter]="true"
         filterBy="_label_"
-        [placeholder]="placeholder"
+        [placeholder]="placeHolder$()"
         (onChange)="add()"
         [required]="isNewItemInputRequired()"
     >

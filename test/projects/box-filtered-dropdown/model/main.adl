@@ -44,6 +44,7 @@ POPULATION projectMaster[Project*Employee] CONTAINS --UNI
 
 POPULATION projectFounder[Project*Employee] CONTAINS -- TOT
   [ ("project 1", "m1")
+  , ("project 2", "m4")
   , ("project 2", "m5")
   , ("project 3", "m5")
   , ("project 4", "m6")
