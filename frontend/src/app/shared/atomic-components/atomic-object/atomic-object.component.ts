@@ -37,6 +37,8 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   @Input() public placeholder!: string;
   @Input() public tgtResourceType!: string;
 
+  public conceptType: string = 'item';
+
   get selectFrom() {
     return this.resource.selectFrom ?? [];
   }
@@ -48,6 +50,11 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
   // stores all options for the dropdown
   public allOptions = signal<ObjectBase[]>([]);
+
+  // dynamic placeholder that reacts to resource changes
+  public placeHolder$: Signal<string> = computed(() =>
+    this.computePlaceholder(),
+  );
 
   // in the uni case the input can be the selected object,
   // null when no object is selected, or a string when the user is typing
@@ -75,7 +82,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   // html helpers
   public isObject = isObject;
 
-  constructor(private interfacesLoader: InterfacesJsonService,     private messageService: MessageService) {
+  constructor(private interfacesLoader: InterfacesJsonService, private messageService: MessageService) {
     super();
   }
 
@@ -127,6 +134,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       this.isUni = relation?.isUni ?? false;
       this.isTot = relation?.isTot ?? false;
 
+      // Set conceptType from relation
+      this.conceptType = relation?.conceptType ?? 'item';
+
       // Runtime type checks for setRelation and selectFrom from resource properties
       if (relation?.conceptType !== selectFrom?.conceptType) {
         this.messageService.add({
@@ -142,29 +152,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       // Now extract the select options from selectFrom
       this.selectOptions = this.selectFrom;
 
-      // override place holders when provided
-      if (this.selectOptions !== undefined) {
-
-        if (this.selectOptions.length === 0) {
-          this.placeholder =
-            this.resource.noOptionsTxt ??
-            this.resource.noOptionsTxt ??
-            ' - No items to choose from - ';
-        } else {
-
-          // For UNI + canUpdate case, show existing value if present instead of "- Add item -"
-          if (this.isUni && this.canUpdate() && this.resource[this.propertyName]?._label_) {
-            this.placeholder = this.resource[this.propertyName]._label_;
-          } else {
-            this.placeholder =
-              this.resource.emptyOption ??
-              this.resource.emptyOption ??
-              ' - Add item - ';
-          }
-        }
-      }
     } else {
       // used as BOX<SOMETHING ELSE> or as atomic-object alone
+
       super.ngOnInit();
     }
 
@@ -213,6 +203,13 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       )
       .subscribe((updatedOptions: ObjectBase[]) => {
         this.allOptions.set(updatedOptions);
+
+        // Update uniValue signal when resource changes to trigger dynamicPlaceholder
+        if (this.isUni) {
+          this.uniValue.set(this.resource[this.propertyName] ?? null);
+        } else {
+          this.selection.set([...this.data]); // spread to trigger change
+        }
       });
   }
 
@@ -266,6 +263,31 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     return optionsToFilter.filter((option) =>
       option._label_.toLowerCase().includes(lowerCaseFilterValue),
     );
+  }
+
+  private computePlaceholder(): string {
+    if (this.mode !== 'box-filtereddropdown' || this.selectOptions === undefined) {
+      return this.placeholder; // use input placeholder for non-box mode
+    }
+
+    const conceptType = this.conceptType.toLowerCase();
+
+    if (this.selectOptions.length === 0) {
+      return this.resource.noOptionsTxt ??
+             ` - No ${conceptType} to choose from - `;
+    }
+
+    // For UNI + canUpdate case, show existing value if present instead of "- Add item -"
+    // Use uniValue signal to trigger reactivity when resource changes
+    const currentUniValue = this.uniValue();
+    if (this.isUni && this.canUpdate() && currentUniValue && typeof currentUniValue === 'object' && currentUniValue._label_) {
+
+      // if a value is selected, show the current value as placeholder
+      return currentUniValue._label_;
+    } else {
+      return this.resource.emptyOption ??
+             ` - Add ${conceptType} - `;
+    }
   }
 
   // used in uni case to get the selected object or null
@@ -473,16 +495,30 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   }
 
   /**
+   * Returns appropriate text for uni relationships when no object is selected
+   * @returns emptyOption text if set, otherwise "No <object type> selected"
+   */
+  public getUniEmptyText(): string {
+    if (this.resource.emptyOption) {
+      return this.resource.emptyOption;
+    }
+    return `No ${this.conceptType.toLowerCase()} selected`;
+  }
+
+  /**
    * Checks if tot constraint allows delete/remove operations
    * @returns true if delete/remove is allowed, false if tot constraint prevents it
    */
   public matchTotConstraint(): boolean {
     if (!this.isTot) {
-      return true; // No tot constraint, always allow
+      return true; // No tot constraint, always allow delete or remove
     }
 
     if (this.isUni) {
-      // For uni case: don't allow delete if there's currently one selected item
+
+      // In the Uni Tot case there is always one selected item
+      // and that item cannot be deleted nor removed. It can only be replaced through update or create.
+      // so this statement should actually always be false:
       return !this.resource[this.propertyName];
     } else {
       // For non-uni case: don't allow delete if data length is 1 (would result in 0)
