@@ -85,9 +85,33 @@ export class InterfacesJsonService {
 
     // Parse the resource path to extract key segments
     const pathSegments = resourcePath.split('/');
+    console.log('pathSegmments: ', pathSegments);
 
-    if (pathSegments.length < 8) {
+    if (pathSegments.length < 3) {
       console.error('❌ Resource path too short:', pathSegments);
+      return null;
+    }
+
+    // Determine path type based on structure
+    const isSessionPath = pathSegments[1] === 'SESSION';
+    const isDirectEntityPath = !isSessionPath && pathSegments.length >= 4;
+
+    if (isSessionPath) {
+      return this.findSubObjectInSessionPath(interfaces, pathSegments, objectName);
+    } else if (isDirectEntityPath) {
+      return this.findSubObjectInDirectEntityPath(interfaces, pathSegments, objectName);
+    } else {
+      console.error('❌ Unrecognized resource path format:', resourcePath);
+      return null;
+    }
+  }
+
+  /**
+   * Handle SESSION-based paths like: resource/SESSION/1/InterfaceName/sessionId/Default/dataValue/objectName
+   */
+  private findSubObjectInSessionPath(interfaces: any[], pathSegments: string[], objectName: string): SubObjectMeta | null {
+    if (pathSegments.length < 8) {
+      console.error('❌ SESSION resource path too short:', pathSegments);
       return null;
     }
 
@@ -125,16 +149,71 @@ export class InterfacesJsonService {
       return null;
     }
 
-    // Step 4: Find the specific subobject (selectFrom or setRelation)
+    return this.extractSubObjectMeta(targetObject, objectName);
+  }
+
+  /**
+   * Handle direct entity paths like: resource/Product/product1/EditProduct
+   */
+  private findSubObjectInDirectEntityPath(interfaces: any[], pathSegments: string[], objectName: string): SubObjectMeta | null {
+    const interfaceName = pathSegments[3]; // e.g., 'EditProduct'
+    
+    console.log('🔍 Looking for direct entity interface:', interfaceName);
+
+    // Find the interface by name
+    const targetInterface = interfaces.find(ifc => ifc.name === interfaceName);
+    if (!targetInterface) {
+      console.error('❌ Could not find direct entity interface:', interfaceName);
+      return null;
+    }
+
+    console.log('✅ Found direct entity interface:', interfaceName);
+
+    // Navigate through the nested structure to find FILTEREDDROPDOWN
+    return this.findFilteredDropdownInInterface(targetInterface.ifcObject, objectName);
+  }
+
+  /**
+   * Recursively search for FILTEREDDROPDOWN type and extract subobject
+   */
+  private findFilteredDropdownInInterface(ifcObject: any, objectName: string): SubObjectMeta | null {
+    // Check if current level is FILTEREDDROPDOWN
+    if (ifcObject.subinterfaces?.boxHeader?.type === 'FILTEREDDROPDOWN') {
+      console.log('✅ Found FILTEREDDROPDOWN at current level');
+      return this.extractSubObjectMeta(ifcObject, objectName);
+    }
+
+    // Recursively search in subinterfaces
+    if (ifcObject.subinterfaces?.ifcObjects) {
+      for (const subObj of ifcObject.subinterfaces.ifcObjects) {
+        const result = this.findFilteredDropdownInInterface(subObj, objectName);
+        if (result) {
+          return result;
+        }
+      }
+    }
+
+    console.log('❌ FILTEREDDROPDOWN not found in this branch');
+    return null;
+  }
+
+  /**
+   * Extract subobject metadata from a FILTEREDDROPDOWN interface
+   */
+  private extractSubObjectMeta(targetObject: any, objectName: string): SubObjectMeta | null {
+    // Find the specific subobject (selectFrom or setRelation)
     const ifcObjects = targetObject.subinterfaces?.ifcObjects || [];
     const subObject = ifcObjects.find((obj: any) => obj.label === objectName);
 
     if (!subObject) {
       console.error(`❌ Could not find ${objectName} object`);
+      console.log('🔍 Available objects:', ifcObjects.map((obj: any) => obj.label));
       return null;
     }
 
-    // Step 5: Extract and format information
+    console.log(`✅ Found ${objectName} object:`, subObject);
+
+    // Extract and format information
     const crudObj = subObject.crud;
     const expr = subObject.expr;
 
@@ -150,12 +229,15 @@ export class InterfacesJsonService {
       (crudObj.update ? 'U' : 'u') +
       (crudObj.delete ? 'D' : 'd');
 
-    return {
+    const result = {
       crud: crudString,
       conceptType: expr.tgtConceptName || '',
       isTot: expr.isTot || false,
       isUni: expr.isUni || false
     };
+
+    console.log(`✅ Successfully extracted ${objectName} metadata:`, result);
+    return result;
   }
 
   /**

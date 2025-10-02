@@ -1,8 +1,10 @@
-<app-atomic-object
-    [resource]="resource.$name$"
+
+
+<app-box-filtereddropdown
+    [resource]="resource"
     [interfaceComponent]="this"
-    [property]="resource.$name$.setRelation"
-    propertyName="setRelation"
+    [data]="resource.data"
+    propertyName="$name$"
     label="$label$"
-    mode="box-filtereddropdown"
-></app-atomic-object>
+    tgtResourceType="$target$"
+></app-box-filtereddropdown>

@@ -41,6 +41,7 @@ import { BoxFormLoadingComponent } from './box-components/box-form-loading/box-f
 import { BoxRawComponent } from './box-components/box-raw/box-raw.component';
 import { BoxRawTemplateDirective } from './box-components/box-raw/box-raw-template.directive';
 import { BoxPropButtonComponent } from './box-components/box-prop-button/box-prop-button.component';
+import { BoxFilteredDropdownComponent } from './box-components/box-filtereddropdown/box-filtereddropdown.component';
 import { AtomicUrlComponent } from './atomic-components/atomic-url/atomic-url.component';
 import { AtomicSelectComponent } from './atomic-components/atomic-select/atomic-select.component';
 import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.component';
@@ -72,6 +73,7 @@ import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.comp
     BoxRawComponent,
     BoxRawTemplateDirective,
     BoxPropButtonComponent,
+    BoxFilteredDropdownComponent,
   ],
   imports: [
     CommonModule,
@@ -118,6 +120,7 @@ import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.comp
     BoxRawComponent,
     BoxRawTemplateDirective,
     BoxPropButtonComponent,
+    BoxFilteredDropdownComponent,
   ],
   providers: [],
 })

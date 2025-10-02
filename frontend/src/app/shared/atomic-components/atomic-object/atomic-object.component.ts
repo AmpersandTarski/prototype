@@ -91,6 +91,8 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     // In BOX<FILTEREDDROPDOWN> we'll use the crud, uni and tot from setRelation, not from the box itself
     if (this.mode === 'box-filtereddropdown') {
 
+      console.log('Initializing BOX<FILTEREDDROPDOWN> for', this.propertyName, 'with resource', this.resource);
+
     // When using this component, it should at least be readable, to be detected through testing the path.
     if (!this.resource || !this.resource._path_) {
 
@@ -119,26 +121,26 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       }
 
       // Load and find subobjects information from interfaces.json
-      let relation: SubObjectMeta | null = null;
-      let selectFrom: SubObjectMeta | null = null;
+      let relationMeta: SubObjectMeta | null = null;
+      let selectFromMeta: SubObjectMeta | null = null;
 
       try {
-        selectFrom = await this.interfacesLoader.findSubObject(this.resource._path_, 'selectFrom');
-        relation = await this.interfacesLoader.findSubObject(this.resource._path_, 'setRelation');
+        selectFromMeta = await this.interfacesLoader.findSubObject(this.resource._path_, 'selectFrom');
+        relationMeta = await this.interfacesLoader.findSubObject(this.resource._path_, 'setRelation');
 
       } catch (error) {
         console.error('Error finding setRelation or selectFrom in BOX-FILTEREDDROPDOWN:', error);
       }
 
-      this.crud = relation?.crud ?? 'cRud';
-      this.isUni = relation?.isUni ?? false;
-      this.isTot = relation?.isTot ?? false;
+      this.crud = relationMeta?.crud ?? 'cRud';
+      this.isUni = relationMeta?.isUni ?? false;
+      this.isTot = relationMeta?.isTot ?? false;
 
       // Set conceptType from relation
-      this.conceptType = relation?.conceptType ?? 'item';
+      this.conceptType = relationMeta?.conceptType ?? 'item';
 
       // Runtime type checks for setRelation and selectFrom from resource properties
-      if (relation?.conceptType !== selectFrom?.conceptType) {
+      if (relationMeta?.conceptType !== selectFromMeta?.conceptType) {
         this.messageService.add({
           severity: 'error',
           summary: 'ADL error',
@@ -151,6 +153,19 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
       // Now extract the select options from selectFrom
       this.selectOptions = this.selectFrom;
+
+      console.log('BOX<FILTEREDDROPDOWN> initialized with', {
+        crud: this.crud,
+        isUni: this.isUni,
+        isTot: this.isTot,
+        conceptType: this.conceptType,
+        selectOptions: this.selectOptions,
+        selectFrom: this.resource.selectFrom,
+        relation: this.resource.setRelation,
+        resource: this.resource,
+        propertyName: this.propertyName,
+
+      });
 
     } else {
       // used as BOX<SOMETHING ELSE> or as atomic-object alone

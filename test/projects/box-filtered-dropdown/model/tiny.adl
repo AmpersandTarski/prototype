@@ -1,0 +1,31 @@
+CONTEXT TINY
+
+   RELATION eppoCode[Product*Naam] [UNI] -- Uit Producten.xlsx
+   RELATION nedNaam[Product*Naam] [UNI] -- Uit Producten.xlsx
+
+POPULATION eppoCode[Product*Naam] CONTAINS
+  [ ("product1", "APPLE")
+  , ("product2", "BANANA")
+  , ("product3", "ORANGE")
+  , ("product4", "GRAPE")
+  , ("product5", "STRAWBERRY")
+  ]
+
+POPULATION nedNaam[Product*Naam] CONTAINS
+  [ ("product1", "Appel")
+  , ("product2", "Banaan")
+  , ("product3", "Sinaasappel")
+  , ("product4", "Druif")
+  , ("product5", "Aardbei")
+  ]
+
+INTERFACE OVERZICHT : "_SESSION";V[SESSION*Product] cRud BOX<TABLE>
+  [ product : I CRuD
+  ]
+
+INTERFACE EditProduct: I[Product] CRuD BOX<FILTEREDDROPDOWN>
+   [ "selectFrom"   : eppoCode[Product*Naam]
+   , "setRelation"  : nedNaam[Product*Naam] CRUD
+   ]
+
+ENDCONTEXT

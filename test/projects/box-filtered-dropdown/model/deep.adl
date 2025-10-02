@@ -1,0 +1,54 @@
+CONTEXT DEEP
+
+REPRESENT Naam TYPE ALPHANUMERIC
+REPRESENT Iets TYPE ALPHANUMERIC
+
+   RELATION eppoCode[Product*Naam] [UNI] -- Uit Producten.xlsx
+   RELATION nedNaam[Product*Naam] [UNI] -- Uit Producten.xlsx
+   RELATION rel[Product*Iets] -- zomaar iets
+
+POPULATION eppoCode[Product*Naam] CONTAINS
+  [ ("product1", "APPLE")
+  , ("product2", "BANANA")
+  , ("product3", "ORANGE")
+  , ("product4", "GRAPE")
+  , ("product5", "STRAWBERRY")
+  ]
+
+POPULATION nedNaam[Product*Naam] CONTAINS
+  [ ("product1", "Appel")
+  , ("product2", "Banaan")
+  , ("product3", "Sinaasappel")
+  , ("product4", "Druif")
+  , ("product5", "Aardbei")
+  ]
+
+POPULATION rel[Product*Iets] CONTAINS
+  [ ("product1", "iets1")
+  , ("product1", "iets2")
+  , ("product2", "iets2")
+  , ("product2", "iets3")
+  , ("product3", "iets1")
+  , ("product3", "iets3")
+  , ("product4", "iets2")
+  , ("product5", "iets1")
+  , ("product5", "iets2")
+  , ("product5", "iets3")
+  ]
+
+INTERFACE OVERZICHT LABEL "en hier &#64;#$%^&uhweu" : "_SESSION";V[SESSION*Product] cRud BOX<TABLE sortable showNavMenu>
+  [ product : I CRuD
+  ]
+
+INTERFACE EditProduct : I[Product] CRuD BOX<FORM>
+  [ "nivo 1" : I/\rel;rel~ BOX
+    [ "nivo 2" : I[Product]  cRud BOX<TABS>
+      [ "nivo 3" : I[Product] BOX<FILTEREDDROPDOWN>
+               [ "selectFrom"   : eppoCode[Product*Naam]
+               , "setRelation"  : nedNaam[Product*Naam] CRUD
+               ]
+      ]
+    ]
+  ]
+
+ENDCONTEXT
