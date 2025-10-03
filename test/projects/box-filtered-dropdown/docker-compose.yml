@@ -1,0 +1,55 @@
+volumes:
+  db-data:
+
+networks:
+  db:
+
+services:
+  filtered-dropdown-test:
+    container_name: box-filtered-dropdown
+    platform: linux/amd64
+    build:
+      context: .
+    environment:
+      - AMPERSAND_DBHOST=box-filtered-dropdown-db
+      - AMPERSAND_PRODUCTION_MODE=false
+      - AMPERSAND_DEBUG_MODE=true
+      - AMPERSAND_SERVER_URL=localhost
+      - AMPERSAND_DBUSER=ampersand
+      - AMPERSAND_DBPASS=ampersand
+      - AMPERSAND_DBNAME=filtered_dropdown_test
+    restart: always
+    depends_on:
+      - filtered-dropdown-db
+    ports:
+      - "80:80"
+    networks:
+      - db
+  
+  filtered-dropdown-db:
+    container_name: box-filtered-dropdown-db
+    image: mariadb:10.6
+    command: ["--sql-mode=ANSI,TRADITIONAL"]
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=ampersand
+      - MYSQL_PASSWORD=ampersand
+      - MYSQL_DATABASE=filtered_dropdown_test
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./db-init-scripts:/docker-entrypoint-initdb.d # script to setup db authorization for user ampersand. 
+    networks:
+      - db
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    depends_on:
+      - filtered-dropdown-db
+    ports:
+      - "8081:80"
+    networks:
+      - db
+    environment:
+      - PMA_HOST=box-filtered-dropdown-db
