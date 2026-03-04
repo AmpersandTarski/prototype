@@ -9,20 +9,35 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased changes
-* [Issue 156](https://github.com/AmpersandTarski/prototype/issues/156) Adapt to introduced namespace in ADL
-  * This is a breaking change. Requires version update to v2.x
-  * It affects names and labels of all artefacts (concepts, relations, interfaces, rules, views, etc)
-  * It affects metadata from PrototypeContext. Be sure to update those when used in application extensions or running environments
+## v2.0.2 (4 mrt 2026)
+* [Issue 266](https://github.com/AmpersandTarski/prototype/issues/266) Box-FILTEREDDROPDOWN: refined implementation with TOT/UNI support, improved placeholders, always shows all items from selectFrom
+* [Issue 262](https://github.com/AmpersandTarski/prototype/issues/262) Excel importer v2 with Storybook and Cypress tests
+* [Issue 268](https://github.com/AmpersandTarski/prototype/issues/268) Fix memory leaks in frontend components
+
+## v2.0.1 (24 aug 2025)
+* **Breaking change** [Issue 156](https://github.com/AmpersandTarski/prototype/issues/156) Adapt to introduced namespace in ADL
+  * Affects names and labels of all artefacts (concepts, relations, interfaces, rules, views, etc.)
+  * Affects metadata from PrototypeContext — update application extensions and running environments accordingly
 * [Issue 161](https://github.com/AmpersandTarski/prototype/issues/161) Bugfix ConceptNotDefinedException
 * [Issue 180](https://github.com/AmpersandTarski/prototype/issues/180) Bugfix Php warning about undefined array key 'ifcPath'
-* [Issue 210](https://github.com/AmpersandTarski/prototype/issues/210) Bugfix using TableType enum for method to empty a relation population
 * [Issue 218](https://github.com/AmpersandTarski/prototype/issues/218) Improve error reporting for exceptions in excel importer
 * [Issue 221](https://github.com/AmpersandTarski/prototype/issues/221) Bugfix typescript type object property naming by surrounding view labels with quotes
-* Add regression tests to automatically check if certain Ampersand (ADL) scripts generate valid backend and frontend files
+* Add Box-FILTEREDDROPDOWN template (initial implementation)
+* Improve import UI
+* Migrate frontend test framework from Karma to Jest; add code coverage reporting
+* Add regression tests to automatically check if ADL scripts generate valid backend and frontend files
+* Upgrade to Ampersand compiler v5.3
+* Align release policy with the Ampersand repository ([Issue 272](https://github.com/AmpersandTarski/prototype/issues/272))
+
+## v1.19.0 (24 jul 2025)
+* Maintenance release on v1 branch
+* [Issue 246](https://github.com/AmpersandTarski/prototype/issues/246) Bugfix
+
+## v2.0.0-alpha.5 (10 jan 2025)
+* Fix php 8.3 compatibility for ResourceEvent
 
 ## v2.0.0-alpha.4 (25 dec 2024)
-* Fix php 8.3 compatability
+* Fix php 8.3 compatibility
 
 ## v2.0.0-alpha.4 (25 dec 2024)
 * Dispatch resource events for PUT, PATCH, POST and DELETE actions

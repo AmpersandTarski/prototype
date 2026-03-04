@@ -5,6 +5,16 @@ module.exports = {
       type: "doc",
       id: "prototype/guides/creating-custom-box-templates",
     },
+    {
+      label: "Creating Custom VIEW Templates",
+      type: "doc",
+      id: "prototype/guides/creating-custom-view-templates",
+    },
+    {
+      label: "Updating and Releasing the Prototype Framework",
+      type: "doc",
+      id: "prototype/guides/updating-and-releasing",
+    },
   ],
   prototypeReferenceSidebar: [
     {
@@ -16,6 +26,11 @@ module.exports = {
       label: "BOX Template Architecture",
       type: "doc",
       id: "prototype/reference-material/box-template-architecture",
+    },
+    {
+      label: "Built-in BOX Templates",
+      type: "doc",
+      id: "prototype/reference-material/built-in-box-templates",
     },
     {
       label: "Frontend components",
