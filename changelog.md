@@ -9,6 +9,9 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.0.3 (4 mrt 2026)
+* [PR 296](https://github.com/AmpersandTarski/prototype/pull/296) Add `editAsText` mode to the atomic-object component: UNI updatable object fields can now be edited as plain text input
+
 ## v2.0.2 (4 mrt 2026)
 * [Issue 266](https://github.com/AmpersandTarski/prototype/issues/266) Box-FILTEREDDROPDOWN: refined implementation with TOT/UNI support, improved placeholders, always shows all items from selectFrom
 * [Issue 262](https://github.com/AmpersandTarski/prototype/issues/262) Excel importer v2 with Storybook and Cypress tests
