@@ -1,4 +1,5 @@
 import {
+  booleanAttribute,
   Component,
   computed,
   Input,
@@ -46,6 +47,13 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   @Input() mode: string = '';
   @Input() strict = false;
 
+  /**
+   * When editAsText=true, the component renders a plain text <input> instead of the p-dropdown.
+   * The current atom's label is pre-filled in the input so the user can edit it in-place.
+   * On blur or Enter, a new atom is created with the modified text (if changed).
+   */
+  @Input({ transform: booleanAttribute }) editAsText = false;
+
   public selectOptions: ObjectBase[] | undefined;
 
   // stores all options for the dropdown
@@ -81,6 +89,92 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
   // html helpers
   public isObject = isObject;
+
+  // ── editAsText mode ─────────────────────────────────────────────────────────
+  // Tracks what the user has typed in the text input.
+  // null  = no edit in progress; component shows the current atom's label.
+  // ''    = edit started, input is currently empty.
+  // str   = user is typing.
+  public editTextValue = signal<string | null>(null);
+
+  /**
+   * Returns the value to display in the editAsText <input>.
+   * Priority: user's typed text > current atom label > empty string.
+   */
+  public uniTextValue(): string {
+    const ev = this.editTextValue();
+    if (ev !== null) {
+      return ev;
+    }
+    const v = this.uniValue();
+    if (v && typeof v === 'object') {
+      return (v as ObjectBase)._label_;
+    }
+    return typeof v === 'string' ? v : '';
+  }
+
+  /** Called on every keystroke in the editAsText input. */
+  public onEditTextChange(value: string): void {
+    this.editTextValue.set(value);
+  }
+
+  /**
+   * Called on blur or Enter in the editAsText input.
+   *
+   * When a value already exists (UNI slot is filled): uses op:'replace'.
+   * When no value exists yet: uses createAndAdd (op:'add').
+   *
+   * Optimistic update: uniValue is set to the new text immediately so the
+   * input keeps showing the new text while the async patch is in flight.
+   * Without this, resetting editTextValue to null would cause Angular to
+   * re-render with the old uniValue label, creating a visible reversion on blur.
+   */
+  public finishTextEdit(): void {
+    const newText = (this.editTextValue() ?? '').trim();
+
+    if (!newText) {
+      this.editTextValue.set(null);
+      return; // do not save empty string
+    }
+
+    const current = this.uniValue();
+    const currentLabel =
+      typeof current === 'object' && current !== null
+        ? (current as ObjectBase)._label_
+        : typeof current === 'string'
+          ? current
+          : '';
+
+    if (newText === currentLabel) {
+      this.editTextValue.set(null); // no change
+      return;
+    }
+
+    // Optimistic update: immediately reflect the new text in uniValue so that
+    // resetting editTextValue does not flash the old label while the patch is in flight.
+    this.uniValue.set({ _id_: newText, _label_: newText } as ObjectBase);
+    this.editTextValue.set(null);
+
+    if (current !== null) {
+      // There is already a value → replace it
+      this.interfaceComponent
+        .patch(this.resource._path_, [
+          {
+            op: 'replace',
+            path: this.propertyName,
+            value: newText,
+          },
+        ])
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.uniValue.set(this.resource[this.propertyName]);
+        });
+    } else {
+      // No existing value → create and add as new atom
+      this.createAndAdd(newText);
+    }
+  }
+  // ── end editAsText mode ─────────────────────────────────────────────────────
 
   constructor(private interfacesLoader: InterfacesJsonService, private messageService: MessageService) {
     super();
@@ -207,6 +301,8 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         // Update uniValue signal when resource changes to trigger dynamicPlaceholder
         if (this.isUni) {
           this.uniValue.set(this.resource[this.propertyName] ?? null);
+          // Reset any in-progress text edit so the new label is shown
+          this.editTextValue.set(null);
         } else {
           this.selection.set([...this.data]); // spread to trigger change
         }
@@ -404,8 +500,10 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       ])
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-        // hide dropdown
-        this.dropdown.hide();
+        // hide dropdown (if in dropdown mode)
+        if (this.dropdown) {
+          this.dropdown.hide();
+        }
 
         // grab new item
         // clone to disconnect from reactive object,
@@ -525,5 +623,4 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       return this.data.length > 1;
     }
   }
-
 }
