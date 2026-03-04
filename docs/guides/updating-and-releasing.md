@@ -44,7 +44,13 @@ If you update the bundled compiler version, update `compiler-version.txt` accord
 
 ### 3. Verify the main branch passes CI
 
-The `continuous-integration.yml` and `frontend-tests.yml` workflows run on every push to `main`. Confirm that all checks pass before creating a release from that commit.
+The `continuous-integration.yml` and `frontend-tests.yml` workflows run on **pull requests targeting `main`**, not on direct pushes to `main`. This means:
+
+- Direct commits to `main` (such as the changelog update commit) do not trigger CI automatically.
+- To check CI status, look at the most recent pull requests that were merged into `main`. If the last merges show green CI runs, the code is in good shape.
+- You can check recent CI runs with: `gh run list --repo AmpersandTarski/prototype --workflow 92800 --limit 5`
+
+The `build-push-to-docker-hub.yml` workflow _does_ run on every push to `main`. After your pre-release commit, confirm that this workflow succeeds — it builds the full Docker image and is a good end-to-end sanity check before creating the release.
 
 ## Testing the framework locally before releasing
 
@@ -90,7 +96,7 @@ Besides manual testing, three automated test suites are available:
 - Frontend Cypress end-to-end tests: `cd frontend && npm run cypress:open` — requires the application running on localhost
 - Storybook component tests: `cd frontend && npm run storybook`, then `npm run test:stories`
 
-The GitHub Actions CI workflows (`continuous-integration.yml` and `frontend-tests.yml`) run the same tests on every push to `main`. Check that these pass before creating a release.
+The GitHub Actions CI workflows (`continuous-integration.yml` and `frontend-tests.yml`) run the same tests on pull requests targeting `main`. See [section 3](#3-verify-the-main-branch-passes-ci) above for how to verify CI status before releasing.
 
 ## Creating the GitHub Release
 
@@ -119,6 +125,17 @@ The `release.yml` workflow runs four jobs.
 The `build-push-to-docker-hub.yml` workflow runs on every push to `main` and publishes the image with the `main` tag to Docker Hub. This is separate from the release workflow and does not create a versioned tag. Use the `main` tag for development purposes only.
 
 ## Points to watch
+
+**Changelog completeness.** The changelog can fall behind if releases were created without updating it first. Before starting a release, verify that every existing git tag has a matching entry in `changelog.md`. Cross-check with:
+
+```bash
+git tag --sort=-version:refname          # all tagged releases in the repo
+curl -s "https://hub.docker.com/v2/repositories/ampersandtarski/prototype-framework/tags/?page_size=20&ordering=last_updated" | python3 -c "import sys,json; data=json.load(sys.stdin); [print(t['name'], t['last_updated'][:10]) for t in data['results']]"
+```
+
+Compare the tag list against the headings in `changelog.md`. Any tag without a changelog entry should be filled in before the new entry is added.
+
+**Branch protection bypass.** The `main` branch has a branch protection rule that requires changes to go through a pull request. Maintainers can bypass this for direct commits such as the pre-release changelog update. The push output will contain the message `Bypassed rule violations for refs/heads/main` — this is expected and intentional.
 
 **Composer dependencies.** The release archive runs `composer install --no-dev`. Check that `composer.json` and `composer.lock` are up to date before releasing.
 
