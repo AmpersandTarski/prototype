@@ -3,7 +3,7 @@
 </div>
 
 <div *ngIf="isUni && canRead() && canUpdate()" class="select-wrap">
-    <ng-container *ngTemplateOutlet="uniUpdate"> </ng-container>
+    <ng-container *ngTemplateOutlet="editAsText ? uniUpdateText : uniUpdate"> </ng-container>
 </div>
 
 <div *ngIf="!isUni && canRead()" class="select-wrap">
@@ -79,6 +79,57 @@
             (click)="createAndAdd(uniValue()!)"
             [disabled]="!isAllowedToCreate(uniValue()!)"
         ></button>
+        <app-ifcs-dropdown
+            size="small"
+            style="margin: auto 0"
+            [resource]="resource[propertyName]"
+        ></app-ifcs-dropdown>
+    </div>
+</ng-template>
+
+<!--
+    editAsText template: renders a plain <input type="text"> instead of a p-dropdown.
+    The current atom's _label_ is pre-filled so the user can edit it in-place.
+    On blur or Enter the modified text is saved as a new atom (if the text changed).
+-->
+<ng-template #uniUpdateText>
+    <div class="item">
+        <span
+            *ngIf="canUpdate() && matchTotConstraint()"
+            class="pi pi-minus"
+            style="margin: auto 0"
+            [ngStyle]="{
+                cursor: isObject(uniValue()) ? 'pointer' : 'default',
+                color: isObject(uniValue()) ? 'red' : 'grey',
+            }"
+            (click)="isObject(uniValue()) && remove()"
+            pTooltip="Remove"
+            tooltipPosition="left"
+        ></span>
+        <span
+            *ngIf="canDelete() && matchTotConstraint()"
+            class="pi pi-trash"
+            style="margin: auto 0"
+            [ngStyle]="{
+                cursor: isObject(uniValue()) ? 'pointer' : 'default',
+                color: isObject(uniValue()) ? 'red' : 'grey',
+            }"
+            (click)="isObject(uniValue()) && delete()"
+            pTooltip="Delete"
+            tooltipPosition="left"
+        ></span>
+        <input
+            type="text"
+            pInputText
+            class="w-full"
+            style="flex: 1; min-width: 8rem"
+            [ngModel]="uniTextValue()"
+            (ngModelChange)="onEditTextChange($event)"
+            (blur)="finishTextEdit()"
+            (keyup.enter)="finishTextEdit()"
+            [placeholder]="placeholder"
+            [required]="isNewItemInputRequired()"
+        />
         <app-ifcs-dropdown
             size="small"
             style="margin: auto 0"
