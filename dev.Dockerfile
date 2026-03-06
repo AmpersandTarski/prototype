@@ -35,8 +35,7 @@ RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
 
 # Copy Ampersand compiler
 # NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
-# Using local build from commit db9994933fbe783f0ada93bce1169fc1ad8b4ffa (branch issue-#1417-disambiguation)
-COPY --from=ampersand-local:db9994933 /bin/ampersand /usr/local/bin
+COPY --from=ampersandtarski/ampersand:v5.3.2 /bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
 
 # Add default data folder that Apache can write to
