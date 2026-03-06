@@ -4,6 +4,7 @@
         crud="$crud$"
         $if(action)$action="$action$"
         $endif$[interfaceComponent]="this"
+        [resource]="resource"
         propertyName="$name$"
         [data]="$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$"
         tgtResourceType="$target$"
