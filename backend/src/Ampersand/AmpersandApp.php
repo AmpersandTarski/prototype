@@ -216,6 +216,11 @@ class AmpersandApp
 
         // Add concept plugs
         foreach ($this->model->getAllConcepts() as $cpt) {
+            // Skip concept ONE: it is the universal singleton with no SQL table (by Ampersand design).
+            // ONE has no atoms to store or retrieve; it is always implicitly present as the constant '1'.
+            if ($cpt->isONE()) {
+                continue;
+            }
             if (array_key_exists($cpt->label, $this->customConceptPlugs)) {
                 foreach ($this->customConceptPlugs[$cpt->label] as $plug) {
                     $cpt->addPlug($plug);

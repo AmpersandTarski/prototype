@@ -32,7 +32,8 @@ RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
 
 # Copy Ampersand compiler
 # NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
-COPY --from=ampersandtarski/ampersand:v5.3.2 /bin/ampersand /usr/local/bin
+# Using local build from commit db9994933fbe783f0ada93bce1169fc1ad8b4ffa (branch issue-#1417-disambiguation)
+COPY --from=ampersand-local:db9994933 /bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
 
 # Install php backend dependencies using PHP Composer package specification (composer.json)
@@ -46,9 +47,11 @@ RUN composer install --prefer-dist --no-dev --profile
 RUN mkdir /var/www/data && chown -R www-data:www-data /var/www/data
 
 # Install frontend dependencies using NPM package specification (package.json)
-COPY frontend/package.json frontend/package-lock.json /var/www/frontend/
+# NOTE: no package-lock.json copied here, so npm resolves fresh based on package.json
+# --legacy-peer-deps needed because @storybook/testing-angular has an Angular >=16 peer dep
+COPY frontend/package.json /var/www/frontend/
 WORKDIR /var/www/frontend
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy remaining parts of framework
 COPY frontend /var/www/frontend

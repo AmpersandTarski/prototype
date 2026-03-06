@@ -134,8 +134,11 @@ class Concept
 
     /**
      * Contains information about mysql table and columns in which this concept is administrated
+     *
+     * Null for concept ONE: ONE is a universal singleton with no SQL table (by Ampersand design).
+     * The Ampersand compiler always outputs "conceptTable": null for ONE in concepts.json.
      */
-    private MysqlDBTable $mysqlConceptTable;
+    private ?MysqlDBTable $mysqlConceptTable = null;
     
     /**
      * List with atom identifiers that exist in the concept
@@ -183,7 +186,9 @@ class Concept
             foreach ($conceptDef['conceptTable']['cols'] as $colName) {
                 $this->mysqlConceptTable->addCol(new MysqlDBTableCol($colName));
             }
-        } else {
+        } elseif (!$this->isONE()) {
+            // ONE is the universal singleton with no SQL table — this is expected by Ampersand design.
+            // All other concepts must have a concept table defined.
             throw new NotDefinedException("Concept table information not defined for concept {$this->label}");
         }
     }
@@ -402,9 +407,14 @@ class Concept
     
     /**
      * Returns database table info for concept
+     *
+     * @throws NotDefinedException when called for concept ONE (ONE has no SQL table by Ampersand design)
      */
     public function getConceptTableInfo(): MysqlDBTable
     {
+        if (is_null($this->mysqlConceptTable)) {
+            throw new NotDefinedException("Concept table information not defined for concept {$this->label}");
+        }
         return $this->mysqlConceptTable;
     }
 
