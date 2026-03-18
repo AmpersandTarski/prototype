@@ -27,7 +27,7 @@ The annotation `<FILTEREDDROPDOWN>` in the Ampersand script specifies the use of
 <app-atomic-object
     [resource]="resource.$name$"
     [interfaceComponent]="this"
-    [property]="resource.$name$?.setRelation"
+    [property]="resource.$name$"
     propertyName="setRelation"
     label="$label$"
     mode="box-filtereddropdown"

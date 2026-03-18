@@ -1,5 +1,5 @@
 # To run generated prototypes we require a apache webserver with php
-FROM php:8.3-apache-bookworm AS framework
+FROM --platform=linux/amd64 php:8.3-apache-bookworm AS framework
 
 RUN apt-get update \
  && apt-get install -y \

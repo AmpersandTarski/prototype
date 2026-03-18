@@ -9,6 +9,11 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.0.5 (18 mrt 2026)
+* Update Dockerfile: use dedicated `ampersandtarski/ampersand-compiler:20260317` stage instead of direct copy from `ampersandtarski/ampersand:v5.3.2`
+* Bugfix Box-FILTEREDDROPDOWN and Box-SELECT templates: correct `[property]` binding (remove erroneous `.setRelation` property access)
+* Revert ONE-concept plug skip in AmpersandApp (introduced in v2.0.4, caused regression)
+
 ## v2.0.4 (6 mrt 2026)
 * Bugfix: Handle concept ONE correctly — no SQL table, no plug, correct atom id
 

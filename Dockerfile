@@ -1,5 +1,7 @@
 # To run generated prototypes we require a apache webserver with php
-FROM php:8.3-apache-bookworm AS framework
+# NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
+FROM --platform=linux/amd64 ampersandtarski/ampersand-compiler:20260317 AS compiler
+FROM --platform=linux/amd64 php:8.3-apache-bookworm AS framework
 
 RUN apt-get update \
  && apt-get install -y \
@@ -32,7 +34,7 @@ RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
 
 # Copy Ampersand compiler
 # NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
-COPY --from=ampersandtarski/ampersand:v5.3.2 /bin/ampersand /usr/local/bin
+COPY --from=compiler /bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
 
 # Install php backend dependencies using PHP Composer package specification (composer.json)
