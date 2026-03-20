@@ -1,0 +1,47 @@
+CONTEXT PropButtonTest LABEL "PROPBUTTON Unit Test" IN ENGLISH
+
+--[ Minimal data model for PROPBUTTON testing ]--
+CONCEPT Task "A simple task for testing PROPBUTTON functionality"
+RELATION taskName[Task*TaskName] [UNI,TOT]
+RELATION isCompleted[Task] [PROP]
+RELATION isActive[Task] [PROP]
+
+REPRESENT TaskName TYPE ALPHANUMERIC
+
+--[ Test data ]--
+POPULATION taskName CONTAINS 
+  [ ("task1", "Test PROPBUTTON toggle functionality")
+  , ("task2", "Test PROPBUTTON set/clear actions")
+  ]
+
+--[ Main test interface - demonstrates all PROPBUTTON features ]--
+INTERFACE PropButtonDemo LABEL "PROPBUTTON Test Interface" : "_SESSION" ; V[SESSION*Task] cRud BOX<FORM>
+  [ "Task Name" : taskName cRud
+  , "Status Info" : I cRud BOX<FORM>
+      [ "Completed" : isCompleted cRud
+      , "Active" : isActive cRud
+      ]
+  , "PROPBUTTON Actions" : I cRud BOX<FORM>
+      [ "Toggle Complete" : I cRud BOX<PROPBUTTON>
+          [ "label" : TXT "Mark Complete"
+          , "property" : isCompleted cRUd
+          ]
+      , "Activate Task" : I cRud BOX<PROPBUTTON action="set">
+          [ "label" : TXT "Activate"  
+          , "property" : isActive cRUd
+          ]
+      , "Deactivate Task" : I cRud BOX<PROPBUTTON action="clear">
+          [ "label" : TXT "Deactivate"
+          , "property" : isActive cRUd
+          ]
+      ]
+  ]
+
+--[ Simple task overview for visual verification ]--
+INTERFACE TaskOverview LABEL "Task Status Overview" : V[SESSION*Task] BOX<TABLE>
+  [ "Task" : taskName
+  , "Completed" : isCompleted
+  , "Active" : isActive
+  ]
+
+ENDCONTEXT
