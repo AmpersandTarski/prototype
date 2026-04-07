@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, Input, OnInit, booleanAttribute } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { map, Observable, of, tap } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AmpersandInterfaceComponent } from '../interfacing/ampersand-interface.class';
 import { ObjectBase } from '../objectBase.interface';
@@ -97,16 +97,10 @@ export abstract class BaseBoxComponent<
       .pipe(takeUntil(this.destroy$))
       .subscribe((x) => {
         if (x.isCommitted && x.invariantRulesHold) {
-          // remove the recently added item from the dropdown menu
-          this.dropdownMenuObjects$ = this.dropdownMenuObjects$.pipe(
-            tap((objects) =>
-              objects.forEach((item, index) => {
-                if (item._id_ === val._id_) {
-                  objects.splice(index, 1);
-                }
-              }),
-            ),
-          );
+          // Refresh the dropdown from scratch (like removeItem does) so that
+          // stale tap-operators don't accumulate and previously-selected items
+          // are correctly restored to the list.
+          this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
           this.newItemControl.setValue({} as ObjectBase);
         }
       });
@@ -151,7 +145,7 @@ export abstract class BaseBoxComponent<
     objects = objects.pipe(
       map((dropdownobjects) =>
         dropdownobjects.filter(
-          (object) => !this.data.map((y) => y._id_).includes(object._id_),
+          (object) => !this.filterNullish(this.data).map((y) => y._id_).includes(object._id_),
         ),
       ),
     );

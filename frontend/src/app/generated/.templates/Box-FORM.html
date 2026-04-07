@@ -8,7 +8,7 @@
         propertyName="$name$"
         [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
         tgtResourceType="$target$"
-        placeholder="Add existing $target$"
+        placeholder="Add existing $targetLabel$"
         $if(exprIsUni)$isUni$endif$
         $if(exprIsTot)$isTot$endif$
     >

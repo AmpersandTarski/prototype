@@ -26,21 +26,22 @@ Let us define your template behavior first. Specify what data your template rece
 
 ### FILTEREDDROPDOWN Example Design
 
-```
-Input: 
+Input:
+
 - Resource object with property data
 - Select options (filtered list)
 - Standard BOX properties (name, label, CRUD, etc.)
 
 Output:
+
 - Dropdown showing only filtered options
 - Search capability within filtered options
 - Standard CRUD operations on selections
 
 Constraints:
+
 - Respects UNI/TOT multiplicity constraints
 - Maintains type safety with existing atomic components
-```
 
 ## Step 3: Create the Template File
 
@@ -98,7 +99,9 @@ If your new template is meant for all Ampersand projects, place it in: `frontend
 2. The `[selectOptions]` property provides the filtered data.
 
 ## Step 5: Handle Template Variables
+
 The front-end takes information the Ampersand compiler has provided and stores it in variables to work with.
+
 ```html
 <!-- Required for all BOX templates -->
 propertyName="$name$"          <!-- Property identifier -->
@@ -111,7 +114,9 @@ tgtResourceType="$target$"     <!-- Target concept type -->
 $if(exprIsUni)$isUni$endif$   <!-- Univalent (max 1 target per source) -->
 $if(exprIsTot)$isTot$endif$   <!-- Total (min 1 target per source) -->
 ```
+
 For specialized templates, you may need custom variables:
+
 ```html
 <!-- Example: Custom filtering property -->
 [selectOptions]="resource.$name$"  <!-- Uses the same property name for filtering -->
@@ -146,7 +151,7 @@ You must create test cases for different scenarios. Test default behavior withou
 
 ### Example Test Files
 
-```
+```txt
 test/projects/custom-template-test/model/
 ├── main.adl
 ├── basic-test.adl
@@ -184,6 +189,7 @@ ampersand proto /usr/local/project/script.adl \
 ```
 
 **What happens during Ampersand compilation:**
+
 - Processes your `.adl` script files
 - Generates `project.module.ts` with all interface components
 - Populates the `.templates/` folder with processed HTML templates
@@ -208,6 +214,7 @@ The `frontend/src/app/generated/project.module.ts` file is completely generated 
 ### The Angular Compilation Stage
 
 After Ampersand generates the TypeScript code, Angular's own compiler:
+
 - Compiles TypeScript to JavaScript
 - Bundles all components and modules
 - Creates the final application that runs in the browser
@@ -222,7 +229,7 @@ You must verify that your template processed correctly after compilation. Look f
 ### Common Issues and Solutions
 
 | Problem | Symptom | Solution |
-|---------|---------|----------|
+| --------- | --------- | ---------- |
 | Template not found | Compilation error | Check file naming and location |
 | Variables not substituted | Literal `$name$` in output | Verify template variable syntax |
 | Component errors | Angular compilation failure | Check component property bindings |
@@ -302,6 +309,7 @@ if (this.selectOptions) {
 ```
 
 Common issues:
+
 - `selectOptions` input not declared with `@Input()`
 - Filtering logic not implemented in component
 - Template not passing `[selectOptions]` property
@@ -333,14 +341,13 @@ INTERFACE ProjectForm : "_SESSION"[SESSION]; V[SESSION*Project] cRud BOX<FORM>
   ]
 ```
 
-### How does it work in the front-end:
+### How does it work in the front-end
 
 ```html
 <app-atomic-object
     [selectOptions]="resource.eligibleEmployees"
     isUni
 ></app-atomic-object>
-```
 ```
 
 ## Step 10: Share and Maintain
@@ -357,6 +364,7 @@ If contributing back to the framework:
 ### Version Compatibility
 
 Ensure your template works with:
+
 - **Current Ampersand compiler version**
 - **Target Angular version** of the framework
 - **Required PrimeNG components**
@@ -364,6 +372,7 @@ Ensure your template works with:
 ## Best Practices Summary
 
 ### Do's ✅
+
 - Reuse existing Angular components when possible
 - Follow established naming conventions
 - Support all standard template variables
@@ -371,6 +380,7 @@ Ensure your template works with:
 - Document your template thoroughly
 
 ### Don'ts ❌
+
 - Don't break existing template variable patterns
 - Don't create unnecessary new Angular components
 - Don't ignore multiplicity constraints (UNI/TOT)
