@@ -10,6 +10,14 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.0.6 (7 apr 2026)
+
+* Dockerfile: make compiler image configurable via `ARG COMPILER_IMAGE` (default: `ampersandtarski/ampersand-compiler:20260322`)
+* Bugfix execEngineWarshall: fix PHP 8 "Undefined array key" warnings in Warshall algorithm using null-coalescing operator (`?? false`)
+* Bugfix logging: cap `FingersCrossedHandler` buffer at 500 entries to prevent memory exhaustion on large Excel imports
+* Bugfix Box-FORM/TABLE templates: use `$targetLabel$` instead of `$target$` for "Add existing …" placeholder
+* Bugfix BaseBoxComponent: fix stale tap-operators accumulating in dropdown after adding an item; refresh dropdown from scratch; fix filter on nullish data
+
 ## v2.0.5 (22 mrt 2026)
 
 * Update Dockerfile: use dedicated `ampersandtarski/ampersand-compiler:20260322` stage instead of direct copy from `ampersandtarski/ampersand:v5.3.2`
