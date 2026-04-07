@@ -1,9 +1,24 @@
 module.exports = {
   prototypeGuideSidebar: [
     {
+      label: "README",
+      type: "doc",
+      id: "prototype/README",
+    },
+    {
+      label: "Frontender Quick Start",
+      type: "doc",
+      id: "prototype/guides/frontender-quick-start",
+    },
+    {
       label: "Configuring Development and Production Environments",
       type: "doc",
       id: "prototype/guides/configuring-environments",
+    },
+    {
+      label: "BOX Template Development Guide",
+      type: "doc",
+      id: "prototype/guides/box-template-development-guide",
     },
     {
       label: "Creating Custom BOX Templates",
@@ -14,6 +29,16 @@ module.exports = {
       label: "Creating Custom VIEW Templates",
       type: "doc",
       id: "prototype/guides/creating-custom-view-templates",
+    },
+    {
+      label: "Documenting Prototype Changes",
+      type: "doc",
+      id: "prototype/guides/documenting-prototype-changes",
+    },
+    {
+      label: "Back End Services",
+      type: "doc",
+      id: "prototype/guides/back-end-services",
     },
     {
       label: "Updating and Releasing the Prototype Framework",
@@ -41,6 +66,11 @@ module.exports = {
       label: "Frontend components",
       type: "doc",
       id: "prototype/reference-material/frontend-components",
+    },
+    {
+      label: "PROPBUTTON Template",
+      type: "doc",
+      id: "prototype/reference-material/propbutton-template",
     },
   ],
 };
