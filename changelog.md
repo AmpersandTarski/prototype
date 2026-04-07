@@ -10,6 +10,18 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.0.7 (7 apr 2026)
+
+* Documentation: add guide "Configuring Development and Production Environments" explaining `global.debugMode`, `global.productionEnv`, the configuration loading order, all environment variables, and a Docker Compose example for switching between environments
+* Documentation: add BOX Template Development Guide for contributors — a comprehensive guide on creating and documenting new BOX templates
+* Documentation: add PROPBUTTON Template reference page and expand the Frontend Components reference
+* Documentation: extend sidebar navigation with all newly added guides and reference pages
+* Add Box-PROPBUTTON template to generated templates
+* Add `propbutton-unit-test` test project for testing PROPBUTTON behaviour
+* Update `box-filtered-dropdown` test model
+* Remove obsolete generated `project.module.ts`
+* Dependency: bump phpoffice/phpspreadsheet from 1.29.10 to 1.30.0
+
 ## v2.0.6 (7 apr 2026)
 
 * Dockerfile: make compiler image configurable via `ARG COMPILER_IMAGE` (default: `ampersandtarski/ampersand-compiler:20260322`)
