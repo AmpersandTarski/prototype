@@ -1,6 +1,11 @@
 module.exports = {
   prototypeGuideSidebar: [
     {
+      label: "Configuring Development and Production Environments",
+      type: "doc",
+      id: "prototype/guides/configuring-environments",
+    },
+    {
       label: "Creating Custom BOX Templates",
       type: "doc",
       id: "prototype/guides/creating-custom-box-templates",
