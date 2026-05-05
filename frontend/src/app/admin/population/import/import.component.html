@@ -77,7 +77,7 @@
         <div class="error-row" *ngIf="item.status === 'error' && item.errorMessage">
             <div class="error-message">
                 <i class="pi pi-exclamation-triangle"></i>
-                <span>{{ item.errorMessage }}</span>
+                <span style="white-space: pre-wrap;">{{ item.errorMessage }}</span>
             </div>
         </div>
     </div>

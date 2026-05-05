@@ -363,20 +363,41 @@ export class ImportComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Extract meaningful error message from HTTP error response
+   * Extract meaningful error message from HTTP error response.
+   *
+   * The Ampersand backend returns invariant violations in the response body
+   * under `notifications.invariants`. Each entry has a `ruleMessage` and
+   * an array of `tuples` with `violationMessage` strings.
    */
   private extractErrorMessage(error: any, fileName: string): string {
     try {
+      const body = error?.error;
+
+      // Priority 0: Invariant violations from the Ampersand backend
+      const invariants = body?.notifications?.invariants;
+      if (Array.isArray(invariants) && invariants.length > 0) {
+        const lines: string[] = [];
+        for (const inv of invariants) {
+          lines.push(inv.ruleMessage ?? 'Unknown rule violation');
+          if (Array.isArray(inv.tuples)) {
+            for (const t of inv.tuples) {
+              lines.push(`   ${t.violationMessage ?? ''}`);
+            }
+          }
+          lines.push(''); // blank line between rules
+        }
+        return lines.join('\n').trim();
+      }
+
       // Priority 1: Check for structured error response with msg
-      if (error?.error?.msg) {
-        const msg = error.error.msg;
+      if (body?.msg) {
         // The backend message already contains cell references, so use it directly
-        return msg;
+        return body.msg;
       }
 
       // Priority 2: Check for generic error.error field
-      if (error?.error?.error) {
-        return `Error in file "${fileName}": ${error.error.error}`;
+      if (body?.error) {
+        return `Error in file "${fileName}": ${body.error}`;
       }
 
       // Priority 3: Check for standard HTTP error message
