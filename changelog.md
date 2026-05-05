@@ -10,6 +10,10 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.0.8 (5 mei 2026)
+
+* Bugfix import: show invariant violation details instead of generic "400 Bad Request" error when population import (in the excel importer) fails due to rule violations
+
 ## v2.0.7 (7 apr 2026)
 
 * Documentation: add guide "Configuring Development and Production Environments" explaining `global.debugMode`, `global.productionEnv`, the configuration loading order, all environment variables, and a Docker Compose example for switching between environments
