@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## v2.1.1 (13 May 2026)
+## v2.1.0 (13 May 2026)
 
 * Bugfix `atomic-object`: in `cRud` mode with a non-UNI relation, existing atoms were never displayed — the column appeared empty even when backend data was present.
   - Root cause: the `#nonUni` template renders via `*ngFor="let object of selection()"`, but the `selection` signal was only initialised inside the reactive chain that is skipped for read-only mode (`canUpdate() = false`). So `selection` always stayed `[]`.
@@ -25,9 +25,7 @@ Additional labels for pre-release and build metadata are available as extensions
   - Fix: after the HTTP DELETE, `AmpersandInterfaceComponent.delete()` now does a GET to the root interface path and applies `mergeDeep` with the fresh backend data — identical to how `patch()` handles response content. This means: commit + invariants hold → atom disappears immediately; rollback due to invariant violation → atom stays visible (invariant checking remains fully intact).
   - `BaseAtomicComponent.delete()` simplified to a bare `.subscribe()` since the data refresh and `patched.emit()` are now handled upstream in `AmpersandInterfaceComponent.delete()`.
 
-## v2.1.0 (13 May 2026)
-
-* BOX\<FILTEREDDROPDOWN\> did not work for scalar concept types (ALPHANUMERIC, Integer, Date): the backend returns a plain string instead of a `{_id_, _label_}` object, so the dropdown could neither display nor submit values.
+* Bugfix `BOX<FILTEREDDROPDOWN>`: did not work for scalar concept types (ALPHANUMERIC, Integer, Date) — the backend returns a plain string instead of a `{_id_, _label_}` object, so the dropdown could neither display nor submit values.
   - `atomic-object`: `normalizeAtom()` converts scalar values to ObjectBase shape; `handleUniDropdownChange()` + `onUniFilteredDropdownBlur()` handle blur correctly (exact match → patch, canCreate → create, else → reset); `selection` changed from private to public; `override delete()` for signal-aware UI updates
   - `Box-FILTEREDDROPDOWN.html` template: pass `$crud$`, `$if(exprIsUni)$isUni$endif$`, `$if(exprIsTot)$isTot$endif$` so template-level CRUD takes precedence over the interfaces.json lookup
   - `InterfacesJsonService.findSubObject()`: replaced SESSION-specific path parser with a lenient path-segment walker that supports both direct-resource paths and SESSION-based paths
