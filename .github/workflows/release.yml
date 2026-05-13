@@ -129,11 +129,12 @@ jobs:
           # Create tar.gz archive
           tar --exclude='.git*' --exclude='test' --exclude='docs' --exclude='.devcontainer' \
               --exclude='.vscode' --exclude='dev.Dockerfile' --exclude='dev-container-test.sh' \
+              --exclude='release' \
               -czf release/prototype-framework-${{ steps.get-version.outputs.version }}.tar.gz .
-          
+
           # Create zip archive
           zip -r release/prototype-framework-${{ steps.get-version.outputs.version }}.zip . \
-              -x '.git*' 'test/*' 'docs/*' '.devcontainer/*' '.vscode/*' 'dev.Dockerfile' 'dev-container-test.sh'
+              -x '.git*' 'test/*' 'docs/*' '.devcontainer/*' '.vscode/*' 'dev.Dockerfile' 'dev-container-test.sh' 'release/*'
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
