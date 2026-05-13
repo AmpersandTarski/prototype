@@ -148,7 +148,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
    * re-render with the old uniValue label, creating a visible reversion on blur.
    */
   public finishTextEdit(): void {
-    const newText = (this.editTextValue() ?? '').trim();
+    let newText = (this.editTextValue() ?? '').trim();
 
     if (!newText) {
       this.editTextValue.set(null);
@@ -166,6 +166,22 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     if (newText === currentLabel) {
       this.editTextValue.set(null); // no change
       return;
+    }
+
+    // Als C (Create) niet is toegestaan: het getypte label moet exact overeenkomen
+    // met een bestaand atoom in de optielijst. Zo niet → invoer afwijzen.
+    if (!this.canCreate()) {
+      const match = this.allOptions().find(
+        (o) => o._label_.toLowerCase() === newText.toLowerCase(),
+      );
+      if (!match) {
+        // Afwijzen: reset naar de waarde die de back-end kent
+        this.editTextValue.set(null);
+        this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
+        return;
+      }
+      // Gebruik de bestaande _id_ van het gevonden atoom (niet de vrij getypte tekst)
+      newText = match._id_;
     }
 
     // Optimistic update: immediately reflect the new text in uniValue so that

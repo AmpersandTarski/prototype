@@ -72,7 +72,7 @@
         />
         <!-- Datalist levert browser-native autocomplete dropdown met bekende atomen -->
         <datalist [id]="'opts-uni-' + propertyName">
-            <option *ngFor="let opt of options" [value]="opt"></option>
+            <option *ngFor="let opt of (options ?? [])" [value]="opt"></option>
         </datalist>
     </div>
 </ng-template>
@@ -99,7 +99,7 @@
         />
         <!-- Datalist levert browser-native autocomplete dropdown met bekende atomen -->
         <datalist *ngIf="canUpdate()" [id]="'opts-' + propertyName + '-' + i">
-            <option *ngFor="let opt of options" [value]="opt"></option>
+            <option *ngFor="let opt of (options ?? [])" [value]="opt"></option>
         </datalist>
         <span *ngIf="!canUpdate()" style="padding-left: 9px">{{ row }}</span>
     </div>

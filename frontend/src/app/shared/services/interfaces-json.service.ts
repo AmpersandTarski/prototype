@@ -123,9 +123,14 @@ export class InterfacesJsonService {
       // If not found: skip — the segment is a runtime data atom ID, not an interface name
     }
 
-    // currentNode is now the FILTEREDDROPDOWN box; find selectFrom or setRelation
+    // currentNode is now the FILTEREDDROPDOWN box; find selectFrom or setRelation.
+    // Match by label (human-readable, used by BOX<FILTEREDDROPDOWN>: 'setRelation', 'selectFrom')
+    // OR by name (encoded JS identifier, used by standalone atomic components whose
+    // propertyName comes from the $name$ template variable, e.g. '_50__46__32_setRelation').
     const ifcObjects = currentNode.subinterfaces?.ifcObjects || [];
-    const subObject = ifcObjects.find((obj: any) => obj.label === objectName);
+    const subObject = ifcObjects.find(
+      (obj: any) => obj.label === objectName || obj.name === objectName,
+    );
 
     if (!subObject) {
       console.error(`❌ Could not find '${objectName}' in`, ifcObjects.map((o: any) => o.label));

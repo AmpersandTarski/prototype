@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { catchError, Observable, share, Subject, takeUntil, tap, throwError } from 'rxjs';
+import { catchError, map, Observable, share, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
 import { ObjectBase } from '../objectBase.interface';
 import { Patch, PatchValue } from './patch.interface';
 import { PatchResponse } from './patch-response.interface';
@@ -168,8 +168,47 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> im
   }
 
   public delete(resourcePath: string): Observable<DeleteResponse> {
+    // Bepaal het pad voor de herlaad-GET; dit is hetzelfde pad dat de BackendService
+    // gebruikt om de interface-data op te halen (bijv. resource/SESSION/1/BoxFilteredDropdownTests).
+    // Voor een list-interface: verwijder het specifieke atom-id (laatste deel) van het eerste item.
+    // Voor een niet-list-interface: gebruik het _path_ van het data-object direct.
+    const refreshPath: string = Array.isArray(this.resource.data)
+      ? new ResourcePath((this.resource.data as ObjectBase[])[0]!._path_).init().toString()
+      : (this.resource.data as ObjectBase)._path_;
+
     return this.http.delete<DeleteResponse>(resourcePath).pipe(
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$),
+      switchMap((deleteResp) =>
+        // Herlaad altijd de interface-data na DELETE, zodat de UI de werkelijke backend-state
+        // spiegelt: commit + invarianten houden → atom verdwenen;
+        // rollback door invariantschending → atom blijft zichtbaar.
+        this.http.get<ObjectBase>(refreshPath).pipe(
+          tap((freshData) => {
+            if (Array.isArray(this.resource.data)) {
+              for (const fresh of freshData as unknown as ObjectBase[]) {
+                const existing = (this.resource.data as ObjectBase[]).find(
+                  (obj) => obj._path_ === fresh._path_,
+                );
+                if (existing) mergeDeep(existing, fresh);
+              }
+            } else {
+              mergeDeep(this.resource.data, freshData);
+            }
+          }),
+          map(() => deleteResp),
+        ),
+      ),
+      tap(() => this.patched.emit()),
+      catchError((error) => {
+        this.messageService.clear();
+        this.messageService.add({
+          severity: 'error',
+          summary: `HTTP error ${error.status}`,
+          detail: error.msg,
+          sticky: true,
+        });
+        return throwError(() => error);
+      }),
     );
   }
 }

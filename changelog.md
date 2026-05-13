@@ -10,6 +10,17 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.1.1 (13 May 2026)
+
+* Bugfix `atomic-alphanumeric`: typing a new value in a standalone `setRelation` field (e.g. `projectMaster cRUd`) was immediately reverted after pressing Enter.
+  - Root cause: when the autocomplete options endpoint (e.g. `resource/Employee`) returns HTTP 403, `options` was set to `[]` and the client-side validation guard `!options.includes(val)` rejected every typed value.
+  - Fix: `options` is now typed `string[] | null`; `null` means "fetch failed / not loaded". Client-side validation is only applied when `options !== null` (i.e. a successful fetch returned a non-empty list). If `null`, the backend validates.
+  - `*ngFor` in the datalist templates updated to `(options ?? [])` to avoid errors when `options` is `null`.
+
+* Bugfix `AmpersandInterfaceComponent.delete()` / `BaseAtomicComponent.delete()`: clicking the trash icon deleted the atom in the backend but the UI kept showing the old value until a manual page refresh.
+  - Fix: after the HTTP DELETE, `AmpersandInterfaceComponent.delete()` now does a GET to the root interface path and applies `mergeDeep` with the fresh backend data — identical to how `patch()` handles response content. This means: commit + invariants hold → atom disappears immediately; rollback due to invariant violation → atom stays visible (invariant checking remains fully intact).
+  - `BaseAtomicComponent.delete()` simplified to a bare `.subscribe()` since the data refresh and `patched.emit()` are now handled upstream in `AmpersandInterfaceComponent.delete()`.
+
 ## v2.1.0 (13 May 2026)
 
 * BOX\<FILTEREDDROPDOWN\> did not work for scalar concept types (ALPHANUMERIC, Integer, Date): the backend returns a plain string instead of a `{_id_, _label_}` object, so the dropdown could neither display nor submit values.

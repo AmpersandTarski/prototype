@@ -132,20 +132,13 @@ export abstract class BaseAtomicComponent<
     const val = this.data[index] as any;
     const id = val?._id_ ? val._id_ : String(val);
 
+    // interfaceComponent.delete() herlaadt de interface-data via GET na de DELETE,
+    // en voert mergeDeep + patched.emit() uit — de UI wordt dus altijd gesynchroniseerd
+    // met de werkelijke backend-state (ook bij invariantschending + rollback).
     this.interfaceComponent
       .delete(`${this.resource._path_}/${this.propertyName}/${id}`)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((response) => {
-        if (response.isCommitted && response.invariantRulesHold) {
-          // Remove the deleted item from the local resource data
-          const current = this.data;
-          this.resource[this.propertyName] = Array.isArray(this.resource[this.propertyName])
-            ? current.filter((_, i) => i !== index)
-            : null;
-          // Signaleer de parent interface dat data is gewijzigd, zodat hij herrendert
-          this.interfaceComponent.patched.emit();
-        }
-      });
+      .subscribe();
   }
 
   public isNewItemInputRequired() {
