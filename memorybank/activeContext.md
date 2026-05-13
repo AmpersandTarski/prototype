@@ -1,20 +1,22 @@
 ## Current work focus
-- **AmpersandTarski GitHub organisatie research** - Volledige analyse van alle repositories en ecosysteem
-- **Documentation enhancement** - Uitbreiding projectbrief.md en productcontext.md met actuele informatie
-- **Bedrijfsnaam updates** - Systematische vervanging "Ordina" → "Sopra Steria" in hele codebase
-- **Memorybank consolidatie** - Verzamelen en structureren van alle projectgerelateerde informatie
+- **BOX\<FILTEREDDROPDOWN\> ALPHANUMERIC-support** — FDD werkt nu ook voor ALPHANUMERIC (scalaire) concepten naast object-concepten
+- **atomic-alphanumeric component uitbreiding** — volledige CRUD-ondersteuning: U (edit in-place), D (delete), autocomplete via datalist, validatie tegen bekende atomen
 
-## Recent changes
-- **projectbrief.md** volledig uitgebreid met AmpersandTarski organisatie overview, technische architectuur, gebruik cases
-- **productcontext.md** uitgebreid met waardepropostitie, ecosysteem positie, technische workflow details  
-- **Bedrijfsnaam correctie** "Ordina" → "Sopra Steria" in 2 bestanden (projectbrief.md, productcontext.md)
-- **GitHub organisatie mapping** compleet - alle 10+ repositories geïnventariseerd met status, licenties, issues
-- Memorybank .clinerules structuur volledig geïmplementeerd
+## Recent changes (commit in voorbereiding)
+- **`BaseAtomicComponent`**: `updateItem()` en `delete()` methoden toegevoegd; CRu+UNI compiler-bug workaround
+- **`atomic-alphanumeric.component.ts`**: `InterfacesJsonService` DI, autocomplete opties laden, `validateAndUpdate()`, `captureUniOriginalValue()`
+- **`atomic-alphanumeric.component.html`**: volledig herschreven – UNI-edit template + generieke lijsttemplate met onafhankelijke C/U/D knoppen en browser-native `<datalist>` autocomplete
+- **`atomic-object.component.ts`**: `normalizeAtom()` + `normalizedData()` voor FDD-modus waarbij backend scalaire strings retourneert i.p.v. ObjectBase; `handleUniDropdownChange()` en `onUniFilteredDropdownBlur()` voor blur-afhandeling; `selection` van private → public; `override delete()`
+- **`atomic-object.component.html`**: `selection()` in `*ngFor`, `_label_ ?? resource[propertyName]` fallback, `onUniFilteredDropdownBlur` event
+- **`Box-FILTEREDDROPDOWN.html` template**: `$crud$`, `$if(exprIsUni)$isUni$endif$`, `$if(exprIsTot)$isTot$endif$` toegevoegd
+- **`InterfacesJsonService.findSubObject()`**: herschreven als lenient path-walker; werkt voor zowel directe resource-paden als SESSION-gebaseerde paden
+- **`test/projects/box-filtered-dropdown/Dockerfile`**: nieuw — bouwt testproject met `--crud-defaults cRud`
+- **`test/projects/box-filtered-dropdown/model/main.adl`**: uitgebreid met CRUD-varianten voor alle testscenario's
 
 ## Next steps
-- **Technische documentatie review** - Controleren of techContext.md actuele framework informatie bevat
-- **Development workflow documentatie** - Eventueel uitbreiden van deployment procedures
-- **Issue tracking setup** - GitHub issue guidelines zijn gereed voor toekomstige bug reports/feature requests
+- **Commit** de 10 staged bestanden na cleanup (FDD-DIAG logs verwijderd, docker-compose.yml terug naar project-administration, .proto/ in .gitignore)
+- **Puppeteer test-suite** voor FDD afzonderlijk committen (inspect-dom.mjs + package.json)
+- **Changelog** bijwerken na commit
 
 ## Active decisions and considerations
 

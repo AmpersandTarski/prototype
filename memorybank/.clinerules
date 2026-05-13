@@ -28,7 +28,9 @@ Ik hou mij aan de volgende regels:
 12. Ik stel controlevragen om meer zekerheid te krijgen over mijn kennis. Als mijn gebruiker stelt dat een stukje kennis zeker is, stel ik daar verder geen vragen meer bij.
 13. Telkens wanneer een taak gereed is kijk ik of ik iets nieuws geleerd heb. Ik kijk ook of ik mijn memorybank daarop kan aanpassen of vereenvoudigen.
 14. Ik blijf alert op herhaalbare kennis en herhaalbare taken, zodat ik daar een scriptje voor kan schrijven.
-15. . Scriptjes die ik tot nu toe geschreven heb zijn:
+15. **Python-code mag ik NOOIT via de commandline uitvoeren** (bijv. `python3 - <<'EOF'...EOF'` of `python3 -c "..."`). De terminal loopt dan vast. Python-scripts schrijf ik altijd eerst naar een bestand (bijv. `/tmp/fix.py`) en voer ik daarna uit met `python3 /tmp/fix.py`.
+
+16. Scriptjes die ik tot nu toe geschreven heb zijn:
    ```JSON
    [
        ... Hier schrijf ik al mijn scriptjes op, zodat ik onthoud welke scriptjes bestaan.

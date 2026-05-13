@@ -51,6 +51,13 @@ export abstract class BaseAtomicComponent<
         `Property '${this.propertyName}' not defined for object in '${this.resource._path_}'. It is likely that the backend data model is not in sync with the generated frontend.`,
       );
     }
+
+    // CRu + UNI is een semantisch ongeldige combinatie (compiler-bug):
+    // C zonder U bij een univalente relatie kan nooit een tweede waarde toevoegen.
+    // Behandel als cRu: negeer de C-vlag totdat de Ampersand-compiler dit afvangt.
+    if (this.isUni && this.canCreate() && !this.canUpdate()) {
+      this.crud = 'c' + this.crud.slice(1);
+    }
   }
 
   public canCreate(): boolean {
@@ -84,7 +91,21 @@ export abstract class BaseAtomicComponent<
     }
   }
 
-  // Remove for not isUni atomic-components
+  // Update a single item in a non-UNI relation:
+  // semantisch: verwijder de link naar het oude atom, voeg link naar het nieuwe atom toe.
+  public updateItem(oldValue: string, newValue: string) {
+    if (oldValue === newValue) return; // no change
+
+    this.interfaceComponent
+      .patch(this.resource._path_, [
+        { op: 'remove', path: `${this.propertyName}/${oldValue}` },
+        { op: 'add',    path: this.propertyName, value: newValue },
+      ])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe();
+  }
+
+  // Remove for not isUni atomic-components (removes the link, atom stays)
   public removeItem(index: number) {
     const val = this.data[index] as any;
 
@@ -98,6 +119,33 @@ export abstract class BaseAtomicComponent<
       ])
       .pipe(takeUntil(this.destroy$))
       .subscribe();
+  }
+
+  // Delete atom at index (deletes the atom itself + all its relations)
+  // Named 'delete' to match the existing atomic-object.delete() convention.
+  // AtomicObjectComponent overrides this with signal-aware updates.
+  public delete(index = 0) {
+    if (!confirm('Delete?')) {
+      return;
+    }
+
+    const val = this.data[index] as any;
+    const id = val?._id_ ? val._id_ : String(val);
+
+    this.interfaceComponent
+      .delete(`${this.resource._path_}/${this.propertyName}/${id}`)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((response) => {
+        if (response.isCommitted && response.invariantRulesHold) {
+          // Remove the deleted item from the local resource data
+          const current = this.data;
+          this.resource[this.propertyName] = Array.isArray(this.resource[this.propertyName])
+            ? current.filter((_, i) => i !== index)
+            : null;
+          // Signaleer de parent interface dat data is gewijzigd, zodat hij herrendert
+          this.interfaceComponent.patched.emit();
+        }
+      });
   }
 
   public isNewItemInputRequired() {

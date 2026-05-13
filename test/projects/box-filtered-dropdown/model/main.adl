@@ -104,10 +104,10 @@ POPULATION projectLocation[Project*Location] CONTAINS
 
 -- Dedicated page to preview data
 INTERFACE DropdownDataInForm LABEL "Dropdown data in Form" : "_SESSION"[SESSION] cRud BOX<TABS>
-  [ "Table Preview" : V[SESSION*Project] cRud BOX<Table>
+  [ "Table Preview" : V[SESSION*Project] cRud BOX<TABLE>
       [ "Project ID" : I cRud
       , selectFromPreview : eligible cRud   
-      , projectMember : projectMember cRud  
+      , "setRelation"  : projectMember cRud  
       , "projectMaster(UNI)" : projectMaster cRud
       , "projectFounder(TOT)" : projectFounder cRud
       , "projectResponsible(UNI,TOT)" : projectResponsible cRud
@@ -126,6 +126,7 @@ INTERFACE BoxFilteredDropdownTests LABEL "Box-Filtered-Dropdown tests" : "_SESSI
              [ "selectFrom"   : eligible
              , "setRelation"  : projectMember cRud
              ]
+          , "setRelation"  : projectMember cRud
           , Instroom : I[Project] cRud BOX<FILTEREDDROPDOWN>
              [ "selectFrom"   : instroomOpties
              , "setRelation"  : instroomVanaf cRud
@@ -140,6 +141,7 @@ INTERFACE BoxFilteredDropdownTests LABEL "Box-Filtered-Dropdown tests" : "_SESSI
              [ "selectFrom"   : eligible
              , "setRelation"  : projectMember cRUd
              ]
+          , "setRelation"  : projectMember cRUd
           , Instroom : I[Project] cRud BOX<FILTEREDDROPDOWN>
              [ "selectFrom"   : instroomOpties
              , "setRelation"  : instroomVanaf cRUd
@@ -154,6 +156,7 @@ INTERFACE BoxFilteredDropdownTests LABEL "Box-Filtered-Dropdown tests" : "_SESSI
              [ "selectFrom"   : eligible
              , "setRelation"  : projectMember cRuD
              ]
+          , "setRelation"  : projectMember cRuD
           , Instroom : I[Project] cRud BOX<FILTEREDDROPDOWN>
              [ "selectFrom"   : instroomOpties
              , "setRelation"  : instroomVanaf cRuD
@@ -168,6 +171,7 @@ INTERFACE BoxFilteredDropdownTests LABEL "Box-Filtered-Dropdown tests" : "_SESSI
              [ "selectFrom"   : eligible
              , "setRelation"  : projectMember cRUD
              ]
+          , "setRelation"  : projectMember cRUD
           , Instroom : I[Project] cRud BOX<FILTEREDDROPDOWN>
              [ "selectFrom"   : instroomOpties
              , "setRelation"  : instroomVanaf cRUD
@@ -182,6 +186,7 @@ INTERFACE BoxFilteredDropdownTests LABEL "Box-Filtered-Dropdown tests" : "_SESSI
              [ "selectFrom"   : eligible
              , "setRelation"  : projectMember CRud
              ]
+          , "setRelation"  : projectMember CRud
           , Instroom : I[Project] cRud BOX<FILTEREDDROPDOWN>
              [ "selectFrom"   : instroomOpties
              , "setRelation"  : instroomVanaf CRud
@@ -196,6 +201,7 @@ INTERFACE BoxFilteredDropdownTests LABEL "Box-Filtered-Dropdown tests" : "_SESSI
              [ "selectFrom"   : eligible
              , "setRelation"  : projectMember CRUd
              ]
+          , "setRelation"  : projectMember CRUd
           , Instroom : I[Project] cRud BOX<FILTEREDDROPDOWN>
              [ "selectFrom"   : instroomOpties
              , "setRelation"  : instroomVanaf CRUd
@@ -210,6 +216,7 @@ INTERFACE BoxFilteredDropdownTests LABEL "Box-Filtered-Dropdown tests" : "_SESSI
              [ "selectFrom"   : eligible
              , "setRelation"  : projectMember CRuD
              ]
+          , "setRelation"  : projectMember CRuD
           , Instroom : I[Project] cRud BOX<FILTEREDDROPDOWN>
              [ "selectFrom"   : instroomOpties
              , "setRelation"  : instroomVanaf CRuD
@@ -224,6 +231,7 @@ INTERFACE BoxFilteredDropdownTests LABEL "Box-Filtered-Dropdown tests" : "_SESSI
              [ "selectFrom"   : eligible
              , "setRelation"  : projectMember CRUD
              ]
+          , "setRelation"  : projectMember CRUD
           , Instroom : I[Project] cRud BOX<FILTEREDDROPDOWN>
              [ "selectFrom"   : instroomOpties
              , "setRelation"  : instroomVanaf CRUD
@@ -244,34 +252,42 @@ INTERFACE BoxFilteredDropdownTests LABEL "Box-Filtered-Dropdown tests" : "_SESSI
           [ setRelation : projectMaster cRud
           , selectFrom : eligible
           ]
-      , "2. Project Master (cRud)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
+      , "1. setRelation"  : projectMaster cRud 
+      , "2. Project Master (cRUd)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectMaster cRUd
           , selectFrom : eligible
           ]
-      , "3. Project Master (cRuD)" : I[Project] cRuD BOX<FILTEREDDROPDOWN>
+      , "2. setRelation" : projectMaster cRUd
+      , "3. Project Master (cRuD)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectMaster cRuD
           , selectFrom : eligible
           ]
-      , "4. Project Master (cRuD)" : I[Project] cRuD BOX<FILTEREDDROPDOWN>
+      , "3. setRelation" : projectMaster cRuD
+      , "4. Project Master (cRUD)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectMaster cRUD
           , selectFrom : eligible
           ]
-      , "5. Project Master (CRud)" : I[Project] CRud BOX<FILTEREDDROPDOWN>
+      , "4. setRelation" : projectMaster cRUD
+      , "5. Project Master (CRud)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectMaster CRud
           , selectFrom : eligible
           ]
-      , "6. Project Master (CRud)" : I[Project] CRud BOX<FILTEREDDROPDOWN>
+      , "5. setRelation" : projectMaster CRud
+      , "6. Project Master (CRUd)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectMaster CRUd
           , selectFrom : eligible
           ]
-      , "7. Project Master (CRuD)" : I[Project] CRuD BOX<FILTEREDDROPDOWN>
+      , "6. setRelation" : projectMaster CRUd
+      , "7. Project Master (CRuD)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectMaster CRuD
           , selectFrom : eligible
           ]
-      , "8. Project Master (CRuD)" : I[Project] CRuD BOX<FILTEREDDROPDOWN>
+      , "7. setRelation" : projectMaster CRuD
+      , "8. Project Master (CRUD)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectMaster CRUD
           , selectFrom : eligible
           ]
+      , "8. setRelation" : projectMaster CRUD
       ]
 
   , "Project Founder (TOT)" : V[SESSION*Project] cRud BOX<FORM>
@@ -283,34 +299,42 @@ INTERFACE BoxFilteredDropdownTests LABEL "Box-Filtered-Dropdown tests" : "_SESSI
           [ setRelation : projectFounder cRud
           , selectFrom : eligible
           ]
-      , "2. Project Founder (cRud)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
+      , "1. setRelation" : projectFounder cRud 
+      , "2. Project Founder (cRUd)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectFounder cRUd
           , selectFrom : eligible
           ]
-      , "3. Project Founder (cRuD)" : I[Project] cRuD BOX<FILTEREDDROPDOWN>
+      , "2. setRelation" : projectFounder cRUd
+      , "3. Project Founder (cRuD)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectFounder cRuD
           , selectFrom : eligible
           ]
-      , "4. Project Founder (cRuD)" : I[Project] cRuD BOX<FILTEREDDROPDOWN>
+      , "3. setRelation" : projectFounder cRuD
+      , "4. Project Founder (cRUD)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectFounder cRUD
           , selectFrom : eligible
           ]
-      , "5. Project Founder (CRud)" : I[Project] CRud BOX<FILTEREDDROPDOWN>
+      , "4. setRelation" : projectFounder cRUD
+      , "5. Project Founder (CRud)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectFounder CRud
           , selectFrom : eligible
           ]
-      , "6. Project Founder (CRud)" : I[Project] CRud BOX<FILTEREDDROPDOWN>
+      , "5. setRelation" : projectFounder CRud
+      , "6. Project Founder (CRUd)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectFounder CRUd
           , selectFrom : eligible
           ]
-      , "7. Project Founder (CRuD)" : I[Project] CRuD BOX<FILTEREDDROPDOWN>
+      , "6. setRelation" : projectFounder CRUd
+      , "7. Project Founder (CRuD)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectFounder CRuD
           , selectFrom : eligible
           ]
-      , "8. Project Founder (CRuD)" : I[Project] CRuD BOX<FILTEREDDROPDOWN>
+      , "7. setRelation" : projectFounder CRuD
+      , "8. Project Founder (CRUD)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectFounder CRUD
           , selectFrom : eligible
           ]
+      , "8. setRelation" : projectFounder CRUD
       ]
 
   , "Project Responsible (UNI TOT)" : V[SESSION*Project] cRud BOX<FORM>
@@ -322,34 +346,42 @@ INTERFACE BoxFilteredDropdownTests LABEL "Box-Filtered-Dropdown tests" : "_SESSI
           [ setRelation : projectResponsible cRud
           , selectFrom : eligible
           ]
-      , "2. Responsible (cRud)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
+      , "1. setRelation" : projectResponsible cRud 
+      , "2. Responsible (cRUd)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectResponsible cRUd
           , selectFrom : eligible
           ]
-      , "3. Responsible (cRuD)" : I[Project] cRuD BOX<FILTEREDDROPDOWN>
+      , "2. setRelation" : projectResponsible cRUd
+      , "3. Responsible (cRuD)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectResponsible cRuD
           , selectFrom : eligible
           ]
-      , "4. Responsible (cRuD)" : I[Project] cRuD BOX<FILTEREDDROPDOWN>
+      , "3. setRelation" : projectResponsible cRuD
+      , "4. Responsible (cRUD)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectResponsible cRUD
           , selectFrom : eligible
           ]
-      , "5. Responsible (CRud)" : I[Project] CRud BOX<FILTEREDDROPDOWN>
+      , "4. setRelation" : projectResponsible cRUD
+      , "5. Responsible (CRud)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectResponsible CRud
           , selectFrom : eligible
           ]
-      , "6. Responsible (CRud)" : I[Project] CRud BOX<FILTEREDDROPDOWN>
+      , "5. setRelation" : projectResponsible CRud
+      , "6. Responsible (CRUd)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectResponsible CRUd
           , selectFrom : eligible
           ]
-      , "7. Responsible (CRuD)" : I[Project] CRuD BOX<FILTEREDDROPDOWN>
+      , "6. setRelation" : projectResponsible CRUd
+      , "7. Responsible (CRuD)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectResponsible CRuD
           , selectFrom : eligible
           ]
-      , "8. Responsible (CRuD)" : I[Project] CRuD BOX<FILTEREDDROPDOWN>
+      , "7. setRelation" : projectResponsible CRuD
+      , "8. Responsible (CRUD)" : I[Project] cRud BOX<FILTEREDDROPDOWN>
           [ setRelation : projectResponsible CRUD
           , selectFrom : eligible
           ]
+      , "8. setRelation" : projectResponsible CRUD
       ]
   ]
 
@@ -362,11 +394,11 @@ INTERFACE BoxFilteredDropdownErrors LABEL "Box-Filtered-Dropdown-errors" : "_SES
       , "setRelation(ProjectLocation)Preview" : projectLocation cRud  
       , selectFromPreview : eligible cRud     
 
-    --   , "1. Assign an employee (crud/crud)" : I crud BOX<FILTEREDDROPDOWN> -- box not readable
+    --   , "1. Assign an employee (crud/crud)" : I cRud BOX<FILTEREDDROPDOWN> -- box not readable
     --       [ setRelation : projectLocation crud
     --       , selectFrom : eligible
     --       ]
-    --   , "2. Assign an employee (crud/cRud)" : I crud BOX<FILTEREDDROPDOWN> -- box not readable
+    --   , "2. Assign an employee (crud/cRud)" : I cRud BOX<FILTEREDDROPDOWN> -- box not readable
     --       [ setRelation : projectMember cRud
     --       , selectFrom : eligible
     --       ]

@@ -24,7 +24,7 @@
             pTooltip="Delete"
             tooltipPosition="left"
         ></div>
-        <span>{{ resource[propertyName]._label_ }}</span>
+        <span>{{ resource[propertyName]._label_ ?? resource[propertyName] }}</span>
         <app-ifcs-dropdown size="small" [resource]="resource[propertyName]"></app-ifcs-dropdown>
     </div>
     <span *ngIf="!resource[propertyName]">{{ getUniEmptyText() }}</span>
@@ -60,8 +60,9 @@
             #dropdown
             [options]="uniSelectableOptions()"
             [ngModel]="selectableUniValue()"
-            (ngModelChange)="uniValue.set($event); update()"
+            (ngModelChange)="handleUniDropdownChange($event)"
             (keyup)="handleFilterInput(uniValue()!, $event)"
+            (onBlur)="onUniFilteredDropdownBlur()"
             dataKey="_id_"
             optionLabel="_label_"
             [placeholder]="placeHolder$()"
@@ -139,7 +140,7 @@
 </ng-template>
 
 <ng-template #nonUni>
-    <div *ngFor="let object of data; let i = index" class="item">
+    <div *ngFor="let object of selection(); let i = index" class="item">
         <div
             *ngIf="canUpdate() && matchTotConstraint()"
             class="pi pi-fw pi-minus"

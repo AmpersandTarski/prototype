@@ -4,5 +4,8 @@
     [property]="resource.$name$"
     propertyName="setRelation"
     label="$label$"
+    crud="$crud$"
+    $if(exprIsUni)$isUni$endif$
+    $if(exprIsTot)$isTot$endif$
     mode="box-filtereddropdown"
 ></app-atomic-object>

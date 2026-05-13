@@ -10,6 +10,25 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.1.0 (13 May 2026)
+
+* BOX\<FILTEREDDROPDOWN\> did not work for scalar concept types (ALPHANUMERIC, Integer, Date): the backend returns a plain string instead of a `{_id_, _label_}` object, so the dropdown could neither display nor submit values.
+  - `atomic-object`: `normalizeAtom()` converts scalar values to ObjectBase shape; `handleUniDropdownChange()` + `onUniFilteredDropdownBlur()` handle blur correctly (exact match → patch, canCreate → create, else → reset); `selection` changed from private to public; `override delete()` for signal-aware UI updates
+  - `Box-FILTEREDDROPDOWN.html` template: pass `$crud$`, `$if(exprIsUni)$isUni$endif$`, `$if(exprIsTot)$isTot$endif$` so template-level CRUD takes precedence over the interfaces.json lookup
+  - `InterfacesJsonService.findSubObject()`: replaced SESSION-specific path parser with a lenient path-segment walker that supports both direct-resource paths and SESSION-based paths
+
+* The atomic-alphanumeric component did not support independent Update and Delete operations: values could not be edited in-place, atoms could not be deleted, and there was no autocomplete to suggest existing values.
+  - Rewritten templates with independent C/U/D controls per CRUD flag
+  - Browser-native `<datalist>` autocomplete populated from the backend
+  - `validateAndUpdate()` rejects unknown atoms when crud-`c` is not permitted
+  - `BaseAtomicComponent`: `updateItem()` for non-UNI inline edits (remove old link + add new); `delete()` base implementation that deletes the atom and all its relations; workaround for compiler-generated `CRu+UNI` combination (treated as `cRu`)
+
+* The `box-filtered-dropdown` test project lacked build infrastructure and did not cover all CRUD variants.
+  - Added `Dockerfile` (builds with `--crud-defaults cRud`)
+  - Extended `main.adl` with inline `setRelation` fields and test scenarios for all CRUD combinations
+
+* Chore: exclude `test/projects/**/.proto/` from git (compiler-generated output, not to be committed)
+
 ## v2.0.8 (5 mei 2026)
 
 * Bugfix import: show invariant violation details instead of generic "400 Bad Request" error when population import (in the excel importer) fails due to rule violations

@@ -68,13 +68,19 @@ export class InterfacesJsonService {
   }
 
   /**
-   * Find a subobject (selectFrom or setRelation) in interfaces.json and return its information
-   * @param resourcePath The resource path from the component
+   * Find a subobject (selectFrom or setRelation) in interfaces.json and return its information.
+   *
+   * Expects a path of the form:
+   *   resource/{ConceptType}/{atomId}/{InterfaceName}/{subName1}/{subName2}/...
+   *
+   * Navigates through interfaces.json by following each sub-interface name segment,
+   * then finds the requested subobject (selectFrom or setRelation) in the final node.
+   *
+   * @param resourcePath The _path_ value from the Angular resource object
    * @param objectName The name of the subobject to find ('selectFrom' or 'setRelation')
-   * @returns Promise<SubObjectMeta | null> containing CRUD, conceptType, isTot, and isUni information
+   * @returns Promise<SubObjectMeta | null> with CRUD, conceptType, isTot, and isUni
    */
-  async findSubObject(resourcePath: string, objectName: 'selectFrom' | 'setRelation'): Promise<SubObjectMeta | null> {
-    // Ensure interfaces are loaded and get them
+  async findSubObject(resourcePath: string, objectName: string): Promise<SubObjectMeta | null> {
     let interfaces;
     try {
       interfaces = await this.getInterfacesWithLoading();
@@ -83,67 +89,57 @@ export class InterfacesJsonService {
       return null;
     }
 
-    // Parse the resource path to extract key segments
+    // Path format: resource / {ConceptType} / {atomId} / {InterfaceName} / {sub}*
+    // We need at least: resource, type, id, interfaceName, one sub-interface
     const pathSegments = resourcePath.split('/');
-
-    if (pathSegments.length < 8) {
+    if (pathSegments.length < 5) {
       console.error('❌ Resource path too short:', pathSegments);
       return null;
     }
 
-    const sessionId = pathSegments[4];
-    const defaultName = pathSegments[5];
-    const targetObjectName = pathSegments[7];
     const interfaceName = pathSegments[3];
+    const subPath = pathSegments.slice(4); // e.g. ["Organisme", "Organisme"] or ["Product", "Vorm"]
 
-    // Step 1: Find SESSION interface
-    let sessionInterface = null;
-    for (const ifc of interfaces) {
-      const hasSessionPattern = this.matchesSessionId(ifc.ifcObject, sessionId);
-      if (hasSessionPattern && ifc.name === interfaceName) {
-        sessionInterface = ifc.ifcObject;
-        break;
+    // Find the top-level interface by name
+    const topInterface = interfaces.find((ifc: any) => ifc.name === interfaceName);
+    if (!topInterface) {
+      console.error('❌ Could not find interface:', interfaceName);
+      return null;
+    }
+
+    // Navigate through sub-interfaces by following each segment in subPath.
+    // Segments that match an interface name are followed (navigated into).
+    // Segments that do NOT match are skipped — they are runtime data atom IDs
+    // (e.g. a session hash or a project name) and are not part of the interface structure.
+    // This lenient approach supports both:
+    //   - Direct-resource paths: resource/{concept}/{atomId}/{ifc}/{sub1}/{sub2}/...
+    //   - SESSION-based paths:   resource/SESSION/1/{ifc}/{sessionId}/Default/{dataAtom}/{fddBox}
+    let currentNode = topInterface.ifcObject;
+    for (const segment of subPath) {
+      const found = this.findInterfaceByName(currentNode, segment);
+      if (found) {
+        currentNode = found;
       }
+      // If not found: skip — the segment is a runtime data atom ID, not an interface name
     }
 
-    if (!sessionInterface) {
-      console.error('❌ Could not find SESSION interface');
-      return null;
-    }
-
-    // Step 2: Find Default interface
-    const defaultInterface = this.findInterfaceByName(sessionInterface, defaultName);
-    if (!defaultInterface) {
-      console.error('❌ Could not find Default interface');
-      return null;
-    }
-
-    // Step 3: Find target object (e.g., the FILTEREDDROPDOWN object)
-    const targetObject = this.findInterfaceByName(defaultInterface, targetObjectName);
-    if (!targetObject) {
-      console.error('❌ Could not find target object:', targetObjectName);
-      return null;
-    }
-
-    // Step 4: Find the specific subobject (selectFrom or setRelation)
-    const ifcObjects = targetObject.subinterfaces?.ifcObjects || [];
+    // currentNode is now the FILTEREDDROPDOWN box; find selectFrom or setRelation
+    const ifcObjects = currentNode.subinterfaces?.ifcObjects || [];
     const subObject = ifcObjects.find((obj: any) => obj.label === objectName);
 
     if (!subObject) {
-      console.error(`❌ Could not find ${objectName} object`);
+      console.error(`❌ Could not find '${objectName}' in`, ifcObjects.map((o: any) => o.label));
       return null;
     }
 
-    // Step 5: Extract and format information
     const crudObj = subObject.crud;
     const expr = subObject.expr;
 
     if (!crudObj || !expr) {
-      console.error(`❌ Missing crud or expr in ${objectName} object`);
+      console.error(`❌ Missing crud or expr in '${objectName}'`);
       return null;
     }
 
-    // Convert CRUD boolean values to string format
     const crudString =
       (crudObj.create ? 'C' : 'c') +
       (crudObj.read ? 'R' : 'r') +
@@ -154,7 +150,7 @@ export class InterfacesJsonService {
       crud: crudString,
       conceptType: expr.tgtConceptName || '',
       isTot: expr.isTot || false,
-      isUni: expr.isUni || false
+      isUni: expr.isUni || false,
     };
   }
 

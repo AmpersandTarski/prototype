@@ -17,3 +17,6 @@ frontend/src/assets/interfaces.son
 
 # Cypress screenshots
 frontend/cypress/screenshots/
+
+# Gegenereerde prototype-output in test-projecten (compiler output, niet committen)
+test/projects/**/.proto/

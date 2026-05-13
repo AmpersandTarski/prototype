@@ -37,3 +37,14 @@
 
 ### Toepassing
 Gebruik deze stijl voor alle teksten die je genereert.
+
+## Changelog-stijl
+
+De changelog is in het **Engels** geschreven (net zoals de rest van de repository).
+
+Een changelog-entry beschrijft eerst het **probleem** (purpose/why), dan pas de **oplossing** (what):
+
+- De hoofdbullet benoemt het probleem dat is opgelost.
+- Sub-bullets beschrijven wat er is gedaan om het op te lossen.
+- Als er meerdere problemen zijn, krijgt elk probleem zijn eigen hoofdbullet met eigen sub-bullets.
+- Nooit alleen "wat" zonder "waarom".

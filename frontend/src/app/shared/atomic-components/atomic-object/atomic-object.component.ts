@@ -81,14 +81,32 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     this.computeNonUniSelectableOptions(),
   );
 
-  // used in the non uni case
-  private selection = signal([] as ObjectBase[]);
+  // used in the non uni case (public so the template can use selection() in *ngFor)
+  public selection = signal([] as ObjectBase[]);
 
   // to programmatically control the dropdown
   @ViewChild('dropdown') private dropdown: Dropdown;
 
   // html helpers
   public isObject = isObject;
+
+  /** Normalises a scalar atom (string | number) to ObjectBase shape.
+   *  Needed for FDD mode where the backend returns plain scalars for
+   *  ALPHANUMERIC/Datum/Integer concepts instead of {_id_, _label_} objects.
+   */
+  private normalizeAtom(item: any): ObjectBase | null {
+    if (item === null || item === undefined) return null;
+    if (typeof item === 'string' || typeof item === 'number') {
+      const s = String(item);
+      return { _id_: s, _label_: s } as ObjectBase;
+    }
+    return item as ObjectBase;
+  }
+
+  /** Returns this.data with any scalar atoms normalised to ObjectBase. */
+  private normalizedData(): ObjectBase[] {
+    return (this.data as any[]).map((item) => this.normalizeAtom(item)!);
+  }
 
   // ── editAsText mode ─────────────────────────────────────────────────────────
   // Tracks what the user has typed in the text input.
@@ -167,7 +185,8 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         ])
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => {
-          this.uniValue.set(this.resource[this.propertyName]);
+          // Backend may return a scalar; normalise to ObjectBase
+          this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
         });
     } else {
       // No existing value → create and add as new atom
@@ -184,6 +203,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
     // In BOX<FILTEREDDROPDOWN> we'll use the crud, uni and tot from setRelation, not from the box itself
     if (this.mode === 'box-filtereddropdown') {
+
 
     // When using this component, it should at least be readable, to be detected through testing the path.
     if (!this.resource || !this.resource._path_) {
@@ -224,9 +244,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         console.error('Error finding setRelation or selectFrom in BOX-FILTEREDDROPDOWN:', error);
       }
 
-      this.crud = relation?.crud ?? 'cRud';
-      this.isUni = relation?.isUni ?? false;
-      this.isTot = relation?.isTot ?? false;
+      this.crud = relation?.crud ?? this.crud;
+      this.isUni = relation?.isUni ?? this.isUni;
+      this.isTot = relation?.isTot ?? this.isTot;
 
       // Set conceptType from relation
       this.conceptType = relation?.conceptType ?? 'item';
@@ -243,8 +263,12 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
       super.ngOnInit();
 
-      // Now extract the select options from selectFrom
-      this.selectOptions = this.selectFrom;
+      // Now extract the select options from selectFrom.
+      // Normalise scalar string atoms (ALPHANUMERIC) to ObjectBase shape so the
+      // dropdown can use _id_ and _label_ uniformly.
+      this.selectOptions = (this.selectFrom as any[]).map((item) =>
+        typeof item === 'string' ? ({ _id_: item, _label_: item } as ObjectBase) : item,
+      ) as ObjectBase[];
 
     } else {
       // used as BOX<SOMETHING ELSE> or as atomic-object alone
@@ -269,11 +293,16 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           // Set initial options and signals
           this.allOptions.set(optionsToDisplay);
 
-          // Set selected option(s) signals
+          // Set selected option(s) signals.
+          // In FDD mode the backend returns scalar atoms (string/number) for
+          // non-object concept types; normalise them to ObjectBase so the
+          // template can use ._label_ uniformly.
           if (this.isUni) {
-            this.uniValue.set(this.resource[this.propertyName] ?? null);
+            this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
           } else {
-            this.selection.set(this.data);
+            this.selection.set(
+              this.mode === Mode.BoxFilteredDropdown ? this.normalizedData() : this.data
+            );
           }
         }),
         switchMap(() =>
@@ -300,11 +329,16 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
         // Update uniValue signal when resource changes to trigger dynamicPlaceholder
         if (this.isUni) {
-          this.uniValue.set(this.resource[this.propertyName] ?? null);
+          this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
           // Reset any in-progress text edit so the new label is shown
           this.editTextValue.set(null);
         } else {
-          this.selection.set([...this.data]); // spread to trigger change
+          // In FDD mode normalise scalar atoms so the template can use ._label_
+          this.selection.set(
+            this.mode === Mode.BoxFilteredDropdown
+              ? [...this.normalizedData()]
+              : [...this.data]
+          );
         }
       });
   }
@@ -423,8 +457,70 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       ])
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-        this.uniValue.set(this.resource[this.propertyName]);
+        // Backend returns a scalar for ALPHANUMERIC/Datum/Integer atoms; normalise to ObjectBase
+        // so that selectableUniValue() and computePlaceholder() can show the selected value.
+        this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
       });
+  }
+
+  /**
+   * Handles p-dropdown value changes in the UNI template.
+   *
+   * When the user selects an existing option (ObjectBase) the relation is
+   * patched immediately via update().  When the user is still typing (string),
+   * we only update the uniValue signal so that computeUniSelectableOptions()
+   * can narrow the dropdown list – no server call is made.
+   */
+  public handleUniDropdownChange(value: ObjectBase | string): void {
+    this.uniValue.set(value);
+    if (typeof value === 'object' && value !== null) {
+      this.update();
+    }
+  }
+
+  /**
+   * Called when the UNI p-dropdown loses focus.
+   *
+   * Only active in BOX<FILTEREDDROPDOWN> mode.  Resolves the three cases when
+   * the user leaves a partially-typed string in the editable dropdown:
+   *
+   * 1. Typed text matches an option label exactly (case-insensitive) →
+   *    select that option and patch the server.
+   * 2. No match + crud C (canCreate) →
+   *    create a new scalar atom from the typed string and assign it.
+   * 3. No match + crud c →
+   *    discard the typed text; reset to the last value committed to the server.
+   */
+  public onUniFilteredDropdownBlur(): void {
+    if (this.mode !== 'box-filtereddropdown') {
+      return;
+    }
+    const current = this.uniValue();
+    if (typeof current !== 'string') {
+      return; // An ObjectBase is already selected – nothing to do
+    }
+    const trimmed = current.trim();
+    if (!trimmed) {
+      // Backend may return a scalar; normalise before storing in uniValue
+      this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
+      return;
+    }
+    // Look for an exact label match (case-insensitive) in the current option list
+    const exactMatch = this.allOptions().find(
+      (o) => o._label_.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (exactMatch) {
+      this.uniValue.set(exactMatch);
+      this.update();
+      return;
+    }
+    if (this.canCreate()) {
+      // C – persist the new scalar atom and assign it to the relation
+      this.createAndAdd(trimmed);
+    } else {
+      // c – reset to the last value committed to the server (normalised)
+      this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
+    }
   }
 
   // used in non uni case
@@ -444,7 +540,12 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.newValue = undefined; // reset newValue
-        this.selection.set([...this.data]); // spread to trigger change
+        // In FDD mode normalise scalar atoms so the template can use ._label_
+        this.selection.set(
+          this.mode === Mode.BoxFilteredDropdown
+            ? [...this.normalizedData()]
+            : [...this.data]
+        );
       });
   }
 
@@ -490,10 +591,14 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       return;
     }
 
+    // For UNI relations: use 'replace' when a value already exists, 'add' otherwise.
+    const patchOp =
+      this.isUni && this.resource[this.propertyName] != null ? 'replace' : 'add';
+
     this.interfaceComponent
       .patch(this.resource._path_, [
         {
-          op: 'add',
+          op: patchOp,
           path: this.propertyName,
           value: trimmedValue,
         },
@@ -505,12 +610,17 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           this.dropdown.hide();
         }
 
-        // grab new item
-        // clone to disconnect from reactive object,
-        // otherwise previously added uni value will also be updated
-        const newItem = {
-          ...this.data.find((item) => item._id_ === trimmedValue)!,
-        };
+        // grab new item; in FDD mode data items may be scalars, so normalise first
+        const foundRaw = (this.data as any[]).find((item) =>
+          typeof item === 'string' ? item === trimmedValue
+          : typeof item === 'number' ? String(item) === trimmedValue
+          : item._id_ === trimmedValue
+        );
+        const newItem: ObjectBase = foundRaw !== undefined
+          ? (typeof foundRaw === 'string' || typeof foundRaw === 'number'
+            ? { _id_: String(foundRaw), _label_: String(foundRaw) } as ObjectBase
+            : { ...foundRaw })
+          : { _id_: trimmedValue, _label_: trimmedValue } as ObjectBase;
 
         // add new item to allOptions
         this.allOptions.update((options) =>
@@ -533,14 +643,22 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           // clear filter
           this.filterValue.set('');
 
-          // update selected options
-          this.selection.set([...this.data]); // spread to trigger change
+          // update selected options – normalise in FDD mode
+          this.selection.set(
+            this.mode === Mode.BoxFilteredDropdown
+              ? [...this.normalizedData()]
+              : [...this.data]
+          );
         }
       });
   }
 
   public remove(index = 0) {
-    const id = this.data[index]._id_;
+    // In FDD mode data items may be plain scalars; extract the atom id correctly
+    const rawItem = (this.data as any[])[index];
+    const id = typeof rawItem === 'string' ? rawItem
+             : typeof rawItem === 'number' ? String(rawItem)
+             : rawItem._id_;
 
     this.interfaceComponent
       .patch(this.resource._path_, [
@@ -554,17 +672,25 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         if (this.isUni) {
           this.uniValue.set(null);
         } else {
-          this.selection.set([...this.data]); // spread to trigger change
+          this.selection.set(
+            this.mode === Mode.BoxFilteredDropdown
+              ? [...this.normalizedData()]
+              : [...this.data]
+          );
         }
       });
   }
 
-  public delete(index = 0) {
+  public override delete(index = 0) {
     if (!confirm('Delete?')) {
       return;
     }
 
-    const id = this.data[index]._id_;
+    // In FDD mode data items may be plain scalars; extract the atom id correctly
+    const rawItem = (this.data as any[])[index];
+    const id = typeof rawItem === 'string' ? rawItem
+             : typeof rawItem === 'number' ? String(rawItem)
+             : rawItem._id_;
 
     this.interfaceComponent
       .delete(`${this.resource._path_}/${this.propertyName}/${id}`)
@@ -577,11 +703,18 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
             // clear uni value
             this.uniValue.set(null);
           } else {
-            // remove deleted item from underlying data and selected options
-            this.resource[this.propertyName] = this.data.filter(
-              (option) => option._id_ !== id,
+            // Remove deleted item from underlying data; handle scalar atoms in FDD mode
+            this.resource[this.propertyName] = (this.data as any[]).filter((option) => {
+              const optId = typeof option === 'string' ? option
+                          : typeof option === 'number' ? String(option)
+                          : option._id_;
+              return optId !== id;
+            });
+            this.selection.set(
+              this.mode === Mode.BoxFilteredDropdown
+                ? [...this.normalizedData()]
+                : [...this.data]
             );
-            this.selection.set([...this.data]); // spread to trigger change
           }
 
           // remove from allOptions
