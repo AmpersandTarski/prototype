@@ -12,6 +12,10 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## v2.1.1 (13 May 2026)
 
+* Bugfix `atomic-object`: in `cRud` mode with a non-UNI relation, existing atoms were never displayed — the column appeared empty even when backend data was present.
+  - Root cause: the `#nonUni` template renders via `*ngFor="let object of selection()"`, but the `selection` signal was only initialised inside the reactive chain that is skipped for read-only mode (`canUpdate() = false`). So `selection` always stayed `[]`.
+  - Fix: immediately before the early return, `selection.set([...this.data])` is called when `!isUni`. The UNI read-only path (`#uniRead`) reads `resource[propertyName]` directly and was unaffected.
+
 * Bugfix `atomic-alphanumeric`: typing a new value in a standalone `setRelation` field (e.g. `projectMaster cRUd`) was immediately reverted after pressing Enter.
   - Root cause: when the autocomplete options endpoint (e.g. `resource/Employee`) returns HTTP 403, `options` was set to `[]` and the client-side validation guard `!options.includes(val)` rejected every typed value.
   - Fix: `options` is now typed `string[] | null`; `null` means "fetch failed / not loaded". Client-side validation is only applied when `options !== null` (i.e. a successful fetch returned a non-empty list). If `null`, the backend validates.

@@ -294,6 +294,15 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
     // is there anything to choose from? Else just a list is displayed
     if (!(this.canUpdate() || this.selectOptions !== undefined)) {
+      // Initialise the selection signal for read-only (non-UNI) display.
+      // The #nonUni template renders via *ngFor="let object of selection()", so without
+      // this the list stays empty even when backend data is present (cRud bug).
+      // UNI read-only uses resource[propertyName] directly and needs no signal init.
+      if (!this.isUni) {
+        this.selection.set(
+          this.mode === Mode.BoxFilteredDropdown ? this.normalizedData() : [...this.data]
+        );
+      }
       return;
     }
 
