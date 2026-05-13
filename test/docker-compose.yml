@@ -5,11 +5,11 @@ networks:
   db:
 
 services:
-  project-administration:
+  box-filtered-dropdown:
     container_name: prototype
     platform: linux/amd64 # Ensure compatibility with the host system
     build:
-      context: projects/project-administration
+      context: ./projects/box-filtered-dropdown
     environment:
       - AMPERSAND_DBHOST=prototype-db # refers to database service below
       - AMPERSAND_PRODUCTION_MODE=false
