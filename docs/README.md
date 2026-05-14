@@ -1,6 +1,5 @@
----
+D---
 title: The Prototype Framework
-id: prototype-framework
 ---
 
 # Ampersand prototype framework
