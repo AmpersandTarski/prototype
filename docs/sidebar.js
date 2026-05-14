@@ -68,6 +68,11 @@ module.exports = {
       id: "prototype/reference-material/frontend-components",
     },
     {
+      label: "Frontend Component Internals",
+      type: "doc",
+      id: "prototype/reference-material/frontend-component-internals",
+    },
+    {
       label: "PROPBUTTON Template",
       type: "doc",
       id: "prototype/reference-material/propbutton-template",
