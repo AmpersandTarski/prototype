@@ -48,10 +48,16 @@ Now it's time to specify your own test project.
 Create your project in /test/projects and put your adl entry file in the model subdirectory. Take the existing projects as an example. 
 
 2. Run your test project
-./generate.sh <project-name> <entry-file>
 
-for example: 
+```bash
+./generate.sh <project-name> <entry-file>
+```
+
+for example:
+
+```bash
 ./generate.sh box-filtered-dropdown main.adl
+```
 
 This will compile your ADL to an actual application running the browser.
 
