@@ -9,10 +9,14 @@ import { MessageService } from 'primeng/api';
 import { finalize, tap } from 'rxjs/operators';
 import { Notifications } from 'src/app/shared/interfacing/notifications.interface';
 import { PatchResponse } from 'src/app/shared/interfacing/patch-response.interface';
+import { SignalService } from 'src/app/shared/services/signal.service';
 
 @Injectable()
 export class LoggingInterceptor implements HttpInterceptor {
-  constructor(private messageService: MessageService) {}
+  constructor(
+    private messageService: MessageService,
+    private signalService: SignalService,
+  ) {}
 
   /**
    * Logs requests in the console including the response time.
@@ -84,13 +88,11 @@ export class LoggingInterceptor implements HttpInterceptor {
       this.sendMessage('error', field.ruleMessage, violationMessages);
     });
 
-    notifications.signals.forEach((field) => {
-      let violationMessages = '';
-      field.violations.forEach((violation) => {
-        violationMessages += violation.message + '\n';
-      });
-      this.sendSignalMessage(field.message, violationMessages.trim() || undefined);
-    });
+    // Signals are no longer shown as toasts.
+    // They are stored in the SignalService and displayed via the topbar badge + dedicated signals page.
+    if (notifications.signals?.length >= 0) {
+      this.signalService.update(notifications.signals);
+    }
   }
 
   private sendMessage(severity: string, message: string, details?: string) {
@@ -100,17 +102,6 @@ export class LoggingInterceptor implements HttpInterceptor {
       summary: message,
       detail: details,
       life: 7000,
-    });
-  }
-
-  /** Signal notifications stay visible until the user closes them */
-  private sendSignalMessage(message: string, details?: string) {
-    console.log('sendSignalMessage called with message: ' + message);
-    this.messageService.add({
-      severity: 'info',
-      summary: message,
-      detail: details,
-      sticky: true,
     });
   }
 }

@@ -5,9 +5,11 @@ import { HomeComponent } from './layout/home/home.component';
 // import { ToolComponentDetailsComponent } from './tools/tool-component-details/tool-component-details.component';
 // import { ToolGalleryComponent } from './tools/tool-gallery/tool-gallery.component';
 import { NotFoundComponentComponent } from './layout/not-found-component/not-found-component.component';
+import { SignalsComponent } from './layout/signals/signals.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
+  { path: 'signals', component: SignalsComponent },
   // { path: 'tools/', component: ToolGalleryComponent },
   // { path: 'tools/:componentType/:componentName', component: ToolComponentDetailsComponent },
   { path: '404', component: NotFoundComponentComponent },

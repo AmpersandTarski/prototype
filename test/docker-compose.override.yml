@@ -1,0 +1,12 @@
+# Override voor lokaal testen op poort 7000.
+# Vermijdt conflicten met de bestaande prototype/prototype-db containers op poort 80.
+services:
+  box-filtered-dropdown:
+    container_name: bfdd-prototype
+    image: ampersandtarski/bfdd-prototype:local
+
+  prototype-db:
+    container_name: bfdd-db
+
+  phpmyadmin:
+    container_name: bfdd-phpmyadmin
