@@ -48,9 +48,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   @Input() strict = false;
 
   /**
-   * When editAsText=true, the component renders a plain text <input> instead of the p-dropdown.
-   * The current atom's label is pre-filled in the input so the user can edit it in-place.
-   * On blur or Enter, a new atom is created with the modified text (if changed).
+   * @deprecated No longer has any effect. The component always renders a p-dropdown
+   * (with [editable]="true") for UNI updatable relations, which already supports
+   * typing-to-filter. Remove this attribute from your templates.
    */
   @Input({ transform: booleanAttribute }) editAsText = false;
 
@@ -107,109 +107,6 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   private normalizedData(): ObjectBase[] {
     return (this.data as any[]).map((item) => this.normalizeAtom(item)!);
   }
-
-  // ── editAsText mode ─────────────────────────────────────────────────────────
-  // Tracks what the user has typed in the text input.
-  // null  = no edit in progress; component shows the current atom's label.
-  // ''    = edit started, input is currently empty.
-  // str   = user is typing.
-  public editTextValue = signal<string | null>(null);
-
-  /**
-   * Returns the value to display in the editAsText <input>.
-   * Priority: user's typed text > current atom label > empty string.
-   */
-  public uniTextValue(): string {
-    const ev = this.editTextValue();
-    if (ev !== null) {
-      return ev;
-    }
-    const v = this.uniValue();
-    if (v && typeof v === 'object') {
-      return (v as ObjectBase)._label_;
-    }
-    return typeof v === 'string' ? v : '';
-  }
-
-  /** Called on every keystroke in the editAsText input. */
-  public onEditTextChange(value: string): void {
-    this.editTextValue.set(value);
-  }
-
-  /**
-   * Called on blur or Enter in the editAsText input.
-   *
-   * When a value already exists (UNI slot is filled): uses op:'replace'.
-   * When no value exists yet: uses createAndAdd (op:'add').
-   *
-   * Optimistic update: uniValue is set to the new text immediately so the
-   * input keeps showing the new text while the async patch is in flight.
-   * Without this, resetting editTextValue to null would cause Angular to
-   * re-render with the old uniValue label, creating a visible reversion on blur.
-   */
-  public finishTextEdit(): void {
-    let newText = (this.editTextValue() ?? '').trim();
-
-    if (!newText) {
-      this.editTextValue.set(null);
-      return; // do not save empty string
-    }
-
-    const current = this.uniValue();
-    const currentLabel =
-      typeof current === 'object' && current !== null
-        ? (current as ObjectBase)._label_
-        : typeof current === 'string'
-          ? current
-          : '';
-
-    if (newText === currentLabel) {
-      this.editTextValue.set(null); // no change
-      return;
-    }
-
-    // Als C (Create) niet is toegestaan: het getypte label moet exact overeenkomen
-    // met een bestaand atoom in de optielijst. Zo niet → invoer afwijzen.
-    if (!this.canCreate()) {
-      const match = this.allOptions().find(
-        (o) => o._label_.toLowerCase() === newText.toLowerCase(),
-      );
-      if (!match) {
-        // Afwijzen: reset naar de waarde die de back-end kent
-        this.editTextValue.set(null);
-        this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
-        return;
-      }
-      // Gebruik de bestaande _id_ van het gevonden atoom (niet de vrij getypte tekst)
-      newText = match._id_;
-    }
-
-    // Optimistic update: immediately reflect the new text in uniValue so that
-    // resetting editTextValue does not flash the old label while the patch is in flight.
-    this.uniValue.set({ _id_: newText, _label_: newText } as ObjectBase);
-    this.editTextValue.set(null);
-
-    if (current !== null) {
-      // There is already a value → replace it
-      this.interfaceComponent
-        .patch(this.resource._path_, [
-          {
-            op: 'replace',
-            path: this.propertyName,
-            value: newText,
-          },
-        ])
-        .pipe(takeUntil(this.destroy$))
-        .subscribe(() => {
-          // Backend may return a scalar; normalise to ObjectBase
-          this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
-        });
-    } else {
-      // No existing value → create and add as new atom
-      this.createAndAdd(newText);
-    }
-  }
-  // ── end editAsText mode ─────────────────────────────────────────────────────
 
   constructor(private interfacesLoader: InterfacesJsonService, private messageService: MessageService) {
     super();
@@ -333,14 +230,15 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         switchMap(() =>
           this.interfaceComponent.patched.pipe(
             map(() => {
-              // For selectOptions case, return updated options
-              if (this.selectOptions) {
-                const updatedSelectOptionsArray = Array.isArray(
-                  this.selectOptions,
-                )
-                  ? this.selectOptions
-                  : [this.selectOptions];
-                return [...updatedSelectOptionsArray]; // spread to trigger change
+              // For BOX<FILTEREDDROPDOWN>: re-read selectFrom from the resource (updated by
+              // syncWithServer after every mutation) so that exec-engine side effects
+              // on the option list are reflected without a manual page refresh.
+              // See: https://github.com/AmpersandTarski/prototype/issues/298
+              if (this.selectOptions !== undefined) {
+                this.selectOptions = (this.selectFrom as any[]).map((item) =>
+                  typeof item === 'string' ? ({ _id_: item, _label_: item } as ObjectBase) : item,
+                ) as ObjectBase[];
+                return [...this.selectOptions];
               }
               // For canUpdate case, return current options with spread to trigger change
               return [...this.allOptions()];
@@ -355,8 +253,6 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         // Update uniValue signal when resource changes to trigger dynamicPlaceholder
         if (this.isUni) {
           this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
-          // Reset any in-progress text edit so the new label is shown
-          this.editTextValue.set(null);
         } else {
           // In FDD mode normalise scalar atoms so the template can use ._label_
           this.selection.set(

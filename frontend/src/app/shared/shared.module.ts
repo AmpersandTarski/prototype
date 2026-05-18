@@ -118,6 +118,7 @@ import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.comp
     BoxRawComponent,
     BoxRawTemplateDirective,
     BoxPropButtonComponent,
+    IfcsDropdownComponent,
   ],
   providers: [],
 })

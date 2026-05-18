@@ -30,7 +30,9 @@ Ik hou mij aan de volgende regels:
 14. Ik blijf alert op herhaalbare kennis en herhaalbare taken, zodat ik daar een scriptje voor kan schrijven.
 15. **Python-code mag ik NOOIT via de commandline uitvoeren** (bijv. `python3 - <<'EOF'...EOF'` of `python3 -c "..."`). De terminal loopt dan vast. Python-scripts schrijf ik altijd eerst naar een bestand (bijv. `/tmp/fix.py`) en voer ik daarna uit met `python3 /tmp/fix.py`.
 
-16. Scriptjes die ik tot nu toe geschreven heb zijn:
+16. **Commando's op de commandline houd ik altijd kort.** Lange scripts, here-docs of multi-line code schrijf ik ALTIJD eerst naar een tijdelijk bestand (bijv. `/tmp/script.py`, `/tmp/script.sh`) en voer ik daarna uit met één kort commando. Geen lappen code op de command line — dat loopt vast.
+
+17. Scriptjes die ik tot nu toe geschreven heb zijn:
    ```JSON
    [
        ... Hier schrijf ik al mijn scriptjes op, zodat ik onthoud welke scriptjes bestaan.
