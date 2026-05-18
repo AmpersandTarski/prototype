@@ -88,9 +88,8 @@ export class LoggingInterceptor implements HttpInterceptor {
       let violationMessages = '';
       field.violations.forEach((violation) => {
         violationMessages += violation.message + '\n';
-        // TODO: Add ifcs?
       });
-      this.sendMessage('info', field.message);
+      this.sendSignalMessage(field.message, violationMessages.trim() || undefined);
     });
   }
 
@@ -101,6 +100,17 @@ export class LoggingInterceptor implements HttpInterceptor {
       summary: message,
       detail: details,
       life: 7000,
+    });
+  }
+
+  /** Signal notifications stay visible until the user closes them */
+  private sendSignalMessage(message: string, details?: string) {
+    console.log('sendSignalMessage called with message: ' + message);
+    this.messageService.add({
+      severity: 'info',
+      summary: message,
+      detail: details,
+      sticky: true,
     });
   }
 }

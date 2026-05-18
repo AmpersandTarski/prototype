@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject, Input, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import {
@@ -36,6 +36,7 @@ export class IfcsDropdownComponent implements OnInit {
 
   constructor(
     @Inject(INTERFACE_ROUTE_MAPPING_TOKEN) public routeMap: InterfaceRouteMap,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -57,5 +58,19 @@ export class IfcsDropdownComponent implements OnInit {
         `${this.routeMap[ifc.id]}/${this.resource?._id_}`
       );
     });
+  }
+
+  /**
+   * If there is exactly one filtered interface and no external links,
+   * navigate directly without showing the dropdown.
+   * Otherwise toggle the overlay panel.
+   */
+  handleClick(event: Event, dropdown: { toggle: (event: Event) => void }): void {
+    const ifcs = this.filteredIfcs();
+    if (ifcs.length === 1 && this.processedExternalLinks.length === 0) {
+      this.router.navigate(['/' + this.routeMap[ifcs[0].id], this.resource?._id_]);
+      return;
+    }
+    dropdown.toggle(event);
   }
 }

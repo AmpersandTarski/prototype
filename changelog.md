@@ -10,6 +10,19 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.1.1 (unreleased)
+
+* Bugfix signal notifications: individual violation messages were never shown to the user — only the rule-level message was displayed.
+  - Root cause: in `logging-interceptor.ts`, the `violationMessages` string was built by iterating over `signal.violations[]` but then **discarded**; `sendMessage()` was called with only `field.message` and no `detail`.
+  - Fix: violation messages are now concatenated and passed as the `detail` parameter, analogous to how invariant violations are already displayed.
+  - Signal notifications are additionally made **sticky** (no auto-close, `sticky: true`). Because a signal demands user action, it must remain visible until the user explicitly dismisses it with the × button.
+
+* `atomic-object`: `editAsText` input is now **deprecated** and has no effect.
+  - The component always renders a `p-dropdown` with `[editable]="true"` for UNI updatable relations. This dropdown already supports typing-to-filter (same as the old text input), so no functionality is lost.
+  - Eliminates the need for per-concept `Concept-X.html` template files that existed only to suppress `editAsText`.
+  - The `editAsText` input remains accepted for backwards compatibility but is ignored.
+  - `#uniUpdateText` template removed from `atomic-object.component.html`; dead code (`editTextValue`, `uniTextValue()`, `onEditTextChange()`, `finishTextEdit()`) removed from `atomic-object.component.ts`.
+
 ## v2.1.0 (13 May 2026)
 
 * Bugfix `atomic-object`: in `cRud` mode with a non-UNI relation, existing atoms were never displayed — the column appeared empty even when backend data was present.
