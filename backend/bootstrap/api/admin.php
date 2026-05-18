@@ -28,6 +28,7 @@ $api->group('/admin', function () {
     $this->post('/resource/{resourceType}/rename', ResourceController::class . ':renameAtoms');
     $this->get('/execengine/run', ExecEngineController::class . ':run');
     $this->get('/ruleengine/evaluate/all', RuleEngineController::class . ':evaluateAllRules');
+    $this->get('/signals', RuleEngineController::class . ':getSignalViolations');
     $this->post('/import', PopulationController::class . ':importPopulationFromUpload');
 });
 

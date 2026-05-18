@@ -12,10 +12,17 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## v2.1.1 (unreleased)
 
-* Bugfix signal notifications: individual violation messages were never shown to the user — only the rule-level message was displayed.
-  - Root cause: in `logging-interceptor.ts`, the `violationMessages` string was built by iterating over `signal.violations[]` but then **discarded**; `sendMessage()` was called with only `field.message` and no `detail`.
-  - Fix: violation messages are now concatenated and passed as the `detail` parameter, analogous to how invariant violations are already displayed.
-  - Signal notifications are additionally made **sticky** (no auto-close, `sticky: true`). Because a signal demands user action, it must remain visible until the user explicitly dismisses it with the × button.
+* New feature: **dedicated signals page** — violations of MAINTAIN rules are no longer shown as transient toast notifications.
+  - Background: signal (process rule) violations were previously shown as blue toast messages in the corner of the screen. Individual violations were discarded; only the rule-level message was shown. Violations could not be inspected further.
+  - The new approach replaces toast messages with a **dedicated page at `/signals`**:
+    - All current signal violations are shown, grouped per rule (accordion), with the individual violation messages and clickable interface links per violation.
+    - Data is read directly from the conjunct violation cache (`__conj_violation_cache__` database table) via a new backend endpoint `GET /admin/signals`. This endpoint filters violations to the currently active roles (same as `checkProcessRules()`).
+    - The page has a "Ververs" button to refresh the data manually.
+  - A **badge icon** (⚠ with count) appears in the topbar whenever there are open signal violations. Clicking it navigates to `/signals`.
+  - `Signal` type in `notifications.interface.ts` is now exported so it can be used by other parts of the frontend.
+  - New `SignalService` (`signal.service.ts`) maintains the current signal state as a reactive `BehaviorSubject<Signal[]>`, updated by the interceptor and the signals page.
+  - `LoggingInterceptor`: instead of calling `sendSignalMessage()` for each signal, signals are now routed to `SignalService.update()`.
+  - New backend: `GET /admin/signals` in `RuleEngineController::getSignalViolations()`. No extra role requirement — only violations relevant to the active roles are returned.
 
 * `atomic-object`: `editAsText` input is now **deprecated** and has no effect.
   - The component always renders a `p-dropdown` with `[editable]="true"` for UNI updatable relations. This dropdown already supports typing-to-filter (same as the old text input), so no functionality is lost.

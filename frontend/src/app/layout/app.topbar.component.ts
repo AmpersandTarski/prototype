@@ -1,5 +1,8 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
+import { map } from 'rxjs/operators';
 import { LayoutService } from './service/app.layout.service';
+import { SignalService } from 'src/app/shared/services/signal.service';
+
 @Component({
   selector: 'app-topbar',
   templateUrl: './app.topbar.component.html',
@@ -12,5 +15,13 @@ export class AppTopBarComponent {
 
   @ViewChild('topbarmenu') menu!: ElementRef;
 
-  constructor(public layoutService: LayoutService) {}
+  /** Total number of individual violations across all signal rules */
+  readonly signalViolationCount$ = this.signalService.signals$.pipe(
+    map((signals) => signals.reduce((sum, s) => sum + s.violations.length, 0)),
+  );
+
+  constructor(
+    public layoutService: LayoutService,
+    public signalService: SignalService,
+  ) {}
 }

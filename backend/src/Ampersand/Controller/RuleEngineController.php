@@ -9,6 +9,28 @@ use Slim\Http\Response;
 
 class RuleEngineController extends AbstractController
 {
+    /**
+     * Return all signal violations for the currently active roles.
+     * Reads directly from the conjunct violation cache (the database table __conj_violation_cache__).
+     * No role required beyond being logged in — only signals for the active roles are returned.
+     */
+    public function getSignalViolations(Request $request, Response $response, array $args): Response
+    {
+        // Clear any previously accumulated notifications so we get a clean result
+        $this->app->userLog()->clearAll();
+
+        // Re-evaluate signals from the conjunct cache for the currently active roles
+        $this->app->checkProcessRules();
+
+        // Return only the signals part of the notification log
+        $all = $this->app->userLog()->getAll();
+        return $response->withJson(
+            $all['signals'],
+            200,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        );
+    }
+
     public function evaluateAllRules(Request $request, Response $response, array $args): Response
     {
         // Check for required role

@@ -31,7 +31,7 @@ type Invariant = {
   }>;
 };
 
-type Signal = {
+export type Signal = {
   message: string;
   violations: Array<{
     message: string;
