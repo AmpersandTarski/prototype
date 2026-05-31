@@ -38,13 +38,13 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   @Input() public placeholder!: string;
   @Input() public tgtResourceType!: string;
 
-  public conceptType: string = 'item';
+  public conceptType = 'item';
 
   get selectFrom() {
     return this.resource.selectFrom ?? [];
   }
   // Accept string from templates (e.g. mode="box-filtereddropdown") to avoid AOT enum binding error
-  @Input() mode: string = '';
+  @Input() mode = '';
   @Input() strict = false;
 
   /**
@@ -108,27 +108,26 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     return (this.data as any[]).map((item) => this.normalizeAtom(item)!);
   }
 
-  constructor(private interfacesLoader: InterfacesJsonService, private messageService: MessageService) {
+  constructor(
+    private interfacesLoader: InterfacesJsonService,
+    private messageService: MessageService,
+  ) {
     super();
   }
 
   override async ngOnInit(): Promise<void> {
-
     // In BOX<FILTEREDDROPDOWN> we'll use the crud, uni and tot from setRelation, not from the box itself
     if (this.mode === 'box-filtereddropdown') {
-
-
-    // When using this component, it should at least be readable, to be detected through testing the path.
-    if (!this.resource || !this.resource._path_) {
-
-      this.messageService.add({
-        severity: 'error',
-        summary: 'ADL error',
-        detail: 'Contents of BOX<FILTEREDDROPDOWN> are not readable. Has the BOX read property?',
-        life: 7000,
-
-      })
-      return // nothing more to do but don't let it break the page
+      // When using this component, it should at least be readable, to be detected through testing the path.
+      if (!this.resource || !this.resource._path_) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'ADL error',
+          detail:
+            'Contents of BOX<FILTEREDDROPDOWN> are not readable. Has the BOX read property?',
+          life: 7000,
+        });
+        return; // nothing more to do but don't let it break the page
       }
 
       // Validate required properties; show error message if either is missing
@@ -139,7 +138,8 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         this.messageService.add({
           severity: 'error',
           summary: 'ADL error',
-          detail: 'BOX<FILTEREDDROPDOWN> requires both setRelation and selectFrom properties defined.',
+          detail:
+            'BOX<FILTEREDDROPDOWN> requires both setRelation and selectFrom properties defined.',
           life: 7000,
         });
         return;
@@ -150,11 +150,19 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       let selectFrom: SubObjectMeta | null = null;
 
       try {
-        selectFrom = await this.interfacesLoader.findSubObject(this.resource._path_, 'selectFrom');
-        relation = await this.interfacesLoader.findSubObject(this.resource._path_, 'setRelation');
-
+        selectFrom = await this.interfacesLoader.findSubObject(
+          this.resource._path_,
+          'selectFrom',
+        );
+        relation = await this.interfacesLoader.findSubObject(
+          this.resource._path_,
+          'setRelation',
+        );
       } catch (error) {
-        console.error('Error finding setRelation or selectFrom in BOX-FILTEREDDROPDOWN:', error);
+        console.error(
+          'Error finding setRelation or selectFrom in BOX-FILTEREDDROPDOWN:',
+          error,
+        );
       }
 
       this.crud = relation?.crud ?? this.crud;
@@ -169,7 +177,8 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         this.messageService.add({
           severity: 'error',
           summary: 'ADL error',
-          detail: 'BOX-FILTEREDDROPDOWN requires equal types of setRelation and selectFrom.',
+          detail:
+            'BOX-FILTEREDDROPDOWN requires equal types of setRelation and selectFrom.',
           life: 7000,
         });
       }
@@ -180,9 +189,10 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       // Normalise scalar string atoms (ALPHANUMERIC) to ObjectBase shape so the
       // dropdown can use _id_ and _label_ uniformly.
       this.selectOptions = (this.selectFrom as any[]).map((item) =>
-        typeof item === 'string' ? ({ _id_: item, _label_: item } as ObjectBase) : item,
+        typeof item === 'string'
+          ? ({ _id_: item, _label_: item } as ObjectBase)
+          : item,
       ) as ObjectBase[];
-
     } else {
       // used as BOX<SOMETHING ELSE> or as atomic-object alone
 
@@ -197,7 +207,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       // UNI read-only uses resource[propertyName] directly and needs no signal init.
       if (!this.isUni) {
         this.selection.set(
-          this.mode === Mode.BoxFilteredDropdown ? this.normalizedData() : [...this.data]
+          this.mode === Mode.BoxFilteredDropdown
+            ? this.normalizedData()
+            : [...this.data],
         );
       }
       return;
@@ -220,10 +232,14 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           // non-object concept types; normalise them to ObjectBase so the
           // template can use ._label_ uniformly.
           if (this.isUni) {
-            this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
+            this.uniValue.set(
+              this.normalizeAtom(this.resource[this.propertyName]) ?? null,
+            );
           } else {
             this.selection.set(
-              this.mode === Mode.BoxFilteredDropdown ? this.normalizedData() : this.data
+              this.mode === Mode.BoxFilteredDropdown
+                ? this.normalizedData()
+                : this.data,
             );
           }
         }),
@@ -236,7 +252,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
               // See: https://github.com/AmpersandTarski/prototype/issues/298
               if (this.selectOptions !== undefined) {
                 this.selectOptions = (this.selectFrom as any[]).map((item) =>
-                  typeof item === 'string' ? ({ _id_: item, _label_: item } as ObjectBase) : item,
+                  typeof item === 'string'
+                    ? ({ _id_: item, _label_: item } as ObjectBase)
+                    : item,
                 ) as ObjectBase[];
                 return [...this.selectOptions];
               }
@@ -252,20 +270,21 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
         // Update uniValue signal when resource changes to trigger dynamicPlaceholder
         if (this.isUni) {
-          this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
+          this.uniValue.set(
+            this.normalizeAtom(this.resource[this.propertyName]) ?? null,
+          );
         } else {
           // In FDD mode normalise scalar atoms so the template can use ._label_
           this.selection.set(
             this.mode === Mode.BoxFilteredDropdown
               ? [...this.normalizedData()]
-              : [...this.data]
+              : [...this.data],
           );
         }
       });
   }
 
   override ngOnDestroy(): void {
-
     // Clean up ViewChild reference to prevent memory leaks
     if (this.dropdown) {
       // Clear the reference to help with garbage collection
@@ -275,7 +294,6 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   }
 
   private computeUniSelectableOptions(): ObjectBase[] {
-
     const allOptions = this.allOptions();
     const uniValue = this.uniValue();
     if (typeof uniValue !== 'string' || uniValue.trim().length === 0) {
@@ -289,7 +307,6 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   }
 
   private computeNonUniSelectableOptions(): ObjectBase[] {
-
     // In box-filtereddropdown mode, don't automatically remove selected items
     // Let the user control filtering through ADL expressions like eligible-projectMember
     let optionsToFilter: ObjectBase[];
@@ -317,33 +334,40 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   }
 
   private computePlaceholder(): string {
-    if (this.mode !== 'box-filtereddropdown' || this.selectOptions === undefined) {
+    if (
+      this.mode !== 'box-filtereddropdown' ||
+      this.selectOptions === undefined
+    ) {
       return this.placeholder; // use input placeholder for non-box mode
     }
 
     const conceptType = this.conceptType.toLowerCase();
 
     if (this.selectOptions.length === 0) {
-      return this.resource.noOptionsTxt ??
-             ` - No ${conceptType} to choose from - `;
+      return (
+        this.resource.noOptionsTxt ?? ` - No ${conceptType} to choose from - `
+      );
     }
 
     // For UNI + canUpdate case, show existing value if present instead of "- Add item -"
     // Use uniValue signal to trigger reactivity when resource changes
     const currentUniValue = this.uniValue();
-    if (this.isUni && this.canUpdate() && currentUniValue && typeof currentUniValue === 'object' && currentUniValue._label_) {
-
+    if (
+      this.isUni &&
+      this.canUpdate() &&
+      currentUniValue &&
+      typeof currentUniValue === 'object' &&
+      currentUniValue._label_
+    ) {
       // if a value is selected, show the current value as placeholder
       return currentUniValue._label_;
     } else {
-      return this.resource.emptyOption ??
-             ` - Add ${conceptType} - `;
+      return this.resource.emptyOption ?? ` - Add ${conceptType} - `;
     }
   }
 
   // used in uni case to get the selected object or null
   public selectableUniValue(): ObjectBase | null {
-
     const v = this.uniValue();
     // Only an object can be considered selected; strings/null are typing states
     if (!v || typeof v !== 'object') {
@@ -380,7 +404,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       .subscribe(() => {
         // Backend returns a scalar for ALPHANUMERIC/Datum/Integer atoms; normalise to ObjectBase
         // so that selectableUniValue() and computePlaceholder() can show the selected value.
-        this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
+        this.uniValue.set(
+          this.normalizeAtom(this.resource[this.propertyName]) ?? null,
+        );
       });
   }
 
@@ -423,7 +449,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     const trimmed = current.trim();
     if (!trimmed) {
       // Backend may return a scalar; normalise before storing in uniValue
-      this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
+      this.uniValue.set(
+        this.normalizeAtom(this.resource[this.propertyName]) ?? null,
+      );
       return;
     }
     // Look for an exact label match (case-insensitive) in the current option list
@@ -440,7 +468,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
       this.createAndAdd(trimmed);
     } else {
       // c – reset to the last value committed to the server (normalised)
-      this.uniValue.set(this.normalizeAtom(this.resource[this.propertyName]) ?? null);
+      this.uniValue.set(
+        this.normalizeAtom(this.resource[this.propertyName]) ?? null,
+      );
     }
   }
 
@@ -465,7 +495,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
         this.selection.set(
           this.mode === Mode.BoxFilteredDropdown
             ? [...this.normalizedData()]
-            : [...this.data]
+            : [...this.data],
         );
       });
   }
@@ -514,7 +544,9 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
     // For UNI relations: use 'replace' when a value already exists, 'add' otherwise.
     const patchOp =
-      this.isUni && this.resource[this.propertyName] != null ? 'replace' : 'add';
+      this.isUni && this.resource[this.propertyName] != null
+        ? 'replace'
+        : 'add';
 
     this.interfaceComponent
       .patch(this.resource._path_, [
@@ -533,15 +565,21 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
         // grab new item; in FDD mode data items may be scalars, so normalise first
         const foundRaw = (this.data as any[]).find((item) =>
-          typeof item === 'string' ? item === trimmedValue
-          : typeof item === 'number' ? String(item) === trimmedValue
-          : item._id_ === trimmedValue
+          typeof item === 'string'
+            ? item === trimmedValue
+            : typeof item === 'number'
+            ? String(item) === trimmedValue
+            : item._id_ === trimmedValue,
         );
-        const newItem: ObjectBase = foundRaw !== undefined
-          ? (typeof foundRaw === 'string' || typeof foundRaw === 'number'
-            ? { _id_: String(foundRaw), _label_: String(foundRaw) } as ObjectBase
-            : { ...foundRaw })
-          : { _id_: trimmedValue, _label_: trimmedValue } as ObjectBase;
+        const newItem: ObjectBase =
+          foundRaw !== undefined
+            ? typeof foundRaw === 'string' || typeof foundRaw === 'number'
+              ? ({
+                  _id_: String(foundRaw),
+                  _label_: String(foundRaw),
+                } as ObjectBase)
+              : { ...foundRaw }
+            : ({ _id_: trimmedValue, _label_: trimmedValue } as ObjectBase);
 
         // add new item to allOptions
         this.allOptions.update((options) =>
@@ -568,7 +606,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           this.selection.set(
             this.mode === Mode.BoxFilteredDropdown
               ? [...this.normalizedData()]
-              : [...this.data]
+              : [...this.data],
           );
         }
       });
@@ -577,9 +615,12 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   public remove(index = 0) {
     // In FDD mode data items may be plain scalars; extract the atom id correctly
     const rawItem = (this.data as any[])[index];
-    const id = typeof rawItem === 'string' ? rawItem
-             : typeof rawItem === 'number' ? String(rawItem)
-             : rawItem._id_;
+    const id =
+      typeof rawItem === 'string'
+        ? rawItem
+        : typeof rawItem === 'number'
+        ? String(rawItem)
+        : rawItem._id_;
 
     this.interfaceComponent
       .patch(this.resource._path_, [
@@ -596,7 +637,7 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
           this.selection.set(
             this.mode === Mode.BoxFilteredDropdown
               ? [...this.normalizedData()]
-              : [...this.data]
+              : [...this.data],
           );
         }
       });
@@ -609,9 +650,12 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
 
     // In FDD mode data items may be plain scalars; extract the atom id correctly
     const rawItem = (this.data as any[])[index];
-    const id = typeof rawItem === 'string' ? rawItem
-             : typeof rawItem === 'number' ? String(rawItem)
-             : rawItem._id_;
+    const id =
+      typeof rawItem === 'string'
+        ? rawItem
+        : typeof rawItem === 'number'
+        ? String(rawItem)
+        : rawItem._id_;
 
     this.interfaceComponent
       .delete(`${this.resource._path_}/${this.propertyName}/${id}`)
@@ -625,16 +669,21 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
             this.uniValue.set(null);
           } else {
             // Remove deleted item from underlying data; handle scalar atoms in FDD mode
-            this.resource[this.propertyName] = (this.data as any[]).filter((option) => {
-              const optId = typeof option === 'string' ? option
-                          : typeof option === 'number' ? String(option)
-                          : option._id_;
-              return optId !== id;
-            });
+            this.resource[this.propertyName] = (this.data as any[]).filter(
+              (option) => {
+                const optId =
+                  typeof option === 'string'
+                    ? option
+                    : typeof option === 'number'
+                    ? String(option)
+                    : option._id_;
+                return optId !== id;
+              },
+            );
             this.selection.set(
               this.mode === Mode.BoxFilteredDropdown
                 ? [...this.normalizedData()]
-                : [...this.data]
+                : [...this.data],
             );
           }
 
@@ -667,7 +716,6 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
     }
 
     if (this.isUni) {
-
       // In the Uni Tot case there is always one selected item
       // and that item cannot be deleted nor removed. It can only be replaced through update or create.
       // so this statement should actually always be false:

@@ -12,6 +12,15 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## v2.1.1 (unreleased)
 
+* New feature: **admin mode / production environment** — developer and model-debugging interfaces are hidden by default.
+  - Background: interfaces from `PrototypeContext.*` (Installer, population management, rule/relation inspectors, etc.) were always shown in the navigation menu, also in deployments meant for end users.
+  - A new backend setting `global.productionEnv` is exposed to the frontend via the navbar response (`SessionController`). When set, `AngularJSApp::getNavMenuItems()` filters out every interface whose name starts with `PrototypeContext.`.
+  - The frontend adds an **"Admin" toggle** (`p-inputSwitch`) in the topbar. `MenuService` keeps the admin-mode state in a `BehaviorSubject`, persisted in `sessionStorage`, and exposes `getNavbar()`.
+  - `app.menu.component` rebuilds the menu from the navbar: developer interfaces (`PrototypeContext.*`) and the admin menu items are only shown when admin mode is active **and** the app is not in production. In production the toggle has no effect.
+  - `Navbar` type (`navbar.interface.ts`) gains an optional `productionEnv` field.
+
+* Code style: project-wide **Prettier reformatting** of the frontend (line wrapping, trailing commas, `var` → `const`, import wrapping). No behavioural changes. Added `eslint-plugin-storybook` dev dependency.
+
 * New feature: **dedicated signals page** — violations of MAINTAIN rules are no longer shown as transient toast notifications.
   - Background: signal (process rule) violations were previously shown as blue toast messages in the corner of the screen. Individual violations were discarded; only the rule-level message was shown. Violations could not be inspected further.
   - The new approach replaces toast messages with a **dedicated page at `/signals`**:

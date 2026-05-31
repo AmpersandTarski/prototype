@@ -65,10 +65,16 @@ export class IfcsDropdownComponent implements OnInit {
    * navigate directly without showing the dropdown.
    * Otherwise toggle the overlay panel.
    */
-  handleClick(event: Event, dropdown: { toggle: (event: Event) => void }): void {
+  handleClick(
+    event: Event,
+    dropdown: { toggle: (event: Event) => void },
+  ): void {
     const ifcs = this.filteredIfcs();
     if (ifcs.length === 1 && this.processedExternalLinks.length === 0) {
-      this.router.navigate(['/' + this.routeMap[ifcs[0].id], this.resource?._id_]);
+      this.router.navigate([
+        '/' + this.routeMap[ifcs[0].id],
+        this.resource?._id_,
+      ]);
       return;
     }
     dropdown.toggle(event);

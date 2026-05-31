@@ -11,9 +11,11 @@ import { BaseComponent } from '../BaseComponent.class';
   template: '',
 })
 export abstract class BaseBoxComponent<
-  TItem extends ObjectBase,
-  I extends ObjectBase | ObjectBase[],
-> extends BaseComponent implements OnInit
+    TItem extends ObjectBase,
+    I extends ObjectBase | ObjectBase[],
+  >
+  extends BaseComponent
+  implements OnInit
 {
   @Input() resource!: ObjectBase & { [key: string]: any };
   @Input({ required: true }) propertyName: string;
@@ -69,18 +71,21 @@ export abstract class BaseBoxComponent<
   }
 
   public createItem(): void {
-    const path: string = `${this.resource._path_}/${this.propertyName}`;
+    const path = `${this.resource._path_}/${this.propertyName}`;
     const propertyField = this.isRootBox ? 'data' : this.propertyName;
-    this.interfaceComponent.post(path).pipe(takeUntil(this.destroy$)).subscribe((x) => {
-      if (this.isUni) {
-        this.resource[propertyField] = x.content as TItem;
-      } else {
-        if (!this.resource[propertyField]) {
-          this.resource[propertyField] = [];
+    this.interfaceComponent
+      .post(path)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((x) => {
+        if (this.isUni) {
+          this.resource[propertyField] = x.content as TItem;
+        } else {
+          if (!this.resource[propertyField]) {
+            this.resource[propertyField] = [];
+          }
+          this.resource[propertyField].unshift(x.content as TItem);
         }
-        this.resource[propertyField].unshift(x.content as TItem);
-      }
-    });
+      });
   }
 
   public addItem() {
@@ -100,7 +105,9 @@ export abstract class BaseBoxComponent<
           // Refresh the dropdown from scratch (like removeItem does) so that
           // stale tap-operators don't accumulate and previously-selected items
           // are correctly restored to the list.
-          this.dropdownMenuObjects$ = this.getDropdownMenuItems(this.tgtResourceType);
+          this.dropdownMenuObjects$ = this.getDropdownMenuItems(
+            this.tgtResourceType,
+          );
           this.newItemControl.setValue({} as ObjectBase);
         }
       });
@@ -127,14 +134,17 @@ export abstract class BaseBoxComponent<
   public deleteItem(item: TItem): void {
     if (!confirm('Delete?')) return;
 
-    this.interfaceComponent.delete(item._path_).pipe(takeUntil(this.destroy$)).subscribe((x) => {
-      if (x.isCommitted && x.invariantRulesHold) {
-        const index = this.data.indexOf(item);
-        if (index != -1) {
-          this.data.splice(index, 1);
+    this.interfaceComponent
+      .delete(item._path_)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((x) => {
+        if (x.isCommitted && x.invariantRulesHold) {
+          const index = this.data.indexOf(item);
+          if (index != -1) {
+            this.data.splice(index, 1);
+          }
         }
-      }
-    });
+      });
   }
 
   private getDropdownMenuItems(
@@ -145,7 +155,10 @@ export abstract class BaseBoxComponent<
     objects = objects.pipe(
       map((dropdownobjects) =>
         dropdownobjects.filter(
-          (object) => !this.filterNullish(this.data).map((y) => y._id_).includes(object._id_),
+          (object) =>
+            !this.filterNullish(this.data)
+              .map((y) => y._id_)
+              .includes(object._id_),
         ),
       ),
     );

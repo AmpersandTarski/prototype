@@ -10,21 +10,21 @@ describe('RolesGuard', () => {
 
   beforeEach(() => {
     const rolesServiceMock = {
-      isRole: jest.fn().mockReturnValue(of(true))
+      isRole: jest.fn().mockReturnValue(of(true)),
     };
 
     const routerMock = {
-      navigate: jest.fn()
+      navigate: jest.fn(),
     };
 
     TestBed.configureTestingModule({
       providers: [
         RolesGuard,
         { provide: RolesService, useValue: rolesServiceMock },
-        { provide: Router, useValue: routerMock }
-      ]
+        { provide: Router, useValue: routerMock },
+      ],
     });
-    
+
     guard = TestBed.inject(RolesGuard);
   });
 

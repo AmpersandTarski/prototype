@@ -1,17 +1,36 @@
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, of, share, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
+import {
+  catchError,
+  map,
+  Observable,
+  of,
+  share,
+  Subject,
+  switchMap,
+  takeUntil,
+  tap,
+  throwError,
+} from 'rxjs';
 import { ObjectBase } from '../objectBase.interface';
 import { Patch, PatchValue } from './patch.interface';
 import { PatchResponse } from './patch-response.interface';
 import { DeleteResponse } from './delete-response.interface';
 import { CreateResponse } from './create-response.interface';
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+} from '@angular/core';
 import { mergeDeep } from 'src/app/shared/helper/deepmerge';
 import { MessageService } from 'primeng/api';
 import { ResourcePath } from '../helper/resource-path';
 
 @Component({ template: '' })
-export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> implements OnDestroy {
+export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
+  implements OnDestroy
+{
   @Input() resourceId?: string;
   public resource: ObjectBase & {
     data: T;

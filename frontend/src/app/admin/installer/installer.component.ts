@@ -64,7 +64,10 @@ export class InstallerComponent extends BaseComponent {
     buttonState.loading = true;
     this.installerService
       .getReinstall(defaultPop, ignoreInvariants)
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => {
@@ -77,7 +80,10 @@ export class InstallerComponent extends BaseComponent {
   updateChecksum(buttonState: ButtonState): void {
     this.installerService
       .getChecksumUpdate()
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
