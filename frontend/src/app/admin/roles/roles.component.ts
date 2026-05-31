@@ -22,23 +22,29 @@ export class RolesComponent extends BaseComponent implements OnInit {
   }
 
   private loadOrCreateMenu() {
-    this.rolesService.getRoles().pipe(takeUntil(this.destroy$)).subscribe((roles) => {
-      // maps the roles into menuItems
-      this.menuItems = roles.map((role, index) => ({
-        label: role.label,
-        icon: role.active ? 'pi pi-check-circle' : 'pi pi-circle-off',
-        command: () => this.patchRole(roles, index),
-      }));
-    });
+    this.rolesService
+      .getRoles()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((roles) => {
+        // maps the roles into menuItems
+        this.menuItems = roles.map((role, index) => ({
+          label: role.label,
+          icon: role.active ? 'pi pi-check-circle' : 'pi pi-circle-off',
+          command: () => this.patchRole(roles, index),
+        }));
+      });
   }
 
   private patchRole(roles: Array<SessionRole>, index: number): void {
-    this.rolesService.patchRole(roles, index).pipe(takeUntil(this.destroy$)).subscribe((x) =>
-      // updates menuItems' icon
-      x[index].active
-        ? (this.menuItems[index].icon = 'pi pi-check-circle')
-        : (this.menuItems[index].icon = 'pi pi-circle-off'),
-    );
+    this.rolesService
+      .patchRole(roles, index)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((x) =>
+        // updates menuItems' icon
+        x[index].active
+          ? (this.menuItems[index].icon = 'pi pi-check-circle')
+          : (this.menuItems[index].icon = 'pi pi-circle-off'),
+      );
     this.loadOrCreateMenu();
   }
 }

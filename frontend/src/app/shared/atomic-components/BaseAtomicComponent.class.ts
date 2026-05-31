@@ -1,9 +1,4 @@
-import {
-  Component,
-  Input,
-  OnInit,
-  booleanAttribute,
-} from '@angular/core';
+import { Component, Input, OnInit, booleanAttribute } from '@angular/core';
 import { takeUntil } from 'rxjs/operators';
 import { AmpersandInterfaceComponent } from '../interfacing/ampersand-interface.class';
 import { ObjectBase } from '../objectBase.interface';
@@ -46,7 +41,6 @@ export abstract class BaseAtomicComponent<
 
   ngOnInit(): void {
     if (!(this.propertyName in this.resource)) {
-
       throw new Error(
         `Property '${this.propertyName}' not defined for object in '${this.resource._path_}'. It is likely that the backend data model is not in sync with the generated frontend.`,
       );
@@ -74,9 +68,9 @@ export abstract class BaseAtomicComponent<
   }
 
   get data(): T[] {
-  if (typeof this.resource !== 'object') {
-    return [];
-  }
+    if (typeof this.resource !== 'object') {
+      return [];
+    }
 
     return this.requireArray(this.resource[this.propertyName]);
   }
@@ -99,7 +93,7 @@ export abstract class BaseAtomicComponent<
     this.interfaceComponent
       .patch(this.resource._path_, [
         { op: 'remove', path: `${this.propertyName}/${oldValue}` },
-        { op: 'add',    path: this.propertyName, value: newValue },
+        { op: 'add', path: this.propertyName, value: newValue },
       ])
       .pipe(takeUntil(this.destroy$))
       .subscribe();

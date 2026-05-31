@@ -23,7 +23,10 @@
     <div
         *ngIf="canRemove"
         class="pi pi-fw pi-minus"
-        [ngStyle]="{ color: data[index] != null ? 'red' : 'grey', cursor: data[index] != null ? 'pointer' : 'default' }"
+        [ngStyle]="{
+            color: data[index] != null ? 'red' : 'grey',
+            cursor: data[index] != null ? 'pointer' : 'default'
+        }"
         (click)="data[index] != null && removeItem(index)"
         pTooltip="Remove"
         tooltipPosition="left"
@@ -55,10 +58,23 @@
 <ng-template #uniEdit>
     <div style="display: flex; align-items: center; gap: 4px">
         <!-- U → minus: verborgen bij isTot (mag niet worden losgekoppeld) -->
-        <ng-container *ngTemplateOutlet="removeButton; context: { $implicit: 0, canRemove: canUpdate() && !isTot }">
+        <ng-container
+            *ngTemplateOutlet="
+                removeButton;
+                context: { $implicit: 0, canRemove: canUpdate() && !isTot }
+            "
+        >
         </ng-container>
         <!-- D → prullenbak: verborgen bij isTot als er een waarde aanwezig is -->
-        <ng-container *ngTemplateOutlet="deleteButton; context: { $implicit: 0, showDelete: canDelete() && !(isTot && resource[propertyName]) }">
+        <ng-container
+            *ngTemplateOutlet="
+                deleteButton;
+                context: {
+                    $implicit: 0,
+                    showDelete: canDelete() && !(isTot && resource[propertyName])
+                }
+            "
+        >
         </ng-container>
         <input
             type="text"
@@ -72,7 +88,7 @@
         />
         <!-- Datalist levert browser-native autocomplete dropdown met bekende atomen -->
         <datalist [id]="'opts-uni-' + propertyName">
-            <option *ngFor="let opt of (options ?? [])" [value]="opt"></option>
+            <option *ngFor="let opt of options ?? []" [value]="opt"></option>
         </datalist>
     </div>
 </ng-template>
@@ -81,10 +97,20 @@
 <ng-template #list>
     <div *ngFor="let row of data; let i = index">
         <!-- U → minus: verborgen bij isTot als dit het laatste item is -->
-        <ng-container *ngTemplateOutlet="removeButton; context: { $implicit: i, canRemove: canUpdate() && (!isTot || data.length > 1) }">
+        <ng-container
+            *ngTemplateOutlet="
+                removeButton;
+                context: { $implicit: i, canRemove: canUpdate() && (!isTot || data.length > 1) }
+            "
+        >
         </ng-container>
         <!-- D → prullenbak: verborgen bij isTot als dit het laatste item is -->
-        <ng-container *ngTemplateOutlet="deleteButton; context: { $implicit: i, showDelete: canDelete() && (!isTot || data.length > 1) }">
+        <ng-container
+            *ngTemplateOutlet="
+                deleteButton;
+                context: { $implicit: i, showDelete: canDelete() && (!isTot || data.length > 1) }
+            "
+        >
         </ng-container>
         <!-- U → bewerkbaar tekstveld met autocomplete; anders platte tekst -->
         <input
@@ -99,7 +125,7 @@
         />
         <!-- Datalist levert browser-native autocomplete dropdown met bekende atomen -->
         <datalist *ngIf="canUpdate()" [id]="'opts-' + propertyName + '-' + i">
-            <option *ngFor="let opt of (options ?? [])" [value]="opt"></option>
+            <option *ngFor="let opt of options ?? []" [value]="opt"></option>
         </datalist>
         <span *ngIf="!canUpdate()" style="padding-left: 9px">{{ row }}</span>
     </div>

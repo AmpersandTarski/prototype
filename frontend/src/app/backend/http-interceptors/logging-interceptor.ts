@@ -51,7 +51,7 @@ export class LoggingInterceptor implements HttpInterceptor {
 
           // Let import requests handle their own messaging - don't show automatic notifications
           const isImportRequest = req.url.includes('admin/import');
-          
+
           // If notifications have been found, the error field exists (possibly with empty array, but it exists)
           if (notifications.errors && !isImportRequest)
             this.sendMessagesFromNotifications(notifications);

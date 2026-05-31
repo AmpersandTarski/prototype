@@ -9,10 +9,10 @@ import { InterfacesJsonService } from '../../services/interfaces-json.service';
   templateUrl: './atomic-alphanumeric.component.html',
   styleUrls: ['./atomic-alphanumeric.component.css'],
 })
-export class AtomicAlphanumericComponent<
-  I extends ObjectBase | ObjectBase[],
-> extends BaseAtomicComponent<string, I> implements OnInit {
-
+export class AtomicAlphanumericComponent<I extends ObjectBase | ObjectBase[]>
+  extends BaseAtomicComponent<string, I>
+  implements OnInit
+{
   /**
    * Beschikbare atomen voor autocomplete, opgehaald van de backend.
    * null = nog niet geladen of fetch mislukt (geen validatie mogelijk).

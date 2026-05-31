@@ -15,14 +15,14 @@ export class SignalService {
   private signalsSubject = new BehaviorSubject<Signal[]>([]);
 
   /** Observable of the current signals — subscribe to get live updates */
-  public readonly signals$: Observable<Signal[]> = this.signalsSubject.asObservable();
+  public readonly signals$: Observable<Signal[]> =
+    this.signalsSubject.asObservable();
 
   /** Total number of individual violations across all signal rules */
   public get violationCount(): number {
-    return this.signalsSubject.getValue().reduce(
-      (sum, signal) => sum + signal.violations.length,
-      0,
-    );
+    return this.signalsSubject
+      .getValue()
+      .reduce((sum, signal) => sum + signal.violations.length, 0);
   }
 
   constructor(private http: HttpClient) {}

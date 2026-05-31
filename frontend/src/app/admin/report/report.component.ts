@@ -56,7 +56,10 @@ export class ReportComponent extends BaseComponent {
     buttonState.loading = true;
     this.reportService
       .getRelations()
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -72,7 +75,10 @@ export class ReportComponent extends BaseComponent {
     buttonState.loading = true;
     this.reportService
       .getConjunctUsage()
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -88,7 +94,10 @@ export class ReportComponent extends BaseComponent {
     buttonState.loading = true;
     this.reportService
       .getConjunctPerformance()
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -104,7 +113,10 @@ export class ReportComponent extends BaseComponent {
     buttonState.loading = true;
     this.reportService
       .getInterfaces()
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -120,7 +132,10 @@ export class ReportComponent extends BaseComponent {
     buttonState.loading = true;
     this.reportService
       .getInterfaceIssues()
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),

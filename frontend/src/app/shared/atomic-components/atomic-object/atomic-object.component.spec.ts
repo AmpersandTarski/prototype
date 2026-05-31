@@ -1,7 +1,7 @@
-import {EventEmitter} from '@angular/core';
-import {of} from 'rxjs';
-import {AtomicObjectComponent} from './atomic-object.component';
-import {ObjectBase} from '../../objectBase.interface';
+import { EventEmitter } from '@angular/core';
+import { of } from 'rxjs';
+import { AtomicObjectComponent } from './atomic-object.component';
+import { ObjectBase } from '../../objectBase.interface';
 
 // Mock AmpersandInterfaceComponent
 class MockAmpersandInterfaceComponent {
@@ -73,12 +73,13 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       isLoaded: jest.fn().mockReturnValue(true),
       loadInterfaces: jest.fn().mockResolvedValue(undefined),
       getInterfaces: jest.fn().mockReturnValue([]),
-      mapResourcePathToInterfaces: jest.fn()
+      mapResourcePathToInterfaces: jest.fn(),
     };
 
     // Create component instance directly with mock service
-    component = new AtomicObjectComponent<ObjectBase | ObjectBase[]>(   mockMessageService as any,
-      mockChangeDetectorRef as any
+    component = new AtomicObjectComponent<ObjectBase | ObjectBase[]>(
+      mockMessageService as any,
+      mockChangeDetectorRef as any,
     );
     // Create mock dependencies
     mockMessageService = new MockMessageService();
@@ -1165,10 +1166,7 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
       // This is where the 'object object' bug typically manifests
       const refreshedComponent = new AtomicObjectComponent<
         ObjectBase | ObjectBase[]
-      >(
-        mockMessageService as any,
-        mockChangeDetectorRef as any
-      );
+      >(mockMessageService as any, mockChangeDetectorRef as any);
       refreshedComponent.property = component.property;
       refreshedComponent.resource = { ...component.resource }; // Copy current state
       refreshedComponent.propertyName = component.propertyName;
@@ -1191,7 +1189,6 @@ describe('AtomicObjectComponent - Comprehensive Coverage (excluding selectOption
 
       // Initialize the refreshed component (simulates page refresh)
       refreshedComponent.ngOnInit();
-
 
       // Verify: Check that the dropdown options contain proper labels, not 'object object'
       const allOptions = refreshedComponent.allOptions();

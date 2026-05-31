@@ -98,10 +98,19 @@ class AngularJSApp implements FrontendInterface
 
     public function getNavMenuItems(): array
     {
-        return ResourceList::makeFromInterface(
+        $navs = ResourceList::makeFromInterface(
             $this->ampersandApp->getSession()->getSessionAtom()->getId(),
             ProtoContext::IFC_MENU_ITEMS
         )->get(Options::INCLUDE_NOTHING);
+
+        // Filter out developer / model-debugging interfaces when in production mode
+        if ($this->ampersandApp->getSettings()->get('global.productionEnv')) {
+            $navs = array_filter($navs, function ($nav) {
+                return !isset($nav['ifc']) || !str_starts_with($nav['ifc'], 'PrototypeContext.');
+            });
+        }
+
+        return array_values($navs);
     }
 
     public function getNavToResponse($case): ?string

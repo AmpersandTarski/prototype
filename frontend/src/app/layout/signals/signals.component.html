@@ -1,96 +1,102 @@
 <div class="grid">
-  <div class="col-12">
-    <p-card>
-      <ng-template pTemplate="header">
-        <div class="flex align-items-center justify-content-between p-3">
-          <div class="flex align-items-center gap-2">
-            <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl"></i>
-            <span class="text-xl font-semibold">Openstaande signalen</span>
-            <p-badge
-              *ngIf="totalViolations > 0"
-              [value]="totalViolations.toString()"
-              severity="warning"
-            ></p-badge>
-          </div>
-          <p-button
-            icon="pi pi-refresh"
-            label="Ververs"
-            severity="secondary"
-            [loading]="loading"
-            (onClick)="load()"
-          ></p-button>
-        </div>
-      </ng-template>
-
-      <!-- Loading state -->
-      <div *ngIf="loading" class="flex justify-content-center p-4">
-        <i class="pi pi-spin pi-spinner text-3xl text-primary"></i>
-      </div>
-
-      <!-- Error state -->
-      <p-message
-        *ngIf="loadError"
-        severity="error"
-        [text]="loadError"
-        styleClass="w-full mb-3"
-      ></p-message>
-
-      <!-- No signals -->
-      <div *ngIf="!loading && !loadError && signals.length === 0" class="p-4 text-center">
-        <i class="pi pi-check-circle text-green-500 text-4xl mb-3 block"></i>
-        <p class="text-lg text-color-secondary">Geen openstaande signalen. Alles in orde!</p>
-      </div>
-
-      <!-- Signals accordion -->
-      <p-accordion *ngIf="!loading && signals.length > 0" [multiple]="true">
-        <p-accordionTab *ngFor="let signal of signals">
-          <ng-template pTemplate="header">
-            <div class="flex align-items-center gap-2 w-full">
-              <i class="pi pi-exclamation-circle text-yellow-500"></i>
-              <span class="font-medium flex-1">{{ signal.message }}</span>
-              <p-badge
-                [value]="signal.violations.length.toString()"
-                severity="warning"
-                styleClass="ml-2"
-              ></p-badge>
-            </div>
-          </ng-template>
-          <ng-template pTemplate="content">
-            <p-table
-              [value]="signal.violations"
-              styleClass="p-datatable-sm p-datatable-gridlines"
-              [tableStyle]="{ 'min-width': '100%' }"
-            >
-              <ng-template pTemplate="header">
-                <tr>
-                  <th>Overtreding</th>
-                  <th style="width: 30%">Navigeer naar</th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-violation>
-                <tr>
-                  <td>{{ violation.message }}</td>
-                  <td>
-                    <div class="flex flex-wrap gap-2">
-                      <a
-                        *ngFor="let ifc of violation.ifcs"
-                        [href]="ifc.link"
-                        class="p-button p-button-sm p-button-outlined p-button-info no-underline"
-                        style="text-decoration: none;"
-                      >
-                        <i class="pi pi-external-link mr-1"></i>{{ ifc.label }}
-                      </a>
-                      <span *ngIf="violation.ifcs.length === 0" class="text-color-secondary text-sm">
-                        (geen interface beschikbaar)
-                      </span>
+    <div class="col-12">
+        <p-card>
+            <ng-template pTemplate="header">
+                <div class="flex align-items-center justify-content-between p-3">
+                    <div class="flex align-items-center gap-2">
+                        <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl"></i>
+                        <span class="text-xl font-semibold">Openstaande signalen</span>
+                        <p-badge
+                            *ngIf="totalViolations > 0"
+                            [value]="totalViolations.toString()"
+                            severity="warning"
+                        ></p-badge>
                     </div>
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </ng-template>
-        </p-accordionTab>
-      </p-accordion>
-    </p-card>
-  </div>
+                    <p-button
+                        icon="pi pi-refresh"
+                        label="Ververs"
+                        severity="secondary"
+                        [loading]="loading"
+                        (onClick)="load()"
+                    ></p-button>
+                </div>
+            </ng-template>
+
+            <!-- Loading state -->
+            <div *ngIf="loading" class="flex justify-content-center p-4">
+                <i class="pi pi-spin pi-spinner text-3xl text-primary"></i>
+            </div>
+
+            <!-- Error state -->
+            <p-message
+                *ngIf="loadError"
+                severity="error"
+                [text]="loadError"
+                styleClass="w-full mb-3"
+            ></p-message>
+
+            <!-- No signals -->
+            <div *ngIf="!loading && !loadError && signals.length === 0" class="p-4 text-center">
+                <i class="pi pi-check-circle text-green-500 text-4xl mb-3 block"></i>
+                <p class="text-lg text-color-secondary">
+                    Geen openstaande signalen. Alles in orde!
+                </p>
+            </div>
+
+            <!-- Signals accordion -->
+            <p-accordion *ngIf="!loading && signals.length > 0" [multiple]="true">
+                <p-accordionTab *ngFor="let signal of signals">
+                    <ng-template pTemplate="header">
+                        <div class="flex align-items-center gap-2 w-full">
+                            <i class="pi pi-exclamation-circle text-yellow-500"></i>
+                            <span class="font-medium flex-1">{{ signal.message }}</span>
+                            <p-badge
+                                [value]="signal.violations.length.toString()"
+                                severity="warning"
+                                styleClass="ml-2"
+                            ></p-badge>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="content">
+                        <p-table
+                            [value]="signal.violations"
+                            styleClass="p-datatable-sm p-datatable-gridlines"
+                            [tableStyle]="{ 'min-width': '100%' }"
+                        >
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th>Overtreding</th>
+                                    <th style="width: 30%">Navigeer naar</th>
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="body" let-violation>
+                                <tr>
+                                    <td>{{ violation.message }}</td>
+                                    <td>
+                                        <div class="flex flex-wrap gap-2">
+                                            <a
+                                                *ngFor="let ifc of violation.ifcs"
+                                                [href]="ifc.link"
+                                                class="p-button p-button-sm p-button-outlined p-button-info no-underline"
+                                                style="text-decoration: none"
+                                            >
+                                                <i class="pi pi-external-link mr-1"></i
+                                                >{{ ifc.label }}
+                                            </a>
+                                            <span
+                                                *ngIf="violation.ifcs.length === 0"
+                                                class="text-color-secondary text-sm"
+                                            >
+                                                (geen interface beschikbaar)
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </ng-template>
+                </p-accordionTab>
+            </p-accordion>
+        </p-card>
+    </div>
 </div>
