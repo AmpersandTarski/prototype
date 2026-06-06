@@ -84,6 +84,40 @@ RELATION dekkingEisNummer[LandeneisenDekking*EisNummer]
 
 **Dit levert op runtime fouten op zoals:** `Relation 'dekkingEisNummer[Dekking*EisNummer]' is not defined`
 
+## MEERVOUDIGE VELDEN (multi-column import)
+
+Ook de **runtime-importer** ondersteunt meervoudige velden, op dezelfde manier als de Ampersand-compiler. Eén cel kan dan meerdere atomen bevatten, gescheiden door een separator.
+
+### Syntax: separator in de tweede rij (conceptrij)
+Zet de conceptnaam tussen rechte haken met de separator vlak vóór de `]`:
+```
+[Product]   | eppoCode
+Product     | [EPPOcode,]
+pr00001     | LYPES, SOLLY, SOLNI
+```
+- `[EPPOcode,]` = doelconcept `EPPOcode`, separator `,`.
+- De cel `LYPES, SOLLY, SOLNI` levert drie paren: `(pr00001,LYPES)`, `(pr00001,SOLLY)`, `(pr00001,SOLNI)`.
+- Elke waarde wordt **getrimd**; **lege** waarden (door dubbele of trailing separators) worden weggelaten.
+- Elke separator mag (`,`, `/`, `;`, …): het is het teken vlak vóór de `]`.
+
+### Ook op de bronkolom (kolom A, rij 2) → cartesisch product
+```
+[Skill]      | related
+[Skill,]     | Skill
+alpha, beta  | gamma
+```
+→ `(alpha,gamma)`, `(beta,gamma)`.
+
+### Belangrijk: botsing met blok-detectie
+Een `[...]`-cel in kolom A start normaal een nieuw blok. Een `[Concept,]` op de **conceptrij** (rij 2, direct ónder de blokstart `[Concept]`) wordt NIET als nieuw blok gezien, omdat de cel erboven óók bracketed is. (Gelijk aan de Haskell-importer-regel `isStartOfTable`.)
+
+### Datums
+Een datumcel wordt nooit gesplitst (die is numeriek), ook niet met een separator.
+
+### Regressietest
+- `test/unit/ExcelImporterMultiValueTest.php` — zelfstandige PHP-test (parse/split + blok-detectie).
+- `test/projects/import-multivalue/` — model + `e2e/run.sh` voor de DB-laag.
+
 ## BOOLEAN waarden vs PROP relaties
 
 ### PROP Relaties (Eigenschappen)
