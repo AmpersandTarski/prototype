@@ -72,6 +72,9 @@ class ExcelImporter
      * Row 2    | <Atom a1>       | <tgtAtom b1>    | <tgtAtom c1>    | etc
      * Row 3    | <Atom a2>       | <tgtAtom b2>    | <tgtAtom c2>    | etc
      * etc
+     *
+     * A column header may use the '[label<delim>]' syntax (e.g. '[Role,]') to indicate that
+     * its cells contain multiple values separated by the given delimiter.
      */
     protected function parseWorksheetWithIfc(Worksheet $worksheet, Ifc $ifc): void
     {
@@ -106,11 +109,14 @@ class ExcelImporter
             $cellvalue = (string)$worksheet->getCell($columnLetter . '1')->getCalculatedValue();
             
             if ($cellvalue !== '') {
+                // A column may hold multiple values per cell, using the '[label<delim>]' syntax
+                // (e.g. '[Role,]'), just like the multi-value columns of the relation-based importer.
+                [$label, $delimiter] = $this->parseHeaderWithOptionalDelimiter($cellvalue);
                 try {
-                    $subIfcObj = $ifc->getIfcObject()->getSubinterfaceByLabel($cellvalue);
-                    $dataColumns[$columnLetter] = $subIfcObj;
+                    $subIfcObj = $ifc->getIfcObject()->getSubinterfaceByLabel($label);
+                    $dataColumns[$columnLetter] = ['subifc' => $subIfcObj, 'delimiter' => $delimiter];
                 } catch (NotDefinedException $e) {
-                    throw new BadRequestException("Cannot process column {$columnLetter} '{$cellvalue}' in sheet {$worksheet->getTitle()}, because subinterface in undefined", previous: $e);
+                    throw new BadRequestException("Cannot process column {$columnLetter} '{$label}' in sheet {$worksheet->getTitle()}, because subinterface in undefined", previous: $e);
                 }
             } else {
                 $this->logger->notice("Skipping column {$columnLetter} in sheet {$worksheet->getTitle()}, because header is not provided");
@@ -146,24 +152,16 @@ class ExcelImporter
             }
             
             // Process other columns of this row
-            foreach ($dataColumns as $columnLetter => $subIfcObj) {
+            foreach ($dataColumns as $columnLetter => $colInfo) {
                 /** @var \Ampersand\Interfacing\InterfaceObjectInterface $subIfcObj */
+                $subIfcObj = $colInfo['subifc'];
                 $cell = $worksheet->getCell($columnLetter . $rowNr);
-                
-                try {
-                    $cellvalue = (string)$cell->getCalculatedValue();
-                    
-                    if ($cellvalue === '') {
-                        continue; // skip if not value provided
-                    }
-                    
-                    // Overwrite $cellvalue in case of datetime
-                    // The @ is a php indicator for a unix timestamp (http://php.net/manual/en/datetime.formats.compound.php), later used for typeConversion
-                    if (Date::isDateTime($cell) && !empty($cellvalue)) {
-                        $cellvalue = '@' . (string) Date::excelToTimestamp((int) $cellvalue);
-                    }
 
-                    $subIfcObj->add($leftResource, $cellvalue);
+                try {
+                    // A cell yields one value, or multiple values when the column declared a delimiter
+                    foreach ($this->splitCellValue($cell, $colInfo['delimiter']) as $cellvalue) {
+                        $subIfcObj->add($leftResource, $cellvalue);
+                    }
                 } catch (Exception $e) {
                     $this->throwException($e, $cell);
                 }
@@ -188,23 +186,40 @@ class ExcelImporter
      */
     protected function parseWorksheet(Worksheet $worksheet): void
     {
-        // Find import blocks
-        $blockStartRowNrs = [];
-        foreach ($worksheet->getRowIterator() as $row) {
-            $rowNr = $row->getRowIndex();
-            $cellvalue = $worksheet->getCell('A'. $rowNr)->getCalculatedValue();
-
-            // Import block is indicated by '[]' brackets in cell Ax
-            if (substr(trim($cellvalue), 0, 1) === '[') {
-                $blockStartRowNrs[] = $rowNr;
-            }
-        }
-
-        // Process import blocks
+        // Find and process import blocks
+        $blockStartRowNrs = $this->findBlockStartRows($worksheet);
         foreach ($blockStartRowNrs as $key => $startRowNr) {
             $endRowNr = isset($blockStartRowNrs[$key + 1]) ? ($blockStartRowNrs[$key + 1] - 1) : null;
             $this->parseBlock($worksheet, $startRowNr, $endRowNr);
         }
+    }
+
+    /**
+     * Determine the row numbers at which import blocks start.
+     *
+     * A block is indicated by brackets '[ ]' in cell Ax, but only when the cell directly above
+     * it is NOT bracketed. This lets the source column of a block use the multi-value syntax
+     * '[Concept,]' (on the concept row, directly below the block starter) without being mistaken
+     * for the start of a new block. Mirrors the Haskell importer's isStartOfTable.
+     *
+     * @return int[] block start row numbers, in ascending order
+     */
+    protected function findBlockStartRows(Worksheet $worksheet): array
+    {
+        $blockStartRowNrs = [];
+        foreach ($worksheet->getRowIterator() as $row) {
+            $rowNr = $row->getRowIndex();
+
+            if (!$this->isBracketed((string) $worksheet->getCell('A'. $rowNr)->getCalculatedValue())) {
+                continue;
+            }
+            $aboveBracketed = $rowNr > 1
+                && $this->isBracketed((string) $worksheet->getCell('A'. ($rowNr - 1))->getCalculatedValue());
+            if (!$aboveBracketed) {
+                $blockStartRowNrs[] = $rowNr;
+            }
+        }
+        return $blockStartRowNrs;
     }
 
     /**
@@ -233,9 +248,11 @@ class ExcelImporter
             // Header line 2 specifies concept names
             } elseif ($i === 2) {
                 $cellA2i = $worksheet->getCell('A'. $row->getRowIndex()); // 2nd row of block, not necessary row 2 in sheet
-                
+
+                // The source column may itself declare a delimiter (multi-value source), just like target columns
+                [$srcConceptName, $srcDelimiter] = $this->parseHeaderWithOptionalDelimiter((string) $cellA2i->getCalculatedValue());
                 try {
-                    $leftConcept = $this->ampersandApp->getModel()->getConcept($cellA2i->getCalculatedValue());
+                    $leftConcept = $this->ampersandApp->getModel()->getConcept($srcConceptName);
                 } catch (Exception $e) {
                     $this->throwException($e, $cellA2i);
                 }
@@ -243,23 +260,14 @@ class ExcelImporter
                 foreach ($row->getCellIterator() as $cell) {
                     try {
                         $col = $cell->getColumn();
-                        $line2[$col] = trim((string) $cell->getCalculatedValue()); // no leading/trailing spaces allowed
 
-                        // Handle possibility that column contains multiple values to insert into the relation seperated by a delimiter
-                        // The syntax to indicate this is: '[Concept,]' where in this example the comma ',' is the delimiter
-                        // The square brackets are needed to indicate that this is a multi value column
-                        $delimiter = null;
-                        if (substr(
-                            $line2[$col], 0, 1) === '['
-                            && substr($line2[$col], -1) === ']'
-                        ) {
-                            $delimiter = substr($line2[$col], -2, 1);
-                            $line2[$col] = substr($line2[$col], 1, strlen($line2[$col]) - 3);
-                        }
-                    
+                        // A column may contain multiple values to insert into the relation, separated by a delimiter.
+                        // Syntax in this (concept) row: '[Concept,]' where the character before ']' (here ',') is the delimiter.
+                        [$line2[$col], $delimiter] = $this->parseHeaderWithOptionalDelimiter((string) $cell->getCalculatedValue());
+
                         // Import header can be determined now using line 1 and line 2
                         if ($col === 'A') {
-                            $header[$col] = ['concept' => $leftConcept, 'relation' => null, 'flipped' => null];
+                            $header[$col] = ['concept' => $leftConcept, 'relation' => null, 'flipped' => null, 'delimiter' => $srcDelimiter];
                         } else {
                             if ($line1[$col] === '' || $line2[$col] === '') { // @phan-suppress-current-line PhanTypeInvalidDimOffset
                                 // Skipping column
@@ -295,22 +303,32 @@ class ExcelImporter
                     /** @var \Ampersand\Core\Concept $srcConcept */
                     $srcConcept = $header['A']['concept']; // @phan-suppress-current-line PhanTypeInvalidDimOffset
 
+                    // Determine the source atom(s) for this row. A source column with a delimiter may
+                    // yield multiple atoms; each is paired with every target value (cartesian product).
+                    $leftAtoms = [];
                     // If cell Ax is empty, skip complete row
                     if ($srcAtomId === '') {
                         $this->logger->notice("Skipping row {$row->getRowIndex()}, because column A is empty");
                         continue; // proceed to next row
                     // If cell Ax contains '_NEW', this means to automatically create a new atom
                     } elseif ($srcAtomId === '_NEW') {
-                        $leftAtom = $srcConcept->createNewAtom()->add();
+                        $leftAtoms[] = $srcConcept->createNewAtom()->add();
+                    // A delimiter on the source column splits the cell into multiple source atoms
+                    } elseif (!is_null($header['A']['delimiter'])) { // @phan-suppress-current-line PhanTypeInvalidDimOffset
+                        foreach ($this->splitDelimited($srcAtomId, $header['A']['delimiter']) as $id) { // @phan-suppress-current-line PhanTypeInvalidDimOffset
+                            $leftAtoms[] = (new Atom($id, $srcConcept))->add();
+                        }
                     // Else instantiate atom with given atom identifier
                     } else {
-                        $leftAtom = (new Atom($srcAtomId, $srcConcept))->add();
+                        $leftAtoms[] = (new Atom($srcAtomId, $srcConcept))->add();
                     }
                 } catch (Exception $e) {
                     $this->throwException($e, $cellA);
                 }
 
-                $this->processDataRow($leftAtom, $row, $header);
+                foreach ($leftAtoms as $leftAtom) {
+                    $this->processDataRow($leftAtom, $row, $header);
+                }
             }
         }
     }
@@ -340,9 +358,9 @@ class ExcelImporter
                 } else {
                     if (is_null($headerInfo[$col]['delimiter'])) {
                         $rightAtoms[] = new Atom($cellvalue, $headerInfo[$col]['concept']);
-                    // Handle case with delimited multi values
+                    // Handle case with delimited multi values: split, trim each value and drop empty ones
                     } else {
-                        foreach (explode($headerInfo[$col]['delimiter'], $cellvalue) as $value) {
+                        foreach ($this->splitDelimited($cellvalue, $headerInfo[$col]['delimiter']) as $value) {
                             $rightAtoms[] = new Atom($value, $headerInfo[$col]['concept']);
                         }
                     }
@@ -369,6 +387,86 @@ class ExcelImporter
         }
 
         return $cellvalue;
+    }
+
+    /**
+     * Whether a (trimmed) cell value is wrapped in square brackets, e.g. '[Person]' or '[Skill,]'.
+     * Mirrors the Haskell importer's isBracketed.
+     */
+    protected function isBracketed(string $value): bool
+    {
+        $value = trim($value);
+        return strlen($value) >= 2 && $value[0] === '[' && substr($value, -1) === ']';
+    }
+
+    /**
+     * Parse a header cell that may declare a multi-value column.
+     *
+     * Syntax: '[Name<delim>]' where <delim> is the single delimiter character directly
+     * before the closing bracket (e.g. '[EPPOcode,]' yields name 'EPPOcode', delimiter ',').
+     * Without brackets the trimmed cell value is the name and there is no delimiter.
+     * Mirrors the Haskell importer's conceptNameWithOptionalDelimiter.
+     *
+     * @return array{0: string, 1: ?string} [name, delimiter]
+     */
+    protected function parseHeaderWithOptionalDelimiter(string $cellValue): array
+    {
+        $value = trim($cellValue);
+
+        if (strlen($value) >= 4 && $value[0] === '[' && substr($value, -1) === ']') {
+            $delimiter = substr($value, -2, 1);
+            $name = trim(substr($value, 1, strlen($value) - 3));
+            return [$name, $delimiter];
+        }
+
+        return [$value, null];
+    }
+
+    /**
+     * Split a delimited cell value into individual atom ids.
+     *
+     * Each value is trimmed and empty values are dropped, mirroring the Haskell
+     * importer's unDelimit combined with its 'filter (not . null)'.
+     *
+     * @return array<string>
+     */
+    protected function splitDelimited(string $value, string $delimiter): array
+    {
+        $result = [];
+        foreach (explode($delimiter, $value) as $part) {
+            $part = trim($part);
+            if ($part !== '') {
+                $result[] = $part;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Read a cell as one or more atom values.
+     *
+     * Without a delimiter this yields a single value (a datetime cell is converted to a
+     * unix timestamp '@...', as elsewhere in this importer). With a delimiter the text is
+     * split into multiple values; a datetime cell is numeric and is never split.
+     *
+     * @return array<string>
+     */
+    protected function splitCellValue(Cell $cell, ?string $delimiter): array
+    {
+        $cellvalue = (string) $cell->getCalculatedValue();
+
+        // Datetime cells are numeric and never multi-valued; convert and return as a single value.
+        // The @ is a php indicator for a unix timestamp, later used for typeConversion.
+        if (Date::isDateTime($cell) && $cellvalue !== '') {
+            return ['@' . (string) Date::excelToTimestamp((int) $cellvalue)];
+        }
+
+        if (is_null($delimiter)) {
+            // Do NOT trim a single value: atoms may have significant leading/trailing whitespace
+            return $cellvalue === '' ? [] : [$cellvalue];
+        }
+
+        return $this->splitDelimited($cellvalue, $delimiter);
     }
 
     protected function throwException(Exception $e, ?Cell $cell): void
