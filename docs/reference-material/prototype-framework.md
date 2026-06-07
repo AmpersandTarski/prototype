@@ -252,19 +252,35 @@ For developers that work on the Ampersand compiler itself it may be convenient t
 a) injecting the custom Ampersand compiler in a specific prototype project directly or b) locally building a new prototype-framework image.
 
 #### Option A: inject custom compiler in prototype image
-The quickest and most easiest way is to inject a custom Ampersand compiler directly in your prototype image. Update your Docker file and add the following line BEFORE running the compiler:
+The file `backend/generics/compiler-version.txt` contains the semantic version constraint that describes which Ampersand compiler versions are compatible with this framework release. Check whether the constraint is still correct for the compiler version that ships in the `Dockerfile`.
 
-Custom compiler that is released on Github:
-```Dockerfile
-# Lines to add specific compiler version (from Github releases)
-ADD https://github.com/AmpersandTarski/Ampersand/releases/download/Ampersand-v4.1.0/ampersand /usr/local/bin/ampersand
-RUN chmod +x /usr/local/bin/ampersand
+The `Dockerfile` contains this construction:
+```dockerfile
+ARG COMPILER_IMAGE=ampersandtarski/ampersand-compiler:20260322
+FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
+
+<...>
+
+COPY --from=compiler /bin/ampersand /usr/local/bin
 ```
+
+This allows us to update the tag `20260322` in one place only, to ensure building uses one Ampersand compiler consistently throughout.
+
+Occasionally, you you want to break this consistency temporarily.
+For instance, when you want to try out a compiler version of your own or if you want to stick to an older version for a while.
+Achieve this by injecting a custom Ampersand compiler directly in your prototype image by changing the line `COPY --from=compiler /bin/ampersand /usr/local/bin` into (three examples):
 
 Custom compiler from specific (local) Docker image
 ```Dockerfile
 # Line to add specific compiler version from some (local) Docker image
 COPY --from=ampersandtarski/ampersand:local /bin/ampersand /usr/local/bin
+```
+
+Custom compiler from Github:
+```Dockerfile
+# Lines to add specific compiler version (from Github releases)
+ADD https://github.com/AmpersandTarski/Ampersand/releases/download/Ampersand-v4.1.0/ampersand /usr/local/bin/ampersand
+RUN chmod +x /usr/local/bin/ampersand
 ```
 
 Custom compiler from local binary

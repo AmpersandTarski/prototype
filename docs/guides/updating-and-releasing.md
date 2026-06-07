@@ -35,12 +35,19 @@ The file `changelog.md` in the root of the repository is the record of changes p
 
 The file `backend/generics/compiler-version.txt` contains the semantic version constraint that describes which Ampersand compiler versions are compatible with this framework release. Check whether the constraint is still correct for the compiler version that ships in the `Dockerfile`.
 
-The `Dockerfile` contains a line like:
+The `Dockerfile` contains this construction:
 ```dockerfile
-COPY --from=ampersandtarski/ampersand:v4.6 /bin/ampersand /usr/local/bin
+ARG COMPILER_IMAGE=ampersandtarski/ampersand-compiler:20260322
+FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
+
+<...>
+
+COPY --from=compiler /bin/ampersand /usr/local/bin
 ```
 
-If you update the bundled compiler version, update `compiler-version.txt` accordingly. The Ampersand compiler uses the [Salve](https://hackage.haskell.org/package/salve) constraint language to verify compatibility at runtime.
+This allows us to update the tag `20260322` in one place only, to ensure building uses one Ampersand compiler consistently throughout.
+Only the dev-container has its own Dockerfile, so you must sync that separately.
+The Ampersand compiler uses the [Salve](https://hackage.haskell.org/package/salve) constraint language to verify compatibility at runtime.
 
 ### 3. Verify the main branch passes CI
 
