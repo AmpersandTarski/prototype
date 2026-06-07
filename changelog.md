@@ -12,6 +12,12 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## v2.1.1 (unreleased)
 
+* New feature: **multi-value (multi-column) spreadsheet import** — the runtime importer now handles multi-value cells the same way as the Ampersand compiler's compile-time importer.
+  - A header cell `[Concept,]` (a concept name plus a delimiter, wrapped in square brackets) lets a single spreadsheet cell hold multiple atoms separated by that delimiter. Each value is trimmed and empty values are dropped.
+  - RELATION approach: target multi-value, source multi-value (cartesian product), and flipped (`~`) relations. INTERFACE approach: multi-value sub-interface columns.
+  - Block detection now matches the compiler's `isStartOfTable`: a bracketed cell in column A only starts a new block when the cell directly above is not bracketed, so a source `[Concept,]` on the concept row is not mistaken for the start of a new block.
+  - Tests (standalone, on-demand — not wired into CI): `test/unit/ExcelImporterMultiValueTest.php` and `test/projects/import-multivalue/`.
+
 * New feature: **admin mode / production environment** — developer and model-debugging interfaces are hidden by default.
   - Background: interfaces from `PrototypeContext.*` (Installer, population management, rule/relation inspectors, etc.) were always shown in the navigation menu, also in deployments meant for end users.
   - A new backend setting `global.productionEnv` is exposed to the frontend via the navbar response (`SessionController`). When set, `AngularJSApp::getNavMenuItems()` filters out every interface whose name starts with `PrototypeContext.`.
