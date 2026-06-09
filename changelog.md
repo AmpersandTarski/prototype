@@ -10,6 +10,14 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.1.1 (unreleased)
+
+* New feature: **multi-value (multi-column) spreadsheet import** — the runtime importer now handles multi-value cells the same way as the Ampersand compiler's compile-time importer.
+  - A header cell `[Concept,]` (a concept name plus a delimiter, wrapped in square brackets) lets a single spreadsheet cell hold multiple atoms separated by that delimiter. Each value is trimmed and empty values are dropped.
+  - RELATION approach: target multi-value, source multi-value (cartesian product), and flipped (`~`) relations. INTERFACE approach: multi-value sub-interface columns.
+  - Block detection now matches the compiler's `isStartOfTable`: a bracketed cell in column A only starts a new block when the cell directly above is not bracketed, so a source `[Concept,]` on the concept row is not mistaken for the start of a new block.
+  - Tests (standalone, on-demand — not wired into CI): `test/unit/ExcelImporterMultiValueTest.php` and `test/projects/import-multivalue/`.
+
 ## v2.1.0 (13 May 2026)
 
 * Bugfix `atomic-object`: in `cRud` mode with a non-UNI relation, existing atoms were never displayed — the column appeared empty even when backend data was present.
