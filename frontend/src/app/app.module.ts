@@ -19,7 +19,9 @@ import { InterfacesJsonService } from './shared/services/interfaces-json.service
  * Initializer function to load interfaces.json at app startup
  * Will throw error if file is not available
  */
-export function initializeInterfaces(interfacesJsonService: InterfacesJsonService): () => Promise<void> {
+export function initializeInterfaces(
+  interfacesJsonService: InterfacesJsonService,
+): () => Promise<void> {
   return (): Promise<void> => {
     return interfacesJsonService.loadInterfaces();
   };
@@ -47,8 +49,8 @@ export function initializeInterfaces(interfacesJsonService: InterfacesJsonServic
       provide: APP_INITIALIZER,
       useFactory: initializeInterfaces,
       deps: [InterfacesJsonService],
-      multi: true
-    }
+      multi: true,
+    },
   ],
   bootstrap: [AppComponent],
 })

@@ -9,10 +9,14 @@ import { MessageService } from 'primeng/api';
 import { finalize, tap } from 'rxjs/operators';
 import { Notifications } from 'src/app/shared/interfacing/notifications.interface';
 import { PatchResponse } from 'src/app/shared/interfacing/patch-response.interface';
+import { SignalService } from 'src/app/shared/services/signal.service';
 
 @Injectable()
 export class LoggingInterceptor implements HttpInterceptor {
-  constructor(private messageService: MessageService) {}
+  constructor(
+    private messageService: MessageService,
+    private signalService: SignalService,
+  ) {}
 
   /**
    * Logs requests in the console including the response time.
@@ -47,7 +51,7 @@ export class LoggingInterceptor implements HttpInterceptor {
 
           // Let import requests handle their own messaging - don't show automatic notifications
           const isImportRequest = req.url.includes('admin/import');
-          
+
           // If notifications have been found, the error field exists (possibly with empty array, but it exists)
           if (notifications.errors && !isImportRequest)
             this.sendMessagesFromNotifications(notifications);
@@ -84,14 +88,11 @@ export class LoggingInterceptor implements HttpInterceptor {
       this.sendMessage('error', field.ruleMessage, violationMessages);
     });
 
-    notifications.signals.forEach((field) => {
-      let violationMessages = '';
-      field.violations.forEach((violation) => {
-        violationMessages += violation.message + '\n';
-        // TODO: Add ifcs?
-      });
-      this.sendMessage('info', field.message);
-    });
+    // Signals are no longer shown as toasts.
+    // They are stored in the SignalService and displayed via the topbar badge + dedicated signals page.
+    if (notifications.signals?.length >= 0) {
+      this.signalService.update(notifications.signals);
+    }
   }
 
   private sendMessage(severity: string, message: string, details?: string) {

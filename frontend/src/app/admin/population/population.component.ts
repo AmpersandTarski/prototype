@@ -44,7 +44,10 @@ export class PopulationComponent extends BaseComponent {
     buttonState.loading = true;
     this.populationService
       .getExportPopulation()
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -62,7 +65,10 @@ export class PopulationComponent extends BaseComponent {
     buttonState.loading = true;
     this.populationService
       .getExportPopulationMetaModel()
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),

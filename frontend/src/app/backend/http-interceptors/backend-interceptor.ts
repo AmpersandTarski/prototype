@@ -17,7 +17,7 @@ export class BackendInterceptor implements HttpInterceptor {
     if (req.url.startsWith('/assets/') || req.url.startsWith('assets/')) {
       return next.handle(req);
     }
-    
+
     const apiReq = req.clone({ url: `api/v1/${req.url}` });
     return next.handle(apiReq);
   }

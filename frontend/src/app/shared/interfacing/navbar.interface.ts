@@ -11,6 +11,7 @@ export type Navbar = {
   new: Array<New>;
   ext: Array<unknown>; // ignore; not reusing in new frontend
   role: Array<unknown>; // ignore; not reusing in new frontend. This was structure for additional items in the role menu
+  productionEnv?: boolean;
 };
 
 type DefaultSettings = {

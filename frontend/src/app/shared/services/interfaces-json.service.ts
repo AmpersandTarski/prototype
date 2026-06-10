@@ -12,7 +12,7 @@ export interface SubObjectMeta {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class InterfacesJsonService {
   private interfaces: any = null;
@@ -35,8 +35,8 @@ export class InterfacesJsonService {
           const errorMessage = `❌ Failed to load interfaces.json: ${error.status} ${error.statusText}`;
           console.error(errorMessage, error);
           throw new Error(errorMessage);
-        })
-      )
+        }),
+      ),
     );
   }
 
@@ -80,7 +80,10 @@ export class InterfacesJsonService {
    * @param objectName The name of the subobject to find ('selectFrom' or 'setRelation')
    * @returns Promise<SubObjectMeta | null> with CRUD, conceptType, isTot, and isUni
    */
-  async findSubObject(resourcePath: string, objectName: string): Promise<SubObjectMeta | null> {
+  async findSubObject(
+    resourcePath: string,
+    objectName: string,
+  ): Promise<SubObjectMeta | null> {
     let interfaces;
     try {
       interfaces = await this.getInterfacesWithLoading();
@@ -101,7 +104,9 @@ export class InterfacesJsonService {
     const subPath = pathSegments.slice(4); // e.g. ["Organisme", "Organisme"] or ["Product", "Vorm"]
 
     // Find the top-level interface by name
-    const topInterface = interfaces.find((ifc: any) => ifc.name === interfaceName);
+    const topInterface = interfaces.find(
+      (ifc: any) => ifc.name === interfaceName,
+    );
     if (!topInterface) {
       console.error('❌ Could not find interface:', interfaceName);
       return null;
@@ -133,7 +138,10 @@ export class InterfacesJsonService {
     );
 
     if (!subObject) {
-      console.error(`❌ Could not find '${objectName}' in`, ifcObjects.map((o: any) => o.label));
+      console.error(
+        `❌ Could not find '${objectName}' in`,
+        ifcObjects.map((o: any) => o.label),
+      );
       return null;
     }
 
@@ -167,31 +175,43 @@ export class InterfacesJsonService {
 
     // Check if NormalizationSteps contains "_SESSION"[SESSION] pattern
     return ifcObject.NormalizationSteps.some((step: any) =>
-      step.includes('"_SESSION"[SESSION]'));
+      step.includes('"_SESSION"[SESSION]'),
+    );
   }
 
   /**
    * Find an interface by name within subinterfaces.ifcObjects
    */
   private findInterfaceByName(parentInterface: any, name: string): any {
-    if (!parentInterface || !parentInterface.subinterfaces || !parentInterface.subinterfaces.ifcObjects) {
+    if (
+      !parentInterface ||
+      !parentInterface.subinterfaces ||
+      !parentInterface.subinterfaces.ifcObjects
+    ) {
       return null;
     }
 
-    return parentInterface.subinterfaces.ifcObjects.find((obj: any) => obj.name === name);
+    return parentInterface.subinterfaces.ifcObjects.find(
+      (obj: any) => obj.name === name,
+    );
   }
 
   /**
    * Find a project interface by matching NormalizationSteps with I[Project]
    */
   private findProjectInterface(defaultInterface: any): any {
-    if (!defaultInterface || !defaultInterface.subinterfaces || !defaultInterface.subinterfaces.ifcObjects) {
+    if (
+      !defaultInterface ||
+      !defaultInterface.subinterfaces ||
+      !defaultInterface.subinterfaces.ifcObjects
+    ) {
       return null;
     }
 
     return defaultInterface.subinterfaces.ifcObjects.find((obj: any) => {
       // Check if NormalizationSteps contains I[Project]
-      const hasProjectStep = obj.NormalizationSteps &&
+      const hasProjectStep =
+        obj.NormalizationSteps &&
         obj.NormalizationSteps.some((step: any) => step.includes('I[Project]'));
 
       return hasProjectStep;
@@ -201,21 +221,38 @@ export class InterfacesJsonService {
   /**
    * Find an interface that contains "I[Something]" pattern and has the target object
    */
-  private findInterfaceWithTarget(defaultInterface: any, targetObjectName: string): any {
-    if (!defaultInterface || !defaultInterface.subinterfaces || !defaultInterface.subinterfaces.ifcObjects) {
+  private findInterfaceWithTarget(
+    defaultInterface: any,
+    targetObjectName: string,
+  ): any {
+    if (
+      !defaultInterface ||
+      !defaultInterface.subinterfaces ||
+      !defaultInterface.subinterfaces.ifcObjects
+    ) {
       console.log('🔍 No ifcObjects in defaultInterface');
       return null;
     }
 
-    console.log('🔍 Searching through', defaultInterface.subinterfaces.ifcObjects.length, 'objects in Default interface');
+    console.log(
+      '🔍 Searching through',
+      defaultInterface.subinterfaces.ifcObjects.length,
+      'objects in Default interface',
+    );
 
     // Look through all ifcObjects in the defaultInterface
     for (let i = 0; i < defaultInterface.subinterfaces.ifcObjects.length; i++) {
       const obj = defaultInterface.subinterfaces.ifcObjects[i];
-      console.log(`🔍 Checking object ${i}:`, obj.label || obj.name, 'NormalizationSteps:', obj.NormalizationSteps);
+      console.log(
+        `🔍 Checking object ${i}:`,
+        obj.label || obj.name,
+        'NormalizationSteps:',
+        obj.NormalizationSteps,
+      );
 
       // Check if this object has "I[Something]" pattern in NormalizationSteps
-      const hasIdentityPattern = obj.NormalizationSteps &&
+      const hasIdentityPattern =
+        obj.NormalizationSteps &&
         obj.NormalizationSteps.some((step: any) => {
           // Look for I[Something] pattern with flexible spacing
           const matches = /I\s*\[\s*\w+\s*\]/.test(step);
@@ -226,31 +263,56 @@ export class InterfacesJsonService {
         });
 
       if (hasIdentityPattern) {
-        console.log('🎯 Object has I[Something] pattern, checking for target object...');
-        console.log('🔍 subinterfaces:', obj.subinterfaces ? 'exists' : 'missing');
-        console.log('🔍 ifcObjects:', obj.subinterfaces?.ifcObjects ? `exists (${obj.subinterfaces.ifcObjects.length})` : 'missing');
+        console.log(
+          '🎯 Object has I[Something] pattern, checking for target object...',
+        );
+        console.log(
+          '🔍 subinterfaces:',
+          obj.subinterfaces ? 'exists' : 'missing',
+        );
+        console.log(
+          '🔍 ifcObjects:',
+          obj.subinterfaces?.ifcObjects
+            ? `exists (${obj.subinterfaces.ifcObjects.length})`
+            : 'missing',
+        );
 
         if (obj.subinterfaces?.ifcObjects) {
-          console.log('🔍 ifcObjects names:', obj.subinterfaces.ifcObjects.map((subObj: any) => subObj.name));
+          console.log(
+            '🔍 ifcObjects names:',
+            obj.subinterfaces.ifcObjects.map((subObj: any) => subObj.name),
+          );
         }
 
         // Check if this interface contains our target object
-        const containsTarget = obj.subinterfaces &&
+        const containsTarget =
+          obj.subinterfaces &&
           obj.subinterfaces.ifcObjects &&
-          obj.subinterfaces.ifcObjects.some((subObj: any) => subObj.name === targetObjectName);
+          obj.subinterfaces.ifcObjects.some(
+            (subObj: any) => subObj.name === targetObjectName,
+          );
 
         if (containsTarget) {
-          console.log('🎯 Found interface with I[Something] pattern that contains target:', obj.label || obj.name);
+          console.log(
+            '🎯 Found interface with I[Something] pattern that contains target:',
+            obj.label || obj.name,
+          );
           return obj;
         } else {
-          console.log('❌ Interface has I[Something] but does not contain target:', targetObjectName);
+          console.log(
+            '❌ Interface has I[Something] but does not contain target:',
+            targetObjectName,
+          );
         }
       } else {
         console.log('❌ No I[Something] pattern found');
       }
     }
 
-    console.log('❌ No container interface found for target:', targetObjectName);
+    console.log(
+      '❌ No container interface found for target:',
+      targetObjectName,
+    );
     return null;
   }
 
@@ -282,7 +344,7 @@ export class InterfacesJsonService {
       sessionId,
       defaultName,
       projectDataValue,
-      objectName
+      objectName,
     });
 
     // Step 1: Find ifcObject with [SESSION] in normalisationSteps and matching interface name
@@ -293,7 +355,12 @@ export class InterfacesJsonService {
       const hasSessionPattern = this.matchesSessionId(ifc.ifcObject, sessionId);
       if (hasSessionPattern && ifc.name === interfaceName) {
         sessionInterface = ifc.ifcObject;
-        console.log('✅ Found SESSION interface with ID:', sessionId, 'and name:', ifc.name);
+        console.log(
+          '✅ Found SESSION interface with ID:',
+          sessionId,
+          'and name:',
+          ifc.name,
+        );
         break;
       }
     }
@@ -304,7 +371,10 @@ export class InterfacesJsonService {
     }
 
     // Step 2: Within session interface, find subinterfaces.ifcObjects with name 'Default'
-    const defaultInterface = this.findInterfaceByName(sessionInterface, defaultName);
+    const defaultInterface = this.findInterfaceByName(
+      sessionInterface,
+      defaultName,
+    );
     if (!defaultInterface) {
       console.error('❌ Could not find Default interface');
       return;
@@ -316,22 +386,36 @@ export class InterfacesJsonService {
     const targetObject = this.findInterfaceByName(defaultInterface, objectName);
     if (!targetObject) {
       console.error('❌ Could not find target object:', objectName);
-      console.log('🔍 Available objects in Default interface:',
-        defaultInterface.subinterfaces?.ifcObjects?.map((obj: any) => obj.name) || 'No ifcObjects');
+      console.log(
+        '🔍 Available objects in Default interface:',
+        defaultInterface.subinterfaces?.ifcObjects?.map(
+          (obj: any) => obj.name,
+        ) || 'No ifcObjects',
+      );
       return;
     }
     console.log('✅ Found target object:', objectName);
 
     // Step 4: Verify it's correct by checking subInterfaces.boxheader.type === 'FILTEREDDROPDOWN'
-    if (targetObject.subinterfaces && targetObject.subinterfaces.boxHeader &&
-        targetObject.subinterfaces.boxHeader.type === 'FILTEREDDROPDOWN') {
-      console.log('✅ Verified FILTEREDDROPDOWN type:', targetObject.subinterfaces.boxHeader.type);
+    if (
+      targetObject.subinterfaces &&
+      targetObject.subinterfaces.boxHeader &&
+      targetObject.subinterfaces.boxHeader.type === 'FILTEREDDROPDOWN'
+    ) {
+      console.log(
+        '✅ Verified FILTEREDDROPDOWN type:',
+        targetObject.subinterfaces.boxHeader.type,
+      );
 
       // Step 5: Find selectFrom and setRelation objects within ifcObjects
       const ifcObjects = targetObject.subinterfaces.ifcObjects || [];
 
-      const selectFromObj = ifcObjects.find((obj: any) => obj.label === 'selectFrom');
-      const setRelationObj = ifcObjects.find((obj: any) => obj.label === 'setRelation');
+      const selectFromObj = ifcObjects.find(
+        (obj: any) => obj.label === 'selectFrom',
+      );
+      const setRelationObj = ifcObjects.find(
+        (obj: any) => obj.label === 'setRelation',
+      );
 
       if (selectFromObj) {
         console.log('🎯 selectFrom object found:', selectFromObj);
@@ -344,7 +428,6 @@ export class InterfacesJsonService {
       } else {
         console.error('❌ setRelation object not found');
       }
-
     } else {
       console.error('❌ Not a FILTEREDDROPDOWN type or missing boxHeader');
     }

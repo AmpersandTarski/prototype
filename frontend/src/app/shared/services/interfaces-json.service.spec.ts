@@ -7,7 +7,7 @@ describe('InterfacesJsonService', () => {
 
   beforeEach(() => {
     mockHttp = {
-      get: jest.fn()
+      get: jest.fn(),
     };
     service = new InterfacesJsonService(mockHttp);
   });
@@ -24,16 +24,16 @@ describe('InterfacesJsonService', () => {
           ifcObject: {
             NormalizationSteps: ['"_SESSION"[SESSION]'],
             subinterfaces: {
-              ifcObjects: []
-            }
-          }
-        }
+              ifcObjects: [],
+            },
+          },
+        },
       ];
 
       mockHttp.get.mockReturnValue(of(mockData));
 
       await service.loadInterfaces();
-      
+
       expect(mockHttp.get).toHaveBeenCalledWith('/assets/interfaces.json');
       expect(service.isLoaded()).toBe(true);
       expect(service.getInterfaces()).toEqual(mockData);
@@ -42,19 +42,23 @@ describe('InterfacesJsonService', () => {
     it('should handle loading error', async () => {
       const mockError = {
         status: 404,
-        statusText: 'Not Found'
+        statusText: 'Not Found',
       };
-      
+
       mockHttp.get.mockReturnValue(throwError(() => mockError));
 
-      await expect(service.loadInterfaces()).rejects.toThrow('❌ Failed to load interfaces.json: 404 Not Found');
+      await expect(service.loadInterfaces()).rejects.toThrow(
+        '❌ Failed to load interfaces.json: 404 Not Found',
+      );
       expect(service.isLoaded()).toBe(false);
     });
   });
 
   describe('getInterfaces', () => {
     it('should throw error when interfaces not loaded', () => {
-      expect(() => service.getInterfaces()).toThrow('Interfaces not loaded. Call loadInterfaces() first.');
+      expect(() => service.getInterfaces()).toThrow(
+        'Interfaces not loaded. Call loadInterfaces() first.',
+      );
     });
   });
 
@@ -81,7 +85,7 @@ describe('InterfacesJsonService', () => {
                         name: '_49__46__32_Assign_32_an_32_employee_32__40_cRud_41_',
                         subinterfaces: {
                           boxHeader: {
-                            type: 'FILTEREDDROPDOWN'
+                            type: 'FILTEREDDROPDOWN',
                           },
                           ifcObjects: [
                             {
@@ -90,13 +94,13 @@ describe('InterfacesJsonService', () => {
                                 create: false,
                                 read: true,
                                 update: false,
-                                delete: false
+                                delete: false,
                               },
                               expr: {
                                 tgtConceptName: 'Employee',
                                 isTot: false,
-                                isUni: true
-                              }
+                                isUni: true,
+                              },
                             },
                             {
                               label: 'setRelation',
@@ -104,24 +108,24 @@ describe('InterfacesJsonService', () => {
                                 create: true,
                                 read: true,
                                 update: true,
-                                delete: false
+                                delete: false,
                               },
                               expr: {
                                 tgtConceptName: 'Employee',
                                 isTot: true,
-                                isUni: false
-                              }
-                            }
-                          ]
-                        }
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          }
-        }
+                                isUni: false,
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        },
       ];
 
       mockHttp.get.mockReturnValue(of(mockData));
@@ -129,10 +133,11 @@ describe('InterfacesJsonService', () => {
     });
 
     it('should find selectFrom subobject', async () => {
-      const resourcePath = 'resource/SESSION/1/BoxFilteredDropdownTests/f5c2f7cebc6a00601ca15ab27cbe55d4/Default/project 1/_49__46__32_Assign_32_an_32_employee_32__40_cRud_41_';
-      
+      const resourcePath =
+        'resource/SESSION/1/BoxFilteredDropdownTests/f5c2f7cebc6a00601ca15ab27cbe55d4/Default/project 1/_49__46__32_Assign_32_an_32_employee_32__40_cRud_41_';
+
       const result = await service.findSubObject(resourcePath, 'selectFrom');
-      
+
       expect(result).not.toBeNull();
       expect(result?.crud).toBe('cRud');
       expect(result?.conceptType).toBe('Employee');
@@ -141,10 +146,11 @@ describe('InterfacesJsonService', () => {
     });
 
     it('should find setRelation subobject', async () => {
-      const resourcePath = 'resource/SESSION/1/BoxFilteredDropdownTests/f5c2f7cebc6a00601ca15ab27cbe55d4/Default/project 1/_49__46__32_Assign_32_an_32_employee_32__40_cRud_41_';
-      
+      const resourcePath =
+        'resource/SESSION/1/BoxFilteredDropdownTests/f5c2f7cebc6a00601ca15ab27cbe55d4/Default/project 1/_49__46__32_Assign_32_an_32_employee_32__40_cRud_41_';
+
       const result = await service.findSubObject(resourcePath, 'setRelation');
-      
+
       expect(result).not.toBeNull();
       expect(result?.crud).toBe('CRUd');
       expect(result?.conceptType).toBe('Employee');
@@ -154,9 +160,9 @@ describe('InterfacesJsonService', () => {
 
     it('should return null for invalid resource path', async () => {
       const invalidPath = 'resource/invalid/path';
-      
+
       const result = await service.findSubObject(invalidPath, 'selectFrom');
-      
+
       expect(result).toBeNull();
     });
   });

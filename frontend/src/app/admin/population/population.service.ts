@@ -1,4 +1,4 @@
-import {HttpClient, HttpEvent} from '@angular/common/http';
+import { HttpClient, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { EMPTY, Observable } from 'rxjs';
 import { PatchResponse } from 'src/app/shared/interfacing/patch-response.interface';

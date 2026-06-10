@@ -6,18 +6,18 @@ import { HttpErrorInterceptor } from './http-error-interceptor';
 describe('HttpErrorInterceptor', () => {
   beforeEach(() => {
     const routerMock = {
-      navigate: jest.fn()
+      navigate: jest.fn(),
     };
 
     const messageServiceMock = {
-      add: jest.fn()
+      add: jest.fn(),
     };
 
     TestBed.configureTestingModule({
       providers: [
         HttpErrorInterceptor,
         { provide: Router, useValue: routerMock },
-        { provide: MessageService, useValue: messageServiceMock }
+        { provide: MessageService, useValue: messageServiceMock },
       ],
     });
   });

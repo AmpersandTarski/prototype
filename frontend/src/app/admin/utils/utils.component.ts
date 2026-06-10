@@ -53,7 +53,10 @@ export class UtilsComponent extends BaseComponent {
     buttonState.loading = true;
     this.utilsService
       .getEvaluateAllRules()
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -69,7 +72,10 @@ export class UtilsComponent extends BaseComponent {
     buttonState.loading = true;
     this.utilsService
       .getRunExecutionEngine()
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -85,7 +91,10 @@ export class UtilsComponent extends BaseComponent {
     buttonState.loading = true;
     this.utilsService
       .getRegenerateAllAtomIds()
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),
@@ -101,7 +110,10 @@ export class UtilsComponent extends BaseComponent {
     buttonState.loading = true;
     this.utilsService
       .getRegenerateAtom(concept)
-      .pipe(finalize(() => (buttonState.loading = false)), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => (buttonState.loading = false)),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
         error: (_err) => (buttonState.error = true),
         complete: () => (buttonState.success = true),

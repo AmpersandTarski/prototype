@@ -27,6 +27,30 @@
             'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible
         }"
     >
+        <!-- Admin Mode Toggle -->
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-right: 1rem;">
+            <span style="font-size: 0.875rem; font-weight: 600; color: var(--text-color)">Admin</span>
+            <p-inputSwitch [(ngModel)]="adminMode"></p-inputSwitch>
+        </div>
+
+        <!-- Signal violations badge -->
+        <a
+            *ngIf="signalViolationCount$ | async as violationCount"
+            routerLink="/signals"
+            class="p-link layout-topbar-button"
+            pTooltip="Openstaande signalen"
+            tooltipPosition="bottom"
+            [class.hidden]="violationCount === 0"
+            style="position: relative; display: inline-flex"
+        >
+            <i class="pi pi-exclamation-triangle" style="color: var(--yellow-500)"></i>
+            <p-badge
+                *ngIf="violationCount > 0"
+                [value]="'' + violationCount"
+                severity="warning"
+            ></p-badge>
+        </a>
+
         <!-- Role Menu -->
         <app-roles></app-roles>
     </div>

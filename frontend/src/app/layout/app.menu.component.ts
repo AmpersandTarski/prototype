@@ -28,12 +28,14 @@ export class AppMenuComponent extends BaseComponent implements OnInit {
   ngOnInit() {
     this.loadOrCreateMenu();
 
-    this.menuService.refreshSource$.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      sessionStorage.removeItem('menuItems');
-      this.model = [];
+    this.menuService.refreshSource$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        sessionStorage.removeItem('menuItems');
+        this.model = [];
 
-      this.loadOrCreateMenu();
-    });
+        this.loadOrCreateMenu();
+      });
   }
 
   /* Creates the menuItems from API data, or load from session storage when it already exists. */
@@ -41,12 +43,21 @@ export class AppMenuComponent extends BaseComponent implements OnInit {
     const navbarItems = sessionStorage.getItem('menuItems');
     if (navbarItems != null) {
       // Using menu items in session storage
-      this.model = JSON.parse(navbarItems) as Array<MenuItem>;
-      // Add 'New' buttons for new instance of the defined entities
-      this.addAddButtons();
+      this.model = (JSON.parse(navbarItems) as Array<MenuItem>).filter(item => item.label !== 'Admin');
+      
+      // We need to check productionEnv to know if we should add admin items
+      this.menuService.getNavbar().pipe(takeUntil(this.destroy$)).subscribe((navbar) => {
+        const isProduction = !!navbar.productionEnv;
+        
+        // Add admin menu items if admin mode is active and not in production
+        if (!isProduction && this.menuService.adminMode) {
+          adminMenuItems.forEach((item) => this.model.push(item));
+        }
+        
+        // Add 'New' buttons for new instance of the defined entities
+        this.addAddButtons();
+      });
     } else {
-      // Add admin menu items
-      adminMenuItems.forEach((item) => this.model.push(item));
       // Add menu items from API
       this.addMenuItems();
     }
@@ -55,107 +66,130 @@ export class AppMenuComponent extends BaseComponent implements OnInit {
   /* Adds MenuItems to the navigation menu */
   private addMenuItems() {
     const childItems = new Array<MenuItem>(); // Storage for child items where parent is not added yet.
-    this.menuService.getMenuItems().pipe(takeUntil(this.destroy$)).subscribe((navs) => {
-      // Add fetched menu items
-      navs.forEach((nav) => {
-        let menuItem: MenuItem;
+    this.menuService
+      .getNavbar()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((navbar) => {
+        const isProduction = !!navbar.productionEnv;
+        const navs = navbar.navs;
 
-        /* Create a variable to determine the type of menu item */
-        const itemType = 2 * Number(nav.ifc != null) + Number(nav.url != null);
-        switch (itemType) {
-          case 0: {
-            // A root/parent item
-            menuItem = {
-              id: nav.id,
-              label: nav.label,
-              icon: 'pi pi-fw pi-bars',
-              routerLink: [],
-              items: [],
-            };
+        // Filter out developer / model-debugging interfaces when in production mode,
+        // or when not in admin mode (in development)
+        const displayNavs = (isProduction || !this.menuService.adminMode)
+          ? navs.filter((nav) => !nav.ifc?.startsWith('PrototypeContext.'))
+          : navs;
 
-            this.model.unshift(menuItem);
-            break;
-          }
-          case 1: {
-            // External URL
-            menuItem = {
-              label: nav.label,
-              icon: 'pi pi-fw pi-bars',
-              url: nav.url ?? undefined,
-            };
+        // Add fetched menu items
+        displayNavs.forEach((nav) => {
+          let menuItem: MenuItem;
 
-            this.model.push(menuItem);
-            break;
-          }
-          default: {
-            // Direct link to interface
-            menuItem = {
-              id: nav.id,
-              label: nav.label,
-              icon: 'pi pi-fw pi-bars',
-              routerLink: [this.interfaceRouteMap[nav.ifc ?? 'undefined']],
-            };
+          /* Create a variable to determine the type of menu item */
+          const itemType =
+            2 * Number(nav.ifc != null) + Number(nav.url != null);
+          switch (itemType) {
+            case 0: {
+              // A root/parent item
+              menuItem = {
+                id: nav.id,
+                label: nav.label,
+                icon: 'pi pi-fw pi-bars',
+                routerLink: [],
+                items: [],
+              };
 
-            // If item has a parent, add it to the parent items.
-            // Else try adding it at the end.
-            if (nav.parent == null) {
+              this.model.unshift(menuItem);
               break;
             }
-            menuItem.fragment = nav.parent;
-            const parentItem = this.model.find((item) => item.id == nav.parent);
-            if (parentItem == null) {
-              childItems.push(menuItem);
-            } else {
-              this.addItemToParent(parentItem, menuItem);
+            case 1: {
+              // External URL
+              menuItem = {
+                label: nav.label,
+                icon: 'pi pi-fw pi-bars',
+                url: nav.url ?? undefined,
+              };
+
+              this.model.push(menuItem);
+              break;
             }
-            break;
+            default: {
+              // Direct link to interface
+              menuItem = {
+                id: nav.id,
+                label: nav.label,
+                icon: 'pi pi-fw pi-bars',
+                routerLink: [this.interfaceRouteMap[nav.ifc ?? 'undefined']],
+              };
+
+              // If item has a parent, add it to the parent items.
+              // Else try adding it at the end.
+              if (nav.parent == null) {
+                break;
+              }
+              menuItem.fragment = nav.parent;
+              const parentItem = this.model.find(
+                (item) => item.id == nav.parent,
+              );
+              if (parentItem == null) {
+                childItems.push(menuItem);
+              } else {
+                this.addItemToParent(parentItem, menuItem);
+              }
+              break;
+            }
           }
+        });
+
+        // Loop through childItems until they are all added to the menu.
+        while (childItems.length > 0) {
+          const childItem = childItems.pop() ?? {};
+          const parentItem = this.model.find(
+            (item) => item.id == childItem.fragment,
+          );
+          parentItem == null
+            ? childItems.push(childItem)
+            : this.addItemToParent(parentItem, childItem);
         }
-      });
 
-      // Loop through childItems until they are all added to the menu.
-      while (childItems.length > 0) {
-        const childItem = childItems.pop() ?? {};
-        const parentItem = this.model.find(
-          (item) => item.id == childItem.fragment,
+        // Store menu items in session storage
+        this.menuService.setSessionStorageItem(
+          'menuItems',
+          JSON.stringify(this.model),
         );
-        parentItem == null
-          ? childItems.push(childItem)
-          : this.addItemToParent(parentItem, childItem);
-      }
 
-      // Store menu items in session storage
-      this.menuService.setSessionStorageItem(
-        'menuItems',
-        JSON.stringify(this.model),
-      );
+        // Add admin menu items if admin mode is active and not in production
+        if (!isProduction && this.menuService.adminMode) {
+          adminMenuItems.forEach((item) => this.model.push(item));
+        }
 
-      // Add 'New' buttons for new instance of the defined entities
-      this.addAddButtons();
-    });
+        // Add 'New' buttons for new instance of the defined entities
+        this.addAddButtons();
+      });
   }
 
   private addAddButtons() {
     // Add parent
-    var addBtnsMenu: MenuItem = {
+    const addBtnsMenu: MenuItem = {
       label: 'New',
       items: [],
     };
 
-    this.menuService.getAddButtons().pipe(takeUntil(this.destroy$)).subscribe((addBtns) => {
-      addBtns.forEach((addBtn) => {
-        // Lookup and convert
-        var id = addBtn.ifcs[0].id;
-        var link = this.interfaceRouteMap[id] + '/' + uuidv4();
-        var menuItem = {
-          id: id,
-          label: addBtn.label,
-          icon: 'pi pi-fw pi-plus',
-          routerLink: [link],
-        };
-        addBtnsMenu.items?.push(menuItem);
+    this.menuService
+      .getAddButtons()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((addBtns) => {
+        addBtns.forEach((addBtn) => {
+          // Lookup and convert
+          const id = addBtn.ifcs[0].id;
+          const link = this.interfaceRouteMap[id] + '/' + uuidv4();
+          const menuItem = {
+            id: id,
+            label: addBtn.label,
+            icon: 'pi pi-fw pi-plus',
+            routerLink: [link],
+          };
+          addBtnsMenu.items?.push(menuItem);
+        });
       });
-    });
 
     this.model.unshift(addBtnsMenu);
   }

@@ -1,17 +1,36 @@
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, share, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
+import {
+  catchError,
+  map,
+  Observable,
+  of,
+  share,
+  Subject,
+  switchMap,
+  takeUntil,
+  tap,
+  throwError,
+} from 'rxjs';
 import { ObjectBase } from '../objectBase.interface';
 import { Patch, PatchValue } from './patch.interface';
 import { PatchResponse } from './patch-response.interface';
 import { DeleteResponse } from './delete-response.interface';
 import { CreateResponse } from './create-response.interface';
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+} from '@angular/core';
 import { mergeDeep } from 'src/app/shared/helper/deepmerge';
 import { MessageService } from 'primeng/api';
 import { ResourcePath } from '../helper/resource-path';
 
 @Component({ template: '' })
-export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> implements OnDestroy {
+export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
+  implements OnDestroy
+{
   @Input() resourceId?: string;
   public resource: ObjectBase & {
     data: T;
@@ -66,7 +85,10 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> im
 
   public post(path: string): Observable<CreateResponse> {
     return this.http.post<CreateResponse>(path, {}).pipe(
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$),
+      // After POST: sync with server so exec-engine side effects become visible.
+      // See: https://github.com/AmpersandTarski/prototype/issues/298
+      switchMap((resp) => this.syncWithServer().pipe(map(() => resp))),
     );
   }
 
@@ -126,28 +148,18 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> im
       ])
       .pipe(
         takeUntil(this.destroy$),
-        tap((resp) => {
+        switchMap((resp) => {
           if (resp.isCommitted) {
             this.pendingPatches = [];
           } else {
             this.pendingPatches.push(...patches);
           }
 
-          /**
-           * Deeply update the data object, to prevent angular from completely
-           * re-rendering nested components instead of updating them.
-           * This way for example cursor focus in a field is retained.
-           */
-          if (Array.isArray(this.resource.data)) {
-            mergeDeep(
-              this.resource.data.find(
-                (obj) => obj._path_ === rootPath.toString(),
-              ),
-              resp.content,
-            );
-          } else {
-            mergeDeep(this.resource.data, resp.content);
-          }
+          // After PATCH: sync with server for full reconciliation.
+          // This makes exec-engine side effects on sibling items and derived fields
+          // visible without a manual page refresh.
+          // See: https://github.com/AmpersandTarski/prototype/issues/298
+          return this.syncWithServer().pipe(map(() => resp));
         }),
       )
       .pipe(tap(() => this.patched.emit()))
@@ -168,35 +180,12 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> im
   }
 
   public delete(resourcePath: string): Observable<DeleteResponse> {
-    // Bepaal het pad voor de herlaad-GET; dit is hetzelfde pad dat de BackendService
-    // gebruikt om de interface-data op te halen (bijv. resource/SESSION/1/BoxFilteredDropdownTests).
-    // Voor een list-interface: verwijder het specifieke atom-id (laatste deel) van het eerste item.
-    // Voor een niet-list-interface: gebruik het _path_ van het data-object direct.
-    const refreshPath: string = Array.isArray(this.resource.data)
-      ? new ResourcePath((this.resource.data as ObjectBase[])[0]!._path_).init().toString()
-      : (this.resource.data as ObjectBase)._path_;
-
     return this.http.delete<DeleteResponse>(resourcePath).pipe(
       takeUntil(this.destroy$),
       switchMap((deleteResp) =>
-        // Herlaad altijd de interface-data na DELETE, zodat de UI de werkelijke backend-state
-        // spiegelt: commit + invarianten houden → atom verdwenen;
-        // rollback door invariantschending → atom blijft zichtbaar.
-        this.http.get<ObjectBase>(refreshPath).pipe(
-          tap((freshData) => {
-            if (Array.isArray(this.resource.data)) {
-              for (const fresh of freshData as unknown as ObjectBase[]) {
-                const existing = (this.resource.data as ObjectBase[]).find(
-                  (obj) => obj._path_ === fresh._path_,
-                );
-                if (existing) mergeDeep(existing, fresh);
-              }
-            } else {
-              mergeDeep(this.resource.data, freshData);
-            }
-          }),
-          map(() => deleteResp),
-        ),
+        // After DELETE: sync with server so cascade deletes and rollbacks are reflected.
+        // See: https://github.com/AmpersandTarski/prototype/issues/298
+        this.syncWithServer().pipe(map(() => deleteResp)),
       ),
       tap(() => this.patched.emit()),
       catchError((error) => {
@@ -210,5 +199,61 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]> im
         return throwError(() => error);
       }),
     );
+  }
+
+  /**
+   * Re-fetches the full interface data from the server and reconciles it
+   * with the in-memory resource.data in-place.
+   *
+   * Strategy (preserves object references to avoid Angular re-rendering components
+   * and losing e.g. input focus):
+   * - Existing items: updated via mergeDeep
+   * - Items absent from server response: removed from the array
+   * - Items new in server response: appended to the array
+   *
+   * This is the interim fix for issue #298: it ensures that exec-engine side effects
+   * on sibling items, cascaded deletes, and derived-field changes become visible in the
+   * UI after every mutation without a manual Cmd+R.
+   * See: https://github.com/AmpersandTarski/prototype/issues/298
+   */
+  private syncWithServer(): Observable<void> {
+    if (Array.isArray(this.resource.data)) {
+      const list = this.resource.data as ObjectBase[];
+      if (list.length === 0) {
+        // Cannot determine the list path from an empty array; skip sync.
+        // This can occur when the user creates the very first item in a list.
+        return of(undefined);
+      }
+
+      const refreshPath = new ResourcePath(list[0]!._path_).init().toString();
+      return this.http.get<ObjectBase[]>(refreshPath).pipe(
+        takeUntil(this.destroy$),
+        tap((freshList) => {
+          // Remove items that are no longer present in the server response
+          for (let i = list.length - 1; i >= 0; i--) {
+            if (!freshList.some((f) => f._path_ === list[i]._path_)) {
+              list.splice(i, 1);
+            }
+          }
+          // Update existing items and append items that are new in the server response
+          for (const fresh of freshList) {
+            const existing = list.find((obj) => obj._path_ === fresh._path_);
+            if (existing) {
+              mergeDeep(existing, fresh);
+            } else {
+              list.push(fresh);
+            }
+          }
+        }),
+        map(() => undefined),
+      );
+    } else {
+      const refreshPath = (this.resource.data as ObjectBase)._path_;
+      return this.http.get<ObjectBase>(refreshPath).pipe(
+        takeUntil(this.destroy$),
+        tap((freshData) => mergeDeep(this.resource.data, freshData)),
+        map(() => undefined),
+      );
+    }
   }
 }
