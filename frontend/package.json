@@ -51,7 +51,7 @@
     "@angular-eslint/schematics": "^17.5.0",
     "@angular-eslint/template-parser": "^17.5.0",
     "@angular/cli": "~17.3.8",
-    "@angular/compiler-cli": "^17.3.10",
+    "@angular/compiler-cli": "^21.2.16",
     "@storybook/addon-essentials": "^7.6.17",
     "@storybook/addon-interactions": "^7.6.17",
     "@storybook/angular": "^7.6.17",
