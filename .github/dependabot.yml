@@ -1,0 +1,48 @@
+version: 2
+
+# Dependency update configuration.
+#
+# Updates are grouped (one PR per ecosystem for minor+patch) to cut down on PR noise,
+# and held back with a cooldown so that freshly-published — and possibly compromised —
+# versions are not adopted immediately. Major updates are intentionally left ungrouped
+# so they surface as individual PRs and are reviewed/merged by hand.
+updates:
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    # Wait before adopting a newly published version, so yanked/compromised
+    # releases can be discovered by the wider community first.
+    cooldown:
+      default-days: 7
+    groups:
+      frontend:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
+    groups:
+      backend:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        update-types:
+          - "minor"
+          - "patch"
