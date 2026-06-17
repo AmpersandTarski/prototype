@@ -6,7 +6,7 @@
 
 ## Aanleiding
 
-Uit codeanalyse blijkt dat de Ampersand-documentatie een reeks annotaties beschrijft die in de Ampersand-compiler herkend worden, maar waarvan de implementatie in het PrototypeFramework (Angular frontend + StringTemplate-templates) ontbreekt. Dit document rapporteert het aanmaken van de bijbehorende GitHub feature-request issues.
+Uit codeanalyse blijkt dat de Ampersand documentatie een reeks annotaties beschrijft die de Ampersand compiler herkent, maar waarvan de implementatie in het PrototypeFramework (Angular frontend + StringTemplate-templates) ontbreekt. Dit document rapporteert het aanmaken van de bijbehorende GitHub feature-request issues.
 
 ## Probleemanalyse
 

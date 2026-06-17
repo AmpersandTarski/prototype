@@ -37,7 +37,7 @@ The file `backend/generics/compiler-version.txt` contains the semantic version c
 
 The `Dockerfile` contains this construction:
 ```dockerfile
-ARG COMPILER_IMAGE=ampersandtarski/ampersand-compiler:20260322
+ARG COMPILER_IMAGE=ampersandtarski/ampersand-compiler:20260609
 FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
 
 <...>
@@ -45,7 +45,7 @@ FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
 COPY --from=compiler /bin/ampersand /usr/local/bin
 ```
 
-This allows us to update the tag `20260322` in one place only, to ensure building uses one Ampersand compiler consistently throughout.
+This allows us to update the tag `20260609` in one place only, to ensure building uses one Ampersand compiler consistently throughout.
 Only the dev-container has its own Dockerfile, so you must sync that separately.
 The Ampersand compiler uses the [Salve](https://hackage.haskell.org/package/salve) constraint language to verify compatibility at runtime.
 

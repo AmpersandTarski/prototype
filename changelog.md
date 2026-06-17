@@ -12,6 +12,8 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## v2.1.1 (unreleased)
 
+* Compiler upgrade: the Ampersand compiler image is bumped from `20260322` to `20260609` in `Dockerfile` and `dev.Dockerfile`. The documented tag in `docs/guides/updating-and-releasing.md` and `docs/reference-material/prototype-framework.md` is updated to match.
+
 * New feature: **multi-value (multi-column) spreadsheet import** — the runtime importer now handles multi-value cells the same way as the Ampersand compiler's compile-time importer.
   - A header cell `[Concept,]` (a concept name plus a delimiter, wrapped in square brackets) lets a single spreadsheet cell hold multiple atoms separated by that delimiter. Each value is trimmed and empty values are dropped.
   - RELATION approach: target multi-value, source multi-value (cartesian product), and flipped (`~`) relations. INTERFACE approach: multi-value sub-interface columns.

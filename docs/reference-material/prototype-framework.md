@@ -256,7 +256,7 @@ The file `backend/generics/compiler-version.txt` contains the semantic version c
 
 The `Dockerfile` contains this construction:
 ```dockerfile
-ARG COMPILER_IMAGE=ampersandtarski/ampersand-compiler:20260322
+ARG COMPILER_IMAGE=ampersandtarski/ampersand-compiler:20260609
 FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
 
 <...>
@@ -264,7 +264,7 @@ FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
 COPY --from=compiler /bin/ampersand /usr/local/bin
 ```
 
-This allows us to update the tag `20260322` in one place only, to ensure building uses one Ampersand compiler consistently throughout.
+This allows us to update the tag `20260609` in one place only, to ensure building uses one Ampersand compiler consistently throughout.
 
 Occasionally, you you want to break this consistency temporarily.
 For instance, when you want to try out a compiler version of your own or if you want to stick to an older version for a while.
