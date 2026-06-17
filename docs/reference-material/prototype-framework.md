@@ -51,6 +51,19 @@ These are loaded last and overwrite previous set settings.
   
   This means that when you start the application in production mode `true`, and the database doesn't exist or is outdated (new tables/columns are needed), an exception is thrown. And you are stuck.
 
+  The Ampersand compiler sets this value in `generics/settings.json` from its `--[no-]production` flag (a production build sets it to `true`, a development build to `false`). So the build target you pass to the compiler drives the framework's behaviour, including [OpenAPI publication](#openapi-publication). As always, `config/project.yaml` and the environment variable can still override it.
+
+## OpenAPI publication
+
+The compiler generates an [OpenAPI](https://www.openapis.org/) 3.0 description of the prototype's REST API in `generics/openapi.json` (for a development build). When that file is present and the prototype is **not** in production mode, the framework publishes it:
+
+* `GET /api/v1/openapi.json` — the machine-readable spec (CORS open, for Postman/codegen/Swagger tooling).
+* `GET /api/v1/docs` — a Swagger UI (loaded from CDN) to browse and try the API.
+
+Both routes are public (no session/checksum middleware). They are served by `OpenApiController` (`backend/src/Ampersand/Controller/OpenApiController.php`) and registered in `backend/bootstrap/api/openapi.php`.
+
+Compiler and framework stay consistent through one switch: a production build (`ampersand proto --production`) omits `openapi.json` *and* sets `global.productionEnv = true`, so nothing is published; a development build does both. The compiler flag `--[no-]openapi` overrides whether the spec is generated. Because the spec describes the whole API surface, it is published in development only by default; expose it in production only deliberately (set `productionEnv = false`, or force the spec and serve it behind your own protection).
+
 ## File System
 
 #### Introduction
@@ -256,7 +269,7 @@ The file `backend/generics/compiler-version.txt` contains the semantic version c
 
 The `Dockerfile` contains this construction:
 ```dockerfile
-ARG COMPILER_IMAGE=ampersandtarski/ampersand-compiler:20260609
+ARG COMPILER_IMAGE=ampersandtarski/ampersand-compiler:20260617
 FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
 
 <...>
@@ -264,7 +277,7 @@ FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
 COPY --from=compiler /bin/ampersand /usr/local/bin
 ```
 
-This allows us to update the tag `20260609` in one place only, to ensure building uses one Ampersand compiler consistently throughout.
+This allows us to update the tag `20260617` in one place only, to ensure building uses one Ampersand compiler consistently throughout.
 
 Occasionally, you you want to break this consistency temporarily.
 For instance, when you want to try out a compiler version of your own or if you want to stick to an older version for a while.
