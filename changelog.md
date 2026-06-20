@@ -12,6 +12,13 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## v2.1.1 (unreleased)
 
+* New feature: **full-text search module** — a home-screen search box searches across all stored data of the prototype and lets the user open each found atom in any interface that can display it.
+  - New `SearchController` (`backend/src/Ampersand/Controller/SearchController.php`) and route file `backend/bootstrap/api/search.php` (`GET /api/v1/search?q=<term>`, auto-loaded via the existing `api/*.php` glob).
+  - **TType-aware**: it searches every stored column whose TType the term could be a value of (e.g. `983` in `INTEGER` *and* alphanumeric columns; `Solanum` only in alphanumeric columns). `OBJECT`, `PASSWORD`, `BINARY*`, `BOOLEAN` and `TYPEOFONE` columns are never searched. This is invisible to the user.
+  - Results are the **entity atoms** that own a matching value; each is returned in the `ObjectBase` shape (`_id_`, `_label_`, `_ifcs_`) with the interfaces that can display it (via `AmpersandApp::getInterfacesToReadConcept`).
+  - New frontend feature `frontend/src/app/search/` (standalone `SearchComponent`, `SearchService`), wired into the home screen via `app.layout.module.ts` and `home.component.html`. Reuses the application's interface route map for navigation.
+  - Design notes: `docs/reference-material/search-module.md`.
+
 * New feature: **OpenAPI publication** — the compiler-generated `openapi.json` is now served by the running prototype, with a Swagger UI.
   - `GET /api/v1/openapi.json` returns the spec; `GET /api/v1/docs` renders a Swagger UI (loaded from CDN). Both routes are public (no session/checksum middleware) so external tooling (Postman, codegen) can read them, with `Access-Control-Allow-Origin: *` on the spec.
   - New `OpenApiController` (`backend/src/Ampersand/Controller/OpenApiController.php`) and route file `backend/bootstrap/api/openapi.php` (auto-loaded via the existing `api/*.php` glob).

@@ -28,6 +28,7 @@ import { ButtonModule } from 'primeng/button';
 import { NotFoundComponentComponent } from './not-found-component/not-found-component.component';
 import { AdminModule } from '../admin/admin.module';
 import { SignalsComponent } from './signals/signals.component';
+import { SearchComponent } from '../search/search.component';
 
 @NgModule({
   declarations: [
@@ -62,6 +63,7 @@ import { SignalsComponent } from './signals/signals.component';
     RouterModule,
     AppConfigModule,
     AdminModule,
+    SearchComponent,
   ],
   exports: [AppLayoutComponent],
 })
