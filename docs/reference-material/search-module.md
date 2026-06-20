@@ -4,6 +4,12 @@ The search module lets a user search across **all stored data** of a running pro
 home screen, and open each matching atom in any interface that can display it. It is a fixed
 framework feature (not generated), wired into the application's home screen.
 
+This page is written for contributors who maintain or extend the search feature. It explains the
+design, points to every file involved, and shows where to change behaviour. It builds on the
+backend runtime described in [The Prototype Framework](./prototype-framework.md) (TTypes, concepts,
+relations) and the Angular structure in
+[Frontend component internals](./frontend-component-internals.md).
+
 ## User-facing behaviour
 
 - A search box on the home screen searches every stored value as you type (debounced).
@@ -72,3 +78,28 @@ user to refine the term. See the constants at the top of `SearchController`.
 
 The endpoint requires a normal session; the interfaces offered per result respect the session's
 active roles (an atom with no accessible interface is shown but not navigable).
+
+## Extending the search
+
+Common changes and where to make them, all in `SearchController`:
+
+- **Make a TType (un)searchable** — edit `ttypeMatchesTerm()`. It is the single place that maps a
+  TType and the term to "search this column or not". Adding a case here is all that is needed; the
+  column enumeration picks it up automatically.
+- **Change which entity a match belongs to** — edit `scalarColumnToSearch()`. It classifies a
+  relation's two sides into the searched (scalar) column and the owning (object) column. Today it
+  skips relations with two object sides or two scalar sides.
+- **Tune responsiveness or result size** — edit the `*_LIMIT` / `MAX_*` constants at the top of the
+  class. They cap rows per column, total result atoms, and matched-field hints.
+- **Change the matching** (e.g. word boundaries, prefix-only) — edit `buildLikePattern()` and
+  `buildColumnQuery()`. Keep the two-layer escaping intact: LIKE metacharacters first, then the SQL
+  string literal.
+- **Change the result shape** — edit `newResult()` (one result atom) and the JSON assembled in
+  `search()`. The frontend types live in `frontend/src/app/search/search.model.ts`; keep the
+  `ObjectBase` fields (`_id_`, `_label_`, `_ifcs_`) so navigation keeps working.
+- **Change the presentation** — the result list, grouping and interface buttons are in
+  `frontend/src/app/search/search.component.{ts,html,scss}`. Navigation reuses the generated
+  interface route map (`INTERFACE_ROUTE_MAPPING_TOKEN`); do not hard-code routes.
+
+A change to the backend `src/` or `bootstrap/` must be rebuilt into the base image before a
+generated prototype sees it; see [Updating and Releasing the Prototype Framework](../guides/updating-and-releasing.md).
