@@ -22,7 +22,7 @@ services:
     depends_on:
       - prototype-db
     ports:
-      - "80:80"
+      - "${PROTOTYPE_PORT:-80}:80"
     networks:
       - db
   
@@ -47,7 +47,7 @@ services:
     depends_on:
       - prototype-db
     ports:
-      - "8080:80"
+      - "${PMA_PORT:-8080}:80"
     networks:
       - db
     environment:

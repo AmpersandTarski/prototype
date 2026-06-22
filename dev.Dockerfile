@@ -1,4 +1,6 @@
 # To run generated prototypes we require a apache webserver with php
+ARG COMPILER_IMAGE=ampersandtarski/ampersand-compiler:20260617
+FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
 FROM --platform=linux/amd64 php:8.3-apache-bookworm AS framework
 
 RUN apt-get update \
@@ -35,7 +37,7 @@ RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
 
 # Copy Ampersand compiler
 # NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
-COPY --from=ampersandtarski/ampersand:v5.3.2 /bin/ampersand /usr/local/bin
+COPY --from=compiler /bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
 
 # Add default data folder that Apache can write to

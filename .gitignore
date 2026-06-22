@@ -5,6 +5,8 @@ ampersand
 
 # Ignore dev stuff
 .idea/
+.DS_Store
+**/.DS_Store
 backend/generics/*.json
 backend/generics/*.sql
 html/

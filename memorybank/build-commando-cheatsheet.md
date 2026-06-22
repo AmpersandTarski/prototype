@@ -9,7 +9,10 @@ Terugkerende Docker-commando's voor het PrototypeFramework.
 Het base image wordt gebruikt in `FROM`-statements in alle test- en klantprojecten.
 De canonical naam is `ampersandtarski/prototype-framework:local`.
 
-**Bouwen voor linux/amd64 (de juiste architectuur voor containers):**
+> ⚠️ **Altijd bouwen voor `linux/amd64`** — ook op een Apple Silicon Mac.
+> Klant- en testcontainers draaien op linux/amd64; een native arm64-image werkt niet in die context.
+
+**Standaard bouwcommando (linux/amd64, voor gebruik in test/klantprojecten):**
 
 ```bash
 docker buildx build \
@@ -21,14 +24,7 @@ docker buildx build \
 
 > `--load` zorgt dat het image beschikbaar komt in de lokale Docker daemon (vereist voor gebruik in `FROM` en `docker run`).
 > Zonder `--load` wordt het gebouwd maar niet opgeslagen.
-
-**Alleen voor de huidige host-architectuur (sneller, maar niet geschikt als containers linux/amd64 vereisen):**
-
-```bash
-docker build \
-  -t ampersandtarski/prototype-framework:local \
-  /Users/stef/git/PrototypeFramework
-```
+> Op Apple Silicon is `buildx` vereist voor cross-compilatie; gewone `docker build` zonder `--platform` levert een arm64-image op.
 
 ---
 

@@ -77,5 +77,10 @@ module.exports = {
       type: "doc",
       id: "prototype/reference-material/propbutton-template",
     },
+    {
+      label: "Full-text Search Module",
+      type: "doc",
+      id: "prototype/reference-material/search-module",
+    },
   ],
 };

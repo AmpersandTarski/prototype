@@ -1,0 +1,74 @@
+<div class="search-module">
+    <div class="p-inputgroup search-bar">
+        <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
+        <input
+            pInputText
+            type="text"
+            name="searchTerm"
+            [(ngModel)]="term"
+            (ngModelChange)="onTermChange($event)"
+            (keyup.enter)="searchNow()"
+            placeholder="Zoek in alle gegevens…"
+            autocomplete="off"
+            aria-label="Zoekterm"
+        />
+        <button
+            type="button"
+            pButton
+            icon="pi pi-search"
+            label="Zoek"
+            (click)="searchNow()"
+        ></button>
+    </div>
+
+    <div *ngIf="loading" class="search-status">
+        <p-progressSpinner styleClass="search-spinner" strokeWidth="4"></p-progressSpinner>
+    </div>
+
+    <ng-container *ngIf="response && !loading">
+        <p *ngIf="response.results.length === 0" class="search-status muted">
+            Geen resultaten voor “{{ response.term }}”.
+        </p>
+
+        <p *ngIf="response.truncated" class="search-status warning">
+            Te veel resultaten om allemaal te tonen — verfijn je zoekterm.
+        </p>
+
+        <div *ngFor="let group of groups" class="result-group">
+            <h4 class="result-group-header">
+                <span class="concept-tag">{{ group.concept }}</span>
+                <span class="result-count">{{ group.items.length }}</span>
+            </h4>
+
+            <ul class="result-list">
+                <li *ngFor="let item of group.items" class="result-item">
+                    <div class="result-main">
+                        <span class="result-label">{{ item._label_ }}</span>
+                        <span *ngIf="matchSummary(item)" class="result-fields">
+                            gevonden in: {{ matchSummary(item) }}
+                        </span>
+                    </div>
+
+                    <div class="result-actions">
+                        <ng-container
+                            *ngIf="openableInterfaces(item).length; else noIfc"
+                        >
+                            <a
+                                *ngFor="let ifc of openableInterfaces(item)"
+                                pButton
+                                class="p-button-sm p-button-outlined"
+                                [routerLink]="routerLinkFor(ifc, item._id_)"
+                                [label]="ifc.label"
+                                icon="pi pi-arrow-up-right"
+                                iconPos="right"
+                            ></a>
+                        </ng-container>
+                        <ng-template #noIfc>
+                            <span class="muted">geen interface beschikbaar</span>
+                        </ng-template>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </ng-container>
+</div>
