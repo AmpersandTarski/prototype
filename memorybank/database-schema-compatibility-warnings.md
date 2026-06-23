@@ -53,5 +53,40 @@ docker-compose up -d
 - Document all framework version changes in project history
 
 ---
-**Last Updated**: July 25, 2025
-**Context**: This knowledge comes from experience where switching from one Ampersand prototype framework to another caused database schema incompatibility, requiring volume deletion to resolve.
+
+## Object-identity shortening (cross-repo contract)
+
+OBJECT atom identities are stored in a `VARCHAR(255)` column and must be unique within their
+concept. Both the runtime importers AND the compiler shorten any object id longer than 254
+characters to a deterministic, DB-safe value:
+
+```
+len(id) <= 254  -> id unchanged
+len(id) >  254  -> first 243 chars + "_" + first 10 lowercase hex chars of sha1(utf8(id))   (= 254 chars)
+```
+
+This is **one algorithm implemented in two repositories** — they must stay byte-for-byte identical,
+otherwise a compiler-generated object atom and the same atom imported/created at runtime map to
+different database rows (or the un-shortened id overflows `VARCHAR(255)` and the install fails):
+
+- **Runtime (this repo):** `backend/src/Ampersand/Core/Atom.php` → `Atom::setId()`, OBJECT case.
+  Covers both importers (Excel + JSON population) and the API, because every atom is built via `new Atom`.
+- **Compiler (`~/git/Ampersand`):** `src/Ampersand/Basics/Hashing.hs` → `shortenObjectId`, applied in
+  `src/Ampersand/Core/AbstractSyntaxTree.hs` (`mkObjectAtomVal`, the three `Object` branches of
+  `unsafePAtomVal2AtomValue`). Bakes the shortened id into `database.sql` / generated population.
+
+**Shared known-answer vector** (asserted in both test suites): `"a" x 300` → `"a" x 243 + "_003ef1ba9e"`.
+- PHP: `test/unit/AtomObjectIdShorteningTest.php`
+- Haskell: `src/Ampersand/Test/Parser/QuickChecks.hs` (`doObjectIdShorteningTest`) +
+  `testing/Travis/testcases/Parsing/xlsxLongObjectId/` (a `validate` test that fails if the
+  generated population overflows the column).
+
+**Sync requirement:** ship the compiler change and the framework change together. An old compiler
+(no shortening) writing into a new framework's `VARCHAR(255)` will fail to install; bump
+`backend/generics/compiler-version.txt` to require the compiler version that includes shortening.
+
+---
+**Last Updated**: June 22, 2026
+**Context**: Object-identity shortening added so importers guarantee object-id uniqueness within 254
+chars. The earlier note below stems from experience where switching Ampersand prototype frameworks
+caused database schema incompatibility, requiring volume deletion to resolve.

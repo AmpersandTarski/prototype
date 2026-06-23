@@ -106,8 +106,17 @@ class Atom implements JsonSerializable
                 break;
             case TType::FLOAT:
             case TType::INTEGER:
-            case TType::OBJECT:
                 $this->id = $atomId;
+                break;
+            case TType::OBJECT:
+                // Object identities are opaque labels, stored in a VARCHAR(255) column and required to
+                // be unique within their concept. Keep them within 254 characters: an id longer than
+                // that is deterministically shortened to <first 243 chars>_<10 hex chars of sha1(id)>.
+                // Deterministic on purpose: every reference to the same id (links, lookups, re-imports,
+                // both importers) maps to the same atom, while distinct ids stay distinct. See setId().
+                $this->id = mb_strlen($atomId) > 254
+                    ? mb_substr($atomId, 0, 243) . '_' . substr(sha1($atomId), 0, 10)
+                    : $atomId;
                 break;
             default:
                 throw new FatalException("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'");
