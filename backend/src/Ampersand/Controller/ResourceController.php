@@ -113,8 +113,14 @@ class ResourceController extends AbstractController
                 throw new FatalException("Unsupported HTTP method");
         }
 
-        // Run ExecEngine
-        $transaction->runExecEngine();
+        // Run ExecEngine — but never during a dry run. A dry run validates a
+        // buffered edit set (SAVE-enabling); it must only check invariant rules,
+        // not trigger side-effecting ExecEngine functions (e.g. one that shells
+        // out to a compiler), which would run — and possibly throw — on an edit
+        // set the user has not committed.
+        if (!$dryRun) {
+            $transaction->runExecEngine();
+        }
 
         // Get content to return
         try {
@@ -128,7 +134,9 @@ class ResourceController extends AbstractController
         if ($transaction->isCommitted()) {
             $this->app->userLog()->notice($successMessage);
         }
-        $this->app->checkProcessRules(); // Check all process rules that are relevant for the activate roles
+        if (!$dryRun) {
+            $this->app->checkProcessRules(); // Check all process rules that are relevant for the activate roles
+        }
 
         // Output
         return $response->withJson(
