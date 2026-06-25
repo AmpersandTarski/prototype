@@ -16,15 +16,13 @@
 
 <ng-template #cRUdUni>
     <div class="w-full">
-        <textarea
-            pInputTextarea
-            [(ngModel)]="resource[propertyName]"
-            (input)="dirty = true"
-            (blur)="updateValue()"
-            [required]="isTot"
-            rows="20"
-            class="w-full min-w-10rem"
-        ></textarea>
+        <!-- Monaco code editor: line numbers, and the EditorService cursor target
+             for clickable diagnostics. Commits on blur like the old textarea. -->
+        <app-monaco-editor
+            [value]="resource[propertyName] || ''"
+            (valueChange)="onEditorChange($event)"
+            (blurred)="onEditorBlur()"
+        ></app-monaco-editor>
     </div>
 </ng-template>
 

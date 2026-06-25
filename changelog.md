@@ -23,6 +23,13 @@ Additional labels for pre-release and build metadata are available as extensions
 
 * Fix: **read-only multi-line text keeps its line breaks**. The `BIGALPHANUMERIC` and `HUGEALPHANUMERIC` atomic components rendered a read-only value with HTML interpolation, which collapses newlines, so a multi-line value (e.g. a compiler message) ran together on one line. Both now render with `white-space: pre-wrap`.
 
+* New feature: **Monaco code editor with clickable diagnostics**.
+  - An editable `HUGEALPHANUMERIC` now renders as a [Monaco](https://microsoft.github.io/monaco-editor/) code editor (line numbers, etc.) instead of a plain textarea. Monaco is loaded on demand from `assets/monaco` (copied by the build), so it stays out of the main bundle until an editor is shown. New `MonacoEditorComponent` + loader in `frontend/src/app/shared/monaco-editor/`.
+  - A read-only `BIGALPHANUMERIC` (e.g. a compiler message) renders every `file:line[:column]` position as a clickable link that moves the code editor's cursor there, via a new `EditorService` and `DiagnosticsTextComponent`.
+  - Monaco reports a blur asynchronously, so the editable `HUGEALPHANUMERIC` commits its value shortly after typing stops (debounced) as well as on blur, so the value is persisted before a following action (e.g. a Compile button) flushes the transaction.
+
+* Fix: **a dry run no longer runs the ExecEngine**. A transactional interface validates a buffered edit set with a `?dryRun=` PATCH. That request now only evaluates the invariant rules; it no longer calls `runExecEngine()` (nor `checkProcessRules`), so a dry run cannot trigger a side-effecting ExecEngine function (e.g. one that shells out to a compiler) on an edit set the user has not committed.
+
 ## v2.1.1 (22 June 2026)
 
 * New feature: **full-text search module** — a home-screen search box searches across all stored data of the prototype and lets the user open each found atom in any interface that can display it.
