@@ -11,6 +11,7 @@ import { Injectable } from '@angular/core';
 @Injectable({ providedIn: 'root' })
 export class EditorService {
   private editor: any | null = null;
+  private empty = true;
 
   public register(editor: any): void {
     this.editor = editor;
@@ -19,11 +20,21 @@ export class EditorService {
   public unregister(editor: any): void {
     if (this.editor === editor) {
       this.editor = null;
+      this.empty = true;
     }
   }
 
   public hasEditor(): boolean {
     return this.editor !== null;
+  }
+
+  /** The editor reports whether its content is empty (used to gate actions). */
+  public setEmpty(empty: boolean): void {
+    this.empty = empty;
+  }
+
+  public isEmpty(): boolean {
+    return this.empty;
   }
 
   /** Move the cursor to (line, column) and reveal it. 1-based. */

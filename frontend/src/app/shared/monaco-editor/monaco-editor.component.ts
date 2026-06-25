@@ -56,11 +56,14 @@ export class MonacoEditorComponent
         readOnly: this.readOnly,
         tabSize: 2,
       });
-      this.editor.onDidChangeModelContent(() =>
-        this.valueChange.emit(this.editor.getValue()),
-      );
+      this.editor.onDidChangeModelContent(() => {
+        const v = this.editor.getValue();
+        this.editorSvc.setEmpty(v.trim().length === 0);
+        this.valueChange.emit(v);
+      });
       this.editor.onDidBlurEditorWidget(() => this.blurred.emit());
       this.editorSvc.register(this.editor);
+      this.editorSvc.setEmpty((this.value ?? '').trim().length === 0);
     });
   }
 
