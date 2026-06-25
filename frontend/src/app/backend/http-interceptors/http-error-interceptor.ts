@@ -32,7 +32,28 @@ export class HttpErrorInterceptor implements HttpInterceptor {
 
         // Standard error handling for all non-import requests
         switch (error.status) {
-          case 401:
+          case 401: {
+            // Session gone: when loading an interface's data fails with 401,
+            // return to the start page instead of leaving the user on a page that
+            // can only render skeletons. We only redirect for a full interface
+            // load (resource/<concept>/<id>/<interface>), not for field-level
+            // fetches like the anonymous login form's, which legitimately 401 —
+            // redirecting on those would break the login page itself. The pathname
+            // guard avoids a loop once we are already on the start page.
+            const isInterfaceLoad = /\/resource\/[^/]+\/[^/]+\/[^/]+/.test(
+              req.url,
+            );
+            const onPublicRoute = ['/', '/login'].includes(
+              window.location.pathname,
+            );
+            if (isInterfaceLoad && !onPublicRoute) {
+              sessionStorage.clear();
+              window.location.assign('/');
+            } else {
+              this.sendErrorMessage(error, 'warn');
+            }
+            break;
+          }
           case 403:
           case 500: {
             this.sendErrorMessage(error, 'warn');

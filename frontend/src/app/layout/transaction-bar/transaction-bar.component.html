@@ -1,0 +1,22 @@
+<div class="transaction-bar" *ngIf="(active$ | async) as active">
+  <ng-container *ngIf="active.isDirty()">
+    <span class="transaction-bar__label"
+      >Unsaved changes in {{ active.transactionLabel }}</span
+    >
+    <span class="transaction-bar__spacer"></span>
+    <button
+      pButton
+      type="button"
+      label="Cancel"
+      class="p-button-text p-button-secondary"
+      (click)="cancel(active)"
+    ></button>
+    <button
+      pButton
+      type="button"
+      label="Save"
+      [disabled]="!active.canSave()"
+      (click)="save(active)"
+    ></button>
+  </ng-container>
+</div>

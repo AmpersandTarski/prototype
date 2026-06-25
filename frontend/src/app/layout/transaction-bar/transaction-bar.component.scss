@@ -1,0 +1,19 @@
+.transaction-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--surface-100, #f4f4f4);
+  border-top: 1px solid var(--surface-300, #dddddd);
+  z-index: 100;
+}
+
+.transaction-bar__spacer {
+  flex: 1 1 auto;
+}
+
+.transaction-bar__label {
+  font-weight: 600;
+}

@@ -82,5 +82,10 @@ module.exports = {
       type: "doc",
       id: "prototype/reference-material/search-module",
     },
+    {
+      label: "Transactional Interfaces",
+      type: "doc",
+      id: "prototype/reference-material/transactional-interfaces",
+    },
   ],
 };
