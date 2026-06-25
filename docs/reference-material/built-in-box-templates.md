@@ -267,3 +267,111 @@ BOX <TABLE>
 ```
 
 This creates an interface mixing PROPBUTTON with regular fields for different types of user interactions.
+
+## BOX \<FILTEREDDROPDOWN\>
+
+`BOX <FILTEREDDROPDOWN>` populates a relation from a **server-filtered** list of
+selectable atoms. The set of options is computed per record by an Ampersand
+expression, so each row can offer a different, context-dependent choice list.
+
+> This template supersedes the older `OBJECTDROPDOWN` and `VALUEDROPDOWN`
+> templates. A single `FILTEREDDROPDOWN` works for both object concepts and value
+> concepts (those with a `REPRESENT`).
+
+### Usage
+
+```ampersand
+expr cRud BOX <FILTEREDDROPDOWN>
+  [ "selectFrom"  : selectableAtoms      -- options to choose from (per record)
+  , "setRelation" : theRelation <crud>   -- the relation that is filled/changed
+  ]
+```
+
+Both field names are prescribed and must be written exactly, including the
+quotes:
+
+| Field | Meaning |
+| --- | --- |
+| `selectFrom` | Expression yielding the atoms the user may pick. It is filtered on the server for the current record, so it can depend on the record (e.g. only *eligible* employees for *this* project). |
+| `setRelation` | The relation whose population is read and modified when the user picks (or clears) a value. Its CRUD annotation governs what the user may do. |
+
+`selectFrom` and `setRelation` must have the **same target concept**; a mismatch
+raises an error at runtime.
+
+### CRUD on `setRelation`
+
+The CRUD letters on `setRelation` decide which actions the widget offers (see the
+[CRUD reference](interfaces.md#CRUD) for the general meaning):
+
+- **R** (read) is required for the box to display the current value.
+- **U** (update) lets the user replace/extend the value by selecting an option.
+- **D** (delete) shows a remove/clear control.
+- **C** (create) lets the user create a new atom by typing a value that is not yet
+  in the list (only meaningful where a new atom makes sense).
+
+For a `[UNI]` `setRelation` a selection replaces the current value; for a
+non-univalent relation the user builds a list. A `[TOT]` relation hides the
+remove control when removing the last value would violate totality.
+
+### Example
+
+```ampersand
+"Assign an employee" : I[Project] cRud BOX<FILTEREDDROPDOWN>
+  [ "selectFrom"  : eligible        -- eligible employees for this project
+  , "setRelation" : projectMember cRUd
+  ]
+```
+
+(See `test/projects/box-filtered-dropdown` for worked examples covering UNI, TOT
+and full-CRUD variants.)
+
+## BOX \<SELECT\>
+
+`BOX <SELECT>` is a simpler dropdown: it selects from a **static** option list
+that is already present on the record, without per-record server filtering and
+without creating new atoms from typed text.
+
+### Usage
+
+```ampersand
+expr cRud BOX <SELECT>
+  [ "selectFrom" : selectableAtoms   -- options, embedded on the record
+  ]
+```
+
+Use `SELECT` when the option list is the same for every record and is part of the
+interface data. Use `FILTEREDDROPDOWN` when the options must be filtered per
+record or when the user should be able to create new atoms.
+
+## BOX \<NOVIEW\>
+
+`BOX <NOVIEW>` renders nothing. Use it to keep a sub-interface in the interface
+definition (for example, because the backend or a rule needs the field to be
+read) while hiding it from the user interface.
+
+```ampersand
+"hiddenField" : someRelation cRud BOX <NOVIEW> []
+```
+
+## Atomic templates (interface leaves)
+
+A leaf of an interface — a sub-interface with no further `BOX` and no user
+`VIEW` — is rendered by an **atomic template**, chosen by the compiler from the
+target concept's `REPRESENT` type. The framework ships one per TType:
+
+| TType | Atomic template |
+| --- | --- |
+| `ALPHANUMERIC` | `Atomic-ALPHANUMERIC` |
+| `BIGALPHANUMERIC` | `Atomic-BIGALPHANUMERIC` |
+| `HUGEALPHANUMERIC` | `Atomic-HUGEALPHANUMERIC` |
+| `BOOLEAN` | `Atomic-BOOLEAN` |
+| `DATE` | `Atomic-DATE` |
+| `DATETIME` | `Atomic-DATETIME` |
+| `INTEGER` | `Atomic-INTEGER` |
+| `FLOAT` | `Atomic-FLOAT` |
+| `PASSWORD` | `Atomic-PASSWORD` |
+| `OBJECT` | `Atomic-OBJECT` (a concept without a `REPRESENT`) |
+| `TYPEOFONE` | `Atomic-TYPEOFONE` (the singleton `ONE` atom; rarely used in a UI) |
+
+The Angular components behind these templates, and how the type mapping works, are
+described in [Frontend components](frontend-components.md).

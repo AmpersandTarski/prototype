@@ -63,6 +63,11 @@ module.exports = {
       id: "prototype/reference-material/built-in-box-templates",
     },
     {
+      label: "Built-in VIEW Templates",
+      type: "doc",
+      id: "prototype/reference-material/built-in-view-templates",
+    },
+    {
       label: "Frontend components",
       type: "doc",
       id: "prototype/reference-material/frontend-components",
