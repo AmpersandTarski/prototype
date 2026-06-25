@@ -83,6 +83,9 @@ class ResourceController extends AbstractController
         $pathList = ResourcePath::makePathList($args['ifcPath'] ?? null);
         $options = Options::getFromRequestParams($request->getQueryParams());
         $depth = $request->getQueryParam('depth');
+        // Transactional interfaces validate a buffered edit set without committing
+        // (client-side buffering, SAVE-enabling). Default false = current Direct behavior.
+        $dryRun = filter_var($request->getQueryParam('dryRun', false), FILTER_VALIDATE_BOOLEAN);
         $body = $request->reparseBody()->getParsedBody();
 
         // Prepare
@@ -120,8 +123,8 @@ class ResourceController extends AbstractController
             $content = $request->getMethod() === 'PATCH' ? null : $body;
         }
         
-        // Close transaction
-        $transaction->close();
+        // Close transaction (dryRun rolls back after evaluating invariants → SAVE-enabling)
+        $transaction->close($dryRun);
         if ($transaction->isCommitted()) {
             $this->app->userLog()->notice($successMessage);
         }

@@ -33,11 +33,15 @@ export class BoxPropButtonComponent<
         break;
     }
 
+    // A PROPBUTTON is an explicit action: in Transactional mode it flushes the
+    // buffer (acts as SAVE), in Direct mode it patches immediately.
     this.interfaceComponent
-      .patch(item._path_, [{ op: 'replace', path: 'property', value: value }])
+      .commitAction(item._path_, [
+        { op: 'replace', path: 'property', value: value },
+      ])
       .pipe(takeUntil(this.destroy$))
-      .subscribe((x) => {
-        if (x.isCommitted) {
+      .subscribe((x: any) => {
+        if (x && x.isCommitted) {
           this.data = [x.content as any as TItem];
         }
       });

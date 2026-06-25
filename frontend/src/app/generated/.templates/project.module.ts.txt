@@ -15,6 +15,7 @@ import { SharedModule } from '../shared/shared.module';
 import { InterfaceRouteMap, INTERFACE_ROUTE_MAPPING_TOKEN } from '../config';
 import { TabViewModule } from 'primeng/tabview';
 import { TableModule } from 'primeng/table';
+import { unsavedChangesGuard } from '../shared/guards/unsaved-changes.guard';
 
 $uis:{ifc|import { $ifc.ifcNamePascal$Component \} from './$ifc.ifcNameKebab$/$ifc.ifcNameKebab$.component';
 }$
@@ -24,6 +25,7 @@ const routes: Routes = [
     path: '$ifc.ifcNameKebab$$if(!ifc.isSessionInterface)$/:id$endif$',
     component: $ifc.ifcNamePascal$Component,
     title: '$ifc.ifcLabel$',
+    canDeactivate: [unsavedChangesGuard],
   \},
   }$
 ];

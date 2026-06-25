@@ -10,6 +10,19 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.2.0 (unreleased)
+
+* New feature: **per-interface transaction mode** — an interface runs as `Transactional` or `Direct`. Reference: `docs/reference-material/transactional-interfaces.md`.
+  - **Transactional** (the new default): the interface buffers the user's edits on the client; nothing commits until the user presses **SAVE**. **CANCEL**, or navigating away ("Lose your edits?"), discards the buffer. SAVE is enabled only when the buffered edits leave no invariant rule violated.
+  - **Direct**: every edit commits immediately, as before.
+  - **Behaviour change**: because the default is `Transactional`, an interface that previously committed each edit on blur now waits for SAVE. A **PROPBUTTON** flushes the buffer on click (it acts as the SAVE), so single-click forms — including login — keep working unchanged. Set an interface to `Direct` via `TransactionModeService` to restore the old per-edit commit.
+  - Frontend: buffer + `save`/`cancel`/`commitAction` + dry-run validation in `frontend/src/app/shared/interfacing/ampersand-interface.class.ts`; `TransactionModeService` and `TransactionService` in `frontend/src/app/shared/services/`; global SAVE/CANCEL bar in `frontend/src/app/layout/transaction-bar/`; `unsavedChangesGuard` (`frontend/src/app/shared/guards/`) attached to every generated route via the `project.module.ts.txt` route template; PROPBUTTON flush in `box-prop-button.component.ts`.
+  - Backend: a `?dryRun=` query parameter on the resource PATCH endpoint (`backend/src/Ampersand/Controller/ResourceController.php`) validates a buffered edit set without committing, on the existing `Transaction::dryRun()`. Default `false`, so the endpoint stays backwards compatible.
+  - The mode is runtime-changeable (`setOverride`, `setDefault`); a future compiler version will declare it per interface via the box header.
+  - Current scope: buffering covers field/link edits (`patch`); creating or deleting a whole atom (`POST`/`DELETE`) still commits immediately.
+
+* Fix: **read-only multi-line text keeps its line breaks**. The `BIGALPHANUMERIC` and `HUGEALPHANUMERIC` atomic components rendered a read-only value with HTML interpolation, which collapses newlines, so a multi-line value (e.g. a compiler message) ran together on one line. Both now render with `white-space: pre-wrap`.
+
 ## v2.1.1 (22 June 2026)
 
 * New feature: **full-text search module** — a home-screen search box searches across all stored data of the prototype and lets the user open each found atom in any interface that can display it.
