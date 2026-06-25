@@ -9,8 +9,11 @@
         [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
         tgtResourceType="$target$"
         placeholder="Add existing $targetLabel$"
-        $if(exprIsUni)$isUni$endif$
-        $if(exprIsTot)$isTot$endif$
+        $if(exprIsUni)$isUni
+        $endif$$if(exprIsTot)$isTot
+        $endif$$if(hideOnNoRecords)$hideOnNoRecords
+        $endif$$if(showNavMenu)$showNavMenu
+        $endif$$if(title)$title="$title$"$endif$
     >
         <ng-template
             [boxFormTemplate]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
@@ -18,9 +21,9 @@
         >
             <div class="formgrid grid">
                 $subObjects:{subObj|
-                <div class="field col-12 box-form-field">
-                    <label class="box-form-label">$subObj.subObjLabel$</label>
-                    <div class="box-form-value">$subObj.subObjContents$</div>
+                <div class="field col-12 box-form-field"$if(hideSubOnNoRecords)$ *ngIf="resource['$subObj.subObjName$'] != null && (resource['$subObj.subObjName$'].length === undefined || resource['$subObj.subObjName$'].length > 0)"$endif$>
+                    $if(hideLabels)$<div class="box-form-value box-form-value--nolabel">$subObj.subObjContents$</div>$else$<label class="box-form-label">$subObj.subObjLabel$</label>
+                    <div class="box-form-value">$subObj.subObjContents$</div>$endif$
                 </div>
                 }$
             </div>

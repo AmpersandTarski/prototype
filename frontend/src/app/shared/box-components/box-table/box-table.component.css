@@ -5,3 +5,13 @@
 :host ::ng-deep .p-datatable .p-datatable-wrapper {
   overflow: visible;
 }
+
+/* Title rendered above the box content via the `title` BOX-annotation. */
+.box-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.box-table-add {
+  margin: 0.5rem 0;
+}

@@ -18,7 +18,11 @@
         $endif$
         $endif$
         $if(exprIsUni)$isUni
-        $endif$$if(exprIsTot)$isTot$endif$
+        $endif$$if(exprIsTot)$isTot
+        $endif$$if(noHeader)$noHeader
+        $endif$$if(hideOnNoRecords)$hideOnNoRecords
+        $endif$$if(showNavMenu)$showNavMenu
+        $endif$$if(title)$title="$title$"$endif$
     >
         <ng-template boxTableHeader
             >$subObjects:{subObj| $if(subObj.subObjExprIsUni)$$if(sortable)$

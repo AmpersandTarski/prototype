@@ -9,10 +9,13 @@
         [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
         tgtResourceType="$target$"
         placeholder="Add $target$"
-        $if(exprIsUni)$isUni$endif$
-        $if(exprIsTot)$isTot$endif$
+        $if(exprIsUni)$isUni
+        $endif$$if(exprIsTot)$isTot
+        $endif$$if(hideOnNoRecords)$hideOnNoRecords
+        $endif$$if(showNavMenu)$showNavMenu
+        $endif$$if(title)$title="$title$"$endif$
         >$subObjects:{subObj|
-        <ng-template tab label="$subObj.subObjLabel$" let-resource>
+        <ng-template tab label="$subObj.subObjLabel$"$if(hideSubOnNoRecords)$ hideSubOnNoRecords subName="$subObj.subObjName$"$endif$ let-resource>
             $subObj.subObjContents$ </ng-template
         >}$
     </app-box-tabs>

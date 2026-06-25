@@ -10,6 +10,18 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.2.0 (2 July 2026)
+
+* New feature: **restored BOX-template annotations** that were lost in the AngularJS → Angular migration (framework v1.18.0). The Ampersand compiler already forwards every BOX-header key/value to the template generically (`renderTemplate` in `ProtoUtil.hs`), so these are frontend-only and need no compiler change. Implemented in `frontend/src/app/generated/.templates/Box-*.html` and `frontend/src/app/shared/box-components/`:
+  - **TABLE**: `noHeader` ([#300](https://github.com/AmpersandTarski/prototype/issues/300)), `hideOnNoRecords` ([#301](https://github.com/AmpersandTarski/prototype/issues/301)), `title` ([#302](https://github.com/AmpersandTarski/prototype/issues/302)), `showNavMenu` ([#304](https://github.com/AmpersandTarski/prototype/issues/304)).
+  - **FORM**: `hideOnNoRecords` ([#305](https://github.com/AmpersandTarski/prototype/issues/305)), `hideSubOnNoRecords` ([#306](https://github.com/AmpersandTarski/prototype/issues/306)), `hideLabels` ([#307](https://github.com/AmpersandTarski/prototype/issues/307)), `title` ([#308](https://github.com/AmpersandTarski/prototype/issues/308)), `showNavMenu` ([#310](https://github.com/AmpersandTarski/prototype/issues/310)).
+  - **TABS**: `title` ([#311](https://github.com/AmpersandTarski/prototype/issues/311)), `hideOnNoRecords` ([#313](https://github.com/AmpersandTarski/prototype/issues/313)), `hideSubOnNoRecords` ([#314](https://github.com/AmpersandTarski/prototype/issues/314)). `hideSubOnNoRecords` filters the rendered tab panels per record (`BoxTabsComponent.visibleTabs`) instead of using `*ngIf` on `<p-tabPanel>`, avoiding the PrimeNG tab-index problem.
+  - **RAW**: `table` ([#316](https://github.com/AmpersandTarski/prototype/issues/316)), `form` ([#315](https://github.com/AmpersandTarski/prototype/issues/315), wrapped as a non-submitting `<form>`).
+  - `showNavMenu` reuses the existing `app-ifcs-dropdown` and the `_ifcs_` data that `Options::DEFAULT_OPTIONS` already includes in every interface read.
+  - New test project `test/projects/box-annotations` exercises every annotation.
+  - Docs: `docs/reference-material/built-in-box-templates.md` (user reference), `docs/reference-material/box-template-architecture.md` (the generic annotation mechanism) and `docs/guides/box-template-development-guide.md` (how to add an annotation).
+  - **Not included**: `noRootTitle` ([#303](https://github.com/AmpersandTarski/prototype/issues/303)/[#309](https://github.com/AmpersandTarski/prototype/issues/309)/[#312](https://github.com/AmpersandTarski/prototype/issues/312)). It must suppress the interface heading in `component.html`, which is rendered without the box header's key/values, so it needs a compiler change rather than a framework edit.
+
 ## v2.1.5 (2 July 2026)
 
 * Bundled Ampersand compiler upgraded to **v5.7.0**. This is the first released compiler that generates `generics/openapi.json` (an OpenAPI 3.0 description of the prototype's REST API) and supports `--[no-]production` / `--[no-]openapi`, which **activates the OpenAPI publication feature shipped in v2.1.1**: a development build now serves the spec at `GET /api/v1/openapi.json` and a Swagger UI at `GET /api/v1/docs`; a production build (compiler `--production`) generates no spec and sets `global.productionEnv = true`, so nothing is published. No framework code changes.

@@ -3,71 +3,95 @@ We need an array function here to shallow clone the array every time, otherwise 
 fails to detect changes to the array, like new rows. Currently it is filterNullish(data),
 but can also be done with data.slice()
  -->
-<p-table [value]="filterNullish(data)" #primengTable>
-    <ng-template pTemplate="header">
-        <tr>
-            <ng-container
-                *ngTemplateOutlet="headers || defaultHeaderTemplate; context: { $implicit: data }"
-            ></ng-container>
-            <th>
-                <span
-                    *ngIf="canCreate()"
-                    class="pi pi-fw pi-plus"
-                    pTooltip="Add"
-                    tooltipPosition="left"
-                    style="color: green; cursor: pointer"
-                    (click)="createItem()"
-                ></span>
-            </th>
-        </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-data>
-        <tr style="vertical-align: top">
-            <ng-container
-                *ngTemplateOutlet="rows || defaultRowTemplate; context: { $implicit: data }"
-            ></ng-container>
-            <td>
-                <span
-                    *ngIf="canUpdate()"
-                    class="pi pi-fw pi-minus"
-                    (click)="removeItem(data)"
-                    pTooltip="Remove"
-                    tooltipPosition="left"
-                    style="color: red; padding-bottom: 9px; cursor: pointer"
-                ></span>
-                <span
-                    *ngIf="canDelete()"
-                    class="pi pi-fw pi-trash"
-                    pTooltip="Delete"
-                    tooltipPosition="left"
-                    style="color: red; cursor: pointer"
-                    (click)="deleteItem(data)"
-                ></span>
-            </td>
-        </tr>
-    </ng-template>
-</p-table>
+<ng-container *ngIf="!hideBecauseEmpty()">
+    <div class="box-title" *ngIf="title">{{ title }}</div>
+    <p-table [value]="filterNullish(data)" #primengTable>
+        <ng-template pTemplate="header">
+            <!-- The `noHeader` annotation suppresses the column-header row. -->
+            <tr *ngIf="!noHeader">
+                <ng-container
+                    *ngTemplateOutlet="headers || defaultHeaderTemplate; context: { $implicit: data }"
+                ></ng-container>
+                <th *ngIf="showNavMenu"></th>
+                <th>
+                    <span
+                        *ngIf="canCreate()"
+                        class="pi pi-fw pi-plus"
+                        pTooltip="Add"
+                        tooltipPosition="left"
+                        style="color: green; cursor: pointer"
+                        (click)="createItem()"
+                    ></span>
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-data>
+            <tr style="vertical-align: top">
+                <ng-container
+                    *ngTemplateOutlet="rows || defaultRowTemplate; context: { $implicit: data }"
+                ></ng-container>
+                <!-- The `showNavMenu` annotation adds a navigation menu per record. -->
+                <td *ngIf="showNavMenu">
+                    <app-ifcs-dropdown size="small" [resource]="data"></app-ifcs-dropdown>
+                </td>
+                <td>
+                    <span
+                        *ngIf="canUpdate()"
+                        class="pi pi-fw pi-minus"
+                        (click)="removeItem(data)"
+                        pTooltip="Remove"
+                        tooltipPosition="left"
+                        style="color: red; padding-bottom: 9px; cursor: pointer"
+                    ></span>
+                    <span
+                        *ngIf="canDelete()"
+                        class="pi pi-fw pi-trash"
+                        pTooltip="Delete"
+                        tooltipPosition="left"
+                        style="color: red; cursor: pointer"
+                        (click)="deleteItem(data)"
+                    ></span>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
 
-<p-dropdown
-    *ngIf="
-        canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects;
-        else defaultDropdownMenu
-    "
-    [options]="dropdownMenuObjects"
-    [formControl]="newItemControl"
-    optionLabel="_label_"
-    [filter]="true"
-    filterBy="_label_"
-    [showClear]="false"
-    [placeholder]="placeholder"
-    (onChange)="addItem()"
->
-</p-dropdown>
+    <!--
+    With `noHeader` the in-header add-control is suppressed, so offer a create
+    affordance here instead (also reachable when the table is still empty).
+    -->
+    <div *ngIf="noHeader && canCreate()" class="box-table-add">
+        <p-button [rounded]="true" size="small" (click)="createItem()">
+            New {{ tgtResourceType }}
+        </p-button>
+    </div>
 
-<ng-template #defaultDropdownMenu>
-    <p-dropdown *ngIf="canUpdate()" [options]="[]" [showClear]="false" [placeholder]="placeholder">
+    <p-dropdown
+        *ngIf="
+            canUpdate() && (dropdownMenuObjects$ | async) as dropdownMenuObjects;
+            else defaultDropdownMenu
+        "
+        [options]="dropdownMenuObjects"
+        [formControl]="newItemControl"
+        optionLabel="_label_"
+        [filter]="true"
+        filterBy="_label_"
+        [showClear]="false"
+        [placeholder]="placeholder"
+        (onChange)="addItem()"
+    >
     </p-dropdown>
-</ng-template>
+
+    <ng-template #defaultDropdownMenu>
+        <p-dropdown
+            *ngIf="canUpdate()"
+            [options]="[]"
+            [showClear]="false"
+            [placeholder]="placeholder"
+        >
+        </p-dropdown>
+    </ng-template>
+</ng-container>
 
 <ng-template #defaultHeaderTemplate let-data>
     <th *ngFor="let header of data[0] | keyvalue">{{ header.key }}</th>
