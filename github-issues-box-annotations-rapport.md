@@ -4,6 +4,42 @@
 **Auteur:** Cline (AI-assistent)  
 **Repository:** AmpersandTarski/prototype  
 
+---
+
+## Update — implementatie (juni 2026)
+
+> Bij het oppakken van dit rapport bleek de **centrale aanname onjuist**.
+>
+> **Geen compiler-afhankelijkheid.** Het rapport stelt dat "geen van de 17
+> annotaties bevestigd is in `interfaces.json`" en dat de Haskell-compiler elke
+> annotatie afzonderlijk moet exporteren. Dat klopt niet. `renderTemplate`
+> (`ProtoUtil.hs`) zet **elke** BOX-header-annotatie generiek als
+> StringTemplate-attribuut (`setUserAtts`), en zet elk attribuut dat een template
+> noemt maar dat ontbreekt op `False` (`fillInTheBlanks`). De box-templates worden
+> gerenderd met `renderTemplate (Just (btKeys header))`. Het herstel is dus
+> **puur frontend** (StringTemplate-templates + Angular-componenten).
+>
+> **Geïmplementeerd (14 van 17), frontend-only:** TABLE `noHeader`/`hideOnNoRecords`/`title`/`showNavMenu`;
+> FORM `hideOnNoRecords`/`hideSubOnNoRecords`/`hideLabels`/`title`/`showNavMenu`;
+> TABS `title`/`hideOnNoRecords`/`hideSubOnNoRecords`; RAW `table`/`form`.
+> `showNavMenu` hergebruikt `app-ifcs-dropdown`; `_ifcs_` zit al in
+> `Options::DEFAULT_OPTIONS`. TABS-`hideSubOnNoRecords` filtert de tabpanelen per
+> record (`visibleTabs`) i.p.v. `*ngIf` op `<p-tabPanel>` — daarmee vervalt de in
+> dit rapport genoemde PrimeNG-beperking.
+>
+> **Niet geïmplementeerd (3): `noRootTitle`** (#303/#309/#312). Dit moet de
+> interface-titel in `component.html` onderdrukken, maar dat template wordt met
+> `renderTemplate Nothing` gerenderd (zónder box-keyVals) en faalt op een niet
+> geleverd attribuut. Dit vergt een kleine **compilerwijziging**: geef de
+> `noRootTitle` van de root-box mee in de render-context van
+> `genComponentFileFromTemplate`.
+>
+> Verificatie: testproject `test/projects/box-annotations` + schone Angular
+> `build:dev`. Zie `changelog.md` (Unreleased) en
+> `docs/reference-material/built-in-box-templates.md`.
+
+---
+
 ## Aanleiding
 
 Uit codeanalyse blijkt dat de Ampersand documentatie een reeks annotaties beschrijft die de Ampersand compiler herkent, maar waarvan de implementatie in het PrototypeFramework (Angular frontend + StringTemplate-templates) ontbreekt. Dit document rapporteert het aanmaken van de bijbehorende GitHub feature-request issues.

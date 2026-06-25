@@ -1,5 +1,150 @@
 # Built-in BOX Templates
 
+The prototype framework ships four general-purpose BOX templates — `TABLE`,
+`FORM`, `TABS` and `RAW` — plus the special-purpose `PROPBUTTON`. Each
+general-purpose template accepts a set of **annotations** in its BOX header that
+tune how the box is rendered. This page documents those annotations first, then
+the `PROPBUTTON` template.
+
+## BOX-template annotations
+
+Annotations are written as keywords (and occasionally `key="value"` pairs) inside
+the angle brackets of a BOX header:
+
+```ampersand
+"Categories" : productCategory cRud BOX<TABLE title="Catalog" noHeader>
+  [ ... ]
+```
+
+The Ampersand compiler passes every BOX-header annotation to the matching
+template generically (see
+[box-template-architecture.md](box-template-architecture.md)), so no annotation
+needs special compiler support — a template simply reads the ones it understands
+and ignores the rest.
+
+### Annotation matrix
+
+| Annotation | TABLE | FORM | TABS | RAW | Value | Effect |
+| --- | :---: | :---: | :---: | :---: | --- | --- |
+| `title` | ✅ | ✅ | ✅ | — | string | Renders a title/description line above the box content. |
+| `hideOnNoRecords` | ✅ | ✅ | ✅ | — | flag | Hides the whole box (including add-controls) when it has no records. |
+| `hideSubOnNoRecords` | — | ✅ | ✅ | — | flag | Hides an individual field row (FORM) or tab panel (TABS) when that sub-field has no records. |
+| `noHeader` | ✅ | — | — | — | flag | Suppresses the column-header row. |
+| `hideLabels` | — | ✅ | — | — | flag | Renders fields full-width without their labels. |
+| `showNavMenu` | ✅ | ✅ | — | — | flag | Adds a navigation menu (links to other interfaces) per record. |
+| `sortable` | ✅ | — | — | — | flag | Makes column headers clickable to sort. Combine with `sortBy` / `order`. |
+| `sortBy` | ✅ | — | — | — | string | Default sort column (a sub-interface label). Use with `sortable`. |
+| `order` | ✅ | — | — | — | `asc`/`desc` | Default sort direction. Use with `sortBy`. |
+| `table` | — | — | — | ✅ | flag | Lays each record's fields out as an HTML table row. |
+| `form` | — | — | — | ✅ | flag | Wraps each record in a non-submitting `<form>` element. |
+
+> **Not yet available — `noRootTitle`.** Historically a root interface box could
+> suppress its automatic interface heading with `noRootTitle`. That heading is
+> rendered by the per-interface `component.html` template, which the compiler
+> renders *without* the box header's key/values, so the annotation cannot reach
+> it from the framework alone. Restoring `noRootTitle` requires a small compiler
+> change (pass the root box's `noRootTitle` into the `component.html` render
+> context in `genComponentFileFromTemplate`). Until then, use `title` to add an
+> explicit box title.
+
+### `title`
+
+`title="..."` renders a free-text line above the box content. It works on
+`TABLE`, `FORM` and `TABS`. The value is a string, so it must be quoted.
+
+```ampersand
+"Categories" : productCategory cRud BOX<TABLE title="All categories">
+  [ "Name" : catName cRud ]
+```
+
+### `hideOnNoRecords`
+
+When set, the entire box is removed from the page while it has no records,
+including its title and add-controls.
+
+```ampersand
+"Notes" : itemNote cRud BOX<TABLE hideOnNoRecords>
+  [ "Note" : noteText cRud ]
+```
+
+> **Warning.** Because the add-controls disappear together with the box, the user
+> cannot create the *first* record through this box. Only use `hideOnNoRecords`
+> where records are created elsewhere, or where an empty box is genuinely
+> irrelevant to the user.
+
+### `hideSubOnNoRecords`
+
+Hides the parts *inside* a box that have no data, keeping the box itself visible:
+
+- In a **FORM**, an empty field row is hidden.
+- In **TABS**, an empty tab panel is hidden (so the tab disappears from the bar).
+
+```ampersand
+"Category" : I[Category] cRud BOX<TABS hideSubOnNoRecords>
+  [ "Name"     : catName     cRud
+  , "Products" : catProducts cRud BOX<TABLE>[ "Code" : code cRud ]
+  ]
+```
+
+A category with no products shows only the *Name* tab. In TABS this is
+implemented by filtering the list of tab panels per record, which avoids the
+PrimeNG tab-index problems that a structural `*ngIf` on a tab panel would cause.
+
+> **Warning.** A hidden field/tab cannot be edited through this box. Make sure the
+> underlying data is reachable through another interface when it matters.
+
+### `noHeader` (TABLE)
+
+Suppresses the column-header row of a table. Because the in-header "add" control
+is suppressed too, the table offers a separate "New …" button instead, which also
+works while the table is still empty.
+
+```ampersand
+"Rows" : someRows cRud BOX<TABLE noHeader>
+  [ "Col 1" : c1 cRud, "Col 2" : c2 cRud ]
+```
+
+### `hideLabels` (FORM)
+
+Renders each field full-width without its label. Useful for compact, data-dense
+forms where the values are self-explanatory.
+
+```ampersand
+"Address" : I cRud BOX<FORM hideLabels>
+  [ "Street" : street cRud, "City" : city cRud ]
+```
+
+> **Accessibility.** Hiding labels removes textual context for screen readers.
+> Prefer it only where the meaning of each value is obvious from its content.
+
+### `showNavMenu` (TABLE, FORM)
+
+Adds a per-record navigation menu that links to the other interfaces able to
+display that record. It reuses the framework's `_ifcs_` navigation data, which is
+included in interface reads by default, so no extra configuration is needed.
+
+```ampersand
+"Categories" : V[SESSION*Category] cRud BOX<TABLE showNavMenu>
+  [ "Name" : catName cRud ]
+```
+
+### `table` and `form` (RAW)
+
+`RAW` is an unstyled escape hatch. Two annotations change how each record's fields
+are wrapped:
+
+- `table` lays the fields out as a single HTML table row (`<tr><td>…</td></tr>`).
+  The sub-expressions must produce content valid inside a `<td>`.
+- `form` wraps the fields in a `<form onsubmit="return false">` element. The form
+  never submits, so it adds no behaviour of its own — it is only a semantic
+  container for styling or grouping.
+
+```ampersand
+"Plain" : I cRud BOX<RAW table>[ "A" : a cRud, "B" : b cRud ]
+```
+
+These are expert features; prefer `TABLE`/`FORM` for normal use.
+
 ## BOX \<PROPBUTTON\>
 
 The `BOX <PROPBUTTON>` template creates interactive buttons for toggling boolean properties on atoms. Users click these buttons to set, clear, or toggle property values.

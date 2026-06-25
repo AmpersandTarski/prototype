@@ -3,3 +3,9 @@
     font-size: 1.2em;
   }
 }
+
+/* Title rendered above the box content via the `title` BOX-annotation. */
+.box-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
