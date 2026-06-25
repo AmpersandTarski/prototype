@@ -30,6 +30,10 @@ Additional labels for pre-release and build metadata are available as extensions
 
 * Fix: **a dry run no longer runs the ExecEngine**. A transactional interface validates a buffered edit set with a `?dryRun=` PATCH. That request now only evaluates the invariant rules; it no longer calls `runExecEngine()` (nor `checkProcessRules`), so a dry run cannot trigger a side-effecting ExecEngine function (e.g. one that shells out to a compiler) on an edit set the user has not committed.
 
+* New feature: **a PROPBUTTON is disabled while a code editor on the page is empty**. When a Monaco editor is mounted and empty, its `EditorService` reports that, and PROPBUTTONs (e.g. a Compile button) disable themselves — an action on an empty editor makes no sense.
+
+* Fix: **a 401 returns the user to the start page**. When loading an interface's data fails with `401` (the session is gone), the app navigates to `/` instead of leaving the user on a page that can only show loading skeletons. Field-level fetches that legitimately `401` (such as the anonymous login form's) do not trigger it, and the `/` and `/login` routes are exempt, so the login page keeps working.
+
 ## v2.1.1 (22 June 2026)
 
 * New feature: **full-text search module** — a home-screen search box searches across all stored data of the prototype and lets the user open each found atom in any interface that can display it.
