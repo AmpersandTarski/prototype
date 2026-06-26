@@ -1,0 +1,60 @@
+CONTEXT BoxAnnotations IN ENGLISH
+PURPOSE CONTEXT BoxAnnotations
+{+ Test project exercising the BOX-template annotations restored to the
+   prototype framework: noHeader, hideOnNoRecords, hideSubOnNoRecords,
+   hideLabels, title and showNavMenu (TABLE/FORM/TABS) plus table/form (RAW). +}
+
+REPRESENT Name TYPE ALPHANUMERIC
+REPRESENT Note TYPE BIGALPHANUMERIC
+
+RELATION catName    [Category*Name] [UNI]
+RELATION catNote    [Category*Note] [UNI]
+RELATION catProduct [Category*Product]
+RELATION prodCode   [Product*Name] [UNI]
+RELATION prodName   [Product*Name] [UNI]
+
+-- Root overview: lists every category in a TABLE with a title and a per-row
+-- navigation menu (title + showNavMenu).
+INTERFACE Categories : "_SESSION";V[SESSION*Category] cRud BOX<TABLE title="All categories" showNavMenu>
+   [ "Name"     : catName cRUd
+   , "Products" : catProduct cRud
+   ]
+
+-- Category detail in TABS: a title, panels hidden when their field is empty
+-- (hideSubOnNoRecords). The Products panel is a TABLE without a header row
+-- (noHeader). The Note table hides entirely when empty (hideOnNoRecords).
+INTERFACE Category : I[Category] cRud BOX<TABS title="Category detail" hideSubOnNoRecords>
+   [ "Name"     : catName cRUd
+   , "Note"     : catNote cRUd
+   , "Products" : catProduct cRud BOX<TABLE noHeader hideOnNoRecords>
+        [ "Code" : prodCode cRUd
+        , "Name" : prodName cRUd
+        ]
+   ]
+
+-- FORM variant: a title, field rows hidden when empty (hideSubOnNoRecords),
+-- and the whole form hidden when the category itself is gone (hideOnNoRecords).
+INTERFACE CategoryForm : I[Category] cRud BOX<FORM title="Category (form)" hideSubOnNoRecords hideOnNoRecords>
+   [ "Name" : catName cRUd
+   , "Note" : catNote cRUd
+   ]
+
+-- FORM with labels hidden (hideLabels).
+INTERFACE CategoryCompact : I[Category] cRud BOX<FORM hideLabels>
+   [ "Name" : catName cRUd
+   , "Note" : catNote cRUd
+   ]
+
+-- RAW with a tabular layout (table).
+INTERFACE CategoryRawTable : I[Category] cRud BOX<RAW table>
+   [ "Name" : catName cRUd
+   , "Note" : catNote cRUd
+   ]
+
+-- RAW wrapped in a non-submitting form element (form).
+INTERFACE CategoryRawForm : I[Category] cRud BOX<RAW form>
+   [ "Name" : catName cRUd
+   , "Note" : catNote cRUd
+   ]
+
+ENDCONTEXT
