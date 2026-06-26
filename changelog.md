@@ -10,6 +10,14 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* New feature: **single-role role switcher**. The topbar role menu (`RolesComponent`) now treats a session as having exactly ONE active role:
+  - Selecting a role **activates only that role** and deactivates the others, so the menu reads as a single-choice list.
+  - The picker offers only the roles the user may choose — their allowed roles **except `Anonymous`** (Anonymous is reached via the separate Logout action, not the picker).
+  - The picker **hides itself** when there is nothing to choose (one selectable role or fewer).
+  - After a switch, if the current page is **not reachable** for the new role (its route is not among the role-filtered navbar `navs`/`new`, via the interface route map), the app **navigates back to the home page**. The side menu is refreshed for the new role.
+
 ## v2.1.1 (22 June 2026)
 
 * New feature: **full-text search module** — a home-screen search box searches across all stored data of the prototype and lets the user open each found atom in any interface that can display it.
