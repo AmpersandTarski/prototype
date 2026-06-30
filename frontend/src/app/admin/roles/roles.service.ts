@@ -19,12 +19,21 @@ export class RolesService {
     return roles;
   }
 
-  public patchRole(
+  /**
+   * Activate exactly one role for the session: the chosen role becomes active
+   * and every other role is deactivated. A session therefore always has a
+   * single active role.
+   */
+  public activateRole(
     roles: Array<SessionRole>,
     roleIndex: number,
   ): Observable<Array<SessionRole>> {
-    roles[roleIndex].active = !roles[roleIndex].active; // reverses the boolean value
-    return this.http.patch<Array<SessionRole>>('app/roles', roles);
+    const next = roles.map((role, i) => ({ ...role, active: i === roleIndex }));
+    return this.http.patch<Array<SessionRole>>('app/roles', next);
+  }
+
+  public getNavbar(): Observable<Navbar> {
+    return this.http.get<Navbar>('app/navbar');
   }
 
   public isRole(role: Role): Observable<boolean> {

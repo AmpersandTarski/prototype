@@ -10,6 +10,12 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.2.0 (unreleased)
+
+* New feature: **single active role** — the role switcher in the top bar now activates exactly one role at a time. Picking a role activates it and deactivates every other role, so a session always has a single active role (a single-choice list, not independently toggled roles). The picker hides itself when there is nothing to choose (at most one selectable role besides `Anonymous`); after switching it rebuilds the side menu and returns to the start page when the current page is not visible to the new role.
+  - Frontend only: `frontend/src/app/admin/roles/roles.service.ts` (`activateRole` replaces the toggling `patchRole`) plus `roles.component.ts` / `roles.component.html`.
+  - Pairs with Ampersand ≥ v5.6.2, which declares `PrototypeContext.sessionActiveRoles` as `[UNI]` (a session has at most one active role). The existing backend `setActiveRoles` / `toggleActiveRole` already apply the per-role active flags the switcher sends, so no backend change is needed.
+
 ## v2.1.1 (22 June 2026)
 
 * Bugfix import: **OBJECT atom identities longer than 254 characters are now deterministically shortened** to `<first 243 chars>_<10 hex chars of sha1(id)>` in `Atom::setId` (OBJECT case), so they stay unique within the `VARCHAR(255)` identity column. This covers both runtime importers (Excel + JSON population) and the API, because every atom is built via `new Atom`. The algorithm is byte-for-byte identical to the Ampersand compiler's `shortenObjectId` (Ampersand ≥ v5.6.1), so a compile-time-imported object atom and the same atom created at runtime map to the same database row. Shared known-answer vector: `"a" × 300 → "a" × 243 + "_003ef1ba9e"`.
