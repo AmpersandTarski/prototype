@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## v2.2.0 (unreleased)
+## v2.1.3 (30 June 2026)
 
 * New feature: **single active role** — the role switcher in the top bar now activates exactly one role at a time. Picking a role activates it and deactivates every other role, so a session always has a single active role (a single-choice list, not independently toggled roles). The picker hides itself when there is nothing to choose (at most one selectable role besides `Anonymous`); after switching it rebuilds the side menu and returns to the start page when the current page is not visible to the new role.
   - Frontend only: `frontend/src/app/admin/roles/roles.service.ts` (`activateRole` replaces the toggling `patchRole`) plus `roles.component.ts` / `roles.component.html`.
