@@ -141,8 +141,10 @@ class ExcelImporter
                 // Else instantiate atom with given atom identifier
                 } else {
                     $leftAtom = new Atom($firstCol, $leftConcept);
+                    // Use the atom's (possibly shortened) id, not the raw cell value, so lookups
+                    // match how the atom is stored. See Atom::setId() for OBJECT id shortening.
                     if ($leftAtom->exists()) {
-                        $leftResource = $resourceList->one($firstCol);
+                        $leftResource = $resourceList->one($leftAtom->getId());
                     } else { // Try a POST
                         $leftResource = $resourceList->create($leftAtom->getId());
                     }

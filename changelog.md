@@ -12,6 +12,10 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## v2.1.1 (22 June 2026)
 
+* Bugfix import: **OBJECT atom identities longer than 254 characters are now deterministically shortened** to `<first 243 chars>_<10 hex chars of sha1(id)>` in `Atom::setId` (OBJECT case), so they stay unique within the `VARCHAR(255)` identity column. This covers both runtime importers (Excel + JSON population) and the API, because every atom is built via `new Atom`. The algorithm is byte-for-byte identical to the Ampersand compiler's `shortenObjectId` (Ampersand ≥ v5.6.1), so a compile-time-imported object atom and the same atom created at runtime map to the same database row. Shared known-answer vector: `"a" × 300 → "a" × 243 + "_003ef1ba9e"`.
+
+* Compiler upgrade: the Ampersand compiler image is bumped from `ampersand-compiler:20260617` (v5.5.6) to `ampersand:v5.6.1` in `Dockerfile` and `dev.Dockerfile`. v5.6.1 is required by `backend/generics/compiler-version.txt` (`>=5.6.1`) and provides the matching `shortenObjectId` for the object-identity bugfix above.
+
 * New feature: **full-text search module** — a home-screen search box searches across all stored data of the prototype and lets the user open each found atom in any interface that can display it.
   - New `SearchController` (`backend/src/Ampersand/Controller/SearchController.php`) and route file `backend/bootstrap/api/search.php` (`GET /api/v1/search?q=<term>`, auto-loaded via the existing `api/*.php` glob).
   - **TType-aware**: it searches every stored column whose TType the term could be a value of (e.g. `983` in `INTEGER` *and* alphanumeric columns; `Solanum` only in alphanumeric columns). `OBJECT`, `PASSWORD`, `BINARY*`, `BOOLEAN` and `TYPEOFONE` columns are never searched. This is invisible to the user.
