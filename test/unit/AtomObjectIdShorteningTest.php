@@ -17,7 +17,7 @@
  * Exits 0 when all checks pass, 1 otherwise.
  */
 
-require __DIR__ . '/../../backend/lib/autoload.php';
+require_once __DIR__ . '/../../backend/lib/autoload.php';
 
 use Ampersand\Core\Atom;
 use Ampersand\Core\Concept;
