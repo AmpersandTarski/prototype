@@ -21,7 +21,7 @@
         "ext-zip": "*",
         "slim/slim": "^3.0",
         "monolog/monolog": "^1.18",
-        "phpoffice/phpspreadsheet": "^1.20.0",
+        "phpoffice/phpspreadsheet": "^5.8.0",
         "psr/cache": "^3.0",
         "psr/log": "^1.1",
         "symfony/event-dispatcher": "^7",
