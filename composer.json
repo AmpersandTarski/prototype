@@ -41,7 +41,7 @@
         ]
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "^3.2",
+        "squizlabs/php_codesniffer": "^4.0",
         "phan/phan": "^5.4"
     },
     "prefer-stable": true
