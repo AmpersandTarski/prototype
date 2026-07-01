@@ -41,6 +41,23 @@ jobs:
         directory: frontend/coverage
         flags: frontend
         
+    # The Storybook build compiles the full Angular app, which imports the
+    # generated ./generated/project.module. That code is produced by the
+    # Ampersand compiler and is gitignored, so generate it here (from the
+    # hello-world example) before building. Mirrors generate.sh.
+    # NOTE! Keep this compiler image in sync with the Dockerfile / compiler-version.txt.
+    - name: Generate frontend code (hello-world)
+      run: |
+        docker run --rm \
+          -v ${{ github.workspace }}:/workspace \
+          --entrypoint /bin/ampersand \
+          ampersandtarski/ampersand:v5.6.1 \
+          proto --frontend-version Angular --no-backend \
+          /workspace/test/projects/hello-world/model/main.adl \
+          --proto-dir /workspace/frontend/src/app/generated \
+          --crud-defaults cRud --verbose
+        sudo chown -R "$USER" frontend/src/app/generated
+
     - name: Build Storybook
       run: |
         cd frontend
