@@ -19,7 +19,7 @@
         "ext-gd": "*",
         "ext-fileinfo": "*",
         "ext-zip": "*",
-        "slim/slim": "^3.0",
+        "slim/slim": "^4.15",
         "monolog/monolog": "^1.18",
         "phpoffice/phpspreadsheet": "^1.20.0",
         "psr/cache": "^3.0",
