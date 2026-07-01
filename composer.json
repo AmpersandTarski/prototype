@@ -42,7 +42,7 @@
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^4.0",
-        "phan/phan": "^5.4"
+        "phan/phan": "^6.0"
     },
     "prefer-stable": true
 }
