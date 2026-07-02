@@ -10,6 +10,10 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.1.5 (2 July 2026)
+
+* Bundled Ampersand compiler upgraded to **v5.7.0**. This is the first released compiler that generates `generics/openapi.json` (an OpenAPI 3.0 description of the prototype's REST API) and supports `--[no-]production` / `--[no-]openapi`, which **activates the OpenAPI publication feature shipped in v2.1.1**: a development build now serves the spec at `GET /api/v1/openapi.json` and a Swagger UI at `GET /api/v1/docs`; a production build (compiler `--production`) generates no spec and sets `global.productionEnv = true`, so nothing is published. No framework code changes.
+
 ## v2.1.4 (1 July 2026)
 
 * Bundled Ampersand compiler upgraded to **v5.6.3**. From v5.6.2 the compiler makes `PrototypeContext.sessionActiveRoles` univalent (`[UNI]`), so a session activates at most one role — the backend counterpart of the single-active-role role switcher shipped in v2.1.3. It also brings convergent NavMenu role maintenance (removes an oscillation warning from every generated prototype) and a new IFC/EXPRESS/STEP reader. The minimum supported compiler version is raised to `>=5.6.2` accordingly.
