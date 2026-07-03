@@ -61,7 +61,7 @@ but can also be done with data.slice()
     affordance here instead (also reachable when the table is still empty).
     -->
     <div *ngIf="noHeader && canCreate()" class="box-table-add">
-        <p-button [rounded]="true" size="small" (click)="createItem()">
+        <p-button [rounded]="true" size="small" (onClick)="createItem()">
             New {{ tgtResourceType }}
         </p-button>
     </div>
