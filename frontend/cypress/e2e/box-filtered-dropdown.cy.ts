@@ -1,22 +1,22 @@
 /**
- * Regression test for the BOX<FILTEREDDROPDOWN> template — "Default" tab (proof of concept).
+ * Regression test for the BOX<FILTEREDDROPDOWN> template.
  *
  * Model: test/projects/box-filtered-dropdown/model/main.adl
- * The "Default" tab renders 8 sub-forms, one per CRUD combination (cRud … CRUD),
- * each a BOX<TABLE> with three FILTEREDDROPDOWN atoms:
- *   Naam    -> projectMember  (non-UNI, Employee)
- *   Instroom-> instroomVanaf   (UNI, Datum)
- *   Aantal  -> aantal          (UNI, Integer)
+ * The interface has four tabs, each exercising the FILTEREDDROPDOWN across the
+ * eight CRUD combinations (cRud … CRUD):
+ *   - "Default"                      : projectMember (non-UNI) + instroomVanaf/aantal (UNI) — 3 atoms/sub-form
+ *   - "Project Master (UNI)"         : projectMaster       (UNI)      — 1 atom/sub-form
+ *   - "Project Founder (TOT)"        : projectFounder      (TOT)      — 1 atom/sub-form
+ *   - "Project Responsible (UNI TOT)": projectResponsible  (UNI, TOT) — 1 atom/sub-form
  *
- * Requires the bfdd prototype running on http://localhost:9080 (see CLAUDE.md §4).
+ * Core regression: a FILTEREDDROPDOWN renders an interactive <p-dropdown> IF AND ONLY IF
+ * its crud grants Update, and an editable dropdown is filtered to `selectFrom`.
  *
- * What this PoC asserts:
- *  1. The interface loads and the "Default" tab shows all 8 CRUD sub-forms.
- *  2. Every sub-form is readable (no "Object is not readable").
- *  3. CRUD gating: a FILTEREDDROPDOWN renders an interactive <p-dropdown> IF AND ONLY IF
- *     its `crud` grants Update. This is the core regression the model exists to catch.
- *  4. Filtering: an editable dropdown is populated from `selectFrom` (a subset of the
- *     concept population), not from arbitrary data.
+ * Requires the bfdd prototype running on http://localhost:9080 (see CLAUDE.md §4),
+ * or override the base URL with CYPRESS_BASE.
+ *
+ * Note: the atomic-object `crud`/`isuni` DOM attributes are NOT reliable (they stay at the
+ * cRud default), so assertions scope by each sub-form's label instead.
  */
 
 const BASE = Cypress.env('BASE') || 'http://localhost:9080';
@@ -26,7 +26,24 @@ const DD = 'app-atomic-object[mode="box-filtereddropdown"]';
 // The 6 employees in the model; eligible options are always a subset of these.
 const ALL_EMPLOYEES = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'];
 
-describe('BOX<FILTEREDDROPDOWN> — Default tab (CRUD matrix)', () => {
+// The eight CRUD combinations, in the order the sub-forms appear.
+const CRUD = ['cRud', 'cRUd', 'cRuD', 'cRUD', 'CRud', 'CRUd', 'CRuD', 'CRUD'];
+const grantsUpdate = (crud: string) => crud.includes('U');
+
+interface TabSpec {
+  tab: string; // label in the tab bar
+  label: (index: number, crud: string) => string; // sub-form label text
+  atoms: number; // FILTEREDDROPDOWN atoms per sub-form (= dropdowns when editable)
+}
+
+const TABS: TabSpec[] = [
+  { tab: 'Default', label: (i, c) => `${i + 1}. Assign an employee (${c})`, atoms: 3 },
+  { tab: 'Project Master (UNI)', label: (i, c) => `${i + 1}. Project Master (${c})`, atoms: 1 },
+  { tab: 'Project Founder (TOT)', label: (i, c) => `${i + 1}. Project Founder (${c})`, atoms: 1 },
+  { tab: 'Project Responsible (UNI TOT)', label: (i, c) => `${i + 1}. Responsible (${c})`, atoms: 1 },
+];
+
+describe('BOX<FILTEREDDROPDOWN> regression', () => {
   before(() => {
     // Fail fast with a clear message if the prototype is not reachable.
     cy.request({ url: `${BASE}/`, failOnStatusCode: true, timeout: 8000 });
@@ -37,51 +54,46 @@ describe('BOX<FILTEREDDROPDOWN> — Default tab (CRUD matrix)', () => {
     cy.visit(`${BASE}/`);
     cy.get('app-root', { timeout: 10000 }).should('exist');
     cy.visit(IFC);
-    // Wait until the FILTEREDDROPDOWN atoms have rendered.
     cy.get(DD, { timeout: 15000 }).should('have.length.greaterThan', 0);
-  });
-
-  it('shows all 8 CRUD sub-forms on the Default tab', () => {
-    const crud = ['cRud', 'cRUd', 'cRuD', 'cRUD', 'CRud', 'CRUd', 'CRuD', 'CRUD'];
-    crud.forEach((c, i) => {
-      cy.contains(`${i + 1}. Assign an employee (${c})`).should('exist');
-    });
   });
 
   it('renders every sub-form as readable (no access errors)', () => {
     cy.contains('Object is not readable').should('not.exist');
   });
 
-  it('renders interactive dropdowns IFF the crud grants Update', () => {
-    // The atomic-object `crud`/`isuni` DOM attributes are NOT reliable (they stay at the
-    // cRud default), so we scope by each sub-form's label instead. Each sub-form wraps its
-    // 3 FILTEREDDROPDOWN atoms in a `.box-form-field`; an editable atom renders a <p-dropdown>.
-    const crud = ['cRud', 'cRUd', 'cRuD', 'cRUD', 'CRud', 'CRUd', 'CRuD', 'CRUD'];
-    crud.forEach((c, i) => {
-      const grantsUpdate = c.includes('U');
-      cy.contains('label.box-form-label', `${i + 1}. Assign an employee (${c})`)
-        .parents('.box-form-field')
-        .first()
-        .find('p-dropdown')
-        .should('have.length', grantsUpdate ? 3 : 0);
+  TABS.forEach(({ tab, label, atoms }) => {
+    describe(`${tab} tab`, () => {
+      beforeEach(() => {
+        // Activate the tab so its panel is rendered and visible.
+        cy.contains('.p-tabview-nav li a', tab).click();
+      });
+
+      it('shows all 8 CRUD sub-forms and gates the dropdown on Update', () => {
+        CRUD.forEach((crud, i) => {
+          cy.contains('label.box-form-label', label(i, crud))
+            .should('be.visible')
+            .parents('.box-form-field')
+            .first()
+            .find('p-dropdown')
+            .should('have.length', grantsUpdate(crud) ? atoms : 0);
+        });
+      });
     });
   });
 
   it('populates an editable dropdown from selectFrom (filtered subset)', () => {
-    // Take the first Update-capable "Naam" dropdown (projectMember, selectFrom=eligible).
+    // Default tab is active on load. Take the first Update-capable "Naam" dropdown
+    // (projectMember, selectFrom=eligible) and verify its options are a filtered subset.
     cy.get(`${DD}[label="Naam"]`)
       .filter((_, el) => el.querySelector('p-dropdown') !== null)
       .first()
       .find('p-dropdown')
       .click();
 
-    // The overlay lists the selectable options.
     cy.get('.p-dropdown-panel .p-dropdown-item', { timeout: 8000 })
       .should('have.length.greaterThan', 0)
       .then(($items) => {
         const labels = [...$items].map((el) => el.textContent?.trim() || '');
-        // Every offered option must be a real employee id (from the eligible subset),
-        // and the set must be smaller than the full employee population (i.e. filtered).
         labels.forEach((l) => {
           expect(ALL_EMPLOYEES, `option "${l}" is a known employee`).to.include(l);
         });
