@@ -18,7 +18,7 @@ jobs:
       uses: actions/checkout@v2
       
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v6
       with:
         # NOTE: Make sure this Node version matches .devcontainer/Dockerfile
         node-version: '20'
