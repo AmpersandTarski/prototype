@@ -11,7 +11,7 @@ jobs:
     name: Add release notes to artifacts
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Upload changelog
         uses: actions/upload-release-asset@v1
@@ -68,7 +68,7 @@ jobs:
     needs: [build-framework-archive]
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download artifacts
         uses: actions/download-artifact@v8
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout project contents 📡
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup PHP 🧰
         uses: shivammathur/setup-php@v2

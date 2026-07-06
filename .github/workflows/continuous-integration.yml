@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v7
     
     # Don't use GITHUB_REF in docker tag, because it can be an invalid tag format (e.g. a branch that starts with #)
     - name: Build
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v7
     
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
