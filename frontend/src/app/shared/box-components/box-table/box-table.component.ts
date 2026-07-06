@@ -48,6 +48,9 @@ export class BoxTableComponent<
   @Input({ transform: booleanAttribute })
   sortable = false;
 
+  @Input({ transform: booleanAttribute })
+  noHeader = false;
+
   @Input()
   sortBy?: string;
 

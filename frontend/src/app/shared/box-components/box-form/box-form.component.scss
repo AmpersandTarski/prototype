@@ -1,3 +1,14 @@
 ::ng-deep .box-form-label {
   color: var(--surface-500);
 }
+
+/* Title rendered above the box content via the `title` BOX-annotation. */
+.box-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* Full-width value when labels are hidden via the `hideLabels` annotation. */
+.box-form-value--nolabel {
+  width: 100%;
+}

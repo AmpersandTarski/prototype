@@ -1,0 +1,3 @@
+CONTEXT BoxAnnotations IN ENGLISH
+INCLUDE "box-annotations.adl"
+ENDCONTEXT
