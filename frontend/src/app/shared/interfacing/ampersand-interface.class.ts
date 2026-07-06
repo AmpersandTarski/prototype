@@ -23,7 +23,8 @@ import {
   OnDestroy,
   Output,
 } from '@angular/core';
-import { mergeDeep } from 'src/app/shared/helper/deepmerge';
+import { mergeDeep, ProtectFn } from 'src/app/shared/helper/deepmerge';
+import { isEditing } from '../helper/edit-registry';
 import { MessageService } from 'primeng/api';
 import { ResourcePath } from '../helper/resource-path';
 
@@ -217,6 +218,10 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
    * See: https://github.com/AmpersandTarski/prototype/issues/298
    */
   private syncWithServer(): Observable<void> {
+    // Do not overwrite a field the user is currently editing (has focus).
+    // See edit-registry.ts + issue #298.
+    const protect: ProtectFn = (obj, key) =>
+      !!obj?._path_ && isEditing(obj._path_, key);
     if (Array.isArray(this.resource.data)) {
       const list = this.resource.data as ObjectBase[];
       if (list.length === 0) {
@@ -239,7 +244,7 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
           for (const fresh of freshList) {
             const existing = list.find((obj) => obj._path_ === fresh._path_);
             if (existing) {
-              mergeDeep(existing, fresh);
+              mergeDeep(existing, fresh, protect);
             } else {
               list.push(fresh);
             }
@@ -251,7 +256,7 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
       const refreshPath = (this.resource.data as ObjectBase)._path_;
       return this.http.get<ObjectBase>(refreshPath).pipe(
         takeUntil(this.destroy$),
-        tap((freshData) => mergeDeep(this.resource.data, freshData)),
+        tap((freshData) => mergeDeep(this.resource.data, freshData, protect)),
         map(() => undefined),
       );
     }

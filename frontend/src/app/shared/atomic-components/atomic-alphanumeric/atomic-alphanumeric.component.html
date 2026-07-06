@@ -80,10 +80,10 @@
             type="text"
             [(ngModel)]="resource[propertyName]"
             [attr.list]="'opts-uni-' + propertyName"
-            (focus)="captureUniOriginalValue()"
+            (focus)="captureUniOriginalValue(); markEditing()"
             (input)="dirty = true"
             (keydown.enter)="$any($event.target).blur()"
-            (blur)="updateValue()"
+            (blur)="clearEditing(); updateValue()"
             [required]="isTot"
         />
         <!-- Datalist levert browser-native autocomplete dropdown met bekende atomen -->
@@ -119,7 +119,8 @@
             #editInput
             [value]="row"
             [attr.list]="'opts-' + propertyName + '-' + i"
-            (blur)="validateAndUpdate(row, editInput.value)"
+            (focus)="markEditing()"
+            (blur)="clearEditing(); validateAndUpdate(row, editInput.value)"
             (keydown.enter)="$event.preventDefault(); validateAndUpdate(row, editInput.value)"
             style="padding-left: 9px"
         />

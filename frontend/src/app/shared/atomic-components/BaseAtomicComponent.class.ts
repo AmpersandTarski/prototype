@@ -3,6 +3,7 @@ import { takeUntil } from 'rxjs/operators';
 import { AmpersandInterfaceComponent } from '../interfacing/ampersand-interface.class';
 import { ObjectBase } from '../objectBase.interface';
 import { BaseComponent } from '../BaseComponent.class';
+import { clearEditing, markEditing } from '../helper/edit-registry';
 @Component({
   template: '',
 })
@@ -52,6 +53,28 @@ export abstract class BaseAtomicComponent<
     if (this.isUni && this.canCreate() && !this.canUpdate()) {
       this.crud = 'c' + this.crud.slice(1);
     }
+  }
+
+  /**
+   * Mark/clear this field in the edit registry so a concurrent post-mutation
+   * server sync does not overwrite the value while the user is typing here.
+   * Wire these to the input's (focus)/(blur) events. See edit-registry.ts.
+   */
+  public markEditing(): void {
+    if (this.resource?._path_ && this.propertyName) {
+      markEditing(this.resource._path_, this.propertyName);
+    }
+  }
+  public clearEditing(): void {
+    if (this.resource?._path_ && this.propertyName) {
+      clearEditing(this.resource._path_, this.propertyName);
+    }
+  }
+
+  override ngOnDestroy(): void {
+    // Never leave a stuck mark if the component is destroyed while focused.
+    this.clearEditing();
+    super.ngOnDestroy();
   }
 
   public canCreate(): boolean {
