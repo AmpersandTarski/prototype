@@ -11,7 +11,7 @@
  * importer voor bestaat (piek onafhankelijk van de bestandsgrootte).
  */
 
-require __DIR__ . '/../lib/autoload.php';
+require_once __DIR__ . '/../lib/autoload.php';
 
 use Ampersand\Exception\BadRequestException;
 use Ampersand\IO\JsonPopulationImporter;
