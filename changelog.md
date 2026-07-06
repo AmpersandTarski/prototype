@@ -10,6 +10,13 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.3.0 (6 July 2026)
+
+* Bugfix: **real HTTP errors are now surfaced instead of the cryptic `EmptyError: no elements in sequence` toast.** When a backend request failed (session expired `401`, missing resource `404`, backend `500`, gateway timeout `504`, …), the user saw a red "EmptyError / no elements in sequence" toast that hid the actual cause.
+  - Root cause: `HttpErrorInterceptor` caught the error and returned an empty `of()`. Every generated top-level interface component (and `InterfacesJsonService`) reads its data with `firstValueFrom(...)`, which throws `EmptyError` on a stream that completes without a value; `GlobalErrorHandler` then displayed that secondary error.
+  - Fix: `frontend/src/app/backend/http-interceptors/http-error-interceptor.ts` now re-throws the original `HttpErrorResponse` (keeping the `404 → /404` navigation as a side-effect), so consumers reject with the real error. `frontend/src/app/core/global-error-handler.ts` is the single toast presenter and prefers the backend message (`error.error.msg`) over Angular's verbose auto-generated string. `InterfacesJsonService` is fixed by the same change, because its own `catchError` now fires.
+* Tests: added FILTEREDDROPDOWN end-to-end regression specs covering the Default tab and all four tabs.
+
 ## v2.2.0 (6 July 2026)
 
 * New feature: **restored BOX-template annotations** that were lost in the AngularJS → Angular migration (framework v1.18.0). The Ampersand compiler already forwards every BOX-header key/value to the template generically (`renderTemplate` in `ProtoUtil.hs`), so these are frontend-only and need no compiler change. Implemented in `frontend/src/app/generated/.templates/Box-*.html` and `frontend/src/app/shared/box-components/`:
