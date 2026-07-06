@@ -64,6 +64,8 @@ Both routes are public (no session/checksum middleware). They are served by `Ope
 
 Compiler and framework stay consistent through one switch: a production build (`ampersand proto --production`) omits `openapi.json` *and* sets `global.productionEnv = true`, so nothing is published; a development build does both. The compiler flag `--[no-]openapi` overrides whether the spec is generated. Because the spec describes the whole API surface, it is published in development only by default; expose it in production only deliberately (set `productionEnv = false`, or force the spec and serve it behind your own protection).
 
+For the full wiring — routes, controller, path resolution and the production gate — see the reference page [OpenAPI publication](openapi-publication.md). For how to use the description, see the guide [Using the OpenAPI Description of Your Prototype](../guides/using-the-openapi-description.md).
+
 ## File System
 
 #### Introduction

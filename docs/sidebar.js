@@ -41,6 +41,11 @@ module.exports = {
       id: "prototype/guides/back-end-services",
     },
     {
+      label: "Using the OpenAPI Description",
+      type: "doc",
+      id: "prototype/guides/using-the-openapi-description",
+    },
+    {
       label: "Updating and Releasing the Prototype Framework",
       type: "doc",
       id: "prototype/guides/updating-and-releasing",
@@ -51,6 +56,11 @@ module.exports = {
       label: "Prototype Framework",
       type: "doc",
       id: "prototype/reference-material/prototype-framework",
+    },
+    {
+      label: "OpenAPI Publication",
+      type: "doc",
+      id: "prototype/reference-material/openapi-publication",
     },
     {
       label: "BOX Template Architecture",
