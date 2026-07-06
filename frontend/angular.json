@@ -25,6 +25,11 @@
                 "glob": "interfaces.json",
                 "input": "../backend/generics/",
                 "output": "/assets/"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/monaco-editor/min/vs",
+                "output": "/assets/monaco/vs"
               }
             ],
             "styles": ["src/styles.scss"],

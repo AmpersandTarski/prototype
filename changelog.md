@@ -10,6 +10,30 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.4.0 (unreleased)
+
+* New feature: **per-interface transaction mode** — an interface runs as `Transactional` or `Direct`. Reference: `docs/reference-material/transactional-interfaces.md`.
+  - **Transactional** (the new default): the interface buffers the user's edits on the client; nothing commits until the user presses **SAVE**. **CANCEL**, or navigating away ("Lose your edits?"), discards the buffer. SAVE is enabled only when the buffered edits leave no invariant rule violated.
+  - **Direct**: every edit commits immediately, as before.
+  - **Behaviour change**: because the default is `Transactional`, an interface that previously committed each edit on blur now waits for SAVE. A **PROPBUTTON** flushes the buffer on click (it acts as the SAVE), so single-click forms — including login — keep working unchanged. Set an interface to `Direct` via `TransactionModeService` to restore the old per-edit commit.
+  - Frontend: buffer + `save`/`cancel`/`commitAction` + dry-run validation in `frontend/src/app/shared/interfacing/ampersand-interface.class.ts`; `TransactionModeService` and `TransactionService` in `frontend/src/app/shared/services/`; global SAVE/CANCEL bar in `frontend/src/app/layout/transaction-bar/`; `unsavedChangesGuard` (`frontend/src/app/shared/guards/`) attached to every generated route via the `project.module.ts.txt` route template; PROPBUTTON flush in `box-prop-button.component.ts`.
+  - Backend: a `?dryRun=` query parameter on the resource PATCH endpoint (`backend/src/Ampersand/Controller/ResourceController.php`) validates a buffered edit set without committing, on the existing `Transaction::dryRun()`. Default `false`, so the endpoint stays backwards compatible.
+  - The mode is runtime-changeable (`setOverride`, `setDefault`); a future compiler version will declare it per interface via the box header.
+  - Current scope: buffering covers field/link edits (`patch`); creating or deleting a whole atom (`POST`/`DELETE`) still commits immediately.
+
+* Fix: **read-only multi-line text keeps its line breaks**. The `BIGALPHANUMERIC` and `HUGEALPHANUMERIC` atomic components rendered a read-only value with HTML interpolation, which collapses newlines, so a multi-line value (e.g. a compiler message) ran together on one line. Both now render with `white-space: pre-wrap`.
+
+* New feature: **Monaco code editor with clickable diagnostics**.
+  - An editable `HUGEALPHANUMERIC` now renders as a [Monaco](https://microsoft.github.io/monaco-editor/) code editor (line numbers, etc.) instead of a plain textarea. Monaco is loaded on demand from `assets/monaco` (copied by the build), so it stays out of the main bundle until an editor is shown. New `MonacoEditorComponent` + loader in `frontend/src/app/shared/monaco-editor/`.
+  - A read-only `BIGALPHANUMERIC` (e.g. a compiler message) renders every `file:line[:column]` position as a clickable link that moves the code editor's cursor there, via a new `EditorService` and `DiagnosticsTextComponent`.
+  - Monaco reports a blur asynchronously, so the editable `HUGEALPHANUMERIC` commits its value shortly after typing stops (debounced) as well as on blur, so the value is persisted before a following action (e.g. a Compile button) flushes the transaction.
+
+* Fix: **a dry run no longer runs the ExecEngine**. A transactional interface validates a buffered edit set with a `?dryRun=` PATCH. That request now only evaluates the invariant rules; it no longer calls `runExecEngine()` (nor `checkProcessRules`), so a dry run cannot trigger a side-effecting ExecEngine function (e.g. one that shells out to a compiler) on an edit set the user has not committed.
+
+* New feature: **a PROPBUTTON is disabled while a code editor on the page is empty**. When a Monaco editor is mounted and empty, its `EditorService` reports that, and PROPBUTTONs (e.g. a Compile button) disable themselves — an action on an empty editor makes no sense.
+
+* Fix: **a 401 returns the user to the start page**. When loading an interface's data fails with `401` (the session is gone), the app navigates to `/` instead of leaving the user on a page that can only show loading skeletons. Field-level fetches that legitimately `401` (such as the anonymous login form's) do not trigger it, and the `/` and `/login` routes are exempt, so the login page keeps working. Reconciled with the v2.3.0 error-handling refactor: the redirect is now a status side-effect in `HttpErrorInterceptor` (no `switch`/`sendErrorMessage`); all other errors re-throw to `GlobalErrorHandler` as before.
+
 ## v2.3.1 (6 July 2026)
 
 * New feature: **streaming JSON population import**. `POST /api/v1/admin/import` of a `.json` population file no longer loads the whole file into memory three times (raw string, decoded tree, `Atom`/`Link` object arrays); a new `Ampersand\IO\JsonPopulationImporter` reads the file incrementally (dependency `halaxa/json-machine`) and calls `Atom::add()`/`Link::add()` per item. Peak memory is now bounded by the largest single block (one concept's atom list or one relation's link list), not by the total population size — a 60 MB file with 2 M atoms imports at ~10 MB peak. The file format, the REST API and the response are unchanged, and the import still runs inside one transaction, so the all-or-nothing guarantee (invariants checked at commit, full rollback otherwise) is identical. Works for any Ampersand script and population. This removes the memory ceiling on importing large real-world models; it does not change import duration (still one `add()` per item). `Population::loadFromPopulationFile()` remains for the in-memory use cases (installer, export round-trips).

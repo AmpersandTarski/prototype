@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import {
   catchError,
+  forkJoin,
   map,
   Observable,
   of,
@@ -22,15 +23,24 @@ import {
   Input,
   OnDestroy,
   Output,
+  inject,
 } from '@angular/core';
 import { mergeDeep, ProtectFn } from 'src/app/shared/helper/deepmerge';
 import { isEditing } from '../helper/edit-registry';
 import { MessageService } from 'primeng/api';
 import { ResourcePath } from '../helper/resource-path';
+import {
+  TransactionMode,
+  TransactionModeService,
+} from '../services/transaction-mode.service';
+import {
+  TransactionService,
+  TransactionalInterface,
+} from '../services/transaction.service';
 
 @Component({ template: '' })
 export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
-  implements OnDestroy
+  implements OnDestroy, TransactionalInterface
 {
   @Input() resourceId?: string;
   public resource: ObjectBase & {
@@ -48,12 +58,31 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
    */
   private pendingPatches: (Patch | PatchValue)[] = [];
 
+  // Resolved via inject() so the generated subclasses' super(http, messageService)
+  // constructor contract stays intact (they do not pass these services).
+  private modeService = inject(TransactionModeService);
+  private txnService = inject(TransactionService);
+
+  /** Mode declared on the interface (later supplied by the compiler). */
+  @Input() transactionMode?: TransactionMode;
+  /** Interface name, used to look up a runtime mode override. */
+  public interfaceName?: string;
+
+  /** Buffered, retargeted patch ops awaiting an explicit SAVE (Transactional mode). */
+  private buffer: { rootPath: string; op: Patch | PatchValue }[] = [];
+  private _canSave = false;
+
   constructor(
     protected http: HttpClient,
     private messageService: MessageService,
   ) {}
 
   ngOnDestroy(): void {
+    // Release ownership of the open transaction, if any.
+    if (this.txnService.active === this) {
+      this.txnService.setActive(null);
+    }
+
     // Clear the typeAheadData cache to prevent memory leaks
     this.typeAheadData = {};
 
@@ -142,6 +171,12 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
       patch.path = extra + '/' + patch.path;
     }
 
+    // Transactional mode: buffer the (already retargeted) ops and defer the
+    // commit to an explicit SAVE.
+    if (this.resolveMode() === 'Transactional') {
+      return this.bufferPatch(rootPath.toString(), patches);
+    }
+
     return this.http
       .patch<PatchResponse<T>>(rootPath.toString(), [
         ...this.pendingPatches,
@@ -178,6 +213,162 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
           return throwError(() => error);
         }),
       );
+  }
+
+  private resolveMode(): TransactionMode {
+    return this.modeService.getMode(this.interfaceName, this.transactionMode);
+  }
+
+  // ----- Transactional (buffered) editing -----------------------------------
+  // The transaction boundary is this interface. In Transactional mode, patch ops
+  // are buffered instead of committed; SAVE flushes them as one transaction,
+  // CANCEL (or navigating away) discards them. POST/DELETE stay immediate in v1.
+
+  get transactionLabel(): string {
+    return this.resource?._label_ ?? 'interface';
+  }
+
+  isDirty(): boolean {
+    return this.buffer.length > 0;
+  }
+
+  canSave(): boolean {
+    return this._canSave;
+  }
+
+  private bufferPatch(
+    rootPath: string,
+    patches: Array<Patch | PatchValue>,
+  ): Observable<PatchResponse<T>> {
+    for (const op of patches) {
+      this.buffer.push({ rootPath, op });
+    }
+    this.txnService.setActive(this);
+    // Atomic components already reflect the edit locally (Angular binding); we only
+    // dry-run the buffer to decide whether SAVE may be enabled.
+    this.runValidation();
+    this.patched.emit();
+    return of(this.bufferedResponse());
+  }
+
+  /** Synthetic response for a buffered (not-yet-committed) edit. */
+  private bufferedResponse(): PatchResponse<T> {
+    return {
+      content: this.resource.data,
+      patches: [],
+      notifications: undefined,
+      invariantRulesHold: true,
+      isCommitted: false,
+      sessionRefreshAdvice: false,
+      navTo: null,
+    } as unknown as PatchResponse<T>;
+  }
+
+  private groupByRoot(): { rootPath: string; ops: (Patch | PatchValue)[] }[] {
+    const groups: { rootPath: string; ops: (Patch | PatchValue)[] }[] = [];
+    for (const entry of this.buffer) {
+      let group = groups.find((g) => g.rootPath === entry.rootPath);
+      if (!group) {
+        group = { rootPath: entry.rootPath, ops: [] };
+        groups.push(group);
+      }
+      group.ops.push(entry.op);
+    }
+    return groups;
+  }
+
+  private dryRunUrl(rootPath: string): string {
+    return rootPath + (rootPath.includes('?') ? '&' : '?') + 'dryRun=true';
+  }
+
+  /** Dry-run the buffer (no commit) to enable/disable SAVE. */
+  private runValidation(): void {
+    const groups = this.groupByRoot();
+    if (groups.length === 0) {
+      this._canSave = false;
+      this.txnService.refresh();
+      return;
+    }
+    const checks = groups.map((g) =>
+      this.http.patch<PatchResponse<T>>(this.dryRunUrl(g.rootPath), g.ops).pipe(
+        map((r) => r.invariantRulesHold),
+        catchError(() => of(false)),
+      ),
+    );
+    forkJoin(checks)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((results) => {
+        this._canSave = results.every(Boolean);
+        this.txnService.refresh();
+      });
+  }
+
+  /** Commit the buffered edits (one transaction per root resource). */
+  public save(): Observable<unknown> {
+    const groups = this.groupByRoot();
+    if (groups.length === 0) return of(null);
+    const sends = groups.map((g) =>
+      this.http
+        .patch<PatchResponse<T>>(g.rootPath, g.ops)
+        .pipe(takeUntil(this.destroy$)),
+    );
+    return forkJoin(sends).pipe(
+      switchMap((responses) => {
+        const allCommitted = responses.every((r) => r.isCommitted);
+        if (allCommitted) {
+          this.buffer = [];
+          this._canSave = false;
+          this.txnService.setActive(null);
+        } else {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Not saved',
+            detail: 'The changes violate one or more rules.',
+            sticky: true,
+          });
+        }
+        // Reconcile with the server (exec-engine effects, derived fields).
+        return this.syncWithServer().pipe(map(() => responses));
+      }),
+      tap(() => this.patched.emit()),
+      catchError((error) => {
+        this.messageService.clear();
+        this.messageService.add({
+          severity: 'error',
+          summary: `HTTP error ${error.status}`,
+          detail: error.msg,
+          sticky: true,
+        });
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  /** Discard the buffered edits and restore the server state (rollback). */
+  public cancel(): void {
+    this.buffer = [];
+    this._canSave = false;
+    this.txnService.setActive(null);
+    this.syncWithServer()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.patched.emit());
+  }
+
+  /**
+   * An explicit action (e.g. a PROPBUTTON) that should take effect now.
+   * In Direct mode this is a plain patch. In Transactional mode the action's op
+   * is buffered and the whole buffer is flushed immediately — i.e. the button
+   * acts as the SAVE — so single-click forms (like login) keep working.
+   */
+  public commitAction(
+    path: string,
+    patches: Array<Patch | PatchValue>,
+  ): Observable<unknown> {
+    if (this.resolveMode() === 'Transactional') {
+      this.patch(path, patches); // buffers the op synchronously
+      return this.save(); // flush the whole buffer as one transaction
+    }
+    return this.patch(path, patches);
   }
 
   public delete(resourcePath: string): Observable<DeleteResponse> {

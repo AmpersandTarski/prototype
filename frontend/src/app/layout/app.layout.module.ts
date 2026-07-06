@@ -29,6 +29,7 @@ import { NotFoundComponentComponent } from './not-found-component/not-found-comp
 import { AdminModule } from '../admin/admin.module';
 import { SignalsComponent } from './signals/signals.component';
 import { SearchComponent } from '../search/search.component';
+import { TransactionBarComponent } from './transaction-bar/transaction-bar.component';
 
 @NgModule({
   declarations: [
@@ -41,6 +42,7 @@ import { SearchComponent } from '../search/search.component';
     HomeComponent,
     NotFoundComponentComponent,
     SignalsComponent,
+    TransactionBarComponent,
   ],
   imports: [
     BrowserModule,

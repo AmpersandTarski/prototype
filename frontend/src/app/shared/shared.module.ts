@@ -44,6 +44,8 @@ import { BoxPropButtonComponent } from './box-components/box-prop-button/box-pro
 import { AtomicUrlComponent } from './atomic-components/atomic-url/atomic-url.component';
 import { AtomicSelectComponent } from './atomic-components/atomic-select/atomic-select.component';
 import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.component';
+import { MonacoEditorComponent } from './monaco-editor/monaco-editor.component';
+import { DiagnosticsTextComponent } from './diagnostics-text/diagnostics-text.component';
 
 @NgModule({
   declarations: [
@@ -72,6 +74,8 @@ import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.comp
     BoxRawComponent,
     BoxRawTemplateDirective,
     BoxPropButtonComponent,
+    MonacoEditorComponent,
+    DiagnosticsTextComponent,
   ],
   imports: [
     CommonModule,
@@ -119,6 +123,8 @@ import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.comp
     BoxRawTemplateDirective,
     BoxPropButtonComponent,
     IfcsDropdownComponent,
+    MonacoEditorComponent,
+    DiagnosticsTextComponent,
   ],
   providers: [],
 })
