@@ -201,6 +201,41 @@ Templates support conditional logic:
 - **`$if(exprIsUni)$isUni$endif$`**: For univalent relations
 - **`$if(exprIsTot)$isTot$endif$`**: For total relations
 
+### BOX-header annotations
+
+Every annotation a scripter writes in a BOX header — for example
+`BOX<TABLE noHeader title="Catalog">` — is available to the matching template as
+a StringTemplate attribute. This is **generic**: the compiler does not know or
+special-case individual annotation names.
+
+The mechanism lives in `renderTemplate` (Ampersand,
+`src/Ampersand/Prototype/ProtoUtil.hs`):
+
+1. The BOX header carries a list of key/value pairs (`btKeys header`). When a box
+   template is rendered (`GenAngularFrontend.hs`), it is rendered *with* these
+   pairs: `renderTemplate (Just (btKeys header)) template`.
+2. `setUserAtts` turns each pair into a StringTemplate attribute — a bare flag
+   (`noHeader`) becomes `True`, a `key="value"` (`title="Catalog"`) becomes the
+   string value.
+3. `fillInTheBlanks` then sets every attribute the template *references* but the
+   scripter did **not** supply to `False`.
+
+The practical consequences for template authors:
+
+- To support a new annotation, you only edit the template (and, if it needs
+  runtime behaviour, the Angular component). No compiler change is required.
+- Reference a flag with `$if(myFlag)$ … $endif$` and a string with
+  `$if(myTitle)$title="$myTitle$"$endif$`. An unreferenced annotation is simply
+  ignored; a referenced-but-absent one is `False`, so existing scripts keep
+  working.
+
+> **Exception — `component.html`.** The per-interface wrapper template
+> (`component.html`, rendered by `genComponentFileFromTemplate`) is rendered with
+> `renderTemplate Nothing`, i.e. *without* the box header's key/values, and it
+> errors on any attribute it references but is not given. Annotations that must
+> affect the interface heading (such as `noRootTitle`) therefore need a compiler
+> change, not just a template edit.
+
 ### Resource Binding
 
 Templates bind to data through:

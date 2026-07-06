@@ -31,6 +31,17 @@ export abstract class BaseBoxComponent<
   @Input({ transform: booleanAttribute }) isUni = false;
   @Input({ transform: booleanAttribute }) isTot = false;
 
+  // BOX-header annotations shared by TABLE, FORM and TABS.
+  // The Ampersand compiler passes every BOX-header key/value to the template
+  // generically (see renderTemplate in ProtoUtil.hs), so these inputs are
+  // populated whenever the scripter writes the matching annotation.
+  /** Free-text title/description rendered above the box content. */
+  @Input() title?: string;
+  /** Hide the whole box (including add-controls) when it has no records. */
+  @Input({ transform: booleanAttribute }) hideOnNoRecords = false;
+  /** Show a navigation menu (links to other interfaces) per record. */
+  @Input({ transform: booleanAttribute }) showNavMenu = false;
+
   constructor() {
     super();
   }
@@ -68,6 +79,18 @@ export abstract class BaseBoxComponent<
 
   public isEmpty(): boolean {
     return this.filterNullish(this.data).length === 0;
+  }
+
+  /** True when `hideOnNoRecords` is set and the box has no records. */
+  public hideBecauseEmpty(): boolean {
+    return this.hideOnNoRecords && this.isEmpty();
+  }
+
+  /** True when a sub-field value of an item holds at least one record. */
+  public hasFieldData(value: unknown): boolean {
+    if (value === null || value === undefined) return false;
+    if (Array.isArray(value)) return value.length > 0;
+    return true;
   }
 
   public createItem(): void {

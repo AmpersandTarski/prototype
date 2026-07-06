@@ -15,10 +15,10 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v7
       
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v6
       with:
         # NOTE: Make sure this Node version matches .devcontainer/Dockerfile
         node-version: '20'
@@ -36,7 +36,7 @@ jobs:
         npm run test -- --watch=false --ci
 
     - name: Upload unit test coverage reports
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v7
       with:
         directory: frontend/coverage
         flags: frontend
@@ -51,7 +51,7 @@ jobs:
         docker run --rm \
           -v ${{ github.workspace }}:/workspace \
           --entrypoint /bin/ampersand \
-          ampersandtarski/ampersand:v5.6.3 \
+          ampersandtarski/ampersand:v5.7.0 \
           proto --frontend-version Angular --no-backend \
           /workspace/test/projects/hello-world/model/main.adl \
           --proto-dir /workspace/frontend/src/app/generated \

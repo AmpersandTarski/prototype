@@ -253,6 +253,74 @@ exports: [
 
 ## Part 4: Advanced Features
 
+### Adding an annotation to an existing BOX template
+
+Most BOX behaviour is tuned with **annotations** in the BOX header
+(`BOX<TABLE noHeader title="Catalog">`). Adding one to `TABLE`, `FORM`, `TABS` or
+`RAW` is a frontend-only change — the compiler already forwards every BOX-header
+key/value to the template generically (see
+[box-template-architecture.md](../reference-material/box-template-architecture.md#box-header-annotations)).
+
+There are two kinds:
+
+**1. Layout-only annotations** live entirely in the StringTemplate
+(`frontend/src/app/generated/.templates/Box-*.html`). They change the generated
+HTML and need no component code. Examples: `hideLabels`, `noHeader`, RAW
+`table`/`form`, and the per-field `hideSubOnNoRecords` condition on FORM.
+
+```html
+<!-- Box-FORM.html: omit the label when hideLabels is set -->
+$if(hideLabels)$<div class="box-form-value">$subObj.subObjContents$</div>$else$<label>$subObj.subObjLabel$</label>
+<div class="box-form-value">$subObj.subObjContents$</div>$endif$
+```
+
+> Use `$if(x)$ … $else$ … $endif$` rather than `$if(!x)$`; the negation form is
+> not relied upon in these templates.
+
+**2. Behavioural annotations** also need an `@Input` on the Angular component.
+The recipe (as used for `title`, `hideOnNoRecords`, `showNavMenu`):
+
+1. **Component input.** Add the input on `BaseBoxComponent`
+   (`shared/box-components/BaseBoxComponent.class.ts`) if it is shared across
+   TABLE/FORM/TABS, or on the specific component otherwise. Booleans use
+   `@Input({ transform: booleanAttribute })`, strings a plain `@Input()`.
+
+   ```ts
+   @Input({ transform: booleanAttribute }) hideOnNoRecords = false;
+   public hideBecauseEmpty(): boolean {
+     return this.hideOnNoRecords && this.isEmpty();
+   }
+   ```
+
+2. **Use it** in the component's `.html` (and `.scss`).
+
+   ```html
+   <ng-container *ngIf="!hideBecauseEmpty()"> … </ng-container>
+   ```
+
+3. **Pass it from the StringTemplate.** Emit the attribute on the
+   `<app-box-*>` element so the generated component receives it:
+
+   ```html
+   $if(hideOnNoRecords)$hideOnNoRecords$endif$
+   $if(title)$title="$title$"$endif$
+   ```
+
+4. **Document it** in
+   [built-in-box-templates.md](../reference-material/built-in-box-templates.md)
+   and add a case to the `test/projects/box-annotations` test project.
+
+> **Tip — avoid PrimeNG structural pitfalls.** When an annotation hides repeated
+> elements (e.g. tab panels), prefer filtering the data list over `*ngIf` on the
+> repeated element. `BoxTabsComponent.visibleTabs()` filters tabs per record,
+> sidestepping the PrimeNG tab-index issues that an `*ngIf` on `<p-tabPanel>`
+> would cause.
+
+> **Heading annotations are different.** Anything that must change the
+> per-interface heading (e.g. `noRootTitle`) cannot be done from the framework
+> alone: `component.html` is rendered without the box header's key/values. Those
+> require a compiler change.
+
 ### Custom Actions
 
 PROPBUTTON supports different action types through the action parameter:

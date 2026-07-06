@@ -21,6 +21,22 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # Frontend majors are deferred to the coordinated Angular 17→21 +
+      # TypeScript 6 upgrade: they cannot pass CI until the Ampersand compiler
+      # emits `standalone: false` components, and the Angular dev-tooling must
+      # move in lockstep via `ng update`. Remove this block when that upgrade
+      # lands. NOTE: ignore rules also suppress dependabot security PRs for
+      # these updates; `npm audit` still reports them.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # 0.x packages whose breaking bumps count as "minor" and poison the
+      # grouped PR: zone.js 0.16 needs Angular 18+, @storybook/test-runner
+      # 0.17+ needs Storybook 8+. Patches remain allowed.
+      - dependency-name: "zone.js"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "@storybook/test-runner"
+        update-types: ["version-update:semver-minor"]
 
   - package-ecosystem: "composer"
     directory: "/"
@@ -34,6 +50,14 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # Breaking-API migrations that need dedicated backend work; the
+      # recurring PRs cannot be merged as-is. Remove per entry once the
+      # migration is planned.
+      - dependency-name: "slim/slim"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "phpoffice/phpspreadsheet"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
