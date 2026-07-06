@@ -4,16 +4,29 @@ export function isObject(item: any): boolean {
 }
 
 /**
- * Deep merge two objects.
+ * Predicate deciding whether target[key] must be PRESERVED instead of being
+ * overwritten by the source value. Used to protect a scalar field the user is
+ * currently editing during a post-mutation server sync (see edit-registry.ts
+ * and issue #298). Receives the object being merged into and the key at hand,
+ * so an implementation can consult target._path_ + key.
+ */
+export type ProtectFn = (target: any, key: string) => boolean;
+
+/**
+ * Deep merge `source` into `target`.
  * Used when patching (updating) from edit screens. The response object
  * is deep merged into the data we have.
  * This way, the objects aren't replaced, just updated. Then angular won't feel
  * the need to replace dom nodes, instead of updating them.
+ *
+ * When `isProtected` is supplied, scalar values for which it returns true are
+ * left untouched, so a field the user is actively editing keeps its typed value.
  */
-export function mergeDeep(target: any, ...sources: any[]): any {
-  if (!sources.length) return target;
-  const source = sources.shift();
-
+export function mergeDeep(
+  target: any,
+  source: any,
+  isProtected?: ProtectFn,
+): any {
   if (isObject(target) && isObject(source)) {
     for (const key in source) {
       if (isObject(source[key])) {
@@ -23,7 +36,7 @@ export function mergeDeep(target: any, ...sources: any[]): any {
           Object.assign(target, { [key]: {} });
         }
 
-        mergeDeep(target[key], source[key]);
+        mergeDeep(target[key], source[key], isProtected);
       } else if (Array.isArray(source[key])) {
         /* Deep array merging based on matching by item._id_ */
 
@@ -41,7 +54,7 @@ export function mergeDeep(target: any, ...sources: any[]): any {
           }
 
           if (targetChild) {
-            mergeDeep(targetChild, sourceChild);
+            mergeDeep(targetChild, sourceChild, isProtected);
             seenTargetChildren.push(targetChild);
 
             // Move targetChild to end, so that we'll end up with the same
@@ -65,12 +78,15 @@ export function mergeDeep(target: any, ...sources: any[]): any {
           }
         }
       } else {
-        /* Not object or array? Just assign */
+        /* Not object or array? Just assign — unless the user is editing it */
 
+        if (isProtected && isProtected(target, key)) {
+          continue; // user is typing in this field: keep their value
+        }
         Object.assign(target, { [key]: source[key] });
       }
     }
   }
 
-  return mergeDeep(target, ...sources);
+  return target;
 }

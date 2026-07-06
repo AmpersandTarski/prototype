@@ -7,10 +7,10 @@ use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\UploadException;
 use Ampersand\IO\ExcelImporter;
+use Ampersand\IO\JsonPopulationImporter;
 use Ampersand\Log\Logger;
 use Slim\Http\Request;
 use Slim\Http\Response;
-use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 
 class PopulationController extends AbstractController
@@ -35,11 +35,11 @@ class PopulationController extends AbstractController
         $extension = pathinfo($fileInfo['name'], PATHINFO_EXTENSION);
         switch ($extension) {
             case 'json':
-                $decoder = new JsonDecode();
-                $populationContent = $decoder->decode(file_get_contents($fileInfo['tmp_name']), JsonEncoder::FORMAT);
-                $population = new Population($this->app->getModel(), Logger::getLogger('IO'));
-                $population->loadFromPopulationFile($populationContent);
-                $population->import();
+                // Streaming import: memory is bounded by the largest single block in the
+                // file, not by the population size. Semantics (Atom/Link::add() within
+                // this transaction, invariants evaluated at close) are unchanged.
+                $importer = new JsonPopulationImporter($this->app->getModel(), Logger::getLogger('IO'));
+                $importer->importFile($fileInfo['tmp_name']);
                 break;
             case 'xls':
             case 'xlsx':
