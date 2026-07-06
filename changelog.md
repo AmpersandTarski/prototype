@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## v2.2.0 (3 July 2026)
+## v2.2.0 (6 July 2026)
 
 * New feature: **restored BOX-template annotations** that were lost in the AngularJS → Angular migration (framework v1.18.0). The Ampersand compiler already forwards every BOX-header key/value to the template generically (`renderTemplate` in `ProtoUtil.hs`), so these are frontend-only and need no compiler change. Implemented in `frontend/src/app/generated/.templates/Box-*.html` and `frontend/src/app/shared/box-components/`:
   - **TABLE**: `noHeader` ([#300](https://github.com/AmpersandTarski/prototype/issues/300)), `hideOnNoRecords` ([#301](https://github.com/AmpersandTarski/prototype/issues/301)), `title` ([#302](https://github.com/AmpersandTarski/prototype/issues/302)), `showNavMenu` ([#304](https://github.com/AmpersandTarski/prototype/issues/304)).
