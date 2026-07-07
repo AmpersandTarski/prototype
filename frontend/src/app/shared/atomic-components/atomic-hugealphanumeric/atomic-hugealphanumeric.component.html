@@ -16,15 +16,13 @@
 
 <ng-template #cRUdUni>
     <div class="w-full">
-        <textarea
-            pInputTextarea
-            [(ngModel)]="resource[propertyName]"
-            (input)="dirty = true"
-            (blur)="updateValue()"
-            [required]="isTot"
-            rows="20"
-            class="w-full min-w-10rem"
-        ></textarea>
+        <!-- Monaco code editor: line numbers, and the EditorService cursor target
+             for clickable diagnostics. Commits on blur like the old textarea. -->
+        <app-monaco-editor
+            [value]="resource[propertyName] || ''"
+            (valueChange)="onEditorChange($event)"
+            (blurred)="onEditorBlur()"
+        ></app-monaco-editor>
     </div>
 </ng-template>
 
@@ -65,7 +63,8 @@
 </ng-template>
 
 <ng-template #cRud>
-    <div *ngFor="let row of data" class="wordwrap">{{ row }}</div>
+    <!-- pre-wrap so multi-line text (e.g. compiler messages) keeps its line breaks -->
+    <div *ngFor="let row of data" class="wordwrap" style="white-space: pre-wrap">{{ row }}</div>
 </ng-template>
 
 <ng-template #crud>

@@ -83,6 +83,9 @@ class ResourceController extends AbstractController
         $pathList = ResourcePath::makePathList($args['ifcPath'] ?? null);
         $options = Options::getFromRequestParams($request->getQueryParams());
         $depth = $request->getQueryParam('depth');
+        // Transactional interfaces validate a buffered edit set without committing
+        // (client-side buffering, SAVE-enabling). Default false = current Direct behavior.
+        $dryRun = filter_var($request->getQueryParam('dryRun', false), FILTER_VALIDATE_BOOLEAN);
         $body = $request->reparseBody()->getParsedBody();
 
         // Prepare
@@ -110,8 +113,14 @@ class ResourceController extends AbstractController
                 throw new FatalException("Unsupported HTTP method");
         }
 
-        // Run ExecEngine
-        $transaction->runExecEngine();
+        // Run ExecEngine — but never during a dry run. A dry run validates a
+        // buffered edit set (SAVE-enabling); it must only check invariant rules,
+        // not trigger side-effecting ExecEngine functions (e.g. one that shells
+        // out to a compiler), which would run — and possibly throw — on an edit
+        // set the user has not committed.
+        if (!$dryRun) {
+            $transaction->runExecEngine();
+        }
 
         // Get content to return
         try {
@@ -120,12 +129,14 @@ class ResourceController extends AbstractController
             $content = $request->getMethod() === 'PATCH' ? null : $body;
         }
         
-        // Close transaction
-        $transaction->close();
+        // Close transaction (dryRun rolls back after evaluating invariants → SAVE-enabling)
+        $transaction->close($dryRun);
         if ($transaction->isCommitted()) {
             $this->app->userLog()->notice($successMessage);
         }
-        $this->app->checkProcessRules(); // Check all process rules that are relevant for the activate roles
+        if (!$dryRun) {
+            $this->app->checkProcessRules(); // Check all process rules that are relevant for the activate roles
+        }
 
         // Output
         return $response->withJson(
