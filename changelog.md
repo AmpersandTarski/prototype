@@ -10,7 +10,11 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## v2.4.0 (unreleased)
+## v2.4.1 (7 July 2026)
+
+* Bundled Ampersand compiler upgraded to **v5.8.0**. It adds the transitive-reduction operator `%` (for an acyclic endorelation `r`, `r%` is the Hasse diagram, syntactic sugar for `r - (r;r+)`), replaces four unsound Kleene normalizer laws with sound unfoldings, and fixes two SQL-generation bugs around `r*` (the zero-step identity pairs were missing, and a `*/` inside a term could terminate a generated SQL comment early). No framework code changes; the supported compiler range in `backend/generics/compiler-version.txt` (`>=5.6.2 <6.0.0`) still holds. The image reference is bumped in `Dockerfile`, `dev.Dockerfile`, the frontend-tests workflow and the docs.
+
+## v2.4.0 (7 July 2026)
 
 * New feature: **per-interface transaction mode** — an interface runs as `Transactional` or `Direct`. Reference: `docs/reference-material/transactional-interfaces.md`.
   - **Transactional** (the new default): the interface buffers the user's edits on the client; nothing commits until the user presses **SAVE**. **CANCEL**, or navigating away ("Lose your edits?"), discards the buffer. SAVE is enabled only when the buffered edits leave no invariant rule violated.
