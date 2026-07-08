@@ -15,11 +15,16 @@ Additional labels for pre-release and build metadata are available as extensions
 * **Transactional interfaces are now model-driven and opt-in.** An interface is
   transactional only when the model declares `TRANSACTIONAL INTERFACE` (the compiler
   records this as `isTransactional` in `interfaces.json`); a plain `INTERFACE` is
-  **Direct** (immediate commit), which is now the default. Previously every interface
-  buffered edits by default. A transactional interface is marked with an accent border,
-  shows its **SAVE**/**CANCEL** controls from the moment it opens, and — when SAVE is
-  disabled by a violated invariant — lists the concrete violation messages on hover.
-  Reference: `docs/reference-material/transactional-interfaces.md`.
+  **Direct** (immediate commit). Previously every interface buffered edits by default;
+  that Transactional default is removed — an absent/false `isTransactional` means no
+  transactional functionality. A transactional interface is marked with an accent
+  border, shows its **SAVE**/**CANCEL** controls from the moment it opens, and — when
+  SAVE is disabled by a violated invariant — lists the concrete violation messages on
+  hover. Reference: `docs/reference-material/transactional-interfaces.md`.
+* **Requires Ampersand ≥ v5.9.0.** The supported compiler range in
+  `backend/generics/compiler-version.txt` moves to `>=5.9.0 <6.0.0`: v5.9.0 is the
+  first compiler that emits the `isTransactional` flag on every interface, which the
+  transactional feature above depends on.
 
 ## v2.4.2 (8 July 2026)
 

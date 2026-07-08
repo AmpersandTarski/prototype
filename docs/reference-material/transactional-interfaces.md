@@ -18,8 +18,11 @@ edits reach the database. It is declared in the model and opt-in per interface:
   `INTERFACE`.
 
 The compiler records the choice as an `isTransactional` boolean on each top-level
-interface in `backend/generics/interfaces.json` (alongside `name` and `isAPI`). Output
-from an older compiler lacks the field; a missing value is treated as `false` (Direct).
+interface in `backend/generics/interfaces.json` (alongside `name` and `isAPI`).
+Ampersand **≥ v5.9.0** emits this flag on every interface (see
+`backend/generics/compiler-version.txt`, `>=5.9.0 <6.0.0`). There is no framework-level
+"transactional by default": a missing or `false` flag means the interface has no
+transactional functionality and runs Direct.
 
 The transaction boundary is a single interface. One root interface renders per route,
 so one transaction is open at a time and one SAVE/CANCEL bar suffices.
