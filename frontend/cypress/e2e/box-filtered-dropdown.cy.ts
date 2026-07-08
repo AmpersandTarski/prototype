@@ -61,6 +61,28 @@ describe('BOX<FILTEREDDROPDOWN> regression', () => {
     cy.contains('Object is not readable').should('not.exist');
   });
 
+  it('reflects the effective crud onto the host attribute (matches dropdown gating)', () => {
+    // The component overrides this.crud from the setRelation metadata and reflects it to the host
+    // element. So for every atom the DOM `crud` attribute must agree with whether an interactive
+    // dropdown is rendered: a dropdown appears iff crud grants Update.
+    cy.get(DD).should('have.length.greaterThan', 0);
+    let editable = 0;
+    let readOnly = 0;
+    cy.get(DD)
+      .each(($atom) => {
+        const crud = $atom.attr('crud') || '';
+        const hasDropdown = $atom.find('p-dropdown').length > 0;
+        expect(hasDropdown, `crud="${crud}" (label="${$atom.attr('label')}")`).to.eq(
+          crud.includes('U'),
+        );
+        hasDropdown ? editable++ : readOnly++;
+      })
+      .then(() => {
+        expect(editable, 'some editable dropdowns exist').to.be.greaterThan(0);
+        expect(readOnly, 'some read-only dropdowns exist').to.be.greaterThan(0);
+      });
+  });
+
   TABS.forEach(({ tab, label, atoms }) => {
     describe(`${tab} tab`, () => {
       beforeEach(() => {

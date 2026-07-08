@@ -2,6 +2,7 @@ import {
   booleanAttribute,
   Component,
   computed,
+  HostBinding,
   Input,
   OnDestroy,
   OnInit,
@@ -46,6 +47,21 @@ export class AtomicObjectComponent<I extends ObjectBase | ObjectBase[]>
   // Accept string from templates (e.g. mode="box-filtereddropdown") to avoid AOT enum binding error
   @Input() mode = '';
   @Input() strict = false;
+
+  // Reflect the effective crud/uni/tot onto the host element's attributes. For BOX<FILTEREDDROPDOWN>
+  // these are overridden from the setRelation metadata in ngOnInit; Angular does not write @Input
+  // property changes back to attributes, so without this the box-level defaults (e.g. crud="cRud")
+  // would linger in the DOM and mislead DevTools and e2e tests. No behaviour depends on these
+  // attributes — this only keeps the rendered DOM truthful.
+  @HostBinding('attr.crud') get reflectedCrud(): string {
+    return this.crud;
+  }
+  @HostBinding('attr.isuni') get reflectedIsUni(): '' | null {
+    return this.isUni ? '' : null;
+  }
+  @HostBinding('attr.istot') get reflectedIsTot(): '' | null {
+    return this.isTot ? '' : null;
+  }
 
   /**
    * @deprecated No longer has any effect. The component always renders a p-dropdown
