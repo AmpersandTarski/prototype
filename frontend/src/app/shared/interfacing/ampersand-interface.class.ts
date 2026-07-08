@@ -20,6 +20,7 @@ import { CreateResponse } from './create-response.interface';
 import {
   Component,
   EventEmitter,
+  HostBinding,
   Input,
   OnDestroy,
   Output,
@@ -37,6 +38,7 @@ import {
   TransactionService,
   TransactionalInterface,
 } from '../services/transaction.service';
+import { InterfacesJsonService } from '../services/interfaces-json.service';
 
 @Component({ template: '' })
 export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
@@ -62,15 +64,27 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
   // constructor contract stays intact (they do not pass these services).
   private modeService = inject(TransactionModeService);
   private txnService = inject(TransactionService);
+  private interfacesJson = inject(InterfacesJsonService);
 
-  /** Mode declared on the interface (later supplied by the compiler). */
+  /** Explicit mode override; when unset the mode is derived from `isTransactional`. */
   @Input() transactionMode?: TransactionMode;
-  /** Interface name, used to look up a runtime mode override. */
+  /** Interface name (matches interfaces.json `.name`); drives mode resolution. */
   public interfaceName?: string;
 
   /** Buffered, retargeted patch ops awaiting an explicit SAVE (Transactional mode). */
   private buffer: { rootPath: string; op: Patch | PatchValue }[] = [];
   private _canSave = false;
+  /** Concrete invariant violations from the last dry-run, shown on a disabled SAVE. */
+  private _violations: string[] = [];
+
+  /**
+   * Marks the host element of a transactional interface, so `styles.scss` can draw
+   * the accent border required by the TRANSACTIONAL feature (also for subinterfaces).
+   */
+  @HostBinding('class.ampersand-transactional-interface')
+  get isTransactionalHost(): boolean {
+    return this.resolveMode() === 'Transactional';
+  }
 
   constructor(
     protected http: HttpClient,
@@ -99,6 +113,13 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
       _ifcs_: [],
       data: data,
     };
+
+    // A transactional interface opens its transaction on entry: register as the
+    // active interface so the SAVE/CANCEL bar is visible from the start (before
+    // the first edit), per the TRANSACTIONAL feature.
+    if (this.resolveMode() === 'Transactional') {
+      this.txnService.setActive(this);
+    }
   }
 
   public fetchDropdownMenuData<ResponseObject extends ObjectBase>(
@@ -215,8 +236,30 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
       );
   }
 
+  /** Memoized `isTransactional` lookup, keyed by the interface name it was read for. */
+  private _declaredMode?: { name?: string; mode?: TransactionMode };
+
   private resolveMode(): TransactionMode {
-    return this.modeService.getMode(this.interfaceName, this.transactionMode);
+    return this.modeService.getMode(this.interfaceName, this.declaredMode());
+  }
+
+  /**
+   * Mode declared for this interface: an explicit `transactionMode` input if set,
+   * otherwise derived from the `isTransactional` flag in interfaces.json. The flag
+   * lookup is memoized because `resolveMode()` runs on every change-detection cycle.
+   */
+  private declaredMode(): TransactionMode | undefined {
+    if (this.transactionMode) return this.transactionMode;
+    if (!this.interfaceName) return undefined;
+    if (this._declaredMode?.name !== this.interfaceName) {
+      this._declaredMode = {
+        name: this.interfaceName,
+        mode: this.interfacesJson.isTransactional(this.interfaceName)
+          ? 'Transactional'
+          : 'Direct',
+      };
+    }
+    return this._declaredMode.mode;
   }
 
   // ----- Transactional (buffered) editing -----------------------------------
@@ -233,7 +276,14 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
   }
 
   canSave(): boolean {
-    return this._canSave;
+    // An empty buffer is trivially consistent; otherwise SAVE is enabled only when
+    // the last dry-run found no invariant violations.
+    return this.buffer.length === 0 || this._canSave;
+  }
+
+  /** Concrete invariant-violation messages that currently block SAVE (hover text). */
+  violations(): string[] {
+    return this._violations;
   }
 
   private bufferPatch(
@@ -281,26 +331,38 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
     return rootPath + (rootPath.includes('?') ? '&' : '?') + 'dryRun=true';
   }
 
-  /** Dry-run the buffer (no commit) to enable/disable SAVE. */
+  /** Dry-run the buffer (no commit) to enable/disable SAVE and collect violations. */
   private runValidation(): void {
     const groups = this.groupByRoot();
     if (groups.length === 0) {
       this._canSave = false;
+      this._violations = [];
       this.txnService.refresh();
       return;
     }
     const checks = groups.map((g) =>
-      this.http.patch<PatchResponse<T>>(this.dryRunUrl(g.rootPath), g.ops).pipe(
-        map((r) => r.invariantRulesHold),
-        catchError(() => of(false)),
-      ),
+      this.http
+        .patch<PatchResponse<T>>(this.dryRunUrl(g.rootPath), g.ops)
+        .pipe(catchError(() => of(null))),
     );
     forkJoin(checks)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((results) => {
-        this._canSave = results.every(Boolean);
+      .subscribe((responses) => {
+        // A failed dry-run (null) is treated as "not saveable".
+        this._canSave = responses.every((r) => r != null && r.invariantRulesHold);
+        this._violations = responses.flatMap((r) => this.collectViolations(r));
         this.txnService.refresh();
       });
+  }
+
+  /** Flatten a dry-run response's invariant notifications into human-readable lines. */
+  private collectViolations(resp: PatchResponse<T> | null): string[] {
+    const invariants = resp?.notifications?.invariants ?? [];
+    return invariants.flatMap((inv) =>
+      inv.tuples.length === 0
+        ? [inv.ruleMessage]
+        : inv.tuples.map((t) => t.violationMessage || inv.ruleMessage),
+    );
   }
 
   /** Commit the buffered edits (one transaction per root resource). */
@@ -318,7 +380,10 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
         if (allCommitted) {
           this.buffer = [];
           this._canSave = false;
-          this.txnService.setActive(null);
+          this._violations = [];
+          // Keep the transaction open (bar/border stay visible) for further edits,
+          // unless the interface is being left — ngOnDestroy releases ownership.
+          this.txnService.refresh();
         } else {
           this.messageService.add({
             severity: 'warn',
@@ -348,7 +413,9 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
   public cancel(): void {
     this.buffer = [];
     this._canSave = false;
-    this.txnService.setActive(null);
+    this._violations = [];
+    // The interface stays transactional and open; only the buffer is discarded.
+    this.txnService.refresh();
     this.syncWithServer()
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.patched.emit());

@@ -58,6 +58,24 @@ export class InterfacesJsonService {
   }
 
   /**
+   * Whether the top-level interface with this name is declared TRANSACTIONAL.
+   *
+   * Reads the `isTransactional` flag the compiler writes on each top-level
+   * interface object in interfaces.json. Older compiler output lacks the field;
+   * a missing (or non-true) value is treated as `false` (Direct mode).
+   *
+   * @param interfaceName the interface's `name` (matches the `$ifcName$` template
+   *   variable and the resource URL segment).
+   */
+  isTransactional(interfaceName: string): boolean {
+    if (!this.isLoaded()) return false;
+    const ifc = (this.getInterfaces() as any[]).find(
+      (i) => i.name === interfaceName,
+    );
+    return ifc?.isTransactional === true;
+  }
+
+  /**
    * Helper method to get interfaces with automatic loading if needed
    */
   private async getInterfacesWithLoading(): Promise<any[]> {

@@ -8,8 +8,11 @@ import {
 /**
  * Global SAVE/CANCEL bar for a transactional interface.
  *
- * Shown only while an interface has buffered, uncommitted edits. The transaction
- * boundary is a single interface (one root interface per route), so one bar suffices.
+ * Visible while a transactional interface is active (from entry onward, not only
+ * once edits exist). CANCEL is always available (rollback); SAVE is disabled while
+ * any invariant is violated, and its hover text lists the concrete violations. The
+ * transaction boundary is a single interface (one root interface per route), so one
+ * bar suffices.
  */
 @Component({
   selector: 'app-transaction-bar',
@@ -24,11 +27,16 @@ export class TransactionBarComponent {
   }
 
   public save(active: TransactionalInterface): void {
+    if (!active.canSave()) return;
     active.save().subscribe();
   }
 
   public cancel(active: TransactionalInterface): void {
     active.cancel();
   }
-}
 
+  /** Violation lines joined for the disabled-SAVE tooltip (`[escape]="false"`). */
+  public violationTooltip(active: TransactionalInterface): string {
+    return active.violations().join('<br>');
+  }
+}

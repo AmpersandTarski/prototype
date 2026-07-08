@@ -5,17 +5,47 @@ title: Transactional Interfaces
 # Transactional Interfaces
 
 An interface runs in one of two transaction modes. The mode decides when the user's
-edits reach the database.
+edits reach the database. It is declared in the model and opt-in per interface:
 
-- **Transactional** (default): the interface buffers the user's edits. Nothing is
-  committed until the user presses **SAVE**. **CANCEL**, or navigating away, discards
-  the buffer. SAVE only becomes active when the buffered edits violate no invariant
-  rules.
-- **Direct**: every edit commits immediately once it leaves no invariant rule
-  violated. This is the framework's original behaviour.
+- **Transactional**: written `TRANSACTIONAL INTERFACE` in the model. The interface
+  buffers the user's edits. Nothing is committed until the user presses **SAVE**.
+  **CANCEL**, or navigating away, discards the buffer. SAVE is enabled only while the
+  buffered edits violate no invariant rules. A transactional interface is marked with
+  an **accent border**, and its **SAVE** and **CANCEL** controls are visible from the
+  moment it opens (not only once edits exist).
+- **Direct** (default): every edit commits immediately once it leaves no invariant
+  rule violated. This is the framework's original behaviour, and applies to a plain
+  `INTERFACE`.
+
+The compiler records the choice as an `isTransactional` boolean on each top-level
+interface in `backend/generics/interfaces.json` (alongside `name` and `isAPI`). Output
+from an older compiler lacks the field; a missing value is treated as `false` (Direct).
 
 The transaction boundary is a single interface. One root interface renders per route,
 so one transaction is open at a time and one SAVE/CANCEL bar suffices.
+
+## Example
+
+```adl
+CONCEPT Booking ""
+RELATION guestName[Booking*Name] [UNI]
+RELATION confirmed[Booking*Booking] [PROP]
+
+RULE ConfirmedNeedsName: confirmed |- guestName;guestName~
+MEANING "A confirmed booking must have a guest name."
+VIOLATION (TXT "Booking ", SRC I, TXT " is confirmed but has no guest name.")
+
+TRANSACTIONAL INTERFACE Bookings: "_SESSION"[SESSION] cRud BOX<TABLE>
+  [ "Bookings": allBookings cRud BOX<FORM>
+      [ "Guest name": guestName cRUd
+      , "Confirmed": confirmed cRUd
+      ]
+  ]
+```
+
+Confirming a booking before entering a name buffers an edit that violates
+`ConfirmedNeedsName`: SAVE greys out, and hovering it shows the concrete violation
+("Booking … is confirmed but has no guest name."). Entering the name re-enables SAVE.
 
 ## How Transactional mode works
 
@@ -28,7 +58,8 @@ open across requests.
 2. After each edit the interface runs a **dry run**: it sends the buffered operations to
    the backend with `?dryRun=true`. The backend applies them in a transaction, checks
    the invariant rules, and rolls back. The response's `invariantRulesHold` decides
-   whether SAVE is enabled.
+   whether SAVE is enabled; its `notifications.invariants` supply the concrete
+   violation messages shown when hovering a disabled SAVE.
 3. **SAVE** sends the buffered operations as one PATCH request. That is one real
    database transaction: it commits when the invariant rules hold.
 4. **CANCEL** clears the buffer and re-fetches the server state, discarding the local
@@ -52,20 +83,25 @@ server-assigned id. List add/remove shows its result after SAVE, not optimistica
 specific first:
 
 1. a runtime override set with `setOverride(interfaceName, mode)`,
-2. the mode declared on the interface (later supplied by the compiler through the box
-   header), and
-3. the global default, initialised to `Transactional` and changeable with
-   `setDefault(mode)`.
+2. the mode declared for the interface — derived from the `isTransactional` flag in
+   `interfaces.json` (looked up by name via `InterfacesJsonService.isTransactional`),
+   and
+3. the global default, `Direct`, changeable with `setDefault(mode)`.
 
 The override and the default are changeable during the operational life of the
-application.
+application. The generated interface component sets its own `interfaceName` (from the
+`$ifcName$` template variable, which equals the `name` in `interfaces.json`), which
+drives both the mode lookup and the accent-border host class.
 
 ## Where the parts live
 
 | Part | Location |
 | --- | --- |
-| Buffer, `save`/`cancel`/`commitAction`, dry-run validation | `frontend/src/app/shared/interfacing/ampersand-interface.class.ts` |
+| Buffer, `save`/`cancel`/`commitAction`, dry-run validation, violation collection, accent-border host binding | `frontend/src/app/shared/interfacing/ampersand-interface.class.ts` |
 | Mode resolution | `frontend/src/app/shared/services/transaction-mode.service.ts` |
+| `isTransactional` flag lookup | `frontend/src/app/shared/services/interfaces-json.service.ts` |
+| `interfaceName` set from `$ifcName$` | `frontend/src/app/generated/.templates/component.ts.txt` |
+| Accent border + violation-tooltip styling | `frontend/src/styles.scss` |
 | Active-interface registry for the bar | `frontend/src/app/shared/services/transaction.service.ts` |
 | Global SAVE/CANCEL bar | `frontend/src/app/layout/transaction-bar/` |
 | "Lose your edits?" route guard | `frontend/src/app/shared/guards/unsaved-changes.guard.ts`, attached to every generated route via `frontend/src/app/generated/.templates/project.module.ts.txt` |
