@@ -37,7 +37,7 @@ The file `backend/generics/compiler-version.txt` contains the semantic version c
 
 The `Dockerfile` contains this construction:
 ```dockerfile
-ARG COMPILER_IMAGE=ampersandtarski/ampersand:v5.8.0
+ARG COMPILER_IMAGE=ampersandtarski/ampersand:v5.9.0
 FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
 
 <...>

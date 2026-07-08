@@ -21,10 +21,12 @@ Additional labels for pre-release and build metadata are available as extensions
   border, shows its **SAVE**/**CANCEL** controls from the moment it opens, and — when
   SAVE is disabled by a violated invariant — lists the concrete violation messages on
   hover. Reference: `docs/reference-material/transactional-interfaces.md`.
-* **Requires Ampersand ≥ v5.9.0.** The supported compiler range in
-  `backend/generics/compiler-version.txt` moves to `>=5.9.0 <6.0.0`: v5.9.0 is the
-  first compiler that emits the `isTransactional` flag on every interface, which the
-  transactional feature above depends on.
+* **Bundled Ampersand compiler upgraded to v5.9.0**, the first compiler that parses
+  `TRANSACTIONAL INTERFACE` and emits the `isTransactional` flag on every interface —
+  which the transactional feature above depends on. The supported range in
+  `backend/generics/compiler-version.txt` moves to `>=5.9.0 <6.0.0`, and the image
+  reference is bumped in `Dockerfile`, `dev.Dockerfile`, the frontend-tests workflow
+  and the docs.
 
 ## v2.4.2 (8 July 2026)
 
