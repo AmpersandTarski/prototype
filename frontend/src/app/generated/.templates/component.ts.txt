@@ -30,6 +30,8 @@ export class $ifcNamePascal$Component extends AmpersandInterfaceComponent<$ifcNa
     messageService: MessageService,
   ) {
     super(http, messageService);
+    // Interface name (matches interfaces.json .name); drives the transaction mode.
+    this.interfaceName = '$ifcName$';
   }
 
   async ngOnInit() {

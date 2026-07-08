@@ -14,13 +14,16 @@ export type TransactionMode = 'Transactional' | 'Direct';
  *
  * Resolution order (most specific wins):
  *   1. a runtime override set via {@link setOverride} (changeable during operation),
- *   2. the mode declared on the interface (later supplied by the compiler via
- *      `BoxHeader.keyVals`, passed in as `declared`),
- *   3. the global default (initialised to `Transactional`).
+ *   2. the mode declared on the interface (from the compiler's `isTransactional`
+ *      flag in interfaces.json, passed in as `declared`),
+ *   3. the global default (`Direct`).
+ *
+ * Transactional editing is opt-in per interface (`TRANSACTIONAL INTERFACE` in the
+ * model). Interfaces without the flag stay `Direct`, so the default is `Direct`.
  */
 @Injectable({ providedIn: 'root' })
 export class TransactionModeService {
-  private defaultMode: TransactionMode = 'Transactional';
+  private defaultMode: TransactionMode = 'Direct';
   private overrides = new Map<string, TransactionMode>();
 
   public getDefault(): TransactionMode {

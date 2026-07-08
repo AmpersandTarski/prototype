@@ -13,6 +13,8 @@ export interface TransactionalInterface {
   isDirty(): boolean;
   /** True when the buffered edits satisfy all invariant rules (SAVE enabled). */
   canSave(): boolean;
+  /** Concrete invariant-violation messages blocking SAVE (shown on hover). */
+  violations(): string[];
   /** Commit the buffered edits as one transaction. */
   save(): Observable<unknown>;
   /** Discard the buffered edits (rollback) and restore the server state. */

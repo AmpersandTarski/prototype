@@ -10,6 +10,24 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **Transactional interfaces are now model-driven and opt-in.** An interface is
+  transactional only when the model declares `TRANSACTIONAL INTERFACE` (the compiler
+  records this as `isTransactional` in `interfaces.json`); a plain `INTERFACE` is
+  **Direct** (immediate commit). Previously every interface buffered edits by default;
+  that Transactional default is removed — an absent/false `isTransactional` means no
+  transactional functionality. A transactional interface is marked with an accent
+  border, shows its **SAVE**/**CANCEL** controls from the moment it opens, and — when
+  SAVE is disabled by a violated invariant — lists the concrete violation messages on
+  hover. Reference: `docs/reference-material/transactional-interfaces.md`.
+* **Bundled Ampersand compiler upgraded to v5.9.0**, the first compiler that parses
+  `TRANSACTIONAL INTERFACE` and emits the `isTransactional` flag on every interface —
+  which the transactional feature above depends on. The supported range in
+  `backend/generics/compiler-version.txt` moves to `>=5.9.0 <6.0.0`, and the image
+  reference is bumped in `Dockerfile`, `dev.Dockerfile`, the frontend-tests workflow
+  and the docs.
+
 ## v2.4.2 (8 July 2026)
 
 * CI: the release workflow (`.github/workflows/release.yml`) moves from the soon-to-be-retired `ubuntu-22.04` runner to `ubuntu-24.04` (current LTS). The Ubuntu 22.04 runner images begin deprecation on 17 Sep 2026 and are unsupported from 17 Apr 2027, after which the build environment stops receiving security patches. No framework code changes; the runner builds the image but is not part of it, so this does not by itself change the shipped image's dependencies or its `php:8.3-apache-bookworm` base — those remain the actual vulnerability surface (kept current via Dependabot and by rebuilding the base image on each release).
