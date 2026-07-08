@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.4.3 (8 July 2026)
 
 * **Transactional interfaces are now model-driven and opt-in.** An interface is
   transactional only when the model declares `TRANSACTIONAL INTERFACE` (the compiler
