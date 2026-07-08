@@ -412,9 +412,24 @@ INTERFACE BoxFilteredDropdownErrors LABEL "Box-Filtered-Dropdown-errors" : "_SES
     --       ]
     --   , "5. Assign an employee (cRud)" : I BOX<FILTEREDDROPDOWN> -- relation and selectFrom of different type, swapped
     --       [ "setRelation"   : eligible cRud
-    --       , "selectFrom"  : projectLocation 
+    --       , "selectFrom"  : projectLocation
     --       ]
       ]
+  ]
+
+-- Regression for issue #266: a FILTEREDDROPDOWN nested deep inside other boxes,
+-- including an expression-driven intermediate box (I /\ eligible;eligible~).
+-- FORM > BOX(expression) > TABS > FILTEREDDROPDOWN.
+INTERFACE NestedFilteredDropdown LABEL "Nested Filtered-Dropdown" : "_SESSION";V[SESSION*Project] cRud BOX<FORM>
+  [ "Project ID" : I cRud
+  , "nivo 1" : I /\ eligible;eligible~ cRud BOX
+    [ "nivo 2" : I[Project] cRud BOX<TABS>
+      [ "nivo 3" : I[Project] cRud BOX<FILTEREDDROPDOWN>
+        [ "selectFrom"  : eligible
+        , "setRelation" : projectMember CRUD
+        ]
+      ]
+    ]
   ]
 
 ENDCONTEXT

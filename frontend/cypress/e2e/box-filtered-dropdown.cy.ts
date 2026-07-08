@@ -124,4 +124,33 @@ describe('BOX<FILTEREDDROPDOWN> regression', () => {
         );
       });
   });
+
+  describe('deep nesting (issue #266)', () => {
+    // The NestedFilteredDropdown interface renders a FILTEREDDROPDOWN three boxes deep:
+    // FORM > BOX(I /\ eligible;eligible~, an expression-driven box) > TABS > FILTEREDDROPDOWN.
+    beforeEach(() => {
+      cy.visit(`${BASE}/nestedfiltereddropdown`);
+      cy.get(DD, { timeout: 15000 }).should('have.length.greaterThan', 0);
+    });
+
+    it('renders the FILTEREDDROPDOWN nested inside the intermediate boxes', () => {
+      cy.contains('label.box-form-label', 'nivo 1').should('be.visible');
+      cy.contains('label.box-form-label', 'nivo 2').should('be.visible');
+      // The deepest atom is an editable FILTEREDDROPDOWN (setRelation projectMember CRUD).
+      cy.get(DD).first().find('p-dropdown').should('exist');
+    });
+
+    it('filters the nested dropdown to selectFrom (eligible employees)', () => {
+      cy.get(DD).first().find('p-dropdown').click();
+      cy.get('.p-dropdown-panel .p-dropdown-item', { timeout: 8000 })
+        .should('have.length.greaterThan', 0)
+        .then(($items) => {
+          [...$items]
+            .map((el) => el.textContent?.trim() || '')
+            .forEach((l) => {
+              expect(ALL_EMPLOYEES, `option "${l}" is a known employee`).to.include(l);
+            });
+        });
+    });
+  });
 });
