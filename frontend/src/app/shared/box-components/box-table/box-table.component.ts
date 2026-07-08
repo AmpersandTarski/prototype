@@ -42,8 +42,22 @@ export class BoxTableComponent<
   @ContentChild(BoxTableRowTemplateDirective, { read: TemplateRef })
   rows?: TemplateRef<unknown>;
 
-  @ViewChild('primengTable', { static: true })
-  public primengTable: Table;
+  private _primengTable?: Table;
+
+  // #primengTable lives inside an *ngIf (hideBecauseEmpty), so a { static: true } query would be
+  // undefined in ngOnInit and throw ("Cannot set properties of undefined"). Use a setter query
+  // that configures the table whenever it appears — including after the *ngIf flips once data
+  // arrives — so an initially-empty BOX<TABLE> renders instead of crashing.
+  @ViewChild('primengTable')
+  set primengTable(table: Table | undefined) {
+    this._primengTable = table;
+    if (table) {
+      this.configurePrimengTable(table);
+    }
+  }
+  get primengTable(): Table {
+    return this._primengTable as Table;
+  }
 
   @Input({ transform: booleanAttribute })
   sortable = false;
@@ -59,20 +73,22 @@ export class BoxTableComponent<
 
   override ngOnInit(): void {
     super.ngOnInit();
+  }
 
-    this.primengTable.sortMode = 'multiple';
+  private configurePrimengTable(table: Table): void {
+    table.sortMode = 'multiple';
 
     // The defaultSortOrder is used when an unsorted column is sorted by user interaction
-    this.primengTable.defaultSortOrder = this.sortOrder === 'asc' ? 1 : -1;
+    table.defaultSortOrder = this.sortOrder === 'asc' ? 1 : -1;
 
     if (this.sortBy !== undefined) {
-      this.primengTable.multiSortMeta = [
+      table.multiSortMeta = [
         {
           field: this.sortBy,
           order: this.sortOrder === 'asc' ? 1 : -1,
         },
       ];
     }
-    this.primengTable.sortMultiple();
+    table.sortMultiple();
   }
 }
