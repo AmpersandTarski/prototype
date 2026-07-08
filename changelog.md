@@ -10,6 +10,10 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.4.2 (8 July 2026)
+
+* CI: the release workflow (`.github/workflows/release.yml`) moves from the soon-to-be-retired `ubuntu-22.04` runner to `ubuntu-24.04` (current LTS). The Ubuntu 22.04 runner images begin deprecation on 17 Sep 2026 and are unsupported from 17 Apr 2027, after which the build environment stops receiving security patches. No framework code changes; the runner builds the image but is not part of it, so this does not by itself change the shipped image's dependencies or its `php:8.3-apache-bookworm` base — those remain the actual vulnerability surface (kept current via Dependabot and by rebuilding the base image on each release).
+
 ## v2.4.1 (7 July 2026)
 
 * Bundled Ampersand compiler upgraded to **v5.8.0**. It adds the transitive-reduction operator `%` (for an acyclic endorelation `r`, `r%` is the Hasse diagram, syntactic sugar for `r - (r;r+)`), replaces four unsound Kleene normalizer laws with sound unfoldings, and fixes two SQL-generation bugs around `r*` (the zero-step identity pairs were missing, and a `*/` inside a term could terminate a generated SQL comment early). No framework code changes; the supported compiler range in `backend/generics/compiler-version.txt` (`>=5.6.2 <6.0.0`) still holds. The image reference is bumped in `Dockerfile`, `dev.Dockerfile`, the frontend-tests workflow and the docs.
