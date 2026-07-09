@@ -93,6 +93,13 @@ class Session
             // If login functionality is not enabled, add all defined roles as allowed roles
             if (!$this->settings->get('session.loginEnabled')) {
                 foreach ($this->ampersandApp->getModel()->getRoleConcept()->getAllAtomObjects() as $roleAtom) {
+                    // "Any" is a wildcard role (it stands for 'every authenticated role'), not a
+                    // role a session can hold or activate. Skip it so it never becomes an allowed/
+                    // active role. Access to its (role-less) interfaces is granted separately, based
+                    // on the session holding an authenticated role (see AmpersandApp::setAccessibleInterfaces).
+                    if ($roleAtom->getId() === ProtoContext::ROLE_ANY) {
+                        continue;
+                    }
                     $this->sessionAtom->link($roleAtom, ProtoContext::REL_SESSION_ALLOWED_ROLES)->add();
                     // Activate all allowed roles by default
                     $this->toggleActiveRole($roleAtom, true);
