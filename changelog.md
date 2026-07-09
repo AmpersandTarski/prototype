@@ -10,6 +10,23 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.4.4 (9 July 2026)
+
+* **An interface without a `FOR`-clause is reachable again under the new "Any"-role
+  access model.** Ampersand v5.9.1 delivers a role-less interface coupled to the single
+  role `"Any"` (instead of expanding it to every role). Access is granted per active
+  role, so such an interface would otherwise match no concrete session role and return
+  403 for everyone. The runtime now treats `"Any"` as a wildcard: any **authenticated**
+  active role reaches the role-less interfaces, but the **Anonymous** (no-user) role does
+  not — a userless session still only reaches interfaces explicitly `FOR Anonymous` (e.g.
+  the login/landing page). `"Any"` is never a role a session can hold or activate: it is
+  excluded from the login-disabled role set and hidden from the role picker.
+* **Bundled Ampersand compiler upgraded to v5.9.1**, the first compiler that emits the
+  "Any"-role contract (the `"Any"` role atom and role-less interfaces coupled to `"Any"`).
+  The supported range in `backend/generics/compiler-version.txt` moves to `>=5.9.1
+  <6.0.0`; the image reference is bumped in `Dockerfile`, `dev.Dockerfile`, the
+  frontend-tests workflow and the docs.
+
 ## v2.4.3 (8 July 2026)
 
 * **Transactional interfaces are now model-driven and opt-in.** An interface is
