@@ -333,3 +333,23 @@ RELATION dekkingTekst[Dekking*Dekkingtekst] [UNI]           -- relaties!
 4. **Maintenance**: Makkelijker te begrijpen en onderhouden
 5. **Tool support**: Betere IDE en tooling ondersteuning voor moderne syntax
 6. **Automatische concept populatie**: Relatie populaties leiden concept populaties automatisch af
+
+## `_SESSION` en `I[SESSION]` — sessie-magie in expressies
+
+Twee dingen die makkelijk verkeerd begrepen worden bij regels/interfaces over sessies:
+
+### `"_SESSION"` = de huidige sessie (runtime-substitutie)
+- `"_SESSION"` is een **atoom-placeholder** die per definitie de **sessie-identifier van de huidige sessie** bevat. Het runtime-pakket neemt de sessie-id uit de browser en vult die in op `"_SESSION"`, zodat je in ADL met de echte sessie werkt.
+- Het is **geen echt atoom in de SESSION-populatie**: de compiler weert `_SESSION` uit `POPULATION` (`P2A_Converters.hs`) en uit de SESSION-populatie (`Populated.hs`). Gebruik het dus alleen **als atoom in een expressie**.
+- De framework-runtime vervangt `_SESSION` door `session_id()` op **drie** plekken — niet alleen interfaces:
+  - interface-queries: `InterfaceExprObject.php` (`str_replace('_SESSION', session_id(), ...)`)
+  - view-segmenten: `ViewSegment.php`
+  - **conjunct-/ExecEngine-evaluatie: `Rule/Conjunct.php`** ← hierdoor werkt `_SESSION` óók in een `ENFORCE`/`RULE`
+- Gevolg: een `ENFORCE r >: "_SESSION";…` beperkt zich tot de **huidige** sessie (die de request doet), niet tot alle sessies. Dat is vaak juist wat je wilt: alleen voor echte, actieve sessies materialiseren i.p.v. een globale `V[SESSION*…]` over alle sessie-atomen.
+
+### `I[SESSION]` = alle open sessies
+- `I[SESSION]` bevat **alle open sessies**: allen die op dat moment via een interface met de context verbonden zijn. Handig als je een regel over álle actieve sessies wilt (i.p.v. alleen de huidige via `_SESSION`).
+
+**Waarom dit ertoe doet:** `V[SESSION*Role];"Anonymous"` (bedoeld: elke sessie krijgt Anonymous) is duur/globaal én liep in v5.9.1 tegen een compilerbug aan (de `V;singleton`-restrictie werd weg-genormaliseerd → elke sessie kreeg álle rollen). Scopen met `"_SESSION";…` beperkt het tot de huidige sessie.
+
+**Datum toegevoegd:** 9-7-2026 (any-role toegangsmodel, sessionAllowedRoles).
