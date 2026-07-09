@@ -61,6 +61,11 @@ abstract class ProtoContext
         self::REL_NAV_SUB_OF,
     ];
 
+    // Special role atoms (ids as used in the PrototypeContext population)
+    const
+        ROLE_ANY            = 'Any',        // wildcard role: every authenticated role satisfies "Any"
+        ROLE_ANONYMOUS      = 'Anonymous';  // the no-user role (a session without a session account)
+
     const
         IFC_MENU_ITEMS      = 'PrototypeContext.MenuItems';
 

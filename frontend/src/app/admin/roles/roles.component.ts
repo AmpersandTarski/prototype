@@ -45,9 +45,12 @@ export class RolesComponent extends BaseComponent implements OnInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe((roles) => {
         // The picker offers only the roles the user may choose: their allowed
-        // roles except Anonymous (Anonymous is reached via the separate Logout
-        // action, not the picker).
-        const choosable = roles.filter((role) => role.id !== 'Anonymous');
+        // roles except Anonymous (reached via the separate Logout action, not the
+        // picker) and except the "Any" wildcard role (which stands for 'every
+        // authenticated role' and is not a role a user can activate).
+        const choosable = roles.filter(
+          (role) => role.id !== 'Anonymous' && role.id !== 'Any',
+        );
         // Hide the picker entirely when there is nothing to choose.
         this.showPicker = choosable.length > 1;
         // A session has exactly one active role, so the role menu reads as a
