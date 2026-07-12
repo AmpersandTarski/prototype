@@ -6,13 +6,16 @@ import {
 } from '../../shared/services/transaction.service';
 
 /**
- * Global SAVE/CANCEL bar for a transactional interface.
+ * SAVE/CANCEL bar for a transactional interface.
  *
- * Visible while a transactional interface is active (from entry onward, not only
- * once edits exist). CANCEL is always available (rollback); SAVE is disabled while
- * any invariant is violated, and its hover text lists the concrete violations. The
- * transaction boundary is a single interface (one root interface per route), so one
- * bar suffices.
+ * Mounted by {@link AmpersandInterfaceComponent} inside its own accent-bordered host
+ * element, so the controls sit within the border of the (sub-)interface the
+ * transaction applies to (not in a global bar at the window bottom). Visible from
+ * entry onward. CANCEL is shown only while there are buffered edits to roll back
+ * (`isDirty()`); when the interface just shows committed database content there is
+ * nothing to cancel. SAVE is disabled while any invariant is violated, and its hover
+ * text lists the concrete violations. The transaction boundary is a single interface
+ * (one root interface per route), so one bar suffices.
  */
 @Component({
   selector: 'app-transaction-bar',

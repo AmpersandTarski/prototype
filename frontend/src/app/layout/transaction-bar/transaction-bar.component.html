@@ -6,7 +6,10 @@
     <ng-template #clean>Editing {{ active.transactionLabel }}</ng-template>
   </span>
   <span class="transaction-bar__spacer"></span>
+  <!-- Cancel only makes sense while there are buffered edits to roll back; when the
+       interface just shows committed database content there is nothing to cancel. -->
   <button
+    *ngIf="active.isDirty()"
     pButton
     type="button"
     label="Cancel"

@@ -1,13 +1,21 @@
+// The bar is mounted as the last child of the transactional interface's host
+// element (the accent-bordered box). Make the component host a block so the footer
+// spans the full width; negative side/bottom margins then cancel the host's padding
+// so the footer reaches the accent border on the left, right and bottom.
+:host {
+  display: block;
+}
+
 .transaction-bar {
-  position: sticky;
-  bottom: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--surface-100, #f4f4f4);
+  margin: 0.75rem -0.75rem -0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-50, #fafafa);
   border-top: 1px solid var(--surface-300, #dddddd);
-  z-index: 100;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
 }
 
 .transaction-bar__spacer {

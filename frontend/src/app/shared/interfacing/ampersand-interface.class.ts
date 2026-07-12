@@ -18,14 +18,21 @@ import { PatchResponse } from './patch-response.interface';
 import { DeleteResponse } from './delete-response.interface';
 import { CreateResponse } from './create-response.interface';
 import {
+  ApplicationRef,
   Component,
+  ComponentRef,
+  ElementRef,
+  EnvironmentInjector,
   EventEmitter,
   HostBinding,
   Input,
   OnDestroy,
   Output,
+  Renderer2,
+  createComponent,
   inject,
 } from '@angular/core';
+import { TransactionBarComponent } from 'src/app/layout/transaction-bar/transaction-bar.component';
 import { mergeDeep, ProtectFn } from 'src/app/shared/helper/deepmerge';
 import { isEditing } from '../helper/edit-registry';
 import { MessageService } from 'primeng/api';
@@ -66,6 +73,14 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
   private txnService = inject(TransactionService);
   private interfacesJson = inject(InterfacesJsonService);
 
+  // Used to render the SAVE/CANCEL bar inside this interface's own (accent-bordered)
+  // host element, instead of a global bar at the bottom of the window.
+  private elementRef = inject(ElementRef) as ElementRef<HTMLElement>;
+  private envInjector = inject(EnvironmentInjector);
+  private appRef = inject(ApplicationRef);
+  private renderer = inject(Renderer2);
+  private barRef?: ComponentRef<TransactionBarComponent>;
+
   /** Explicit mode override; when unset the mode is derived from `isTransactional`. */
   @Input() transactionMode?: TransactionMode;
   /** Interface name (matches interfaces.json `.name`); drives mode resolution. */
@@ -97,6 +112,13 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
       this.txnService.setActive(null);
     }
 
+    // Tear down the mounted SAVE/CANCEL bar.
+    if (this.barRef) {
+      this.appRef.detachView(this.barRef.hostView);
+      this.barRef.destroy();
+      this.barRef = undefined;
+    }
+
     // Clear the typeAheadData cache to prevent memory leaks
     this.typeAheadData = {};
 
@@ -115,11 +137,32 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
     };
 
     // A transactional interface opens its transaction on entry: register as the
-    // active interface so the SAVE/CANCEL bar is visible from the start (before
-    // the first edit), per the TRANSACTIONAL feature.
+    // active interface and mount the SAVE/CANCEL bar inside this interface's own
+    // accent-bordered host element (not a global bar at the window bottom), per the
+    // TRANSACTIONAL feature.
     if (this.resolveMode() === 'Transactional') {
       this.txnService.setActive(this);
+      this.mountTransactionBar();
     }
+  }
+
+  /**
+   * Render the SAVE/CANCEL bar as the last child of this interface's host element,
+   * so it sits within the transactional accent border of the (sub-)interface the
+   * transaction applies to, rather than in a global bar spanning the whole window.
+   */
+  private mountTransactionBar(): void {
+    if (this.barRef) {
+      return;
+    }
+    this.barRef = createComponent(TransactionBarComponent, {
+      environmentInjector: this.envInjector,
+    });
+    this.appRef.attachView(this.barRef.hostView);
+    this.renderer.appendChild(
+      this.elementRef.nativeElement,
+      this.barRef.location.nativeElement,
+    );
   }
 
   public fetchDropdownMenuData<ResponseObject extends ObjectBase>(
