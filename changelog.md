@@ -10,6 +10,16 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.4.6 (12 July 2026)
+
+* **No more spurious "You do not have access to this page" toast on editable text
+  fields.** Every editable `ALPHANUMERIC` field asked the backend to list its concept
+  (`GET resource/<concept>`) for autocomplete/validation, but scalar concepts are
+  deliberately not listable, so the request always returned 403 and popped an
+  access-denied toast on each such field. The atom editor no longer issues that doomed
+  request; input is validated by the backend as before. (Frontend-only; compiler stays
+  v5.9.2.)
+
 ## v2.4.5 (12 July 2026)
 
 * **The SAVE/CANCEL controls of a transactional interface now live in the accent
