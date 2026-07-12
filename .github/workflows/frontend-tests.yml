@@ -51,7 +51,7 @@ jobs:
         docker run --rm \
           -v ${{ github.workspace }}:/workspace \
           --entrypoint /bin/ampersand \
-          ampersandtarski/ampersand:v5.9.1 \
+          ampersandtarski/ampersand:v5.9.2 \
           proto --frontend-version Angular --no-backend \
           /workspace/test/projects/hello-world/model/main.adl \
           --proto-dir /workspace/frontend/src/app/generated \
