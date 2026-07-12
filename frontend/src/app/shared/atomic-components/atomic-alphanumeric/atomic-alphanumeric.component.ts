@@ -1,8 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { takeUntil } from 'rxjs/operators';
+import { Component } from '@angular/core';
 import { BaseAtomicComponent } from '../BaseAtomicComponent.class';
 import { ObjectBase } from '../../objectBase.interface';
-import { InterfacesJsonService } from '../../services/interfaces-json.service';
 
 @Component({
   selector: 'app-atomic-alphanumeric',
@@ -11,12 +9,16 @@ import { InterfacesJsonService } from '../../services/interfaces-json.service';
 })
 export class AtomicAlphanumericComponent<I extends ObjectBase | ObjectBase[]>
   extends BaseAtomicComponent<string, I>
-  implements OnInit
 {
   /**
-   * Beschikbare atomen voor autocomplete, opgehaald van de backend.
-   * null = nog niet geladen of fetch mislukt (geen validatie mogelijk).
-   * []   = geladen maar geen enkel atoom beschikbaar.
+   * Bekende atomen voor autocomplete/validatie — blijft `null`.
+   *
+   * Dit is een ALPHANUMERIC-veld, dus het doelconcept is een scalar. De backend
+   * weigert bewust `GET resource/<scalar>` (InterfaceNullObject::crudR geeft false
+   * voor niet-object concepten), dus zo'n lijst opvragen levert altijd een 403 op.
+   * Daarom doen we die request niet: `options` blijft null, er is geen client-side
+   * optielijst/validatie, en de backend valideert de invoer. (Een echte 403 elders
+   * wordt zo ook niet meer per ongeluk als "geen opties" weggeslikt.)
    */
   public options: string[] | null = null;
 
@@ -26,34 +28,6 @@ export class AtomicAlphanumericComponent<I extends ObjectBase | ObjectBase[]>
    * want [(ngModel)] heeft de waarde al gemuteerd vóór de blur-handler.
    */
   public uniOriginalValue: string | null = null;
-
-  constructor(private interfacesLoader: InterfacesJsonService) {
-    super();
-  }
-
-  override async ngOnInit(): Promise<void> {
-    super.ngOnInit();
-
-    // Haal opties op voor autocomplete als canUpdate() van toepassing is
-    if (this.canUpdate()) {
-      try {
-        const meta = await this.interfacesLoader.findSubObject(
-          this.resource._path_,
-          this.propertyName,
-        );
-        if (meta?.conceptType) {
-          this.interfaceComponent
-            .fetchDropdownMenuData(`resource/${meta.conceptType}`)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((items: ObjectBase[]) => {
-              this.options = items.map((item) => item._id_);
-            });
-        }
-      } catch {
-        // Geen opties beschikbaar: autocomplete werkt niet, gewoon tekstveld
-      }
-    }
-  }
 
   /**
    * Slaat de huidige waarde op bij focus op het UNI-tekstveld.
@@ -66,10 +40,8 @@ export class AtomicAlphanumericComponent<I extends ObjectBase | ObjectBase[]>
   /**
    * Override van updateValue() met validatie voor het UNI-geval:
    * Als !canCreate() moet de nieuwe waarde in de optielijst staan.
-   * Als de opties nog niet geladen zijn (leeg), wordt de invoer ook afgewezen —
-   * zonder de lijst kunnen we niet bepalen of het atoom al bestaat.
-   * Bij afwijzing wordt het model teruggezet.
-   * De niet-UNI variant gebruikt validateAndUpdate() voor dezelfde logica.
+   * Voor scalars is `options` null (zie boven), dus valideren we niet client-side
+   * en laat de backend de invoer beoordelen. Bij afwijzing wordt het model teruggezet.
    */
   public override updateValue(): void {
     if (!this.dirty) return;
@@ -77,9 +49,7 @@ export class AtomicAlphanumericComponent<I extends ObjectBase | ObjectBase[]>
     const newVal = (this.resource[this.propertyName] ?? '').trim();
 
     // Kleine c: mag geen nieuwe atomen aanmaken → valideer tegen bekende opties.
-    // Alleen valideren als de optielijst succesvol geladen is (options !== null).
-    // Als de fetch mislukte (bijv. HTTP 403) blijft options null en slaan we de
-    // invoer gewoon op — de backend valideert dan zelf.
+    // Alleen valideren als de optielijst beschikbaar is (options !== null).
     if (!this.canCreate() && newVal && this.options !== null) {
       if (!this.options.includes(newVal)) {
         // Reject: zet het model terug naar de oorspronkelijke waarde
@@ -94,17 +64,15 @@ export class AtomicAlphanumericComponent<I extends ObjectBase | ObjectBase[]>
 
   /**
    * Valideer en stuur update naar backend voor het niet-UNI geval.
-   * Als !canCreate(): de nieuwe waarde moet in de opties staan.
-   * Als de opties nog niet geladen zijn (leeg), wordt de invoer ook afgewezen —
-   * zonder de lijst kunnen we niet bepalen of het atoom al bestaat.
-   * Als canCreate(): elke waarde is toegestaan.
+   * Als !canCreate(): de nieuwe waarde moet in de opties staan (indien beschikbaar).
+   * Voor scalars is `options` null, dus valideert de backend.
    */
   public validateAndUpdate(oldValue: string, newValue: string): void {
     const trimmed = newValue.trim();
     if (trimmed === String(oldValue)) return; // geen wijziging
 
     // Kleine c: mag geen nieuwe atomen aanmaken → valideer tegen opties.
-    // Alleen valideren als de optielijst succesvol geladen is (options !== null).
+    // Alleen valideren als de optielijst beschikbaar is (options !== null).
     if (!this.canCreate() && this.options !== null) {
       if (!this.options.includes(trimmed)) {
         return; // reject: invoer reset bij volgende render (input gebruikt [value]="row")
