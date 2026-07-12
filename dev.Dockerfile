@@ -1,5 +1,5 @@
 # To run generated prototypes we require a apache webserver with php
-ARG COMPILER_IMAGE=ampersandtarski/ampersand:v5.9.1
+ARG COMPILER_IMAGE=ampersandtarski/ampersand:v5.9.2
 FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
 FROM --platform=linux/amd64 php:8.3-apache-bookworm AS framework
 

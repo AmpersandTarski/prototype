@@ -10,6 +10,24 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.4.5 (12 July 2026)
+
+* **The SAVE/CANCEL controls of a transactional interface now live in the accent
+  border of the (sub-)interface the transaction applies to**, as a footer inside the
+  blue box, instead of a global bar at the bottom of the window. **CANCEL is shown
+  only while there are buffered edits to roll back**; when the interface just shows
+  committed database content there is nothing to cancel, so the button is hidden.
+  SAVE stays visible (disabled while an invariant is violated).
+* **Bundled Ampersand compiler upgraded to v5.9.2.** This fixes two compiler issues
+  in the "Any"-role model: (1) a normaliser bug that made `sessionAllowedRoles` the
+  full `SESSION*Role` cartesian, so a login-enabled prototype granted every session
+  every role — now a session only gets its IAM roles plus Anonymous; (2) role-less
+  interfaces (coupled to the `"Any"` wildcard) now also appear in the navigation
+  menu for authenticated sessions, not only reachable by URL. The supported range in
+  `backend/generics/compiler-version.txt` moves to `>=5.9.2 <6.0.0`; the image
+  reference is bumped in `Dockerfile`, `dev.Dockerfile`, the frontend-tests workflow
+  and the docs.
+
 ## v2.4.4 (9 July 2026)
 
 * **An interface without a `FOR`-clause is reachable again under the new "Any"-role
