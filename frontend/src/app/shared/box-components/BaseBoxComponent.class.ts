@@ -1,5 +1,13 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, Input, OnInit, booleanAttribute } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostBinding,
+  Input,
+  OnInit,
+  booleanAttribute,
+  inject,
+} from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { map, Observable, of } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -31,6 +39,19 @@ export abstract class BaseBoxComponent<
   @Input({ transform: booleanAttribute }) isUni = false;
   @Input({ transform: booleanAttribute }) isTot = false;
 
+  private hostElementRef = inject(ElementRef) as ElementRef<HTMLElement>;
+
+  /**
+   * True when this box is the root of an inlined `INTERFACE <name>` reference
+   * to a TRANSACTIONAL interface. The compiler inlines such a reference into
+   * the referring interface's template (no component of the referenced
+   * interface is instantiated), so this box supplies what the referenced
+   * interface would have brought itself: the accent border (host class below)
+   * and the SAVE/CANCEL bar, mounted inside this box's host element.
+   */
+  @HostBinding('class.ampersand-transactional-interface')
+  isTransactionalRef = false;
+
   // BOX-header annotations shared by TABLE, FORM and TABS.
   // The Ampersand compiler passes every BOX-header key/value to the template
   // generically (see renderTemplate in ProtoUtil.hs), so these inputs are
@@ -61,6 +82,18 @@ export abstract class BaseBoxComponent<
       throw new Error(
         `Property '${this.propertyName}' not defined for object in '${this.resource._path_}'. It is likely that the backend data model is not in sync with the generated frontend.`,
       );
+    }
+
+    if (!this.isRootBox) {
+      this.isTransactionalRef = this.interfaceComponent.isTransactionalRefBox(
+        this.resource?._path_,
+        this.propertyName,
+      );
+      if (this.isTransactionalRef) {
+        this.interfaceComponent.mountTransactionBarIn(
+          this.hostElementRef.nativeElement,
+        );
+      }
     }
   }
 

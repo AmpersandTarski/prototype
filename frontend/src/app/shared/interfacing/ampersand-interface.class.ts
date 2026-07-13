@@ -79,7 +79,8 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
   private envInjector = inject(EnvironmentInjector);
   private appRef = inject(ApplicationRef);
   private renderer = inject(Renderer2);
-  private barRef?: ComponentRef<TransactionBarComponent>;
+  private barRefs: ComponentRef<TransactionBarComponent>[] = [];
+  private barHosts = new Set<HTMLElement>();
 
   /** Explicit mode override; when unset the mode is derived from `isTransactional`. */
   @Input() transactionMode?: TransactionMode;
@@ -112,12 +113,13 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
       this.txnService.setActive(null);
     }
 
-    // Tear down the mounted SAVE/CANCEL bar.
-    if (this.barRef) {
-      this.appRef.detachView(this.barRef.hostView);
-      this.barRef.destroy();
-      this.barRef = undefined;
+    // Tear down the mounted SAVE/CANCEL bar(s).
+    for (const barRef of this.barRefs) {
+      this.appRef.detachView(barRef.hostView);
+      barRef.destroy();
     }
+    this.barRefs = [];
+    this.barHosts.clear();
 
     // Clear the typeAheadData cache to prevent memory leaks
     this.typeAheadData = {};
@@ -142,27 +144,33 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
     // TRANSACTIONAL feature.
     if (this.resolveMode() === 'Transactional') {
       this.txnService.setActive(this);
-      this.mountTransactionBar();
+      this.mountTransactionBarIn(this.elementRef.nativeElement);
+    } else if (this.txnRefPaths().length > 0) {
+      // This (Direct) interface inlines one or more transactional interface
+      // references. Own the transaction so the bar (mounted by the box at the
+      // root of each inlined subtree) reflects this interface's buffer.
+      this.txnService.setActive(this);
     }
   }
 
   /**
-   * Render the SAVE/CANCEL bar as the last child of this interface's host element,
-   * so it sits within the transactional accent border of the (sub-)interface the
-   * transaction applies to, rather than in a global bar spanning the whole window.
+   * Render a SAVE/CANCEL bar as the last child of `host`, so it sits within the
+   * transactional accent border of the (sub-)interface the transaction applies
+   * to, rather than in a global bar spanning the whole window. `host` is this
+   * interface's own host element, or — for an inlined transactional interface
+   * reference — the host of the box at the root of the inlined subtree.
    */
-  private mountTransactionBar(): void {
-    if (this.barRef) {
+  public mountTransactionBarIn(host: HTMLElement): void {
+    if (this.barHosts.has(host)) {
       return;
     }
-    this.barRef = createComponent(TransactionBarComponent, {
+    this.barHosts.add(host);
+    const barRef = createComponent(TransactionBarComponent, {
       environmentInjector: this.envInjector,
     });
-    this.appRef.attachView(this.barRef.hostView);
-    this.renderer.appendChild(
-      this.elementRef.nativeElement,
-      this.barRef.location.nativeElement,
-    );
+    this.barRefs.push(barRef);
+    this.appRef.attachView(barRef.hostView);
+    this.renderer.appendChild(host, barRef.location.nativeElement);
   }
 
   public fetchDropdownMenuData<ResponseObject extends ObjectBase>(
@@ -236,8 +244,12 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
     }
 
     // Transactional mode: buffer the (already retargeted) ops and defer the
-    // commit to an explicit SAVE.
-    if (this.resolveMode() === 'Transactional') {
+    // commit to an explicit SAVE. The same holds for an edit inside an inlined
+    // transactional interface reference of an otherwise Direct interface.
+    if (
+      this.resolveMode() === 'Transactional' ||
+      this.isUnderTransactionalRef(path)
+    ) {
       return this.bufferPatch(rootPath.toString(), patches);
     }
 
@@ -277,6 +289,74 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
           return throwError(() => error);
         }),
       );
+  }
+
+  // ----- Inlined transactional interface references --------------------------
+  // The compiler inlines `INTERFACE <name>` subinterface references into the
+  // referring interface's template, binding everything to the referring
+  // component — no component of the referenced interface is instantiated. When
+  // the referenced interface is TRANSACTIONAL, the subtree must still behave
+  // transactionally: accent border and SAVE/CANCEL bar on the subtree's root
+  // box, and buffered (not direct) edits within the subtree.
+
+  /** Memoized transactional-reference paths for this interface. */
+  private _txnRefPaths?: { name?: string; paths: string[][] };
+
+  private txnRefPaths(): string[][] {
+    if (!this.interfaceName) return [];
+    if (this._txnRefPaths?.name !== this.interfaceName) {
+      this._txnRefPaths = {
+        name: this.interfaceName,
+        paths: this.interfacesJson.transactionalRefPaths(this.interfaceName),
+      };
+    }
+    return this._txnRefPaths.paths;
+  }
+
+  /**
+   * Match resource-path segments against a transactional-reference path.
+   * Segments that don't match the next expected property name are runtime atom
+   * ids and are skipped (same lenient walk as InterfacesJsonService).
+   * `exact` demands that the final segment IS the reference's root (box check);
+   * without it any deeper path inside the reference matches too (patch check).
+   */
+  private matchesRefPath(
+    segments: string[],
+    refPath: string[],
+    exact: boolean,
+  ): boolean {
+    let i = 0;
+    for (const segment of segments) {
+      if (i < refPath.length && segment === refPath[i]) i++;
+    }
+    if (i !== refPath.length) return false;
+    return !exact || segments[segments.length - 1] === refPath[refPath.length - 1];
+  }
+
+  /** Segments of a resource path below `resource/{Concept}/{atomId}/{InterfaceName}`. */
+  private relativeSegments(resourcePath: string): string[] {
+    return resourcePath.split('/').filter(Boolean).slice(4);
+  }
+
+  /**
+   * Whether the box at `parentResourcePath`/`propertyName` is the root of an
+   * inlined transactional interface reference. The box hosting that subtree
+   * calls this to draw the accent border and mount the SAVE/CANCEL bar.
+   */
+  public isTransactionalRefBox(
+    parentResourcePath: string | undefined,
+    propertyName: string,
+  ): boolean {
+    if (!parentResourcePath || this.txnRefPaths().length === 0) return false;
+    const segments = [...this.relativeSegments(parentResourcePath), propertyName];
+    return this.txnRefPaths().some((p) => this.matchesRefPath(segments, p, true));
+  }
+
+  /** Whether a patch on `resourcePath` lands inside an inlined transactional reference. */
+  private isUnderTransactionalRef(resourcePath: string): boolean {
+    if (this.txnRefPaths().length === 0) return false;
+    const segments = this.relativeSegments(resourcePath);
+    return this.txnRefPaths().some((p) => this.matchesRefPath(segments, p, false));
   }
 
   /** Memoized `isTransactional` lookup, keyed by the interface name it was read for. */
@@ -470,7 +550,10 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
     path: string,
     patches: Array<Patch | PatchValue>,
   ): Observable<unknown> {
-    if (this.resolveMode() === 'Transactional') {
+    if (
+      this.resolveMode() === 'Transactional' ||
+      this.isUnderTransactionalRef(path)
+    ) {
       this.patch(path, patches); // buffers the op synchronously
       return this.save(); // flush the whole buffer as one transaction
     }

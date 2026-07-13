@@ -166,4 +166,85 @@ describe('InterfacesJsonService', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('transactionalRefPaths', () => {
+    beforeEach(async () => {
+      const mockData = [
+        {
+          name: 'Bookings',
+          isTransactional: true,
+          ifcObject: { subinterfaces: { ifcObjects: [] } },
+        },
+        {
+          name: 'Afmelden',
+          isTransactional: false,
+          ifcObject: { subinterfaces: { ifcObjects: [] } },
+        },
+        {
+          name: 'Wrapper',
+          isTransactional: false,
+          ifcObject: {
+            subinterfaces: {
+              refSubInterfaceName: null,
+              ifcObjects: [
+                {
+                  name: 'aanmelden',
+                  subinterfaces: {
+                    refIsLinkTo: false,
+                    refSubInterfaceName: 'Bookings',
+                  },
+                },
+                {
+                  name: 'afmelden',
+                  subinterfaces: {
+                    refIsLinkTo: false,
+                    refSubInterfaceName: 'Afmelden',
+                  },
+                },
+                {
+                  name: 'linked',
+                  subinterfaces: {
+                    refIsLinkTo: true,
+                    refSubInterfaceName: 'Bookings',
+                  },
+                },
+                {
+                  name: 'nested',
+                  subinterfaces: {
+                    refSubInterfaceName: null,
+                    ifcObjects: [
+                      {
+                        name: 'deepRef',
+                        subinterfaces: {
+                          refIsLinkTo: false,
+                          refSubInterfaceName: 'Bookings',
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        },
+      ];
+      mockHttp.get.mockReturnValue(of(mockData));
+      await service.loadInterfaces();
+    });
+
+    it('returns paths of non-LINKTO references to transactional interfaces', () => {
+      expect(service.transactionalRefPaths('Wrapper')).toEqual([
+        ['aanmelden'],
+        ['nested', 'deepRef'],
+      ]);
+    });
+
+    it('returns no paths for an interface without references', () => {
+      expect(service.transactionalRefPaths('Bookings')).toEqual([]);
+    });
+
+    it('returns no paths for an unknown interface', () => {
+      expect(service.transactionalRefPaths('DoesNotExist')).toEqual([]);
+    });
+  });
 });

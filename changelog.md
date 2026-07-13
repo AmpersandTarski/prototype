@@ -10,6 +10,19 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.4.8 (13 July 2026)
+
+* **A TRANSACTIONAL interface pulled in as a subinterface reference now brings its
+  SAVE/CANCEL bar along.** The compiler inlines a referenced interface
+  (`"label" : <expr> INTERFACE <name>`) into the referring interface's template, so
+  the referenced interface's component never instantiated and its bar, border and
+  buffering were lost — the login fields of a wrapped `TRANSACTIONAL INTERFACE
+  Aanmelden` rendered inline and committed directly. The framework now detects such
+  references via `interfaces.json` (`refSubInterfaceName` + `isTransactional`): the
+  inlined subtree gets its accent border and SAVE/CANCEL bar, and edits inside it are
+  buffered until SAVE (or a PROPBUTTON click) commits them as one transaction. Edits
+  outside the subtree stay direct. (Frontend-only; compiler stays v5.9.2.)
+
 ## v2.4.7 (13 July 2026)
 
 * **The transaction bar no longer shows the resource label.** The bar in the accent
