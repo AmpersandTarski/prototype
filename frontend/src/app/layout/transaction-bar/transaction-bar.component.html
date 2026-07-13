@@ -1,9 +1,9 @@
 <div class="transaction-bar" *ngIf="(active$ | async) as active">
   <span class="transaction-bar__label">
     <ng-container *ngIf="active.isDirty(); else clean"
-      >Unsaved changes in {{ active.transactionLabel }}</ng-container
+      >Unsaved changes</ng-container
     >
-    <ng-template #clean>Editing {{ active.transactionLabel }}</ng-template>
+    <ng-template #clean>Editing</ng-template>
   </span>
   <span class="transaction-bar__spacer"></span>
   <!-- Cancel only makes sense while there are buffered edits to roll back; when the

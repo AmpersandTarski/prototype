@@ -7,8 +7,6 @@ import { BehaviorSubject, Observable } from 'rxjs';
  * the component) to avoid a circular dependency between the service and the component.
  */
 export interface TransactionalInterface {
-  /** Human-readable label of the interface, shown in the bar. */
-  readonly transactionLabel: string;
   /** True when there are buffered, uncommitted edits. */
   isDirty(): boolean;
   /** True when the buffered edits satisfy all invariant rules (SAVE enabled). */

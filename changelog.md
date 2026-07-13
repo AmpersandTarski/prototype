@@ -10,6 +10,14 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.4.7 (13 July 2026)
+
+* **The transaction bar no longer shows the resource label.** The bar in the accent
+  border of a transactional interface read "Editing 1[SESSION]" (the raw
+  `id[Concept]` fallback of the interface's root resource), which leaked a
+  technical identifier into the UI. It now reads just "Editing" (clean) or
+  "Unsaved changes" (dirty). (Frontend-only; compiler stays v5.9.2.)
+
 ## v2.4.6 (12 July 2026)
 
 * **No more spurious "You do not have access to this page" toast on editable text
