@@ -1,0 +1,244 @@
+CONTEXT BIM IN ENGLISH
+-- WP-D: een gecureerde set INTERFACE-definities waarmee een gebruiker de ingelezen
+-- IFC4.3/BIM-data kan doorbladeren in een draaiend prototype.
+-- Beperkt tot de ruimtelijke/bouw-ruggengraat: project -> site -> building -> storey
+-- -> space, de hoofd-bouwelementen, materiaal, en de reified IFC-koppelrelaties
+-- (spatial containment, aggregatie, materiaal, type). Niet uitputtend.
+-- Signaturen exact uit IFC-data.adl (CONTEXT IFC4x3). Mergt met BIM.adl.
+-- De *Type-entiteiten zijn in het model weggesnoeid [B19]; daarom verloopt de
+-- type-koppeling hier via IfcRelDefinesByType -> IfcTypeObject (id).
+
+-- ============================================================================
+-- TOP-INTERFACE: hoofdmenu met een lijst per grote entiteit
+-- ============================================================================
+INTERFACE ImportIFC LABEL "IFC4.3 import" : I[SESSION] cRud BOX <TABS>
+  [ "IfcProject"                       : V[SESSION*IfcProject] cRuD LINKTO INTERFACE ImportIfcProject
+  , "IfcSite"                          : V[SESSION*IfcSite] cRuD LINKTO INTERFACE ImportIfcSite
+  , "IfcBuilding"                      : V[SESSION*IfcBuilding] cRuD LINKTO INTERFACE ImportIfcBuilding
+  , "IfcBuildingStorey"               : V[SESSION*IfcBuildingStorey] cRuD LINKTO INTERFACE ImportIfcBuildingStorey
+  , "IfcSpace"                         : V[SESSION*IfcSpace] cRuD LINKTO INTERFACE ImportIfcSpace
+  , "IfcWall"                          : V[SESSION*IfcWall] cRuD LINKTO INTERFACE ImportIfcWall
+  , "IfcSlab"                          : V[SESSION*IfcSlab] cRuD LINKTO INTERFACE ImportIfcSlab
+  , "IfcBeam"                          : V[SESSION*IfcBeam] cRuD LINKTO INTERFACE ImportIfcBeam
+  , "IfcColumn"                        : V[SESSION*IfcColumn] cRuD LINKTO INTERFACE ImportIfcColumn
+  , "IfcDoor"                          : V[SESSION*IfcDoor] cRuD LINKTO INTERFACE ImportIfcDoor
+  , "IfcWindow"                        : V[SESSION*IfcWindow] cRuD LINKTO INTERFACE ImportIfcWindow
+  , "IfcCovering"                      : V[SESSION*IfcCovering] cRuD LINKTO INTERFACE ImportIfcCovering
+  , "IfcMaterial"                      : V[SESSION*IfcMaterial] cRuD LINKTO INTERFACE ImportIfcMaterial
+  , "IfcMaterialLayer"                 : V[SESSION*IfcMaterialLayer] cRuD LINKTO INTERFACE ImportIfcMaterialLayer
+  , "IfcMaterialLayerSet"              : V[SESSION*IfcMaterialLayerSet] cRuD LINKTO INTERFACE ImportIfcMaterialLayerSet
+  , "IfcRelContainedInSpatialStructure" : V[SESSION*IfcRelContainedInSpatialStructure] cRuD LINKTO INTERFACE ImportIfcRelContainedInSpatialStructure
+  , "IfcRelAggregates"                 : V[SESSION*IfcRelAggregates] cRuD LINKTO INTERFACE ImportIfcRelAggregates
+  , "IfcRelAssociatesMaterial"         : V[SESSION*IfcRelAssociatesMaterial] cRuD LINKTO INTERFACE ImportIfcRelAssociatesMaterial
+  , "IfcRelDefinesByType"              : V[SESSION*IfcRelDefinesByType] cRuD LINKTO INTERFACE ImportIfcRelDefinesByType
+  ]
+
+-- ============================================================================
+-- RUIMTELIJKE RUGGENGRAAT
+-- ============================================================================
+INTERFACE ImportIfcProject LABEL "ifc IfcProject" : I[IfcProject] cRud BOX
+  [ "ifc:id"        : I[IfcProject] cRud
+  , "globalId"      : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"          : name[IfcRoot*IfcLabel] cRud
+  , "description"   : description[IfcRoot*IfcText] cRud
+  , "objectType"    : objectType[IfcContext*IfcLabel] cRud
+  , "longName"      : longName[IfcContext*IfcLabel] cRud
+  ]
+
+INTERFACE ImportIfcSite LABEL "ifc IfcSite" : I[IfcSite] cRud BOX
+  [ "ifc:id"          : I[IfcSite] cRud
+  , "globalId"        : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"            : name[IfcRoot*IfcLabel] cRud
+  , "description"     : description[IfcRoot*IfcText] cRud
+  , "objectType"      : objectType[IfcObject*IfcLabel] cRud
+  , "longName"        : longName[IfcSpatialElement*IfcLabel] cRud
+  , "compositionType" : compositionType[IfcSpatialStructureElement*IfcElementCompositionEnum] cRud
+  , "objectPlacement" : objectPlacement[IfcProduct*IfcObjectPlacement] cRud
+  , "refLatitude"     : refLatitude[IfcSite*IfcCompoundPlaneAngleMeasure] cRud
+  , "refLongitude"    : refLongitude[IfcSite*IfcCompoundPlaneAngleMeasure] cRud
+  , "refElevation"    : refElevation[IfcSite*IfcLengthMeasure] cRud
+  , "landTitleNumber" : landTitleNumber[IfcSite*IfcLabel] cRud
+  ]
+
+INTERFACE ImportIfcBuilding LABEL "ifc IfcBuilding" : I[IfcBuilding] cRud BOX
+  [ "ifc:id"               : I[IfcBuilding] cRud
+  , "globalId"             : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"                 : name[IfcRoot*IfcLabel] cRud
+  , "description"          : description[IfcRoot*IfcText] cRud
+  , "objectType"           : objectType[IfcObject*IfcLabel] cRud
+  , "objectPlacement"      : objectPlacement[IfcProduct*IfcObjectPlacement] cRud
+  , "elevationOfRefHeight" : elevationOfRefHeight[IfcBuilding*IfcLengthMeasure] cRud
+  , "elevationOfTerrain"   : elevationOfTerrain[IfcBuilding*IfcLengthMeasure] cRud
+  , "buildingAddress"      : buildingAddress[IfcBuilding*IfcPostalAddress] cRud
+  ]
+
+INTERFACE ImportIfcBuildingStorey LABEL "ifc IfcBuildingStorey" : I[IfcBuildingStorey] cRud BOX
+  [ "ifc:id"          : I[IfcBuildingStorey] cRud
+  , "globalId"        : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"            : name[IfcRoot*IfcLabel] cRud
+  , "description"     : description[IfcRoot*IfcText] cRud
+  , "objectType"      : objectType[IfcObject*IfcLabel] cRud
+  , "longName"        : longName[IfcSpatialElement*IfcLabel] cRud
+  , "compositionType" : compositionType[IfcSpatialStructureElement*IfcElementCompositionEnum] cRud
+  , "objectPlacement" : objectPlacement[IfcProduct*IfcObjectPlacement] cRud
+  , "elevation"       : elevation[IfcBuildingStorey*IfcLengthMeasure] cRud
+  ]
+
+INTERFACE ImportIfcSpace LABEL "ifc IfcSpace" : I[IfcSpace] cRud BOX
+  [ "ifc:id"               : I[IfcSpace] cRud
+  , "globalId"             : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"                 : name[IfcRoot*IfcLabel] cRud
+  , "description"          : description[IfcRoot*IfcText] cRud
+  , "objectType"           : objectType[IfcObject*IfcLabel] cRud
+  , "longName"             : longName[IfcSpatialElement*IfcLabel] cRud
+  , "compositionType"      : compositionType[IfcSpatialStructureElement*IfcElementCompositionEnum] cRud
+  , "objectPlacement"      : objectPlacement[IfcProduct*IfcObjectPlacement] cRud
+  , "predefinedType"       : predefinedType[IfcSpace*IfcSpaceTypeEnum] cRud
+  , "elevationWithFlooring" : elevationWithFlooring[IfcSpace*IfcLengthMeasure] cRud
+  ]
+
+-- ============================================================================
+-- HOOFD-BOUWELEMENTEN  (alle ISA IfcBuiltElement ISA IfcElement ISA IfcProduct)
+-- ============================================================================
+INTERFACE ImportIfcWall LABEL "ifc IfcWall" : I[IfcWall] cRud BOX
+  [ "ifc:id"          : I[IfcWall] cRud
+  , "globalId"        : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"            : name[IfcRoot*IfcLabel] cRud
+  , "description"     : description[IfcRoot*IfcText] cRud
+  , "objectType"      : objectType[IfcObject*IfcLabel] cRud
+  , "tag"             : tag[IfcElement*IfcIdentifier] cRud
+  , "objectPlacement" : objectPlacement[IfcProduct*IfcObjectPlacement] cRud
+  , "predefinedType"  : predefinedType[IfcWall*IfcWallTypeEnum] cRud
+  ]
+
+INTERFACE ImportIfcSlab LABEL "ifc IfcSlab" : I[IfcSlab] cRud BOX
+  [ "ifc:id"          : I[IfcSlab] cRud
+  , "globalId"        : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"            : name[IfcRoot*IfcLabel] cRud
+  , "description"     : description[IfcRoot*IfcText] cRud
+  , "objectType"      : objectType[IfcObject*IfcLabel] cRud
+  , "tag"             : tag[IfcElement*IfcIdentifier] cRud
+  , "objectPlacement" : objectPlacement[IfcProduct*IfcObjectPlacement] cRud
+  , "predefinedType"  : predefinedType[IfcSlab*IfcSlabTypeEnum] cRud
+  ]
+
+INTERFACE ImportIfcBeam LABEL "ifc IfcBeam" : I[IfcBeam] cRud BOX
+  [ "ifc:id"          : I[IfcBeam] cRud
+  , "globalId"        : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"            : name[IfcRoot*IfcLabel] cRud
+  , "description"     : description[IfcRoot*IfcText] cRud
+  , "objectType"      : objectType[IfcObject*IfcLabel] cRud
+  , "tag"             : tag[IfcElement*IfcIdentifier] cRud
+  , "objectPlacement" : objectPlacement[IfcProduct*IfcObjectPlacement] cRud
+  , "predefinedType"  : predefinedType[IfcBeam*IfcBeamTypeEnum] cRud
+  ]
+
+INTERFACE ImportIfcColumn LABEL "ifc IfcColumn" : I[IfcColumn] cRud BOX
+  [ "ifc:id"          : I[IfcColumn] cRud
+  , "globalId"        : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"            : name[IfcRoot*IfcLabel] cRud
+  , "description"     : description[IfcRoot*IfcText] cRud
+  , "objectType"      : objectType[IfcObject*IfcLabel] cRud
+  , "tag"             : tag[IfcElement*IfcIdentifier] cRud
+  , "objectPlacement" : objectPlacement[IfcProduct*IfcObjectPlacement] cRud
+  , "predefinedType"  : predefinedType[IfcColumn*IfcColumnTypeEnum] cRud
+  ]
+
+INTERFACE ImportIfcDoor LABEL "ifc IfcDoor" : I[IfcDoor] cRud BOX
+  [ "ifc:id"          : I[IfcDoor] cRud
+  , "globalId"        : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"            : name[IfcRoot*IfcLabel] cRud
+  , "description"     : description[IfcRoot*IfcText] cRud
+  , "objectType"      : objectType[IfcObject*IfcLabel] cRud
+  , "tag"             : tag[IfcElement*IfcIdentifier] cRud
+  , "objectPlacement" : objectPlacement[IfcProduct*IfcObjectPlacement] cRud
+  , "predefinedType"  : predefinedType[IfcDoor*IfcDoorTypeEnum] cRud
+  ]
+
+INTERFACE ImportIfcWindow LABEL "ifc IfcWindow" : I[IfcWindow] cRud BOX
+  [ "ifc:id"          : I[IfcWindow] cRud
+  , "globalId"        : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"            : name[IfcRoot*IfcLabel] cRud
+  , "description"     : description[IfcRoot*IfcText] cRud
+  , "objectType"      : objectType[IfcObject*IfcLabel] cRud
+  , "tag"             : tag[IfcElement*IfcIdentifier] cRud
+  , "objectPlacement" : objectPlacement[IfcProduct*IfcObjectPlacement] cRud
+  , "predefinedType"  : predefinedType[IfcWindow*IfcWindowTypeEnum] cRud
+  ]
+
+INTERFACE ImportIfcCovering LABEL "ifc IfcCovering" : I[IfcCovering] cRud BOX
+  [ "ifc:id"          : I[IfcCovering] cRud
+  , "globalId"        : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"            : name[IfcRoot*IfcLabel] cRud
+  , "description"     : description[IfcRoot*IfcText] cRud
+  , "objectType"      : objectType[IfcObject*IfcLabel] cRud
+  , "tag"             : tag[IfcElement*IfcIdentifier] cRud
+  , "objectPlacement" : objectPlacement[IfcProduct*IfcObjectPlacement] cRud
+  , "predefinedType"  : predefinedType[IfcCovering*IfcCoveringTypeEnum] cRud
+  ]
+
+-- ============================================================================
+-- MATERIAAL
+-- ============================================================================
+INTERFACE ImportIfcMaterial LABEL "ifc IfcMaterial" : I[IfcMaterial] cRud BOX
+  [ "ifc:id"      : I[IfcMaterial] cRud
+  , "name"        : name[IfcMaterial*IfcLabel] cRud
+  , "description" : description[IfcMaterial*IfcText] cRud
+  ]
+
+INTERFACE ImportIfcMaterialLayer LABEL "ifc IfcMaterialLayer" : I[IfcMaterialLayer] cRud BOX
+  [ "ifc:id"         : I[IfcMaterialLayer] cRud
+  , "name"           : name[IfcMaterialLayer*IfcLabel] cRud
+  , "description"    : description[IfcMaterialLayer*IfcText] cRud
+  , "material"       : material[IfcMaterialLayer*IfcMaterial] cRud LINKTO INTERFACE ImportIfcMaterial
+  , "layerThickness" : layerThickness[IfcMaterialLayer*IfcNonNegativeLengthMeasure] cRud
+  ]
+
+INTERFACE ImportIfcMaterialLayerSet LABEL "ifc IfcMaterialLayerSet" : I[IfcMaterialLayerSet] cRud BOX
+  [ "ifc:id"        : I[IfcMaterialLayerSet] cRud
+  , "layerSetName"  : layerSetName[IfcMaterialLayerSet*IfcLabel] cRud
+  , "description"   : description[IfcMaterialLayerSet*IfcText] cRud
+  , "materialLayers" : materialLayers[IfcMaterialLayerSet*IfcMaterialLayer] cRud LINKTO INTERFACE ImportIfcMaterialLayer
+  ]
+
+-- ============================================================================
+-- REIFIED IFC-KOPPELRELATIES  (maken de ruimtelijke/materiaal/type-links zichtbaar)
+-- alle ISA IfcRelationship ISA IfcRoot
+-- ============================================================================
+INTERFACE ImportIfcRelContainedInSpatialStructure LABEL "ifc IfcRelContainedInSpatialStructure" : I[IfcRelContainedInSpatialStructure] cRud BOX
+  [ "ifc:id"            : I[IfcRelContainedInSpatialStructure] cRud
+  , "globalId"          : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"              : name[IfcRoot*IfcLabel] cRud
+  , "description"       : description[IfcRoot*IfcText] cRud
+  , "relatingStructure" : relatingStructure[IfcRelContainedInSpatialStructure*IfcSpatialElement] cRud
+  , "relatedElements"   : relatedElements[IfcRelContainedInSpatialStructure*IfcProduct] cRud
+  ]
+
+INTERFACE ImportIfcRelAggregates LABEL "ifc IfcRelAggregates" : I[IfcRelAggregates] cRud BOX
+  [ "ifc:id"         : I[IfcRelAggregates] cRud
+  , "globalId"       : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"           : name[IfcRoot*IfcLabel] cRud
+  , "description"    : description[IfcRoot*IfcText] cRud
+  , "relatingObject" : relatingObject[IfcRelAggregates*IfcObjectDefinition] cRud
+  , "relatedObjects" : relatedObjects[IfcRelAggregates*IfcObjectDefinition] cRud
+  ]
+
+INTERFACE ImportIfcRelAssociatesMaterial LABEL "ifc IfcRelAssociatesMaterial" : I[IfcRelAssociatesMaterial] cRud BOX
+  [ "ifc:id"           : I[IfcRelAssociatesMaterial] cRud
+  , "globalId"         : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"             : name[IfcRoot*IfcLabel] cRud
+  , "description"      : description[IfcRoot*IfcText] cRud
+  , "relatingMaterial" : relatingMaterial[IfcRelAssociatesMaterial*IfcMaterialSelect] cRud
+  , "relatedObjects"   : relatedObjects[IfcRelAssociates*IfcDefinitionSelect] cRud
+  ]
+
+INTERFACE ImportIfcRelDefinesByType LABEL "ifc IfcRelDefinesByType" : I[IfcRelDefinesByType] cRud BOX
+  [ "ifc:id"         : I[IfcRelDefinesByType] cRud
+  , "globalId"       : globalId[IfcRoot*IfcGloballyUniqueId] cRud
+  , "name"           : name[IfcRoot*IfcLabel] cRud
+  , "description"    : description[IfcRoot*IfcText] cRud
+  , "relatingType"   : relatingType[IfcRelDefinesByType*IfcTypeObject] cRud
+  , "relatedObjects" : relatedObjects[IfcRelDefinesByType*IfcObject] cRud
+  ]
+
+ENDCONTEXT
