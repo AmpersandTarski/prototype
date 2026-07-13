@@ -76,6 +76,43 @@ export class InterfacesJsonService {
   }
 
   /**
+   * Property-name paths (from the root of `interfaceName`) of the subinterface
+   * references (`INTERFACE <name>`, not LINKTO) whose referenced top-level
+   * interface is declared TRANSACTIONAL.
+   *
+   * The compiler inlines a referenced interface's boxes into the referring
+   * interface's template, so no component of the referenced interface is
+   * instantiated at runtime. These paths let the referring interface treat
+   * such an inlined subtree transactionally (accent border, SAVE/CANCEL bar,
+   * buffered edits) even though the referring interface itself runs Direct.
+   */
+  transactionalRefPaths(interfaceName: string): string[][] {
+    if (!this.isLoaded()) return [];
+    const top = (this.getInterfaces() as any[]).find(
+      (i) => i.name === interfaceName,
+    );
+    if (!top?.ifcObject) return [];
+    const result: string[][] = [];
+    const walk = (node: any, path: string[]): void => {
+      const sub = node.subinterfaces;
+      if (!sub) return;
+      if (sub.refSubInterfaceName) {
+        // A reference has no ifcObjects of its own; LINKTO references render
+        // as a link and open the referenced interface on its own route.
+        if (!sub.refIsLinkTo && this.isTransactional(sub.refSubInterfaceName)) {
+          result.push(path);
+        }
+        return;
+      }
+      for (const child of sub.ifcObjects ?? []) {
+        walk(child, [...path, child.name]);
+      }
+    };
+    walk(top.ifcObject, []);
+    return result;
+  }
+
+  /**
    * Helper method to get interfaces with automatic loading if needed
    */
   private async getInterfacesWithLoading(): Promise<any[]> {

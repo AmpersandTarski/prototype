@@ -11,8 +11,10 @@ edits reach the database. It is declared in the model and opt-in per interface:
   buffers the user's edits. Nothing is committed until the user presses **SAVE**.
   **CANCEL**, or navigating away, discards the buffer. SAVE is enabled only while the
   buffered edits violate no invariant rules. A transactional interface is marked with
-  an **accent border**, and its **SAVE** and **CANCEL** controls are visible from the
-  moment it opens (not only once edits exist).
+  an **accent border**, and its **SAVE**/**CANCEL** controls live inside that border.
+  **SAVE** shows from the moment the interface opens; **CANCEL** appears only while there
+  are buffered edits to roll back (a clean interface, showing only committed content, has
+  nothing to cancel).
 - **Direct** (default): every edit commits immediately once it leaves no invariant
   rule violated. This is the framework's original behaviour, and applies to a plain
   `INTERFACE`.
@@ -25,7 +27,41 @@ Ampersand **≥ v5.9.0** emits this flag on every interface (see
 transactional functionality and runs Direct.
 
 The transaction boundary is a single interface. One root interface renders per route,
-so one transaction is open at a time and one SAVE/CANCEL bar suffices.
+so one transaction is open at a time and one SAVE/CANCEL bar suffices. The bar mounts
+inside the transactional interface's own accent-bordered host element (not as a fixed
+bar at the window bottom), so the controls sit within the border of the interface the
+transaction applies to. A transactional interface reused through `LINKTO` opens on its
+own route and renders transactionally there.
+
+## Transactional interfaces as subinterface references
+
+A transactional interface can also be pulled into another interface as a subinterface
+reference (`"label" : <expr> INTERFACE <name>`, without `LINKTO`):
+
+```adl
+INTERFACE Account : I[SESSION] cRud BOX<FORM>
+  [ "aanmelden" : (I[SESSION] - sessionAccount;sessionAccount~) INTERFACE Aanmelden
+  ]
+```
+
+The compiler **inlines** the referenced interface's boxes into the referring
+interface's template — no component of the referenced interface is instantiated at
+runtime. The framework restores the transactional behaviour from the metadata:
+`interfaces.json` records the reference (`refSubInterfaceName`) inside the referring
+interface's tree, and the referenced top-level interface carries `isTransactional`.
+On that basis:
+
+- the box at the root of the inlined subtree draws the **accent border** and mounts
+  the **SAVE/CANCEL bar** inside it (`BaseBoxComponent`);
+- edits **inside** the subtree are buffered and committed only on SAVE (or on a
+  PROPBUTTON click, which flushes the buffer);
+- edits in the rest of the referring interface stay **Direct** — the transaction
+  boundary is the referenced interface, not the wrapper.
+
+The buffer lives on the referring interface's component (there is exactly one
+component per route), so SAVE, CANCEL, dry-run validation and the route guard work
+unchanged. Several transactional references in one interface each get their own
+border and bar, but share that one buffer: SAVE commits the edits of all of them.
 
 ## Example
 
@@ -100,13 +136,15 @@ drives both the mode lookup and the accent-border host class.
 
 | Part | Location |
 | --- | --- |
-| Buffer, `save`/`cancel`/`commitAction`, dry-run validation, violation collection, accent-border host binding | `frontend/src/app/shared/interfacing/ampersand-interface.class.ts` |
+| Buffer, `save`/`cancel`/`commitAction`, dry-run validation, violation collection, accent-border host binding, transactional-reference detection | `frontend/src/app/shared/interfacing/ampersand-interface.class.ts` |
+| Reference paths from `interfaces.json` (`transactionalRefPaths`) | `frontend/src/app/shared/services/interfaces-json.service.ts` |
+| Border + bar on the inlined subtree's root box | `frontend/src/app/shared/box-components/BaseBoxComponent.class.ts` |
 | Mode resolution | `frontend/src/app/shared/services/transaction-mode.service.ts` |
 | `isTransactional` flag lookup | `frontend/src/app/shared/services/interfaces-json.service.ts` |
 | `interfaceName` set from `$ifcName$` | `frontend/src/app/generated/.templates/component.ts.txt` |
 | Accent border + violation-tooltip styling | `frontend/src/styles.scss` |
 | Active-interface registry for the bar | `frontend/src/app/shared/services/transaction.service.ts` |
-| Global SAVE/CANCEL bar | `frontend/src/app/layout/transaction-bar/` |
+| SAVE/CANCEL bar (mounted inside the interface's accent border; CANCEL shown only while dirty) | `frontend/src/app/layout/transaction-bar/` |
 | "Lose your edits?" route guard | `frontend/src/app/shared/guards/unsaved-changes.guard.ts`, attached to every generated route via `frontend/src/app/generated/.templates/project.module.ts.txt` |
 | PROPBUTTON flush-on-click | `frontend/src/app/shared/box-components/box-prop-button/box-prop-button.component.ts` |
 | Dry-run on the PATCH endpoint | `backend/src/Ampersand/Controller/ResourceController.php` (`?dryRun=`, on the existing `Transaction::dryRun()`) |
