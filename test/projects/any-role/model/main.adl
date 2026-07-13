@@ -1,0 +1,31 @@
+CONTEXT AnyRoleTest IN ENGLISH
+
+-- Small script to verify the "Any"-role access model in the PrototypeFramework.
+-- It has three top-level interfaces:
+--   * PublicIfc      : no FOR-clause  -> delivered with the wildcard role "Any"
+--   * ScriptRoleIfc  : FOR SomeScriptRole
+--   * AnonIfc        : FOR Anonymous
+-- Expected access (login disabled, active role toggled via the API):
+--   active role = SomeScriptRole -> PublicIfc + ScriptRoleIfc reachable, AnonIfc NOT
+--   active role = Anonymous      -> AnonIfc reachable, PublicIfc + ScriptRoleIfc NOT
+
+REPRESENT Text TYPE ALPHANUMERIC
+RELATION sessionText[SESSION*Text] [UNI]
+MEANING "A piece of text known in the current session."
+
+-- No FOR-clause: this interface is coupled to the "Any" role by the compiler.
+INTERFACE PublicIfc LABEL "Public interface": "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "text (public)" : sessionText cRUd
+   ]
+
+-- Explicit role: only reachable when SomeScriptRole is the active role.
+INTERFACE ScriptRoleIfc LABEL "Script-role interface" FOR SomeScriptRole : "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "text (SomeScriptRole)" : sessionText cRUd
+   ]
+
+-- Explicit Anonymous role: reachable for the no-user (Anonymous) session.
+INTERFACE AnonIfc LABEL "Anonymous interface" FOR Anonymous : "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "text (Anonymous)" : sessionText cRUd
+   ]
+
+ENDCONTEXT
