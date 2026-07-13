@@ -310,10 +310,6 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
   // are buffered instead of committed; SAVE flushes them as one transaction,
   // CANCEL (or navigating away) discards them. POST/DELETE stay immediate in v1.
 
-  get transactionLabel(): string {
-    return this.resource?._label_ ?? 'interface';
-  }
-
   isDirty(): boolean {
     return this.buffer.length > 0;
   }
