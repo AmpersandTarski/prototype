@@ -12,6 +12,9 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## v2.5.0 (14 July 2026)
 
+* **Ships with Ampersand compiler v5.9.3.** This compiler release changes only its
+  own build and test infrastructure; generated prototypes are identical to v5.9.2.
+  The compatibility constraint stays `>=5.9.2`.
 * **The navigation menu scales beyond a handful of interfaces** (issue
   [#406](https://github.com/AmpersandTarski/prototype/issues/406)). Menu structure is
   presentation, not semantics, so the framework offers structure without any change
