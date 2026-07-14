@@ -23,7 +23,7 @@ export class AppComponent implements OnInit {
     this.layoutService.config = {
       ripple: false, //toggles ripple on and off
       inputStyle: 'outlined', //default style for input elements
-      menuMode: 'static', //layout mode of the menu, valid values are "static" and "overlay"
+      menuMode: 'static', //layout mode of the menu, valid values are "static", "overlay" and "horizontal"; the backend setting frontend.menuMode overrides this default
       colorScheme: 'light', //color scheme of the template, valid values are "light" and "dark"
       theme: 'md-light-indigo', //default component theme for PrimeNG
       scale: 14, //size of the body font size to scale the whole application

@@ -3,6 +3,7 @@ import { Notifications } from './notifications.interface';
 export type Navbar = {
   defaultSetting: DefaultSettings;
   home: string;
+  menuMode?: string; // default menu orientation from backend setting frontend.menuMode: 'static' | 'overlay' | 'horizontal'
   session: Session;
   sessionRoles: Array<SessionRole>;
   sessionVars: false | { [key: string]: unknown };

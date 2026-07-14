@@ -53,6 +53,32 @@ These are loaded last and overwrite previous set settings.
 
   The Ampersand compiler sets this value in `generics/settings.json` from its `--[no-]production` flag (a production build sets it to `true`, a development build to `false`). So the build target you pass to the compiler drives the framework's behaviour, including [OpenAPI publication](#openapi-publication). As always, `config/project.yaml` and the environment variable can still override it.
 
+* frontend.menuGrouping (`none` | `byType`, default `none`)
+
+  Controls the default navigation menu population that the installer writes (see [Navigation menu](#navigation-menu)). With `byType`, interfaces whose expression targets a domain concept (lists, expression ⊆ `V[SESSION*Concept]`) are grouped in one submenu; interfaces targeting `SESSION` (task screens, expression ⊆ `I[SESSION]`) stay top-level.
+
+* frontend.menuGroupingLabel (default `Lists`)
+
+  The label of the submenu that groups the list interfaces. Only used with `menuGrouping: byType`.
+
+* frontend.menuMode (`static` | `overlay` | `horizontal`, default `static`)
+
+  The default orientation of the navigation menu in the frontend: a vertical sidebar (`static`), a collapsible vertical sidebar (`overlay`), or a horizontal menu bar with dropdown submenus (`horizontal`). In horizontal mode, items that do not fit the viewport width move into a "More" dropdown at the end of the bar, so every item stays reachable. Below the desktop breakpoint (992px) the horizontal bar falls back to the mobile drawer.
+
+## Navigation menu
+
+The navigation menu is *population*, not code: `NavMenuItem` atoms in the `PrototypeContext` metamodel, with `label`, `ifc`, `seqNr`, `isVisible` and `isSubItemOf` (submenu trees of arbitrary depth). Role visibility is derived (`navItemRoles` via the `isSubItemOf` closure): a (sub)menu item shows exactly when the active role can reach one of the interfaces below it.
+
+`Installer::reinstallNavigationMenus()` writes the default population:
+
+* it first **clears** the current nav menu population, then rebuilds it — reinstalling the nav menu (or the whole application) is idempotent and re-applies the default, so manual edits are overwritten;
+* with `frontend.menuGrouping: none` (default) every readable interface with source concept `SESSION` becomes a top-level item, in declaration order;
+* with `frontend.menuGrouping: byType` the list interfaces group into one submenu item with the fixed id `_MainMenu_lists` and label `frontend.menuGroupingLabel`.
+
+Menu structure is presentation, not semantics: the grouping is derived from *type* information only (the target concept of the interface expression) and adds no work for the modeler. A project that wants a different structure overrides it with its own population import or the `PrototypeContext.Editnavigationmenu` admin interface — keeping in mind that a reinstall re-applies the default.
+
+The regression vehicle for this behavior is `test/projects/navmenu-grouping` with `test/regression/issue-406/test.mjs`.
+
 ## OpenAPI publication
 
 The compiler generates an [OpenAPI](https://www.openapis.org/) 3.0 description of the prototype's REST API in `generics/openapi.json` (for a development build). When that file is present and the prototype is **not** in production mode, the framework publishes it:

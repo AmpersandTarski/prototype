@@ -70,7 +70,11 @@ class InstallerController extends AbstractController
 
         $transaction = $this->app->newTransaction();
 
-        $this->installer->reinstallNavigationMenus($this->app->getModel());
+        $this->installer->reinstallNavigationMenus(
+            $this->app->getModel(),
+            $this->app->getSettings()->get('frontend.menuGrouping', Installer::MENU_GROUPING_NONE),
+            $this->app->getSettings()->get('frontend.menuGroupingLabel', 'Lists')
+        );
 
         $transaction->runExecEngine()->close(false, false);
         if ($transaction->isRolledBack()) {

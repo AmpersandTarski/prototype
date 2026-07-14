@@ -55,6 +55,15 @@
             ></p-radioButton>
             <label for="mode2">Overlay</label>
         </div>
+        <div class="field-radiobutton">
+            <p-radioButton
+                name="menuMode"
+                value="horizontal"
+                [(ngModel)]="menuMode"
+                inputId="mode3"
+            ></p-radioButton>
+            <label for="mode3">Horizontal</label>
+        </div>
     </ng-container>
 
     <ng-container *ngIf="!minimal">

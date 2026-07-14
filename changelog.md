@@ -10,6 +10,27 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.5.0 (14 July 2026)
+
+* **The navigation menu scales beyond a handful of interfaces** (issue
+  [#406](https://github.com/AmpersandTarski/prototype/issues/406)). Menu structure is
+  presentation, not semantics, so the framework offers structure without any change
+  to the model:
+  * With the new setting `frontend.menuGrouping: byType`, the installer groups list
+    interfaces (expression ⊆ `V[SESSION*Concept]`) into one submenu (label via
+    `frontend.menuGroupingLabel`, default "Lists"); task screens (expression ⊆
+    `I[SESSION]`) stay top-level. Default `none` keeps the flat menu.
+  * The new setting `frontend.menuMode: horizontal` renders the menu as a horizontal
+    bar with dropdown submenus; items that do not fit move into a "More" dropdown, so
+    every item stays reachable at any viewport width. Below the desktop breakpoint the
+    bar falls back to the existing mobile drawer.
+  * Reinstalling the navigation menu now first clears the old population: reinstalls
+    are idempotent and leave no stale items (manual menu edits are therefore
+    re-applied from the default on reinstall — override via population instead).
+  * The frontend menu builder attaches submenu containers to their parent (they used
+    to render as stray root sections), searches parents recursively and orders items
+    by `seqNr`.
+
 ## v2.4.8 (13 July 2026)
 
 * **A TRANSACTIONAL interface pulled in as a subinterface reference now brings its
