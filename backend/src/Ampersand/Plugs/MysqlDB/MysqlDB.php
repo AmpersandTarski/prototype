@@ -32,6 +32,7 @@ use Ampersand\Transaction;
 use Psr\Log\LoggerInterface;
 use Ampersand\Exception\NotInstalledException;
 use Ampersand\Plugs\MysqlDB\Exception\MysqlConnectionException;
+use Ampersand\Plugs\MysqlDB\Exception\MysqlDeadlockException;
 use Ampersand\Plugs\MysqlDB\Exception\MysqlQueryException;
 
 /**
@@ -337,6 +338,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                     throw new NotInstalledException("{$e->getMessage()}", previous: $e);
                 case 1406: // Error: 1406 Data too long
                     throw new BadRequestException("Data entry is too long", previous: $e);
+                case 1213: // Error: 1213 SQLSTATE: 40001 (ER_LOCK_DEADLOCK)
+                    throw new MysqlDeadlockException("MYSQL err{$e->getCode()}: '{$e->getMessage()}' in query: {$query}", previous: $e);
                 default:
                     throw new MysqlQueryException("MYSQL err{$e->getCode()}: '{$e->getMessage()}' in query: {$query}", previous: $e);
             }
@@ -524,19 +527,49 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     public function deleteAtom(Atom $atom): void
     {
         $atomId = $this->getDBRepresentation($atom);
-        
+
         // Delete atom from concept table
         $conceptTable = $atom->concept->getConceptTableInfo();
         $query = "DELETE FROM \"{$conceptTable->getName()}\" WHERE \"{$conceptTable->getFirstCol()->getName()}\" = '{$atomId}' LIMIT 1";
         $this->execute($query);
-        
-        // Check if query resulted in an affected row
-        $this->checkForAffectedRows();
+
+        // Deleting an atom is idempotent: 0 affected rows means a concurrent transaction already
+        // deleted it (e.g. two requests garbage collecting the same expired session). The desired
+        // end state is reached either way, so this is not an error condition.
+        if ($this->dbLink->affected_rows == 0) {
+            $this->logger->info("Atom '{$atom}' already deleted by concurrent transaction: {$this->lastQuery}");
+        }
     }
 
     public function executeCustomSQLQuery(string $query): bool|array
     {
         return $this->execute($query);
+    }
+
+    /**
+     * Try to acquire a named, database-scoped advisory lock (non-blocking)
+     *
+     * Returns true when the lock is acquired. The lock is held by this database connection
+     * until releaseLock() is called or the connection closes. Use this to ensure that at
+     * most one request at a time performs a certain task (e.g. session garbage collection).
+     */
+    public function tryLock(string $name): bool
+    {
+        // Advisory locks are server-wide; prefix with a hash of the database name so
+        // prototypes sharing a database server don't contend for each other's locks.
+        // (GET_LOCK names are limited to 64 characters, so don't use the db name itself.)
+        $lockName = md5($this->dbName) . "_{$name}";
+        $result = (array) $this->execute("SELECT GET_LOCK('{$lockName}', 0) AS \"acquired\"");
+        return (bool) (current($result)['acquired'] ?? false);
+    }
+
+    /**
+     * Release an advisory lock acquired with tryLock()
+     */
+    public function releaseLock(string $name): void
+    {
+        $lockName = md5($this->dbName) . "_{$name}";
+        $this->execute("SELECT RELEASE_LOCK('{$lockName}')");
     }
     
 /**************************************************************************************************

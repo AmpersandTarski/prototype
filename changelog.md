@@ -10,6 +10,16 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **`I[SESSION]` now only contains live sessions.** Expired session atoms used to
+  accumulate until an admin manually called `/admin/sessions/delete/expired`. The
+  framework now garbage collects them whenever a new session starts, so at any
+  moment `I[SESSION]` holds only sessions that were active within
+  `session.expirationTime`. Safe under concurrent requests (advisory lock,
+  idempotent atom delete, per-atom commits); the admin endpoint remains available
+  for manual cleanup. Concurrency tests: `test/session-gc/`.
+
 ## v2.5.1 (15 July 2026)
 
 * **A login no longer silently degrades to an anonymous session.** At app startup
