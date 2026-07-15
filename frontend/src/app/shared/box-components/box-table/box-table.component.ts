@@ -7,28 +7,24 @@ import {
   ViewChild,
   booleanAttribute,
 } from '@angular/core';
+import { ReplaySubject } from 'rxjs';
 import { ObjectBase } from '../../objectBase.interface';
 import { BaseBoxComponent } from '../BaseBoxComponent.class';
 import { BoxTableHeaderTemplateDirective } from './box-table-header-template.directive';
 import { BoxTableRowTemplateDirective } from './box-table-row-template.directive';
-import { Table, TableService } from 'primeng/table';
+import { Table } from 'primeng/table';
 
-// Read why this is needed here: https://stackoverflow.com/questions/49988352/primeng-turbo-table-template-error-when-sorting
-export function tableFactory<
-  T extends ObjectBase,
-  I extends ObjectBase | ObjectBase[],
->(boxTable: BoxTableComponent<T, I>) {
-  return boxTable.primengTable;
-}
-
+// NOTE: do not provide `Table` here via a useFactory that returns
+// `boxTable.primengTable` (the old StackOverflow workaround for sorting from a
+// projected header template). The header views are created BEFORE the
+// ViewChild query resolves, so such a factory injects `undefined` into
+// PrimeNG's sort directives, which then crash on `this.dt.tableService`.
+// Sorting from the projected header is handled by SortableColumnDirective /
+// SortIconComponent instead, which reach the table lazily via `table$`.
 @Component({
   selector: 'app-box-table',
   templateUrl: './box-table.component.html',
   styleUrls: ['./box-table.component.css'],
-  providers: [
-    TableService,
-    { provide: Table, useFactory: tableFactory, deps: [BoxTableComponent] },
-  ],
 })
 export class BoxTableComponent<
     TItem extends ObjectBase,
@@ -44,6 +40,12 @@ export class BoxTableComponent<
 
   private _primengTable?: Table;
 
+  // The p-table instance for the sort helpers in the projected header
+  // (SortableColumnDirective / SortIconComponent). Those are instantiated
+  // before the ViewChild query below resolves, so they cannot take the table
+  // synchronously; this ReplaySubject hands it to them once it appears.
+  readonly table$ = new ReplaySubject<Table>(1);
+
   // #primengTable lives inside an *ngIf (hideBecauseEmpty), so a { static: true } query would be
   // undefined in ngOnInit and throw ("Cannot set properties of undefined"). Use a setter query
   // that configures the table whenever it appears — including after the *ngIf flips once data
@@ -53,6 +55,7 @@ export class BoxTableComponent<
     this._primengTable = table;
     if (table) {
       this.configurePrimengTable(table);
+      this.table$.next(table);
     }
   }
   get primengTable(): Table {

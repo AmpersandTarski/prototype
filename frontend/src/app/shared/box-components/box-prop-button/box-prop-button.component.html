@@ -1,3 +1,10 @@
-<div *ngFor="let item of data; let i = index">
-    <button pButton (click)="handleClick(item)" label="{{ item.label }}" type="button" [disabled]="actionDisabled"></button>
+<!-- filterNullish: a UNI expression without a value arrives as [null] (see Box-PROPBUTTON.html) -->
+<div *ngFor="let item of filterNullish(data); let i = index">
+    <button
+        pButton
+        (click)="handleClick(item)"
+        label="{{ item.label }}"
+        type="button"
+        [disabled]="actionDisabled"
+    ></button>
 </div>

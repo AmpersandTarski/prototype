@@ -57,4 +57,25 @@ INTERFACE CategoryRawForm : I[Category] cRud BOX<RAW form>
    , "Note" : catNote cRUd
    ]
 
+-- Regression: `sortable` column headers. The header cells live in a template
+-- that is declared outside the p-table, so PrimeNG's own sort directives
+-- cannot be injected there; every render of a sortable table crashed with
+-- "can't access property tableService, this.dt is undefined". The framework
+-- now uses its own appSortableColumn/app-sort-icon (see Box-TABLE.html and
+-- SortableColumnDirective). Expected: no console errors, clicking "Name" or
+-- "Note" sorts the rows and updates the sort icon; "Products" (not UNI)
+-- renders as a plain, unsortable header.
+INTERFACE CategoriesSortable : "_SESSION";V[SESSION*Category] cRud BOX<TABLE sortable title="Categories (sortable)">
+   [ "Name"     : catName cRUd
+   , "Note"     : catNote cRUd
+   , "Products" : catProduct cRud
+   ]
+
+-- Population so the sortable table has rows to reorder.
+POPULATION catName CONTAINS [ ("cat1", "Beta"), ("cat2", "Alpha"), ("cat3", "Gamma") ]
+POPULATION catNote CONTAINS [ ("cat1", "second"), ("cat2", "first"), ("cat3", "third") ]
+POPULATION prodCode CONTAINS [ ("prod1", "P-001") ]
+POPULATION prodName CONTAINS [ ("prod1", "Widget") ]
+POPULATION catProduct CONTAINS [ ("cat1", "prod1") ]
+
 ENDCONTEXT
