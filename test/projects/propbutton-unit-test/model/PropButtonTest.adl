@@ -9,10 +9,13 @@ RELATION isActive[Task] [PROP]
 REPRESENT TaskName TYPE ALPHANUMERIC
 
 --[ Test data ]--
-POPULATION taskName CONTAINS 
+POPULATION taskName CONTAINS
   [ ("task1", "Test PROPBUTTON toggle functionality")
   , ("task2", "Test PROPBUTTON set/clear actions")
   ]
+-- task2 starts completed, so its "Complete (only when open)" PROPBUTTON
+-- receives an empty UNI expression (null) — the regression case.
+POPULATION isCompleted CONTAINS [ ("task2", "task2") ]
 
 --[ Main test interface - demonstrates all PROPBUTTON features ]--
 INTERFACE PropButtonDemo LABEL "PROPBUTTON Test Interface" : "_SESSION" ; V[SESSION*Task] cRud BOX<FORM>
@@ -33,6 +36,14 @@ INTERFACE PropButtonDemo LABEL "PROPBUTTON Test Interface" : "_SESSION" ; V[SESS
       , "Deactivate Task" : I cRud BOX<PROPBUTTON action="clear">
           [ "label" : TXT "Deactivate"
           , "property" : isActive cRUd
+          ]
+      -- Regression: a UNI expression without a value arrives at the frontend
+      -- as [null]. For a completed task (I - isCompleted) is empty, so no
+      -- button must render there (previously this crashed the page with
+      -- "can't access property label, t is null").
+      , "Complete (only when open)" : (I - isCompleted) cRud BOX<PROPBUTTON action="set">
+          [ "label" : TXT "Complete now"
+          , "property" : isCompleted cRUd
           ]
       ]
   ]

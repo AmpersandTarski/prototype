@@ -10,6 +10,8 @@ This test validates the PROPBUTTON template functionality as documented in `/doc
 - Prescribed field names: `"label"` and `"property"`
 - Boolean property modification behavior
 - Frontend button rendering and functionality
+- Regression: an empty UNI expression (backend sends `null`) renders no button
+  instead of crashing the page ("can't access property label, t is null")
 
 ## Test Structure
 
@@ -79,10 +81,19 @@ Open browser to: http://localhost:8080
 
 ### Test Data
 The test uses two tasks:
-- `"Test PROPBUTTON toggle functionality"`
-- `"Test PROPBUTTON set/clear actions"`
 
-Both start with `isCompleted: false` and `isActive: false`.
+- `"Test PROPBUTTON toggle functionality"` — starts with `isCompleted: false`
+- `"Test PROPBUTTON set/clear actions"` — starts with `isCompleted: true`, so its
+  `"Complete (only when open)"` PROPBUTTON receives an empty UNI expression
+  (the null-regression case: no button must render, and no console error)
+
+Both start with `isActive: false`.
+
+### Empty-UNI Regression Test
+
+- **Button**: "Complete now" (`(I - isCompleted)` — only present while the task is open)
+- **Expected behavior**: task1 shows the button, task2 does not; after clicking it
+  on task1 the button disappears (the expression became empty). No TypeError toasts.
 
 ## Cleanup
 ```bash
