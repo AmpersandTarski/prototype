@@ -54,15 +54,17 @@ docker buildx build \
   ```
 - **Toegang:** App op `http://localhost:9080`, PhpMyAdmin op `http://localhost:9081`.
 
-### NVWA FC5 Prototype
+### NVWA FC5 Prototype (Landeneisenregister / e-CertNL-registerkern)
+Broncode: `~/git/FC5` (container `ecert-prototype`; app op poort 8090, phpMyAdmin 8091, Swagger 8092). Bouwt op het gepubliceerde base image (`FROM ampersandtarski/prototype-framework:<versie>` in `project/Dockerfile`) — frameworkwijzigingen bereiken FC5 dus pas na een release + rebuild.
 - **Alleen frontend gewijzigd:**
   ```bash
-  cd "/Users/stef/Library/CloudStorage/GoogleDrive-stefjoosten1@gmail.com/Mijn Drive/cloudDrive/NVWA/FC/FC5" && docker compose up -d --build
+  cd ~/git/FC5 && docker compose up -d --build
   ```
 - **Backend/Datamodel gewijzigd (wist database!):**
   ```bash
-  cd "/Users/stef/Library/CloudStorage/GoogleDrive-stefjoosten1@gmail.com/Mijn Drive/cloudDrive/NVWA/FC/FC5" && ./nvwa_prototype_init.sh
+  cd ~/git/FC5 && ./nvwa_prototype_init.sh
   ```
+- **Puppeteer-repro's/demoscripts:** `~/git/FC5/project/demo/` (draaien vanuit `~/git/FC5`).
 
 ## 5. Handige Tools
 - **Cline-dialoog opvragen:** Gebruik `cline-sessie` om het pad naar de meest recente `api_conversation_history.json` te krijgen.
