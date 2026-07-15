@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.5.1 (15 July 2026)
 
 * **A login no longer silently degrades to an anonymous session.** At app startup
   several API requests left in parallel before the browser held a session cookie;
