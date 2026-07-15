@@ -12,6 +12,14 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased
 
+* **A login no longer silently degrades to an anonymous session.** At app startup
+  several API requests left in parallel before the browser held a session cookie;
+  the backend answered each with its own fresh session, and whichever response
+  arrived last won the browser's cookie jar. A straggler arriving after login
+  (e.g. delayed behind a long login commit) replaced the logged-in session with an
+  anonymous one, after which every request returned 401. The frontend now
+  serializes the very first backend request, so the session cookie is established
+  before any other request goes out (`SessionBootstrapInterceptor`).
 * **Variable fonts load again (no 500 on `*.var.*.woff2`).** Apache's mime module
   treats ".var" anywhere in a filename as a type map, breaking the Inter variable
   font that ships with the theme since v2.5.0. Both the production image
