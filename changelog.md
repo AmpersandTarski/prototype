@@ -10,6 +10,20 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **Sortable tables sort again, without red error toasts.** Every render of a
+  `BOX<TABLE sortable>` raised "can't access property tableService, this.dt is
+  undefined" and clicking a column header could not sort: the header cells live in
+  a template outside the p-table, where PrimeNG's sort directives cannot reach the
+  table. The framework now ships its own sort directives that can
+  (`appSortableColumn`/`app-sort-icon`; regression vehicle: `test/projects/box-annotations`,
+  interface "Categories (sortable)").
+* **An empty field no longer crashes PROPBUTTON and RAW boxes.** A UNI expression
+  without a value arrives as `null`; the page raised "can't access property label,
+  t is null" and stopped rendering the rest of the form. Such fields now simply
+  render nothing (regression vehicle: `test/projects/propbutton-unit-test`).
+
 ## v2.5.0 (14 July 2026)
 
 * **Ships with Ampersand compiler v5.9.3.** This compiler release changes only its

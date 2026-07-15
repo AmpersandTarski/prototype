@@ -31,6 +31,8 @@ import { AtomicPasswordComponent } from './atomic-components/atomic-password/ato
 import { BoxTableComponent } from './box-components/box-table/box-table.component';
 import { BoxTableHeaderTemplateDirective } from './box-components/box-table/box-table-header-template.directive';
 import { BoxTableRowTemplateDirective } from './box-components/box-table/box-table-row-template.directive';
+import { SortableColumnDirective } from './box-components/box-table/sortable-column.directive';
+import { SortIconComponent } from './box-components/box-table/sort-icon.component';
 import { BoxTableLoadingComponent } from './box-components/box-table-loading/box-table-loading.component';
 import { BoxTabsComponent } from './box-components/box-tabs/box-tabs.component';
 import { BoxTabsDirective } from './box-components/box-tabs/box-tabs.directive';
@@ -64,6 +66,8 @@ import { DiagnosticsTextComponent } from './diagnostics-text/diagnostics-text.co
     BoxTableComponent,
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
+    SortableColumnDirective,
+    SortIconComponent,
     BoxTableLoadingComponent,
     BoxTabsComponent,
     BoxTabsDirective,
@@ -112,6 +116,8 @@ import { DiagnosticsTextComponent } from './diagnostics-text/diagnostics-text.co
     BoxTableComponent,
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
+    SortableColumnDirective,
+    SortIconComponent,
     BoxTableLoadingComponent,
     BoxTabsComponent,
     BoxTabsDirective,

@@ -10,7 +10,10 @@ but can also be done with data.slice()
             <!-- The `noHeader` annotation suppresses the column-header row. -->
             <tr *ngIf="!noHeader">
                 <ng-container
-                    *ngTemplateOutlet="headers || defaultHeaderTemplate; context: { $implicit: data }"
+                    *ngTemplateOutlet="
+                        headers || defaultHeaderTemplate;
+                        context: { $implicit: data }
+                    "
                 ></ng-container>
                 <th *ngIf="showNavMenu"></th>
                 <th>

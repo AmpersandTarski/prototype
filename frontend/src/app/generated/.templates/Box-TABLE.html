@@ -26,9 +26,12 @@
     >
         <ng-template boxTableHeader
             >$subObjects:{subObj| $if(subObj.subObjExprIsUni)$$if(sortable)$
-            <th pSortableColumn="_sortValues_.$subObj.subObjName$">
+            <!-- appSortableColumn/app-sort-icon (NOT PrimeNG's pSortableColumn/p-sortIcon):
+                 this template is declared outside the p-table, so PrimeNG's directives
+                 cannot inject the Table instance here (see SortableColumnDirective). -->
+            <th appSortableColumn="_sortValues_.$subObj.subObjName$">
                 <span>$subObj.subObjLabel$</span>
-                <p-sortIcon field="_sortValues_.$subObj.subObjName$"></p-sortIcon>
+                <app-sort-icon field="_sortValues_.$subObj.subObjName$"></app-sort-icon>
             </th>
             $else$
             <th>$subObj.subObjLabel$</th>
