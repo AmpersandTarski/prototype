@@ -12,6 +12,11 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased
 
+* **Variable fonts load again (no 500 on `*.var.*.woff2`).** Apache's mime module
+  treats ".var" anywhere in a filename as a type map, breaking the Inter variable
+  font that ships with the theme since v2.5.0. Both the production image
+  (`apache-conf/.htaccess`) and the dev image (`docker/apache/000-default.conf`)
+  now remove that handler, so downstream projects can drop their own workaround.
 * **Sortable tables sort again, without red error toasts.** Every render of a
   `BOX<TABLE sortable>` raised "can't access property tableService, this.dt is
   undefined" and clicking a column header could not sort: the header cells live in
