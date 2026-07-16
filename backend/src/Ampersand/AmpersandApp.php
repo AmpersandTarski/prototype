@@ -327,6 +327,14 @@ class AmpersandApp
     {
         $this->logger->debug("Resetting session");
         $this->session->deleteSessionAtom(); // delete Ampersand representation of session
+
+        // Commit the delete right away, before a new session atom is created below. This keeps
+        // delete locks and insert locks in separate (short) database transactions, so concurrent
+        // requests that garbage collect expired sessions (see Session::deleteExpiredSessions)
+        // can't build a lock cycle with this request. A new transaction is opened automatically
+        // for the remainder of the request (see getCurrentTransaction).
+        $this->getCurrentTransaction()->runExecEngine()->close();
+
         Session::resetPhpSessionId();
         $this->setSession($sessionAccount);
     }

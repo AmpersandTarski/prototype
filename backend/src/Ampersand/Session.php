@@ -19,8 +19,10 @@ use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\MetaModelException;
 use Ampersand\Exception\NotDefined\RelationNotDefined;
 use Ampersand\Exception\SessionExpiredException;
+use Ampersand\Log\Logger;
 use Ampersand\Misc\ProtoContext;
 use Ampersand\Misc\Settings;
+use Ampersand\Plugs\MysqlDB\Exception\MysqlDeadlockException;
 
 /**
  * Class of session objects
@@ -88,6 +90,11 @@ class Session
         
         // Create a new Ampersand session atom if not yet in SESSION table (i.e. new php session)
         if (!$this->sessionAtom->exists()) {
+            // Garbage collect expired sessions. Doing this only when a new session starts bounds
+            // the overhead to one scan per new visitor, while keeping I[SESSION] limited to
+            // sessions that were active within session.expirationTime.
+            self::deleteExpiredSessions($this->ampersandApp);
+
             $this->sessionAtom->add();
 
             // If login functionality is not enabled, add all defined roles as allowed roles
@@ -315,13 +322,41 @@ class Session
     
     public static function deleteExpiredSessions(AmpersandApp $ampersandApp): void
     {
-        $experationTimeStamp = time() - $ampersandApp->getSettings()->get('session.expirationTime');
-        
-        $links = $ampersandApp->getRelation(ProtoContext::REL_SESSION_LAST_ACCESS)->getAllLinks();
-        foreach ($links as $link) {
-            if (strtotime($link->tgt()->getId()) < $experationTimeStamp) {
-                $link->src()->delete();
+        // Serialize garbage collection between concurrent requests. When another request
+        // already holds the lock, skip: that request is collecting the same garbage.
+        // Deletes that slip through anyway (lock released before its transaction commits)
+        // are harmless, because deleting an atom is idempotent (see MysqlDB::deleteAtom).
+        $storage = $ampersandApp->getDefaultStorage();
+        if (!$storage->tryLock('session_gc')) {
+            return;
+        }
+
+        try {
+            $experationTimeStamp = time() - $ampersandApp->getSettings()->get('session.expirationTime');
+
+            $links = $ampersandApp->getRelation(ProtoContext::REL_SESSION_LAST_ACCESS)->getAllLinks();
+            foreach ($links as $link) {
+                if (strtotime($link->tgt()->getId()) < $experationTimeStamp) {
+                    try {
+                        $link->src()->delete();
+                        // Commit per session atom instead of collecting all deletes in the
+                        // request transaction. Each commit releases the row/gap locks (e.g. on
+                        // sessionAllowedRoles) within milliseconds, so concurrent requests that
+                        // insert into the same tables can't build a lock cycle with a GC that
+                        // holds locks on many atoms for the full request duration. A new
+                        // transaction is opened automatically (see getCurrentTransaction).
+                        $ampersandApp->getCurrentTransaction()->runExecEngine()->close();
+                    } catch (MysqlDeadlockException $e) {
+                        // A concurrent request holds locks on this session's records (e.g. the
+                        // owning browser returning at this very moment). The database already
+                        // rolled back our delete; leave this session for a next GC run.
+                        $ampersandApp->getCurrentTransaction()->cancel();
+                        Logger::getLogger('SESSION')->info("Session GC skips '{$link->src()}', concurrent transaction holds its records: {$e->getMessage()}");
+                    }
+                }
             }
+        } finally {
+            $storage->releaseLock('session_gc');
         }
     }
 }
