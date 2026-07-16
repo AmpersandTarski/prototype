@@ -39,6 +39,23 @@ curl -s "http://localhost:9280/api/v1/admin/installer"
 Alle fasen moeten PASS geven. De race-fasen zijn probabilistisch; draai ze bij
 twijfel vaker.
 
+## Login/logout-variant (SIAM-mechanisme)
+
+Het model `test/projects/session-gc-login` bevat de SIAM-login/logout-regels
+(ExecEngine `InsPair sessionAccount` en `DelAtom SESSION`). Daarmee toets je de
+GC in combinatie met `session.loginEnabled: true` en het `resetSession`-pad
+(framework-login vernieuwt het sessie-atoom):
+
+```bash
+# genereer het login-model i.p.v. hello-world, zet in project.yaml bovendien:
+#   session.loginEnabled: true
+docker exec sessgc-prototype sh -c "ampersand proto --no-frontend /var/www/test/projects/session-gc-login/model/main.adl --proto-dir /var/www/backend --crud-defaults cRud"
+curl -s "http://localhost:9280/api/v1/admin/installer"
+
+./login-test.sh all           # login/logout-scenario's incl. race (3x)
+DB=sessiongclogin ./test.sh all   # basissuite tegen het login-model
+```
+
 ## Opruimen
 
 ```bash
