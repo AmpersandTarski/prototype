@@ -87,6 +87,14 @@ class SearchController extends AbstractController
                 continue; // not a searchable scalar column for this term, or both sides OBJECT/scalar
             }
 
+            // Only search data that this session may read: an atom qualifies as a search result
+            // when the session has at least one interface to open it in (requirement 4). Without
+            // this check the stored values themselves (see 'matches' below) are returned to any
+            // session, regardless of its roles. Skipping here also avoids querying the column.
+            if (empty($this->interfacesToReadConcept($column['entityConcept'], $ifcCache))) {
+                continue;
+            }
+
             try {
                 $rows = $db->execute($this->buildColumnQuery($column, $likePattern));
             } catch (Throwable $e) {
@@ -221,6 +229,28 @@ class SearchController extends AbstractController
      */
     private function newResult(string $atomId, Concept $entityConcept, array &$ifcCache): array
     {
+        $atom = new Atom($atomId, $entityConcept);
+
+        return [
+            '_id_' => $atomId,
+            '_label_' => $atom->getLabel(),
+            '_ifcs_' => $this->interfacesToReadConcept($entityConcept, $ifcCache),
+            'concept' => $entityConcept->getLabel(),
+            'conceptId' => $entityConcept->getId(),
+            'matches' => [],
+        ];
+    }
+
+    /**
+     * The interfaces in which this session can open atoms of the given concept, cached per concept.
+     *
+     * An empty list means the session may not read the concept at all. It is both the
+     * authorisation criterion for searching a column and the `_ifcs_` presented per result.
+     *
+     * @return array<array{id: string, label: string}>
+     */
+    private function interfacesToReadConcept(Concept $entityConcept, array &$ifcCache): array
+    {
         $conceptId = $entityConcept->getId();
         if (!isset($ifcCache[$conceptId])) {
             $ifcCache[$conceptId] = array_values(array_map(
@@ -229,16 +259,7 @@ class SearchController extends AbstractController
             ));
         }
 
-        $atom = new Atom($atomId, $entityConcept);
-
-        return [
-            '_id_' => $atomId,
-            '_label_' => $atom->getLabel(),
-            '_ifcs_' => $ifcCache[$conceptId],
-            'concept' => $entityConcept->getLabel(),
-            'conceptId' => $conceptId,
-            'matches' => [],
-        ];
+        return $ifcCache[$conceptId];
     }
 
     /**
