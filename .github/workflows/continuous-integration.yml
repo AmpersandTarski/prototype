@@ -18,11 +18,20 @@ jobs:
     - name: Build
       run: docker build --tag ${DOCKER_AMPERSAND_IMAGE}:local .
 
+    # Every case under test/regression/ is a build case: the Dockerfile here compiles the
+    # case's script.adl and builds the frontend. A directory without a script.adl is not a
+    # build case; it is reported and skipped instead of failing the compiler on a missing
+    # file. Runtime specs live with their project (test/projects/<project>/e2e/).
     - name: Tests
-      run: >
-        cd test/regression &&
+      run: |
+        cd test/regression
         for d in */ ; do
-          echo "$d" && docker buildx build --build-context test=$d .
+          if [ ! -f "${d}script.adl" ]; then
+            echo "::warning::skipping ${d}: no script.adl, so it is not a build case"
+            continue
+          fi
+          echo "building ${d}"
+          docker buildx build --build-context test="$d" .
         done
 
   static-analyzer:

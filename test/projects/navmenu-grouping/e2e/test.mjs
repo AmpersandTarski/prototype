@@ -3,7 +3,7 @@
  * expression type + idempotent (re)install of the nav menu population.
  *
  * Prerequisites: dev stack running (`docker compose up -d` in the repo root).
- * Run: node test/regression/issue-406/test.mjs
+ * Run: node test/projects/navmenu-grouping/e2e/test.mjs
  *
  * The script:
  * 1. compiles test/projects/navmenu-grouping into the backend (no frontend build);
@@ -19,7 +19,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const projectYaml = resolve(repoRoot, 'backend/config/project.yaml');
 const baseUrl = process.env.PROTOTYPE_URL ?? 'http://localhost';
 
@@ -39,7 +39,7 @@ function setSettings(settings) {
   const lines = Object.entries(settings)
     .map(([k, v]) => `  ${k}: ${v}`)
     .join('\n');
-  const content = `# TEMPORARY test config, written by test/regression/issue-406/test.mjs\nsettings:\n${lines}\n`;
+  const content = `# TEMPORARY test config, written by test/projects/navmenu-grouping/e2e/test.mjs\nsettings:\n${lines}\n`;
   writeFileSync(projectYaml, content);
 
   // The macOS bind mount propagates file changes with a delay; wait until the
