@@ -12,6 +12,17 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased
 
+## v2.5.2 (16 July 2026)
+
+* **Search results now respect the session's read rights.** `GET /api/v1/search`
+  returned every matching atom together with the stored value that matched, without
+  checking whether the session may read it. A session holding no role at all (not
+  logged in) received those values. A concept is now only searched when the session
+  has at least one interface to open it in — the criterion the module already applied
+  when presenting the interfaces per result. Prototypes that keep data behind
+  role-restricted interfaces are advised to upgrade to this release. Tests:
+  `test/search-guard/`.
+
 * **`I[SESSION]` now only contains live sessions.** Expired session atoms used to
   accumulate until an admin manually called `/admin/sessions/delete/expired`. The
   framework now garbage collects them whenever a new session starts, so at any
