@@ -22,6 +22,8 @@ import { dirname, resolve } from 'node:path';
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const projectYaml = resolve(repoRoot, 'backend/config/project.yaml');
 const baseUrl = process.env.PROTOTYPE_URL ?? 'http://localhost';
+// test/run-regression.sh runs this spec against its own stack; without it, the dev stack.
+const container = process.env.PROTOTYPE_CONTAINER ?? 'prototype';
 
 const originalYaml = readFileSync(projectYaml, 'utf8');
 
@@ -47,7 +49,7 @@ function setSettings(settings) {
   const deadline = Date.now() + 15000;
   for (;;) {
     const inContainer = execSync(
-      'docker exec prototype cat /var/www/backend/config/project.yaml',
+      `docker exec ${container} cat /var/www/backend/config/project.yaml`,
       { encoding: 'utf8' },
     );
     if (inContainer === content) {
@@ -99,7 +101,7 @@ const LISTS = [
 try {
   console.log('▶ Compiling navmenu-grouping model into backend ...');
   execSync(
-    'docker exec prototype sh -c "ampersand proto --no-frontend ' +
+    `docker exec ${container} sh -c "ampersand proto --no-frontend ` +
       '/var/www/test/projects/navmenu-grouping/model/main.adl ' +
       '--proto-dir /var/www/backend --crud-defaults cRud"',
     { stdio: 'inherit' },
