@@ -1,4 +1,16 @@
-# navmenu-grouping
+# navmenu-grouping — regression vehicle
+
+**Guards:** navigation-menu grouping by interface expression type: task screens stay
+top-level, list interfaces move under one group item whose label is configurable, and
+reinstalling leaves the menu population identical (no stale or duplicate items).
+
+**Origin:** [issue #406](https://github.com/AmpersandTarski/prototype/issues/406) / v2.5.0.
+
+**Run:** `test/run-regression.sh navmenu-grouping`
+
+**Green means:** every assertion in `e2e/test.mjs` passes — the three settings cases
+(`none`, `byType`, custom label) produce the menu in the table below, and a second
+installer run yields the identical population.
 
 Regression vehicle for [issue #406](https://github.com/AmpersandTarski/prototype/issues/406):
 default navigation-menu grouping by interface expression type.

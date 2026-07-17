@@ -23,6 +23,18 @@
 2. Genereer en bouw: `./generate.sh <test-project-map> <entry-file.adl>` (bijv. `./generate.sh box-filtered-dropdown main.adl`). Geldige `<test-project-map>` = een submap van `test/projects/` (default: `hello-world`).
 3. Test in browser op `http://localhost` (controleer console op JS errors)
 
+### Merge-gate: `test/run-regression.sh` (standaard)
+
+Verifieer vóór elke merge met de runner; noem in het merge-rapport welke projecten je draaide en hun verdict.
+
+- `test/run-regression.sh <project>` — één project: eigen stack (poort 9400), model compileren, installeren, spec draaien, afbreken. Exitcode = verdict.
+- `test/run-regression.sh all` — alle projecten + contributierapport (verdict, duur, en wat elk project bewaakt).
+- `test/run-regression.sh --list` — wat elk project bewaakt (uit de `**Guards:**`-regel van zijn README).
+
+Raakt je wijziging gedrag dat nog geen project bewaakt? Voeg dan een project of spec toe (`test/projects/<p>/e2e/`) — de reproductie die de bug aantoonde wordt de regressie die de fix bewaakt. Zie issue #402; browser-specs zijn Playwright. Runs serialiseren zichzelf met een lock (`flock` bestaat niet op macOS, dus de runner gebruikt een mkdir-lock).
+
+De runner compileert het model in je werkkopie: ná een run staan in `backend/generics/` en `html/` de bestanden van het laatst gedraaide project (allebei gitignored). Draai `./generate.sh <project>` om je dev-stack terug te zetten op het project waaraan je werkt.
+
 ## 3. Base Image Bouwen (Voor linux/amd64)
 Het base image (`ampersandtarski/prototype-framework:local`) wordt gebruikt in `FROM` statements van alle test- en klantprojecten.
 **ALTIJD bouwen voor `linux/amd64`**, ook op Apple Silicon:
