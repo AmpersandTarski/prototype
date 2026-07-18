@@ -1,0 +1,10 @@
+# A syntactically valid YAML document that is NOT a population file: it has neither an
+# "atoms" nor a "links" key. Shape mirrors the kind of arbitrary YAML a user might upload
+# by mistake (e.g. an FC5 classifier _ast.yml). The importer must reject it with a plain
+# error — as the Ampersand compiler does — instead of reporting a false "imported
+# successfully" while importing nothing.
+land: Neverland
+certificateRequirements:
+  - exportCertificate: true
+    appliesTo: "Anything at all"
+importBans: []

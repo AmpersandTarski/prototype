@@ -21,6 +21,13 @@ Additional labels for pre-release and build metadata are available as extensions
   accepts what the other rejects. Excel (`.xls`/`.xlsx`/`.ods`) import is unchanged. Tests:
   `test/projects/import/`. Resolves AmpersandTarski/ampersand#1673.
 
+* **Uploading a file that is not a population now reports a clear error instead of a false
+  success.** A JSON or YAML document without an `atoms` or `links` key (e.g. an unrelated YAML
+  file) used to "import successfully" while changing nothing. It is now rejected with
+  `Invalid population file: expected an 'atoms' and/or 'links' key`, matching how the Ampersand
+  compiler rejects such a file at compile time. A well-formed but empty population
+  (`{"atoms":[],"links":[]}`) still imports.
+
 ## v2.5.2 (16 July 2026)
 
 * **Search results now respect the session's read rights.** `GET /api/v1/search`

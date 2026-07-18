@@ -66,8 +66,25 @@ class JsonPopulationImporter
     public function importFile(string $filePath): void
     {
         $this->logger->info("Start streaming import of population file");
-        $countAtoms = $this->importAtomBlocks($this->blocks($filePath, '/atoms/-', 'concept', 'atoms'));
-        $countLinks = $this->importLinkBlocks($this->blocks($filePath, '/links/-', 'relation', 'links'));
+
+        $atomBlocks = $this->blocks($filePath, '/atoms/-', 'concept', 'atoms');
+        $countAtoms = $this->importAtomBlocks($atomBlocks);
+        $hasAtomsKey = $atomBlocks->getReturn();
+
+        $linkBlocks = $this->blocks($filePath, '/links/-', 'relation', 'links');
+        $countLinks = $this->importLinkBlocks($linkBlocks);
+        $hasLinksKey = $linkBlocks->getReturn();
+
+        // A file with neither an "atoms" nor a "links" key is not a population file (any other
+        // YAML/JSON document lands here). Reject it with a plain message — as the compiler does —
+        // instead of committing nothing and reporting false success. This keeps compile-time and
+        // run-time import consistent, and JSON and YAML uploads behave the same (both go through
+        // this method). An empty-but-well-formed population ("atoms":[], "links":[]) still has the
+        // keys, so it is accepted.
+        if (!$hasAtomsKey && !$hasLinksKey) {
+            throw new BadRequestException("Invalid population file: expected an 'atoms' and/or 'links' key");
+        }
+
         $this->logger->info("End streaming import: {$countAtoms} atoms and {$countLinks} links imported");
     }
 
@@ -78,9 +95,13 @@ class JsonPopulationImporter
      * 'atoms' => [...], next block, ...); this state machine pairs them back into
      * blocks, in whatever key order they appear (Population::export() emits the
      * list before the name). Unknown keys are ignored (forward compatible).
-     * A missing top-level key yields nothing (e.g. a file with only links).
+     * A missing top-level key yields nothing (e.g. a file with only links). The generator's
+     * return value (Generator::getReturn()) tells the caller whether the top-level key was
+     * PRESENT at all: true when the pointer resolved (even to an empty list), false when it
+     * was absent. This lets importFile() distinguish an empty population from a non-population
+     * file without a second pass.
      *
-     * @return \Generator<array{0: string, 1: array}>
+     * @return \Generator<array{0: string, 1: array}, mixed, bool>
      */
     protected function blocks(string $filePath, string $pointer, string $nameKey, string $listKey): Generator
     {
@@ -106,13 +127,14 @@ class JsonPopulationImporter
                 }
             }
         } catch (PathNotFoundException $e) {
-            return; // toplevel key absent: empty stream
+            return false; // toplevel key absent: empty stream
         } catch (JsonMachineException $e) {
             throw new BadRequestException("Invalid population file: {$e->getMessage()}", previous: $e);
         }
         if ($name !== null || $list !== null) {
             throw new BadRequestException("Invalid population file: incomplete block (missing '{$nameKey}' or '{$listKey}')");
         }
+        return true; // toplevel key was present (possibly with an empty list)
     }
 
     /**
