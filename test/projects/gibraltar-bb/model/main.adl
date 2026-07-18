@@ -1,0 +1,50 @@
+CONTEXT GibraltarBB IN ENGLISH
+PURPOSE CONTEXT GibraltarBB
+{+ Models the structure of an FC5 classifier _ast.yml (export requirements per country),
+   so a population extracted from such a file imports flawlessly — at run time (upload of
+   GibraltarBB.yml) and at compile time (INCLUDE, see GibraltarBB.adl). The relations mirror
+   the keys of Gibraltar_Bloembollen_exporteisen_1.0_ast.yml. No RULEs, so no invariant can
+   block the import. +}
+
+REPRESENT Text TYPE BIGALPHANUMERIC
+
+CONCEPT Land "A country/territory a requirements document is about"
+CONCEPT CertificateRequirement "A certificate requirement entry"
+CONCEPT CropRequirement "A crop requirement entry"
+CONCEPT RequirementGroup "A group of requirements combined by a logical operator"
+CONCEPT Requirement "A single requirement"
+CONCEPT Crop "A crop or plant product"
+CONCEPT Heading "A heading in the source document outline"
+CONCEPT Operator "A logical operator combining requirements (e.g. AND)"
+CONCEPT RequirementType "The type of a requirement (e.g. Other)"
+
+-- Land level (certificateRequirements / cropRequirements in the yml)
+RELATION certificateRequirement[Land*CertificateRequirement]
+RELATION cropRequirement[Land*CropRequirement]
+
+-- Certificate requirement fields. The three booleans are PROP relations: present = true.
+RELATION exportCertificate[CertificateRequirement*CertificateRequirement] [PROP]
+RELATION reExportCertificate[CertificateRequirement*CertificateRequirement] [PROP]
+RELATION importPermit[CertificateRequirement*CertificateRequirement] [PROP]
+RELATION appliesTo[CertificateRequirement*Text] [UNI]
+
+-- Crop requirement fields
+RELATION crop[CropRequirement*Crop]
+RELATION requirementGroup[CropRequirement*RequirementGroup]
+
+-- Requirement group fields
+RELATION operator[RequirementGroup*Operator] [UNI]
+RELATION sourceHeading[RequirementGroup*Heading]
+RELATION requirement[RequirementGroup*Requirement]
+
+-- Requirement fields
+RELATION requirementType[Requirement*RequirementType] [UNI]
+RELATION method[Requirement*Text] [UNI]
+RELATION remarks[Requirement*Text] [UNI]
+
+INTERFACE Landen : V[SESSION*Land] BOX
+  [ "certificaateisen" : certificateRequirement
+  , "gewaseisen"       : cropRequirement
+  ]
+
+ENDCONTEXT
