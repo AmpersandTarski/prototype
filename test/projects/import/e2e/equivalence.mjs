@@ -101,6 +101,7 @@ const DB_NAME = findDbName();
 
 const jsonBytes = readFileSync(join(DIR, 'population.json'));
 const yamlBytes = readFileSync(join(DIR, 'population.yaml'));
+const notPopBytes = readFileSync(join(DIR, 'not-a-population.yaml'));
 
 async function main() {
   console.log(`== importer equivalence (db=${DB_NAME}) ==`);
@@ -142,6 +143,18 @@ async function main() {
   const n = await importFile(yamlBytes, 'population');
   n.committed ? pass('YAML content without extension is auto-detected and committed')
               : fail(`extensionless auto-detection failed (HTTP ${n.status})`);
+
+  // 5. A non-population file (no atoms/links) is REJECTED — as the compiler rejects it — and
+  //    not silently "imported". Same verdict whether it is offered as .yaml or as .json.
+  await reinstall();
+  const badYaml = await importFile(notPopBytes, 'not-a-population.yaml');
+  (!badYaml.committed && badYaml.status === 400)
+    ? pass('non-population YAML is rejected (HTTP 400, not committed)')
+    : fail(`non-population YAML not rejected (HTTP ${badYaml.status}, committed ${badYaml.committed})`);
+  const badJson = await importFile(notPopBytes, 'not-a-population.json');
+  (!badJson.committed && badJson.status === 400)
+    ? pass('non-population content rejected identically under a .json name')
+    : fail(`non-population .json not rejected (HTTP ${badJson.status}, committed ${badJson.committed})`);
 
   console.log(failed ? '\n==== IMPORT EQUIVALENCE FAILED ====' : '\n==== IMPORT EQUIVALENCE PASSED ====');
   process.exit(failed ? 1 : 0);
