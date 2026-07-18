@@ -12,6 +12,15 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased
 
+* **Population import now reads YAML as well as JSON, and recognizes the format from the
+  file content.** Uploading a population no longer depends on the file extension: the
+  importer inspects the content, so a JSON or YAML population imports whether it is named
+  `.json`, `.yaml`, `.txt` or has no extension at all. YAML is offered as a human-friendlier
+  authoring format (comments, no mandatory quotes and commas). It is transcoded to JSON and
+  imported by the very same importer as JSON, so the two formats behave identically — neither
+  accepts what the other rejects. Excel (`.xls`/`.xlsx`/`.ods`) import is unchanged. Tests:
+  `test/projects/import/`. Resolves AmpersandTarski/ampersand#1673.
+
 ## v2.5.2 (16 July 2026)
 
 * **Search results now respect the session's read rights.** `GET /api/v1/search`
