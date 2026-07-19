@@ -134,10 +134,40 @@ Oracle-export; wordt de bron ooit genormaliseerd aangeleverd, dan vervalt de nor
 5. **Metric** → onafhankelijke reconstructie, verzameling-semantiek, `extra == 0` = hard.
 6. **Dubbele-proof** → compile-partitie via `INCLUDE`, runtime-partitie via upload; unie == verwacht.
 
-## 7. Verbreden naar alle 6 bestanden
+## 7. Verbreden naar alle 6 bestanden — schaal & geheugen
 
-De normalizer draait op de volledige bron (`tools/normalize.py` met de ruwe xlsx als invoer i.p.v.
-het staal). Verwachte omvang: 91.674 ESE / 377.787 Kenmerk / 204.932 Dekking ≈ 700k sheet-rijen.
-Compile-time (`INCLUDE`) verwerkt dat rechtstreeks; de runtime-upload draait in één transactie.
-De merge-gate blijft het gepinde staal (portable, snel); de volledige import is een aparte,
-zwaardere check (`tools/build-full.sh`, nog te maken).
+`tools/build_full.py` normaliseert de VOLLEDIGE bron (streamt de 1,23 M ruwe rijen) tot één
+workbook. De entiteits-tellingen kruisen **exact** met de onafhankelijke scan (`analyze.json`):
+
+| concept | build_full | onafhankelijke scan |
+|---|---|---|
+| ESE | 91.674 | 91.674 |
+| Organisme | 4.428 | 4.428 |
+| Land | 223 | 223 |
+| Kenmerk | 377.787 | 377.787 |
+| Dekking | 204.980 | 204.980 |
+| Product (groep␟naam) | 7.528 | 3.925 namen × meerdere groepen |
+| Verklaring (rendering) | 8.202 | 6.030 concepten |
+
+De normalizer is dus zelf-consistent met de bron op de volledige schaal.
+
+**Import-schaal (gemeten in de reg-stack, 15,7 GiB host):**
+
+- **Correctheid** — 100% op het heterogene staal, beide routes, 0 extra's (zie §3).
+- **Runtime, volledige productgroep** — upload van `populatie-CFA.xlsx` (4.973 ESE, ~24k
+  sheet-rijen) via `POST /admin/import`: **geslaagd in 35 s**, alle tellingen kloppen
+  (ESE 4.973, Kenmerk 9.993, Dekking 7.681, … ; 160.915 links). ✅
+- **Geheugengrens (config, geen modelfout):**
+  - Runtime faalt bij PHP-`memory_limit` = 128 MB (PhpSpreadsheet laadt het hele workbook in
+    geheugen). Met `memory_limit` = 6 GB slaagt een volledige groep. → productie-import verhoogt
+    `memory_limit` en/of splitst per groep (6 uploads) of fijner.
+  - Compile-time `INCLUDE` (Haskell `Codec.Xlsx`) bakt de populatie in gegenereerde code en
+    schaalt slecht: het staal (honderden rijen) lukt, maar een volledige groep of het volledige
+    corpus loopt out-of-memory. Compile-time `INCLUDE` is bedoeld voor bescheiden
+    referentie-populaties; **bulkdata hoort op de runtime-route** (de route die FC5 in productie
+    gebruikt).
+
+**Conclusie:** het Ampersand-script leest de gegevens compleet en correct langs beide importers;
+de enige grens is operationeel (geheugen/chunking), niet het model. Productie-aanbeveling: importeer
+per productgroep via de runtime-route met ruim `memory_limit`; de merge-gate blijft het gepinde,
+portable staal.
