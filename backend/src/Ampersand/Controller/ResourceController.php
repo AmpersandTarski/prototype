@@ -86,6 +86,10 @@ class ResourceController extends AbstractController
         // Transactional interfaces validate a buffered edit set without committing
         // (client-side buffering, SAVE-enabling). Default false = current Direct behavior.
         $dryRun = filter_var($request->getQueryParam('dryRun', false), FILTER_VALIDATE_BOOLEAN);
+        // Bulk-load mode (OK-07): commit without evaluating invariants; the caller validates
+        // once afterwards (GET /admin/ruleengine/evaluate/all). Turns an n-record import from
+        // O(n²) into O(n). Ignored on a dry run.
+        $defer = filter_var($request->getQueryParam('defer', false), FILTER_VALIDATE_BOOLEAN);
         $body = $request->reparseBody()->getParsedBody();
 
         // Prepare
@@ -130,7 +134,7 @@ class ResourceController extends AbstractController
         }
         
         // Close transaction (dryRun rolls back after evaluating invariants → SAVE-enabling)
-        $transaction->close($dryRun);
+        $transaction->close($dryRun, false, $defer);
         if ($transaction->isCommitted()) {
             $this->app->userLog()->notice($successMessage);
         }

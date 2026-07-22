@@ -68,6 +68,14 @@ class Transaction
      * Null if no transaction has occurred (yet)
      */
     private ?bool $invariantRulesHold = null;
+
+    /**
+     * Bulk-load mode: when true this transaction commits its data WITHOUT evaluating
+     * affected conjuncts (invariant checking is deferred to a single later pass, e.g.
+     * GET /admin/ruleengine/evaluate/all). Turns a record-by-record import from O(n²)
+     * into O(n). See DesignChoices OK-07.
+     */
+    private bool $conjunctsDeferred = false;
     
     /**
      * Specifies if the transaction is committed or rolled back
@@ -283,12 +291,25 @@ class Transaction
     /**
      * Close transaction
      */
-    public function close(bool $dryRun = false, bool $ignoreInvariantViolations = false): self
+    public function close(bool $dryRun = false, bool $ignoreInvariantViolations = false, bool $deferConjuncts = false): self
     {
         $this->logger->info("Request to close transaction: {$this->id}");
-        
+
         if ($this->isClosed()) {
             throw new InvalidOptionException("Cannot close transaction, because transaction is already closed");
+        }
+
+        // Bulk-load mode (OK-07): commit the data without evaluating conjuncts or checking
+        // invariants now. Validation is deferred to a single later pass over the whole result
+        // (e.g. GET /admin/ruleengine/evaluate/all). This keeps a record-by-record import at
+        // O(n) instead of O(n²). A dry run never defers (it exists to check invariants).
+        if ($deferConjuncts && !$dryRun) {
+            $this->conjunctsDeferred = true;
+            $this->invariantRulesHold = null; // not checked in this transaction
+            $this->logger->info("Commit transaction {$this->id} with deferred conjunct evaluation");
+            $this->commit();
+            self::$currentTransaction = null;
+            return $this;
         }
 
         // (Re)evaluate affected conjuncts
@@ -325,9 +346,13 @@ class Transaction
      */
     protected function commit(): void
     {
-        // Cache conjuncts
-        foreach ($this->getAffectedConjuncts() as $conj) {
-            $conj->persistCacheItem();
+        // Cache conjuncts — but not in bulk-load mode: the affected conjuncts were not
+        // evaluated, so persisting their (unevaluated) cache would record a stale "holds".
+        // The deferred validation pass re-evaluates every conjunct and refreshes the cache.
+        if (!$this->conjunctsDeferred) {
+            foreach ($this->getAffectedConjuncts() as $conj) {
+                $conj->persistCacheItem();
+            }
         }
 
         // Commit transaction for each registered storage
