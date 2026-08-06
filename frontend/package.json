@@ -75,7 +75,7 @@
     "prettier": "^2.7.1",
     "prettier-eslint": "^15.0.1",
     "storybook": "^7.6.17",
-    "typescript": "~5.9.3",
+    "typescript": "~5.4.5",
     "webpack-dev-server": "^5.2.6"
   }
 }
