@@ -471,7 +471,7 @@ class ExcelImporter
         return $this->splitDelimited($cellvalue, $delimiter);
     }
 
-    protected function throwException(Exception $e, ?Cell $cell): void
+    protected function throwException(Exception $e, ?Cell $cell): never
     {
         if (is_null($cell)) {
             throw new BadRequestException(

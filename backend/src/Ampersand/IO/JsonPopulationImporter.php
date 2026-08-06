@@ -101,7 +101,7 @@ class JsonPopulationImporter
      * was absent. This lets importFile() distinguish an empty population from a non-population
      * file without a second pass.
      *
-     * @return \Generator<array{0: string, 1: array}, mixed, bool>
+     * @return \Generator<int, array{0: string, 1: array}, mixed, bool>
      */
     protected function blocks(string $filePath, string $pointer, string $nameKey, string $listKey): Generator
     {
