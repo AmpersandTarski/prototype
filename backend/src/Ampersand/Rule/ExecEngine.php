@@ -236,6 +236,7 @@ class ExecEngine extends RuleEngine
             
             $functionName = trim(array_shift($params)); // first parameter is function name
             $closure = self::getFunction($functionName);
+            $fnStr = "";  // pre-declared; assigned before use inside try, but catch references it
             try {
                 $fnStr = "{$functionName}(" . implode(',', $params) . ")";
                 $this->info($fnStr);

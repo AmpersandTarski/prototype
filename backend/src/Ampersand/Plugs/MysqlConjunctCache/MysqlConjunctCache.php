@@ -34,7 +34,7 @@ class MysqlConjunctCache implements CacheItemPoolInterface
     protected string $tableName;
 
     /**
-     * @var \Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCacheItem[]
+     * @var \Psr\Cache\CacheItemInterface[]
      */
     protected array $deferred = [];
 
