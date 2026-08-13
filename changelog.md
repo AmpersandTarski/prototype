@@ -10,7 +10,23 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.6.0 (13 August 2026)
+
+* **The bundled Ampersand compiler moves to v5.9.7.** This compiler carries the new
+  `ampersand incremental-bench` command and the releases up to v5.9.7 (see the
+  [Ampersand release notes](https://github.com/AmpersandTarski/Ampersand/blob/main/ReleaseNotes.md)).
+  The framework's compiler constraint (`>=5.9.2 <6.0.0`) is unchanged, so prototypes built
+  with any compiler from v5.9.2 onwards keep working.
+
+* **Bulk-load mode: a population import of n records now runs in O(n) instead of O(n²).**
+  Importing record-by-record used to re-evaluate the affected invariants with a
+  full-population query on every record, so record k paid a pass over ~k rows. A resource
+  `POST` with `?defer=true` commits each record without evaluating conjuncts; the caller
+  runs one validation pass afterwards (`GET /admin/ruleengine/evaluate/all`). A dry run
+  never defers, because its purpose is to check invariants. During a bulk load, data is
+  committed durably before the final validation, so a failing invariant is reported rather
+  than rolled back (see DesignChoices OK-07). Measured on a 400-chunk import: baseline
+  per-chunk time rises 15s→30s, defer mode stays flat.
 
 * **Population import now reads YAML as well as JSON, and recognizes the format from the
   file content.** Uploading a population no longer depends on the file extension: the
