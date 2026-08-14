@@ -44,7 +44,11 @@ class InstallerController extends AbstractController
         $this->app
             ->reinstall($defaultPop, $ignoreInvariantRules) // reinstall and initialize application
             ->setSession();
-        
+
+        // A fresh (re)install re-enters import-bootstrap mode: the data is new, so the app
+        // must pass the check again before it unlocks. No-op when not in import mode (OK-09).
+        $this->app->relockImportMode();
+
         return $this->success($response);
     }
 

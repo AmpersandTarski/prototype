@@ -219,6 +219,18 @@ class AmpersandApp
         $this->fileSystem->write(self::IMPORT_UNLOCK_FLAG, "Import-bootstrap check passed; the application is unlocked.\n");
     }
 
+    /**
+     * Re-lock import mode by removing the unlock flag. A fresh (re)install calls this, so a
+     * reinstalled prototype in import mode must pass the check again before it unlocks. A
+     * no-op when the flag is absent (not unlocked, or not in import mode).
+     */
+    public function relockImportMode(): void
+    {
+        if ($this->fileSystem->fileExists(self::IMPORT_UNLOCK_FLAG)) {
+            $this->fileSystem->delete(self::IMPORT_UNLOCK_FLAG);
+        }
+    }
+
     public function frontend(): FrontendInterface
     {
         return $this->frontend;

@@ -24,14 +24,14 @@ class ImportLockMiddleware
     }
 
     /**
-     * Path prefixes (under the API root) reachable while locked: the session/nav and
+     * Path prefixes (relative to the API root) reachable while locked: the session/nav and
      * frontend-boot endpoints (/app), and the admin tooling that does the import and the
      * check (/admin, which includes /admin/import, /admin/importmode/check, /admin/installer).
      */
-    private const ALLOWED_PREFIXES = ['/api/v1/app/', '/api/v1/admin/'];
+    private const ALLOWED_PREFIXES = ['app/', 'admin/'];
 
     /** Exact paths reachable while locked (the machine-readable spec and its UI). */
-    private const ALLOWED_EXACT = ['/api/v1/openapi.json', '/api/v1/docs'];
+    private const ALLOWED_EXACT = ['openapi.json', 'docs'];
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next): ResponseInterface
     {
@@ -50,6 +50,13 @@ class ImportLockMiddleware
 
     private function isAllowed(string $path): bool
     {
+        // The path reaches the middleware relative to the API root and without a leading
+        // slash (e.g. "admin/installer"); some mounts include the "api/v1/" base. Normalize
+        // both away so the whitelist matches regardless of the mount.
+        $path = ltrim($path, '/');
+        if (str_starts_with($path, 'api/v1/')) {
+            $path = substr($path, strlen('api/v1/'));
+        }
         foreach (self::ALLOWED_EXACT as $allowed) {
             if ($path === $allowed) {
                 return true;

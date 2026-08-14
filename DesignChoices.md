@@ -110,4 +110,7 @@ one-way (once unlocked, the bootstrap phase is over).
 
 Technisch: setting `global.importMode`; `AmpersandApp::isImportLocked()`; `ImportLockMiddleware`;
 `POST /admin/importmode/check` (`ImportModeController`); nav-response fields `importMode` /
-`appLocked`. The compiler `--defer` flag that sets the setting is a separate Ampersand change.
+`appLocked`. The setting can also be enabled from the environment (`AMPERSAND_IMPORT_MODE`),
+which complements — and reduces the dependency on — the compiler `--defer` flag (a separate
+Ampersand change). A (re)install re-locks (`relockImportMode`), so a fresh database is checked
+again before it unlocks. Verified end-to-end (test/projects/import-bootstrap).
