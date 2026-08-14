@@ -286,34 +286,37 @@ export class AppMenuComponent
   }
 
   private addAddButtons() {
-    // Add parent
-    const addBtnsMenu: MenuItem = {
-      label: 'New',
-      items: [],
-    };
-
     this.menuService
       .getAddButtons()
       .pipe(takeUntil(this.destroy$))
       .subscribe((addBtns) => {
+        const items: MenuItem[] = [];
+
         addBtns.forEach((addBtn) => {
-          // Lookup and convert
-          const id = addBtn.ifcs[0].id;
-          const link = this.interfaceRouteMap[id] + '/' + uuidv4();
-          const menuItem = {
-            id: id,
+          const ifc = addBtn.ifcs[0];
+          // SESSION/ONE-scope interfaces are a single shared session view, not
+          // per-resource instances. "New" has no meaning for them, and the
+          // UUID-based route (/clinics/{uuid}) the old code generated does not exist.
+          if (ifc.resourceType === 'SESSION' || ifc.resourceType === 'ONE') {
+            return;
+          }
+          const link = (this.interfaceRouteMap[ifc.id] ?? '') + '/' + uuidv4();
+          items.push({
+            id: ifc.id,
             label: addBtn.label,
             icon: 'pi pi-fw pi-plus',
             routerLink: [link],
-          };
-          addBtnsMenu.items?.push(menuItem);
+          });
         });
 
-        // Menu content is complete now; (re)compute the horizontal overflow
+        // Only show the "New" section when there are applicable interfaces.
+        if (items.length > 0) {
+          this.model.unshift({ label: 'New', items });
+        }
+
+        // Menu content is complete; (re)compute the horizontal overflow.
         this.updateOverflow(true);
       });
-
-    this.model.unshift(addBtnsMenu);
   }
 
   /* The items that appear side by side in the horizontal menu bar: children of
