@@ -41,6 +41,11 @@ module.exports = {
       id: "prototype/guides/back-end-services",
     },
     {
+      label: "Importing Large Datasets",
+      type: "doc",
+      id: "prototype/guides/importing-large-datasets",
+    },
+    {
       label: "Using the OpenAPI Description",
       type: "doc",
       id: "prototype/guides/using-the-openapi-description",
