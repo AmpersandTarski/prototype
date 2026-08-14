@@ -10,7 +10,16 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## v2.6.0 (13 August 2026)
+## v2.6.0 (14 August 2026)
+
+* **A model compiled with Ampersand v5.9.4 or later now boots.** Since compiler
+  v5.9.4 a concept gets a SQL table only when it stores relations or some
+  generated query enumerates it; other concepts arrive with `conceptTable: null`.
+  The framework only accepted that for `ONE` and refused to load the model for
+  every other concept. A concept without a table now behaves like `ONE`: model
+  load accepts it, the atom-level operations skip the table writes, and its
+  population reads as empty — which is exact, because by the compiler's own
+  criterion no generated query reads such a concept's population.
 
 * **The bundled Ampersand compiler moves to v5.9.7.** This compiler carries the new
   `ampersand incremental-bench` command and the releases up to v5.9.7 (see the
