@@ -3,6 +3,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { LayoutService } from './service/app.layout.service';
 import { MenuService } from './app.menu.service';
+import { ImportModeService } from '../shared/services/import-mode.service';
 import { AppSidebarComponent } from './app.sidebar.component';
 import { AppTopBarComponent } from './app.topbar.component';
 
@@ -26,6 +27,7 @@ export class AppLayoutComponent implements OnDestroy {
   constructor(
     public layoutService: LayoutService,
     public menuService: MenuService,
+    public importModeService: ImportModeService,
     public renderer: Renderer2,
     public router: Router,
   ) {
@@ -51,13 +53,14 @@ export class AppLayoutComponent implements OnDestroy {
             'document',
             'click',
             (event) => {
+              // sidebar and menu button are absent while the app is locked in import mode
               const isOutsideClicked = !(
-                this.appSidebar.el.nativeElement.isSameNode(event.target) ||
-                this.appSidebar.el.nativeElement.contains(event.target) ||
-                this.appTopbar.menuButton.nativeElement.isSameNode(
+                this.appSidebar?.el.nativeElement.isSameNode(event.target) ||
+                this.appSidebar?.el.nativeElement.contains(event.target) ||
+                this.appTopbar.menuButton?.nativeElement.isSameNode(
                   event.target,
                 ) ||
-                this.appTopbar.menuButton.nativeElement.contains(event.target)
+                this.appTopbar.menuButton?.nativeElement.contains(event.target)
               );
 
               if (isOutsideClicked) {
@@ -156,8 +159,10 @@ export class AppLayoutComponent implements OnDestroy {
       'layout-static': this.layoutService.config.menuMode === 'static',
       'layout-horizontal': this.layoutService.config.menuMode === 'horizontal',
       'layout-static-inactive':
-        this.layoutService.state.staticMenuDesktopInactive &&
-        this.layoutService.config.menuMode === 'static',
+        (this.layoutService.state.staticMenuDesktopInactive &&
+          this.layoutService.config.menuMode === 'static') ||
+        // no sidebar while the app is locked in import mode, so use the full width
+        this.importModeService.appLocked,
       'layout-overlay-active': this.layoutService.state.overlayMenuActive,
       'layout-mobile-active': this.layoutService.state.staticMenuMobileActive,
       'p-input-filled': this.layoutService.config.inputStyle === 'filled',

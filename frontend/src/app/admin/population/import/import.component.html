@@ -1,5 +1,46 @@
 <h3>Import population file(s)</h3>
 
+<!-- Import-bootstrap mode (DesignChoices OK-09): locked until "Start checking" passes -->
+<div class="import-mode-panel" *ngIf="(importModeState$ | async)?.appLocked">
+    <div class="locked-banner">
+        <i class="pi pi-lock"></i>
+        <div class="locked-text">
+            <p>
+                This application is in import mode and locked. Import your population
+                files below; invariant checking is deferred, so the data may pass
+                through inconsistent intermediate states.
+            </p>
+            <p>
+                When all data is imported, press <strong>Start checking</strong>. The
+                application unlocks once every invariant holds.
+            </p>
+        </div>
+    </div>
+
+    <button
+        pButton
+        type="button"
+        label="Start checking"
+        icon="pi pi-play"
+        [loading]="checking"
+        [disabled]="checking"
+        (click)="startChecking()"
+    ></button>
+
+    <div class="check-result" *ngIf="checkFailedMessage">
+        <div class="error-message">
+            <i class="pi pi-exclamation-triangle"></i>
+            <span>{{ checkFailedMessage }}</span>
+        </div>
+        <div class="violation" *ngFor="let inv of checkViolations">
+            <div class="rule">{{ inv.ruleMessage }}</div>
+            <div class="tuple" *ngFor="let msg of inv.violationMessages">
+                {{ msg }}
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Selected files list (queued + in-progress + done/error) -->
 <div class="file-list" *ngIf="selectedFiles.length">
     <div class="file-row header">

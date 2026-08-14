@@ -2,6 +2,7 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { LayoutService } from './service/app.layout.service';
 import { SignalService } from 'src/app/shared/services/signal.service';
+import { ImportModeService } from 'src/app/shared/services/import-mode.service';
 import { MenuService } from './app.menu.service';
 
 @Component({
@@ -25,6 +26,7 @@ export class AppTopBarComponent {
     public layoutService: LayoutService,
     public signalService: SignalService,
     public menuService: MenuService,
+    public importModeService: ImportModeService,
   ) {}
 
   get adminMode(): boolean {

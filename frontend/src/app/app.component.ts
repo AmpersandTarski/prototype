@@ -2,6 +2,7 @@ import { OnInit } from '@angular/core';
 import { Component } from '@angular/core';
 import { PrimeNGConfig } from 'primeng/api';
 import { LayoutService } from './layout/service/app.layout.service';
+import { ImportModeService } from './shared/services/import-mode.service';
 
 @Component({
   selector: 'app-root',
@@ -14,10 +15,15 @@ export class AppComponent implements OnInit {
   constructor(
     private primengConfig: PrimeNGConfig,
     private layoutService: LayoutService,
+    private importModeService: ImportModeService,
   ) {}
 
   ngOnInit(): void {
     this.primengConfig.ripple = true; //enables core ripple functionality
+
+    // Import-bootstrap mode: while the app is locked, keep every navigation
+    // on the import screen (DesignChoices OK-09)
+    this.importModeService.init();
 
     // Optional configuration with the default configuration
     this.layoutService.config = {

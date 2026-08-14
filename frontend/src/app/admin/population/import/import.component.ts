@@ -11,9 +11,15 @@ import {
   FileUploadHandlerEvent,
   FileSelectEvent,
 } from 'primeng/fileupload';
+import { Router } from '@angular/router';
 import { PopulationService } from '../population.service';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { MessageService } from 'primeng/api';
+import {
+  ImportModeService,
+  ImportModeState,
+} from 'src/app/shared/services/import-mode.service';
+import { MenuService } from 'src/app/layout/app.menu.service';
 
 type UploadStatus = 'queued' | 'uploading' | 'done' | 'error' | 'canceled';
 
@@ -24,6 +30,11 @@ interface SelectedFileItem {
   progress: number; // 0..100
   status: UploadStatus;
   errorMessage?: string;
+}
+
+interface CheckViolation {
+  ruleMessage: string;
+  violationMessages: string[];
 }
 
 @Component({
@@ -46,6 +57,13 @@ export class ImportComponent implements AfterViewInit, OnDestroy {
   public selectedFiles: SelectedFileItem[] = [];
   private uploadSubs: Map<string, Subscription> = new Map();
 
+  // Import-bootstrap mode (DesignChoices OK-09): while locked, this screen
+  // shows the "Start checking" button and the resulting invariant violations
+  public importModeState$: Observable<ImportModeState>;
+  public checking = false;
+  public checkFailedMessage: string | null = null;
+  public checkViolations: CheckViolation[] = [];
+
   private key(f: File): string {
     return `${f.name}|${f.size}`;
   }
@@ -54,7 +72,60 @@ export class ImportComponent implements AfterViewInit, OnDestroy {
     private populationService: PopulationService,
     private cd: ChangeDetectorRef,
     private messageService: MessageService,
-  ) {}
+    private importModeService: ImportModeService,
+    private menuService: MenuService,
+    private router: Router,
+  ) {
+    this.importModeState$ = this.importModeService.state$;
+  }
+
+  /**
+   * "Start checking" (import-bootstrap mode): run the one-time full invariant
+   * check. Green unlocks the application permanently; red keeps it locked and
+   * shows the violations so the user can import more data and check again.
+   */
+  public startChecking(): void {
+    this.checking = true;
+    this.checkFailedMessage = null;
+    this.checkViolations = [];
+    this.importModeService.startChecking().subscribe({
+      next: (response) => {
+        this.checking = false;
+        if (response.locked) {
+          this.checkFailedMessage =
+            response.notifications?.warnings?.[0]?.message ??
+            'The application cannot start while invariant rules are violated. Import more data to resolve them, then check again.';
+          this.checkViolations = (response.notifications?.invariants ?? []).map(
+            (inv) => ({
+              ruleMessage: inv.ruleMessage,
+              violationMessages: (inv.tuples ?? []).map(
+                (tuple) => tuple.violationMessage,
+              ),
+            }),
+          );
+        } else {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'All invariants hold. The application is unlocked.',
+            life: 7000,
+          });
+          this.menuService.refresh(); // the menu was hidden while locked; rebuild it
+          this.router.navigate(['']);
+        }
+        this.cd.markForCheck();
+      },
+      error: (error) => {
+        this.checking = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Start checking failed',
+          detail: error?.error?.msg ?? error?.message ?? 'Unknown error',
+          life: 7000,
+        });
+        this.cd.markForCheck();
+      },
+    });
+  }
 
   ngAfterViewInit(): void {
     // Initialize cancel button state once the view is ready

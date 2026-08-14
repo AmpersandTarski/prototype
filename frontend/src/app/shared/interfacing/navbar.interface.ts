@@ -13,6 +13,8 @@ export type Navbar = {
   ext: Array<unknown>; // ignore; not reusing in new frontend
   role: Array<unknown>; // ignore; not reusing in new frontend. This was structure for additional items in the role menu
   productionEnv?: boolean;
+  importMode?: boolean; // prototype is generated/configured for import-bootstrap mode (DesignChoices OK-09)
+  appLocked?: boolean; // locked into the import screen until "Start checking" passes
 };
 
 type DefaultSettings = {

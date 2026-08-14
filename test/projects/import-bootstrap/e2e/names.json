@@ -1,0 +1,10 @@
+{
+    "atoms": [
+        { "concept": "Person", "atoms": ["P1"] }
+    ],
+    "links": [
+        { "relation": "name[Person*Name]", "links": [
+            { "src": "P1", "tgt": "John Doe" }
+        ] }
+    ]
+}

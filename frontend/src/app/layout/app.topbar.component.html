@@ -6,6 +6,7 @@
 
     <button
         #menubutton
+        *ngIf="!importModeService.appLocked"
         class="p-link layout-menu-button layout-topbar-button"
         (click)="layoutService.onMenuToggle()"
     >

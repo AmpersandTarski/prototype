@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/angular';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ButtonModule } from 'primeng/button';
 import { MessagesModule } from 'primeng/messages';
@@ -141,6 +142,7 @@ export const Success: Story = {
       moduleMetadata: {
         imports: [
           HttpClientTestingModule,
+          RouterTestingModule,
           FileUploadModule,
           ButtonModule,
           MessagesModule,
@@ -169,6 +171,7 @@ export const QuickTest: Story = {
       moduleMetadata: {
         imports: [
           HttpClientTestingModule,
+          RouterTestingModule,
           FileUploadModule,
           ButtonModule,
           MessagesModule,
@@ -195,6 +198,7 @@ export const ServerError: Story = {
       moduleMetadata: {
         imports: [
           HttpClientTestingModule,
+          RouterTestingModule,
           FileUploadModule,
           ButtonModule,
           MessagesModule,
@@ -219,6 +223,7 @@ export const ValidationError: Story = {
       moduleMetadata: {
         imports: [
           HttpClientTestingModule,
+          RouterTestingModule,
           FileUploadModule,
           ButtonModule,
           MessagesModule,
