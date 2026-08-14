@@ -176,6 +176,61 @@ class AmpersandApp
         return $this;
     }
 
+    /**
+     * Name of the flag file (on the app filesystem) that records the import-bootstrap
+     * phase as completed. Its presence means the prototype is unlocked for normal use.
+     */
+    private const IMPORT_UNLOCK_FLAG = 'importmode.unlocked';
+
+    /**
+     * Whether this prototype is configured for import-bootstrap mode (setting
+     * global.importMode, set by the compiler's defer flag). In this mode it boots into the
+     * import screen, imports commit without checking invariants, and the app stays locked
+     * until a check passes. See DesignChoices OK-09 and the "Importing Large Datasets" guide.
+     */
+    public function isImportMode(): bool
+    {
+        return (bool) $this->getSettings()->get('global.importMode', false);
+    }
+
+    /**
+     * Whether the one-time import-bootstrap check has passed, unlocking the prototype for
+     * normal use. The flag is persisted on the data volume, so it survives restarts.
+     */
+    public function isImportUnlocked(): bool
+    {
+        return $this->fileSystem->fileExists(self::IMPORT_UNLOCK_FLAG);
+    }
+
+    /**
+     * The app is locked while it is in import mode and the bootstrap check has not yet passed.
+     */
+    public function isImportLocked(): bool
+    {
+        return $this->isImportMode() && !$this->isImportUnlocked();
+    }
+
+    /**
+     * Record the import-bootstrap check as passed and unlock the prototype for normal use.
+     * From now on every transaction checks invariants as usual, so they stay satisfied.
+     */
+    public function unlockImportMode(): void
+    {
+        $this->fileSystem->write(self::IMPORT_UNLOCK_FLAG, "Import-bootstrap check passed; the application is unlocked.\n");
+    }
+
+    /**
+     * Re-lock import mode by removing the unlock flag. A fresh (re)install calls this, so a
+     * reinstalled prototype in import mode must pass the check again before it unlocks. A
+     * no-op when the flag is absent (not unlocked, or not in import mode).
+     */
+    public function relockImportMode(): void
+    {
+        if ($this->fileSystem->fileExists(self::IMPORT_UNLOCK_FLAG)) {
+            $this->fileSystem->delete(self::IMPORT_UNLOCK_FLAG);
+        }
+    }
+
     public function frontend(): FrontendInterface
     {
         return $this->frontend;

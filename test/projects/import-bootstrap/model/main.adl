@@ -1,0 +1,17 @@
+CONTEXT ImportBootstrap IN ENGLISH
+-- Minimal model to exercise import-bootstrap mode (DesignChoices OK-09). The TOT
+-- invariant "every Person has a Name" can be violated mid-way by a deferred import
+-- (a Person without a Name) and satisfied at the end, so "Start checking" can go
+-- red and then green.
+
+CONCEPT Person "A person"
+CONCEPT Name "A person's name"
+
+RELATION name[Person*Name] [UNI,TOT]
+MEANING "Every person has exactly one name. TOT makes this an invariant."
+
+INTERFACE Persons : V[SESSION*Person] cRud BOX
+  [ "name" : name cRUd
+  ]
+
+ENDCONTEXT

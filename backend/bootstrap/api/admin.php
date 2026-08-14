@@ -3,6 +3,7 @@
 /** @phan-file-suppress PhanInvalidFQSENInCallable */
 
 use Ampersand\Controller\ExecEngineController;
+use Ampersand\Controller\ImportModeController;
 use Ampersand\Controller\InstallerController;
 use Ampersand\Controller\LoginController;
 use Ampersand\Controller\PopulationController;
@@ -30,6 +31,7 @@ $api->group('/admin', function () {
     $this->get('/ruleengine/evaluate/all', RuleEngineController::class . ':evaluateAllRules');
     $this->get('/signals', RuleEngineController::class . ':getSignalViolations');
     $this->post('/import', PopulationController::class . ':importPopulationFromUpload');
+    $this->post('/importmode/check', ImportModeController::class . ':startChecking');
 });
 
 /**

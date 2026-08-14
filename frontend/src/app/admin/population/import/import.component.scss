@@ -225,3 +225,59 @@
     display: none !important;
   }
 }
+
+/* --------------------------------------------------------
+   Import-bootstrap mode panel (DesignChoices OK-09)
+---------------------------------------------------------*/
+:host {
+  .import-mode-panel {
+    margin: 1rem 0;
+    padding: 1rem;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius);
+    background: var(--surface-card);
+
+    .locked-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+
+      > .pi-lock {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        margin-top: 0.25rem;
+      }
+
+      .locked-text p {
+        margin: 0 0 0.5rem 0;
+      }
+    }
+
+    .check-result {
+      margin-top: 1rem;
+
+      .error-message {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--red-600);
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+      }
+
+      .violation {
+        margin: 0 0 0.75rem 1.75rem;
+
+        .rule {
+          font-weight: 600;
+        }
+
+        .tuple {
+          margin-left: 1rem;
+          white-space: pre-wrap;
+        }
+      }
+    }
+  }
+}

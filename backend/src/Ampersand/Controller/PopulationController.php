@@ -59,7 +59,15 @@ class PopulationController extends AbstractController
         }
 
         // Commit transaction
-        $transaction->runExecEngine()->close();
+        if ($this->app->isImportLocked()) {
+            // Import-bootstrap mode: commit without evaluating invariants or running the
+            // ExecEngine, so data can be loaded across many files through inconsistent
+            // intermediate states. "Start checking" validates the whole result and unlocks
+            // the app. See AmpersandApp::isImportLocked() and DesignChoices OK-09.
+            $transaction->close(deferConjuncts: true);
+        } else {
+            $transaction->runExecEngine()->close();
+        }
         if ($transaction->isCommitted()) {
             $this->app->userLog()->notice("Imported {$fileInfo['name']} successfully");
         }

@@ -60,6 +60,12 @@ class Settings
         'AMPERSAND_DATA_DIR' => [
             'key' => 'global.dataPath',
             'bool' => false
+        ],
+        // Enable import-bootstrap mode from the environment (complements the compiler's
+        // defer flag): the prototype boots locked into the import screen. See OK-09.
+        'AMPERSAND_IMPORT_MODE' => [
+            'key' => 'global.importMode',
+            'bool' => true
         ]
     ];
 

@@ -87,3 +87,38 @@ The principled root-cause fix — evaluate each conjunct incrementally over the 
 full population (DBSP-style IVM) — is scoped as a separate compiler+runtime epic
 (AmpersandTarski/Ampersand #1675, subsumes #535). Out of scope for the import work; B2 is the
 pragmatic interim.
+
+**Import-bootstrap mode: a locked import screen with a one-time check**
+OK-09 · geldig · 2026-08-14 · herkomst: gebruikerswens, voortbouwend op B2 (OK-07)
+
+A prototype configured with `global.importMode` (set by the compiler's defer flag) boots
+**locked** into the import screen. Uploads commit with deferred conjunct evaluation (OK-07), so
+data loads across many files through inconsistent intermediate states. A "Start checking" action
+evaluates all invariants once: **green** unlocks the app permanently (from then on every
+transaction checks invariants as usual, so they stay satisfied); **red** keeps it locked with a
+message that the application cannot start while invariants are violated. The user may resolve red
+by importing more data and checking again.
+
+The lock is enforced **server-side** by a middleware (423 on every request except the
+import/check/session endpoints), not only in the UI, so the application's functionality is
+genuinely unreachable until the check passes.
+
+Rejected: a UI-only lock (hiding the navigation) — bypassable through the API. Rejected: treating
+the import endpoint itself as the whole mechanism — the lock is a product-level phase, not a
+per-request flag. The unlock is a flag file on the data volume: it survives restarts and is
+one-way (once unlocked, the bootstrap phase is over).
+
+Technisch: setting `global.importMode`; `AmpersandApp::isImportLocked()`; `ImportLockMiddleware`;
+`POST /admin/importmode/check` (`ImportModeController`); nav-response fields `importMode` /
+`appLocked`. The setting can also be enabled from the environment (`AMPERSAND_IMPORT_MODE`),
+which complements — and reduces the dependency on — the compiler `--defer` flag (a separate
+Ampersand change). A (re)install re-locks (`relockImportMode`), so a fresh database is checked
+again before it unlocks. Verified end-to-end (test/projects/import-bootstrap).
+
+In the frontend, `ImportModeService` mirrors the server-side lock. While the app is locked,
+every navigation lands on the import screen, the navigation menu stays hidden, and the import
+screen carries the "Start checking" action with the violations of a red check shown inline.
+The service watches router events instead of a per-route `canActivate` guard: the generated
+routes come from the compiler, so the framework has no place to attach a guard to them, while
+router events cover every route uniformly. The regression spec
+(`test/projects/import-bootstrap/e2e/`) drives the red→green scenario through the real UI.
