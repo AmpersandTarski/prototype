@@ -114,3 +114,11 @@ Technisch: setting `global.importMode`; `AmpersandApp::isImportLocked()`; `Impor
 which complements — and reduces the dependency on — the compiler `--defer` flag (a separate
 Ampersand change). A (re)install re-locks (`relockImportMode`), so a fresh database is checked
 again before it unlocks. Verified end-to-end (test/projects/import-bootstrap).
+
+In the frontend, `ImportModeService` mirrors the server-side lock. While the app is locked,
+every navigation lands on the import screen, the navigation menu stays hidden, and the import
+screen carries the "Start checking" action with the violations of a red check shown inline.
+The service watches router events instead of a per-route `canActivate` guard: the generated
+routes come from the compiler, so the framework has no place to attach a guard to them, while
+router events cover every route uniformly. The regression spec
+(`test/projects/import-bootstrap/e2e/`) drives the red→green scenario through the real UI.

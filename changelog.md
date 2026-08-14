@@ -10,6 +10,16 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **Import-bootstrap mode: load a large dataset before the invariants take over.** A prototype
+  configured with `global.importMode` (or env `AMPERSAND_IMPORT_MODE=true`) boots locked into
+  the import screen: the server answers 423 on everything else and the frontend hides the
+  navigation. Imports commit with deferred invariant checking, so data loads across many files
+  through inconsistent intermediate states. A "Start checking" button runs the one-time full
+  invariant check — green unlocks the application permanently, red keeps it locked and shows
+  the violations. A (re)install locks it again. See DesignChoices OK-09.
+
 ## v2.6.0 (14 August 2026)
 
 * **A model compiled with Ampersand v5.9.4 or later now boots.** Since compiler
