@@ -34,6 +34,9 @@ class SessionController extends AbstractController
                     ,'ext' => $this->frontend->getMenuItems(MenuType::EXT)
                     ,'role' => $this->frontend->getMenuItems(MenuType::ROLE)
                     ,'productionEnv' => $settings->get('global.productionEnv')
+                    ,'importMode' => $this->app->isImportMode() // prototype is generated for import-bootstrap mode
+                    ,'appLocked' => $this->app->isImportLocked() // locked until "Start checking" passes
+
                     ,'defaultSettings' => ['notify_showSignals'        => $settings->get('notifications.defaultShowSignals')
                                           ,'notify_showInfos'          => $settings->get('notifications.defaultShowInfos')
                                           ,'notify_showSuccesses'      => $settings->get('notifications.defaultShowSuccesses')

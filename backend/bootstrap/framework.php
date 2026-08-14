@@ -4,6 +4,7 @@ use Ampersand\AmpersandApp;
 use Ampersand\API\Handler\ExceptionHandler;
 use Ampersand\API\Handler\NotFoundHandler;
 use Ampersand\API\Handler\PhpErrorHandler;
+use Ampersand\API\Middleware\ImportLockMiddleware;
 use Ampersand\API\Middleware\InitAmpersandAppMiddleware;
 use Ampersand\API\Middleware\JsonRequestParserMiddleware;
 use Ampersand\API\Middleware\LogPerformanceMiddleware;
@@ -181,6 +182,7 @@ foreach ($ampersandApp->getSettings()->getExtensions() as $ext) {
 $logger = Logger::getLogger('API');
 
 $api
+->add(new ImportLockMiddleware($ampersandApp)) // gate the API while locked in import-bootstrap mode; runs after app init, just before the route
 ->add(new LogPerformanceMiddleware($logger, 'PHASE-4 REQUEST | ')) // wrapper to log performance of request phase (PHASE-4)
 ->add(new InitAmpersandAppMiddleware($ampersandApp, $logger)) // initialize the AmpersandApp (PHASE-2) and Session (PHASE-3)
 ->add(new PostMaxSizeMiddleware()) // catch when post_max_size is exceeded
