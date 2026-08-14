@@ -186,11 +186,12 @@ class Concept
             foreach ($conceptDef['conceptTable']['cols'] as $colName) {
                 $this->mysqlConceptTable->addCol(new MysqlDBTableCol($colName));
             }
-        } elseif (!$this->isONE()) {
-            // ONE is the universal singleton with no SQL table — this is expected by Ampersand design.
-            // All other concepts must have a concept table defined.
-            throw new NotDefinedException("Concept table information not defined for concept {$this->label}");
         }
+        // A null conceptTable is legitimate: ONE never has a SQL table, and since
+        // compiler v5.9.4 (Ampersand#1672) a concept gets a table only when it
+        // stores relations or some generated query enumerates it. A concept
+        // without a table has no queryable population; the atom-level methods
+        // below skip the table operations for it.
     }
 
     /**
@@ -406,9 +407,19 @@ class Concept
     }
     
     /**
+     * True when this concept has a SQL table of its own. ONE never has one;
+     * since compiler v5.9.4 (Ampersand#1672) a concept without stored
+     * relations that no query enumerates has none either.
+     */
+    public function hasConceptTable(): bool
+    {
+        return !is_null($this->mysqlConceptTable);
+    }
+
+    /**
      * Returns database table info for concept
      *
-     * @throws NotDefinedException when called for concept ONE (ONE has no SQL table by Ampersand design)
+     * @throws NotDefinedException when called for a concept without a SQL table (e.g. ONE)
      */
     public function getConceptTableInfo(): MysqlDBTable
     {
@@ -508,7 +519,7 @@ class Concept
         // Check if atom exists in concept population
         if (in_array($atom->getId(), $this->atomCache, true)) { // strict mode to prevent 'Nesting level too deep' error
             return true;
-        } elseif ($this->primaryPlug->atomExists($atom)) {
+        } elseif ($this->hasConceptTable() && $this->primaryPlug->atomExists($atom)) {
             $this->atomCache[] = $atom->getId(); // Add to cache
             return true;
         } else {
@@ -524,6 +535,10 @@ class Concept
      */
     public function getAllAtomObjects(): array
     {
+        if (!$this->hasConceptTable()) {
+            // No table means no query enumerates this concept's population
+            return [];
+        }
         return $this->primaryPlug->getAllAtoms($this);
     }
 
@@ -567,9 +582,11 @@ class Concept
                     // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
                     $transaction->addAffectedConcept($this);
                 }
-                
-                foreach ($this->getPlugs() as $plug) {
-                    $plug->addAtom($atom); // Add to plug
+
+                if ($this->hasConceptTable()) {
+                    foreach ($this->getPlugs() as $plug) {
+                        $plug->addAtom($atom); // Add to plug
+                    }
                 }
                 $this->atomCache[] = $atom->getId(); // Add to cache
 
@@ -621,9 +638,11 @@ class Concept
         if ($atom->exists()) {
             $this->logger->debug("Remove atom {$atom} from {$this} in plug");
             $this->app->getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
-            
-            foreach ($this->getPlugs() as $plug) {
-                $plug->removeAtom($atom); // Remove from concept in plug
+
+            if ($this->hasConceptTable()) {
+                foreach ($this->getPlugs() as $plug) {
+                    $plug->removeAtom($atom); // Remove from concept in plug
+                }
             }
             if (($key = array_search($atom->getId(), $this->atomCache)) !== false) {
                 unset($this->atomCache[$key]); // Delete from cache
@@ -648,9 +667,11 @@ class Concept
             $this->logger->debug("Delete atom {$atom} from plug");
             $transaction = $this->app->getCurrentTransaction();
             $transaction->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
-            
-            foreach ($this->getPlugs() as $plug) {
-                $plug->deleteAtom($atom); // Delete from plug
+
+            if ($this->hasConceptTable()) {
+                foreach ($this->getPlugs() as $plug) {
+                    $plug->deleteAtom($atom); // Delete from plug
+                }
             }
             if (($key = array_search($atom->getId(), $this->atomCache)) !== false) {
                 unset($this->atomCache[$key]); // Delete from cache
