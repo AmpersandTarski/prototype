@@ -13,9 +13,11 @@ export class GlobalErrorHandler implements ErrorHandler {
     // Assign message content
     if (error instanceof HttpErrorResponse) {
       messageSummary = error.status ? error.status.toString() : 'Error';
-      // Prefer the backend's own message (error.error.msg) over Angular's
-      // verbose auto-generated HttpErrorResponse.message string.
-      messageDetail = error.error?.msg ?? (error.message ? error.message : '');
+      // Prefer the backend's richest field: html carries the stack trace in
+      // debug mode (null in production), msg the backend message; Angular's
+      // verbose auto-generated HttpErrorResponse.message string comes last.
+      messageDetail =
+        error.error?.html ?? error.error?.msg ?? error.message ?? '';
     } else {
       messageSummary = error.name;
       messageDetail = error.message;

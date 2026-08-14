@@ -282,7 +282,7 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
           this.messageService.add({
             severity: 'error',
             summary: `HTTP error ${error.status}`,
-            detail: error.msg,
+            detail: error.error?.html ?? error.error?.msg ?? error.message,
             sticky: true,
           });
 
@@ -520,7 +520,7 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
         this.messageService.add({
           severity: 'error',
           summary: `HTTP error ${error.status}`,
-          detail: error.msg,
+          detail: error.error?.html ?? error.error?.msg ?? error.message,
           sticky: true,
         });
         return throwError(() => error);
@@ -574,7 +574,7 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
         this.messageService.add({
           severity: 'error',
           summary: `HTTP error ${error.status}`,
-          detail: error.msg,
+          detail: error.error?.html ?? error.error?.msg ?? error.message,
           sticky: true,
         });
         return throwError(() => error);
