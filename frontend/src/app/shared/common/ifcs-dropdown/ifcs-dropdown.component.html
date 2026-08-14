@@ -20,7 +20,7 @@
         <ng-template pTemplate="content">
             <ul>
                 <li *ngFor="let ifc of filteredIfcs()">
-                    <a [routerLink]="['/' + routeMap[ifc.id], resource?._id_]">{{ ifc.label }}</a>
+                    <a [routerLink]="getRouteCommands(ifc.id)">{{ ifc.label }}</a>
                 </li>
 
                 <li *ngFor="let link of processedExternalLinks">
