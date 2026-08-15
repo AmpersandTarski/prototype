@@ -51,6 +51,11 @@ module.exports = {
       id: "prototype/guides/using-the-openapi-description",
     },
     {
+      label: "Measuring Performance with OpenTelemetry",
+      type: "doc",
+      id: "prototype/guides/measuring-performance-with-opentelemetry",
+    },
+    {
       label: "Updating and Releasing the Prototype Framework",
       type: "doc",
       id: "prototype/guides/updating-and-releasing",
