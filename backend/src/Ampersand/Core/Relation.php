@@ -243,6 +243,10 @@ class Relation
         if ($trackAffected) {
             // Add relation to affected relations. Needed for conjunct evaluation and transaction management
             $transaction->addAffectedRelations($this);
+        } else {
+            // Even a mutation that bypasses affected-tracking invalidates the
+            // clean-since-evaluation status of conjuncts evaluated earlier (issue #443)
+            $transaction->registerMutation();
         }
         
         // Ensure that atoms exist in their concept tables
