@@ -1,4 +1,4 @@
-FROM ampersandtarski/prototype-framework:local as project-administration
+FROM ampersandtarski/prototype-framework:main
 
 COPY . /usr/local/project/
 

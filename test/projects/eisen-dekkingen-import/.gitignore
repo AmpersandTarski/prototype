@@ -1,0 +1,8 @@
+# Volledige-corpus-artefacten (verbreding, §7). Zwaar en herleidbaar uit de bron via
+# tools/build_full.py — niet committen. De merge-gate gebruikt alleen het gepinde staal.
+e2e/data/populatie-full.xlsx
+e2e/data/populatie-C*.xlsx
+e2e/data/export-*.json
+model/populatie-full.xlsx
+model/populatie-C*.xlsx
+tools/__pycache__/

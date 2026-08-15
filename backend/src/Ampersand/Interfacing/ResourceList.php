@@ -283,7 +283,10 @@ class ResourceList
         /** @var \Ampersand\AmpersandApp $ampersandApp */
         global $ampersandApp; // TODO: remove dependency on global var
 
-        $one = $ampersandApp->getModel()->getConcept('ONE')->makeAtom('ONE');
+        // The Ampersand compiler represents ONE's singleton atom as '1' (AtomValueOfONE = "1").
+        // Using 'ONE' here was a bug: it would mismatch with the constant 1 used in SQL queries
+        // such as "SELECT 1 as src, ..." generated for V[ONE*X] expressions.
+        $one = $ampersandApp->getModel()->getConcept('ONE')->makeAtom('1');
         return new ResourceList($one, Ifc::getNullObject($concept, $ampersandApp), '');
     }
 }

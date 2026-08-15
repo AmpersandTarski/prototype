@@ -1,5 +1,8 @@
 # To run generated prototypes we require a apache webserver with php
-FROM php:8.3-apache-bookworm AS framework
+# NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
+ARG COMPILER_IMAGE=ampersandtarski/ampersand:v5.9.7
+FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
+FROM --platform=linux/amd64 php:8.3-apache-bookworm AS framework
 
 RUN apt-get update \
  && apt-get install -y \
@@ -12,8 +15,8 @@ RUN apt-get update \
   libpng-dev \
   # vim for easy editing files in container
   vim \
-  # add packages for OpenTelemetry
-  gcc make autoconf
+  # build tools needed by pecl to compile the opentelemetry extension below
+  $PHPIZE_DEPS
 
 # Install additional php and apache extensions (see composer.json file)
 RUN docker-php-ext-install mysqli curl gd fileinfo zip \
@@ -26,22 +29,23 @@ RUN php  -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
  && rm -rf /var/lib/apt/lists/*
 ENV COMPOSER_HOME=/usr/local/bin/
 
-# Install open telemetry
-RUN pecl install opentelemetry && \
-  echo [opentelemetry] > /usr/local/etc/php/conf.d/opentelemetry.ini && \
-  echo extension=opentelemetry.so >> /usr/local/etc/php/conf.d/opentelemetry.ini
+# Install the OpenTelemetry PHP extension (needed for zero-code auto-instrumentation)
+RUN pecl install opentelemetry \
+ && docker-php-ext-enable opentelemetry
 
-# Configure OTEL exporter for PHP
-# Default disable opentelemetry
+# OpenTelemetry configuration. Disabled by default; enable per deployment by setting
+# OTEL_SDK_DISABLED=false. See docs/guides/measuring-performance-with-opentelemetry.md
 ENV OTEL_SDK_DISABLED=true
-ENV OTEL_PHP_AUTOLOAD_ENABLED="true" 
-ENV OTEL_SERVICE_NAME=apmpersand
+ENV OTEL_PHP_AUTOLOAD_ENABLED=true
+ENV OTEL_SERVICE_NAME=ampersand-prototype
 ENV OTEL_TRACES_EXPORTER=console
-ENV OTEL_METRICS_EXPORTER=console
-ENV OTEL_LOGSS_EXPORTER=console
+ENV OTEL_METRICS_EXPORTER=none
+ENV OTEL_LOGS_EXPORTER=none
 ENV OTEL_PROPAGATORS=baggage,tracecontext
-# ENV OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf 
-# ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318 
+# To ship traces to a collector instead of the container log:
+# ENV OTEL_TRACES_EXPORTER=otlp
+# ENV OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+# ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318
 
 # Install NodeJs with NPM
 RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
@@ -51,7 +55,7 @@ RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \
 
 # Copy Ampersand compiler
 # NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
-COPY --from=ampersandtarski/ampersand:v5.3.2 /bin/ampersand /usr/local/bin
+COPY --from=compiler /bin/ampersand /usr/local/bin
 RUN chmod +x /usr/local/bin/ampersand
 
 # Install php backend dependencies using PHP Composer package specification (composer.json)

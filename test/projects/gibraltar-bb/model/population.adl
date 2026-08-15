@@ -1,0 +1,41 @@
+CONTEXT GibraltarBB IN ENGLISH
+-- Population extracted from Gibraltar_Bloembollen_exporteisen_1.0_ast.yml, as POPULATION
+-- statements. This is the compile-time (Haskell) importer's native form; GibraltarBB.adl
+-- pulls it in with INCLUDE. importBans and additionalDeclarations are empty in the source
+-- file, so they contribute no population.
+
+POPULATION certificateRequirement[Land*CertificateRequirement] CONTAINS
+  [ ("Gibraltar", "cert-gib-1") ]
+
+POPULATION exportCertificate[CertificateRequirement*CertificateRequirement] CONTAINS
+  [ ("cert-gib-1", "cert-gib-1") ]
+POPULATION reExportCertificate[CertificateRequirement*CertificateRequirement] CONTAINS
+  [ ("cert-gib-1", "cert-gib-1") ]
+POPULATION importPermit[CertificateRequirement*CertificateRequirement] CONTAINS
+  [ ("cert-gib-1", "cert-gib-1") ]
+POPULATION appliesTo[CertificateRequirement*Text] CONTAINS
+  [ ("cert-gib-1", "Bloembollen. De invoervergunning kan worden aangevraagd bij: Trading Standards and Consumer Protection Dept., 12 Library Street, Gibraltar.") ]
+
+POPULATION cropRequirement[Land*CropRequirement] CONTAINS
+  [ ("Gibraltar", "crop-gib-1") ]
+POPULATION crop[CropRequirement*Crop] CONTAINS
+  [ ("crop-gib-1", "Bloembollen") ]
+POPULATION requirementGroup[CropRequirement*RequirementGroup] CONTAINS
+  [ ("crop-gib-1", "rg-gib-1") ]
+
+POPULATION operator[RequirementGroup*Operator] CONTAINS
+  [ ("rg-gib-1", "AND") ]
+POPULATION sourceHeading[RequirementGroup*Heading] CONTAINS
+  [ ("rg-gib-1", "Producteisen")
+  ; ("rg-gib-1", "Standaardeisen") ]
+POPULATION requirement[RequirementGroup*Requirement] CONTAINS
+  [ ("rg-gib-1", "req-gib-1") ]
+
+POPULATION requirementType[Requirement*RequirementType] CONTAINS
+  [ ("req-gib-1", "Other") ]
+POPULATION method[Requirement*Text] CONTAINS
+  [ ("req-gib-1", "Zie register Basisnormen Nederland voor Bloembollen en register Q-organismen") ]
+POPULATION remarks[Requirement*Text] CONTAINS
+  [ ("req-gib-1", "Verwijzing naar generieke registers, geen zelfstandig checkbare eis in dit document.") ]
+
+ENDCONTEXT

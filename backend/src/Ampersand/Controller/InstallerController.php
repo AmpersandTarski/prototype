@@ -34,8 +34,12 @@ class InstallerController extends AbstractController
 
         $this->preventProductionMode(); // Reinstalling the whole application is not allowed in production environment
         
-        $defaultPop = filter_var($request->getQueryParam('defaultPop'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
-        $ignoreInvariantRules = filter_var($request->getQueryParam('ignoreInvariantRules'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+        // Coalesce the query param BEFORE filter_var. With FILTER_NULL_ON_FAILURE an absent/null input
+        // yields false (not null) in PHP 8.x, so a trailing `?? true` never applies the intended default.
+        // The old code therefore defaulted defaultPop to false, skipping the initial population (roles +
+        // ifcRoles) and leaving every interface inaccessible (403) after the documented install command.
+        $defaultPop = filter_var($request->getQueryParam('defaultPop') ?? true, FILTER_VALIDATE_BOOLEAN);
+        $ignoreInvariantRules = filter_var($request->getQueryParam('ignoreInvariantRules') ?? false, FILTER_VALIDATE_BOOLEAN);
 
         $this->app
             ->reinstall($defaultPop, $ignoreInvariantRules) // reinstall and initialize application
@@ -66,7 +70,11 @@ class InstallerController extends AbstractController
 
         $transaction = $this->app->newTransaction();
 
-        $this->installer->reinstallNavigationMenus($this->app->getModel());
+        $this->installer->reinstallNavigationMenus(
+            $this->app->getModel(),
+            $this->app->getSettings()->get('frontend.menuGrouping', Installer::MENU_GROUPING_NONE),
+            $this->app->getSettings()->get('frontend.menuGroupingLabel', 'Lists')
+        );
 
         $transaction->runExecEngine()->close(false, false);
         if ($transaction->isRolledBack()) {

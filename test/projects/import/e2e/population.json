@@ -1,0 +1,20 @@
+{
+    "atoms": [
+        { "concept": "Person", "atoms": ["P1", "P2"] },
+        { "concept": "Organization", "atoms": ["O1", "O2"] }
+    ],
+    "links": [
+        { "relation": "name[Person*Name]", "links": [
+            { "src": "P1", "tgt": "John Doe" },
+            { "src": "P2", "tgt": "Jane Smith" }
+        ] },
+        { "relation": "orgName[Organization*Name]", "links": [
+            { "src": "O1", "tgt": "Acme Corp" },
+            { "src": "O2", "tgt": "Tech Solutions" }
+        ] },
+        { "relation": "worksFor[Person*Organization]", "links": [
+            { "src": "P1", "tgt": "O1" },
+            { "src": "P2", "tgt": "O2" }
+        ] }
+    ]
+}

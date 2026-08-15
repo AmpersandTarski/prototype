@@ -24,7 +24,15 @@
     "lib": ["es2020", "dom"],
     "noImplicitAny": true,
     "useDefineForClassFields": false,
+    "skipLibCheck": true
   },
+  "include": [
+    "src/**/*",
+    ".storybook/**/*"
+  ],
+  "exclude": [
+    "cypress/**/*"
+  ],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,

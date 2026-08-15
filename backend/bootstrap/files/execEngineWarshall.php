@@ -44,7 +44,7 @@ ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPl
     if (func_num_args() != 4) {
         throw new InvalidExecEngineCallException("TransitiveClosure() expects 4 arguments, but you have provided " . func_num_args());
     }
-    
+
     // Quit if a relation $r is already calculated in a specific exec-engine run
     if (in_array($r, $calculatedRelations)) {
         if ($runCount === $this->getRunCount()) {
@@ -75,18 +75,21 @@ ExecEngine::registerFunction('TransitiveClosure', function ($r, $C, $rCopy, $rPl
         $closure[$src->getId()][$tgt->getId()] = true;
         $atoms[$src->getId()] = $src;
         $atoms[$tgt->getId()] = $tgt;
-        
+
         // Store a copy in rCopy relation
         (new Link($relationRCopy, $src, $tgt))->add();
     }
     $atoms = array_unique($atoms);
-    
-    // Compute transitive closure following Warshall's algorithm
+
+    // Compute transitive closure following Warshall's algorithm.
+    // The adjacency matrix $closure only contains entries for existing links.
+    // The null-coalescing operator (?? false) prevents PHP 8 "Undefined array key" warnings
+    // when accessing combinations of atoms that have no corresponding link in $closure.
     foreach ($atoms as $k => $kAtom) {
         foreach ($atoms as $i => $iAtom) {
-            if ($closure[$i][$k]) {
+            if ($closure[$i][$k] ?? false) {
                 foreach ($atoms as $j => $jAtom) {
-                    if ($closure[$i][$j] || $closure[$k][$j]) {
+                    if (($closure[$i][$j] ?? false) || ($closure[$k][$j] ?? false)) {
                         // Write to rPlus
                         (new Link($relationRPlus, $iAtom, $jAtom))->add();
                     }

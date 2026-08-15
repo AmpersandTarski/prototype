@@ -3,7 +3,6 @@
 # Ampersand compiled output
 /src/app/generated/*
 !/src/app/generated/.templates
-!/src/app/generated/project.module.ts
 
 # Compiled output
 /dist
@@ -15,6 +14,9 @@
 /node_modules
 npm-debug.log
 yarn-error.log
+
+# Test coverage
+/coverage
 
 # Miscellaneous
 /.angular/cache

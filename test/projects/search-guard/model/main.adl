@@ -1,0 +1,43 @@
+CONTEXT SearchGuard IN ENGLISH
+PURPOSE CONTEXT SearchGuard
+{+Test model for the authorisation of the full-text search module. It holds data
+that an anonymous session has no interface to read: `Dossier` is only exposed
+through an interface FOR Caseworker. `dossierNote` is non-univalent on purpose,
+so the compiler stores it in its own binary table.+}
+
+REPRESENT Note TYPE ALPHANUMERIC
+REPRESENT Userid TYPE ALPHANUMERIC
+REPRESENT Password TYPE PASSWORD
+REPRESENT DateTime TYPE DATETIME
+
+--[Data that requires the Caseworker role to read]--
+RELATION dossierNote[Dossier*Note] -- non-UNI: stored in its own binary table
+
+POPULATION dossierNote CONTAINS
+   [ ("d1", "Vertrouwelijk medisch dossier van betrokkene")
+   , ("d2", "Loonbeslag geheimhouding")
+   ]
+
+--[Minimal account model, so login can be enabled]--
+RELATION accUserid[Account*Userid] [UNI]
+RELATION accPassword[Account*Password] [UNI]
+RELATION accIsActive[Account*Account] [PROP]
+RELATION accMostRecentLogin[Account*DateTime] [UNI]
+RELATION accLoginTimestamps[Account*DateTime]
+RELATION sessionAccount[SESSION*Account] [UNI]
+
+POPULATION accUserid CONTAINS [ ("alice", "alice") ]
+POPULATION accPassword CONTAINS [ ("alice", "secret123") ]
+POPULATION accIsActive CONTAINS [ ("alice", "alice") ]
+
+--[Only a Caseworker can read dossiers]--
+INTERFACE Dossiers FOR Caseworker : I[Dossier] cRud BOX<TABLE>
+   [ "note" : dossierNote cRud
+   ]
+
+--[An anonymous landing page, so an anonymous session has an interface of its own]--
+INTERFACE Welcome FOR Anonymous : "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "hello" : I cRud
+   ]
+
+ENDCONTEXT

@@ -15,7 +15,7 @@
             [boxRawTemplate]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
             let-resource
         >
-            <div>$subObjects:{subObj| $subObj.subObjContents$}$</div>
+            $if(table)$<table class="box-raw-table"><tbody><tr>$subObjects:{subObj|<td>$subObj.subObjContents$</td>}$</tr></tbody></table>$else$$if(form)$<form class="box-raw-form" onsubmit="return false">$subObjects:{subObj| $subObj.subObjContents$}$</form>$else$<div>$subObjects:{subObj| $subObj.subObjContents$}$</div>$endif$$endif$
         </ng-template>
     </app-box-raw>
 </div>

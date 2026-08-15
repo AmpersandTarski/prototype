@@ -1,0 +1,55 @@
+volumes:
+  db-data:
+
+networks:
+  db:
+
+services:
+  propbutton-test:
+    container_name: propbutton-prototype
+    platform: linux/amd64
+    build:
+      context: .
+    environment:
+      - AMPERSAND_DBHOST=propbutton-db
+      - AMPERSAND_PRODUCTION_MODE=false
+      - AMPERSAND_DEBUG_MODE=true
+      - AMPERSAND_SERVER_URL=localhost
+      - AMPERSAND_DBUSER=ampersand
+      - AMPERSAND_DBPASS=ampersand
+      - AMPERSAND_DBNAME=propbutton_test
+    restart: always
+    depends_on:
+      - propbutton-db
+    ports:
+      - "80:80"
+    networks:
+      - db
+  
+  propbutton-db:
+    container_name: propbutton-db
+    image: mariadb:10.6
+    command: ["--sql-mode=ANSI,TRADITIONAL"]
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=ampersand
+      - MYSQL_PASSWORD=ampersand
+      - MYSQL_DATABASE=propbutton_test
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./db-init-scripts:/docker-entrypoint-initdb.d # script to setup db authorization for user ampersand. 
+    networks:
+      - db
+
+  phpmyadmin:
+    container_name: propbutton-phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    depends_on:
+      - propbutton-db
+    ports:
+      - "8081:80"
+    networks:
+      - db
+    environment:
+      - PMA_HOST=propbutton-db

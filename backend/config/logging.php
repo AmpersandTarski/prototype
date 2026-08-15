@@ -25,7 +25,13 @@ $processors = [$requestIDProcessor, $webProcessor];
 
 // Handlers
 $stdoutStream = new StreamHandler('php://stdout', level: MonologLogger::DEBUG);
-$stdout = new FingersCrossedHandler($stdoutStream, activationStrategy: new ErrorLevelActivationStrategy(MonologLogger::ERROR), passthruLevel: MonologLogger::NOTICE);
+// bufferSize: 500 prevents memory exhaustion when importing large Excel files
+// (e.g. EseIdTabel.xlsx with 17000+ records generates 170000+ DEBUG entries).
+// Without a limit the FingersCrossedHandler buffers everything in RAM until an
+// ERROR triggers a dump, easily exhausting the 1 GB memory_limit.
+// With bufferSize: 500 only the last 500 entries are kept; older entries are
+// discarded, so context around an error is still preserved.
+$stdout = new FingersCrossedHandler($stdoutStream, activationStrategy: new ErrorLevelActivationStrategy(MonologLogger::ERROR), bufferSize: 500, passthruLevel: MonologLogger::NOTICE);
 $stderr = new StreamHandler('php://stderr', level: MonologLogger::WARNING);
 $handlers = [$stdout, $stderr];
 

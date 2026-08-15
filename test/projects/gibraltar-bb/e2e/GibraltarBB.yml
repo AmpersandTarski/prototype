@@ -1,0 +1,73 @@
+# Population extracted from Gibraltar_Bloembollen_exporteisen_1.0_ast.yml, in the runtime
+# importer's atoms/links format (YAML). Uploading this into a prototype of GibraltarBB
+# (model/main.adl) must yield the same population the compiler loads from model/population.adl
+# via INCLUDE. importBans and additionalDeclarations are empty in the source, so no links.
+
+atoms:
+  - concept: Land
+    atoms: [Gibraltar]
+  - concept: CertificateRequirement
+    atoms: [cert-gib-1]
+  - concept: CropRequirement
+    atoms: [crop-gib-1]
+  - concept: RequirementGroup
+    atoms: [rg-gib-1]
+  - concept: Requirement
+    atoms: [req-gib-1]
+  - concept: Crop
+    atoms: [Bloembollen]
+  - concept: Heading
+    atoms: [Producteisen, Standaardeisen]
+  - concept: Operator
+    atoms: [AND]
+  - concept: RequirementType
+    atoms: [Other]
+
+links:
+  - relation: certificateRequirement[Land*CertificateRequirement]
+    links:
+      - { src: Gibraltar, tgt: cert-gib-1 }
+  # The three certificate booleans are PROP relations: a reflexive pair means "true".
+  - relation: exportCertificate[CertificateRequirement*CertificateRequirement]
+    links:
+      - { src: cert-gib-1, tgt: cert-gib-1 }
+  - relation: reExportCertificate[CertificateRequirement*CertificateRequirement]
+    links:
+      - { src: cert-gib-1, tgt: cert-gib-1 }
+  - relation: importPermit[CertificateRequirement*CertificateRequirement]
+    links:
+      - { src: cert-gib-1, tgt: cert-gib-1 }
+  - relation: appliesTo[CertificateRequirement*Text]
+    links:
+      - src: cert-gib-1
+        tgt: "Bloembollen. De invoervergunning kan worden aangevraagd bij: Trading Standards and Consumer Protection Dept., 12 Library Street, Gibraltar."
+  - relation: cropRequirement[Land*CropRequirement]
+    links:
+      - { src: Gibraltar, tgt: crop-gib-1 }
+  - relation: crop[CropRequirement*Crop]
+    links:
+      - { src: crop-gib-1, tgt: Bloembollen }
+  - relation: requirementGroup[CropRequirement*RequirementGroup]
+    links:
+      - { src: crop-gib-1, tgt: rg-gib-1 }
+  - relation: operator[RequirementGroup*Operator]
+    links:
+      - { src: rg-gib-1, tgt: AND }
+  - relation: sourceHeading[RequirementGroup*Heading]
+    links:
+      - { src: rg-gib-1, tgt: Producteisen }
+      - { src: rg-gib-1, tgt: Standaardeisen }
+  - relation: requirement[RequirementGroup*Requirement]
+    links:
+      - { src: rg-gib-1, tgt: req-gib-1 }
+  - relation: requirementType[Requirement*RequirementType]
+    links:
+      - { src: req-gib-1, tgt: Other }
+  - relation: method[Requirement*Text]
+    links:
+      - src: req-gib-1
+        tgt: "Zie register Basisnormen Nederland voor Bloembollen en register Q-organismen"
+  - relation: remarks[Requirement*Text]
+    links:
+      - src: req-gib-1
+        tgt: "Verwijzing naar generieke registers, geen zelfstandig checkbare eis in dit document."

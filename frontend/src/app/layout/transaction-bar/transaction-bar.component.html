@@ -1,0 +1,34 @@
+<div class="transaction-bar" *ngIf="(active$ | async) as active">
+  <span class="transaction-bar__label">
+    <ng-container *ngIf="active.isDirty(); else clean"
+      >Unsaved changes</ng-container
+    >
+    <ng-template #clean>Editing</ng-template>
+  </span>
+  <span class="transaction-bar__spacer"></span>
+  <!-- Cancel only makes sense while there are buffered edits to roll back; when the
+       interface just shows committed database content there is nothing to cancel. -->
+  <button
+    *ngIf="active.isDirty()"
+    pButton
+    type="button"
+    label="Cancel"
+    class="p-button-text p-button-secondary"
+    (click)="cancel(active)"
+  ></button>
+  <!-- Wrapper carries the tooltip so it also fires while the button is disabled. -->
+  <span
+    [pTooltip]="violationTooltip(active)"
+    [tooltipDisabled]="active.canSave()"
+    [escape]="false"
+    tooltipPosition="top"
+  >
+    <button
+      pButton
+      type="button"
+      label="Save"
+      [disabled]="!active.canSave()"
+      (click)="save(active)"
+    ></button>
+  </span>
+</div>

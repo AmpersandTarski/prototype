@@ -1,13 +1,18 @@
 import { Component, Input, OnInit, booleanAttribute } from '@angular/core';
+import { takeUntil } from 'rxjs/operators';
 import { AmpersandInterfaceComponent } from '../interfacing/ampersand-interface.class';
 import { ObjectBase } from '../objectBase.interface';
+import { BaseComponent } from '../BaseComponent.class';
+import { clearEditing, markEditing } from '../helper/edit-registry';
 @Component({
   template: '',
 })
 export abstract class BaseAtomicComponent<
-  T,
-  I extends ObjectBase | ObjectBase[],
-> implements OnInit
+    T,
+    I extends ObjectBase | ObjectBase[],
+  >
+  extends BaseComponent
+  implements OnInit
 {
   @Input({ required: true }) property: T | Array<T> | null = null;
 
@@ -41,6 +46,35 @@ export abstract class BaseAtomicComponent<
         `Property '${this.propertyName}' not defined for object in '${this.resource._path_}'. It is likely that the backend data model is not in sync with the generated frontend.`,
       );
     }
+
+    // CRu + UNI is een semantisch ongeldige combinatie (compiler-bug):
+    // C zonder U bij een univalente relatie kan nooit een tweede waarde toevoegen.
+    // Behandel als cRu: negeer de C-vlag totdat de Ampersand-compiler dit afvangt.
+    if (this.isUni && this.canCreate() && !this.canUpdate()) {
+      this.crud = 'c' + this.crud.slice(1);
+    }
+  }
+
+  /**
+   * Mark/clear this field in the edit registry so a concurrent post-mutation
+   * server sync does not overwrite the value while the user is typing here.
+   * Wire these to the input's (focus)/(blur) events. See edit-registry.ts.
+   */
+  public markEditing(): void {
+    if (this.resource?._path_ && this.propertyName) {
+      markEditing(this.resource._path_, this.propertyName);
+    }
+  }
+  public clearEditing(): void {
+    if (this.resource?._path_ && this.propertyName) {
+      clearEditing(this.resource._path_, this.propertyName);
+    }
+  }
+
+  override ngOnDestroy(): void {
+    // Never leave a stuck mark if the component is destroyed while focused.
+    this.clearEditing();
+    super.ngOnDestroy();
   }
 
   public canCreate(): boolean {
@@ -57,10 +91,14 @@ export abstract class BaseAtomicComponent<
   }
 
   get data(): T[] {
+    if (typeof this.resource !== 'object') {
+      return [];
+    }
+
     return this.requireArray(this.resource[this.propertyName]);
   }
 
-  public requireArray(property: T | Array<T> | null) {
+  private requireArray(property: T | Array<T> | null) {
     if (Array.isArray(property)) {
       return property;
     } else if (property === null) {
@@ -70,7 +108,21 @@ export abstract class BaseAtomicComponent<
     }
   }
 
-  // Remove for not isUni atomic-components
+  // Update a single item in a non-UNI relation:
+  // semantisch: verwijder de link naar het oude atom, voeg link naar het nieuwe atom toe.
+  public updateItem(oldValue: string, newValue: string) {
+    if (oldValue === newValue) return; // no change
+
+    this.interfaceComponent
+      .patch(this.resource._path_, [
+        { op: 'remove', path: `${this.propertyName}/${oldValue}` },
+        { op: 'add', path: this.propertyName, value: newValue },
+      ])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe();
+  }
+
+  // Remove for not isUni atomic-components (removes the link, atom stays)
   public removeItem(index: number) {
     const val = this.data[index] as any;
 
@@ -82,6 +134,27 @@ export abstract class BaseAtomicComponent<
           value: val._id_ ? val._id_ : val,
         },
       ])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe();
+  }
+
+  // Delete atom at index (deletes the atom itself + all its relations)
+  // Named 'delete' to match the existing atomic-object.delete() convention.
+  // AtomicObjectComponent overrides this with signal-aware updates.
+  public delete(index = 0) {
+    if (!confirm('Delete?')) {
+      return;
+    }
+
+    const val = this.data[index] as any;
+    const id = val?._id_ ? val._id_ : String(val);
+
+    // interfaceComponent.delete() herlaadt de interface-data via GET na de DELETE,
+    // en voert mergeDeep + patched.emit() uit — de UI wordt dus altijd gesynchroniseerd
+    // met de werkelijke backend-state (ook bij invariantschending + rollback).
+    this.interfaceComponent
+      .delete(`${this.resource._path_}/${this.propertyName}/${id}`)
+      .pipe(takeUntil(this.destroy$))
       .subscribe();
   }
 
@@ -112,6 +185,7 @@ export abstract class BaseAtomicComponent<
           value: val?._id_ ? val._id_ : val,
         },
       ])
+      .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.dirty = false;
       });
@@ -130,6 +204,7 @@ export abstract class BaseAtomicComponent<
           value: val?._id_ ? val._id_ : val,
         },
       ])
+      .pipe(takeUntil(this.destroy$))
       .subscribe((x) => {
         if (x.isCommitted && x.invariantRulesHold) {
           this.newValue = undefined;

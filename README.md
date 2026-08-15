@@ -7,26 +7,8 @@ Prototype framework that transforms your Ampersand model into a web application
 ## Docs
 * Documentation about the prototype framework (this repository) is maintained in the [developer documentation](./docs) folder
 
-## OpenTelemetry dependencies
+## Performance measurement with OpenTelemetry
+The backend is instrumented with [OpenTelemetry](https://opentelemetry.io/). It is disabled by default; enable it with environment variables to trace where a prototype spends its time. See the guide: [Measuring performance with OpenTelemetry](./docs/guides/measuring-performance-with-opentelemetry.md).
 
-[OpenTelemetry documentation]()
-
-### Build test image for RAP
-
-```bash
-docker build --tag ampersandtarski/prototype-framework:latest .
-```
-
-### Test
-
-Run the php in server mode on the bare application
-
-```bash
-docker run --rm -it --name proto -p 8080:80 \
-    -e OTEL_SDK_DISABLED=false \
-    -e OTEL_TRACES_EXPORTER=console \
-    -e OTEL_METRICS_EXPORTER=console \
-    -e OTEL_LOGS_EXPORTER=console \
-    proto-test:latest \
-    php -S 0.0.0.0:80 -t /var/www/html/api/v1
-```
+## Quick note:
+When opening this repo, VS Code might ask you questions about extensions. Generally you can accept the suggestions. For more information, check the README in the .vscode.

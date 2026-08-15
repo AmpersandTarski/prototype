@@ -1,0 +1,179 @@
+CONTEXT EisenEnDekkingen IN ENGLISH
+-- Compile-time route: de Haskell-importer leest deze door de normalizer geschreven
+-- interface-xlsx (de compile-partitie van het staal) tijdens `ampersand proto`.
+INCLUDE "populatie.xlsx"
+-- ═══════════════════════════════════════════════════════════════════════════════════════
+-- NVWA CLE — "eisen en dekkingen" (6 export-bestanden C**.xlsx) als populatie importeren via
+-- de Excel-INTERFACE-route (interface-als-schema). Zie SPEC.md.
+--
+-- De bron is één platte, gedenormaliseerde join: ESE ⋈ Organisme ⋈ Kenmerk(EKK) ⋈ Dekking(DKG)
+-- (outer joins), één productgroep per bestand. Een dunne normalizer ONT-kruist die join weer
+-- tot de oorspronkelijke genormaliseerde tabellen (project + dedup per entiteit) en schrijft
+-- per concept één worksheet in het Ampersand-INTERFACE-formaat (sheet-titel == interface-label,
+-- kolomkop == sub-interface-label, kolom A == atoom-id). Beide importers (compile-time Haskell
+-- `INCLUDE`, runtime PHP `/admin/import`) lezen datzelfde formaat identiek.
+--
+-- Interface-labels == de door de normalizer geschreven kolomkoppen (per constructie gelijk).
+-- Geen RULEs: geen invariant mag de import blokkeren (import gebeurt in één transactie).
+-- ═══════════════════════════════════════════════════════════════════════════════════════
+
+-- Vrije tekst kan >254 tekens zijn (verklaringstekst 3520, externe memo 3978, eis-naam 313,
+-- bron 278). Default-OBJECT kapt op 254 → "Data entry is too long"; BIGALPHANUMERIC heft dat op.
+REPRESENT Tekst  TYPE BIGALPHANUMERIC
+-- Datum/Getal worden verbatim als tekst bewaard (bv. "2010-09-10", "10"). Dat is verliesloos
+-- en vermijdt de DATE/INTEGER-parsewrijving die de compile-time xlsx-importer geeft op
+-- string-cellen. Typering (DATE/INTEGER) is een latere verfijning; de waarde blijft exact.
+REPRESENT Datum  TYPE ALPHANUMERIC
+REPRESENT Getal  TYPE ALPHANUMERIC
+
+-- ── entiteiten ─────────────────────────────────────────────────────────────────────────
+CONCEPT ESE     "Een exporteis-specificatie (cle_exporteis_specificaties); sleutel ESE_ESE_ID"
+CONCEPT Product "Een product (cle_producten); sleutel = productgroep ␟ productnaam"
+CONCEPT Land    "Een staatkundige eenheid/land (cle_staatkundige_eenheden); sleutel = LAND_CODE"
+CONCEPT Organisme "Een organisme (cle_organismen); sleutel = OGE_ID"
+CONCEPT Bak     "Een bak/dossier waarin eisen gebundeld zijn (BAK_ID)"
+CONCEPT Kenmerk "Een exporteiskenmerk (cle_ese_eigenschappen, EKK); geen bronsleutel → synthetisch"
+CONCEPT Dekking "Een dekking (cle_dekkingen, DKG); binnen een ESE geïdentificeerd door set/alt/volg"
+CONCEPT Verklaring "Eén verklaring-rendering: (verklaringconcept, taal, tekst); gedeeld door ESE en Dekking"
+CONCEPT Verklaringconcept "Een verklaringconcept (cle_verklaring_concepten); sleutel = naam"
+
+-- ── waarde-/enum-concepten ─────────────────────────────────────────────────────────────
+CONCEPT Productgroep "Een productgroep (PRODUCT_GROEP), 6 stuks"
+CONCEPT Status       "Publicatiestatus (Nieuw/Gewijzigd/Gepubliceerd)"
+CONCEPT Typeeis      "Soort exporteis (SES_TYPE_EIS_NAAM)"
+CONCEPT Kenmerksoort "De naam/soort van een exporteiskenmerk (EKK_NAAM)"
+CONCEPT Typedekking  "Type dekking (DKG_TYPE_DEKKING)"
+CONCEPT Taal         "Taalcode van een verklaring (EN/NL/FR/…)"
+CONCEPT Eenheid      "Normeenheid (NORM_EENHEID)"
+CONCEPT Dekkingcode  "Een dekking-code-letter (DEKKING_CODE, meervoudig via ';')"
+
+-- ═══════════════════════════════════════════════════════════════════════════════════════
+-- RELATIES.  Namen worden hergebruikt over concepten met verschillende signatuur (toegestaan).
+-- ═══════════════════════════════════════════════════════════════════════════════════════
+
+-- ── ESE ─────────────────────────────────────────────────────────────────────────────────
+RELATION product[ESE*Product]        [UNI]   -- PRODUCT_GROEP + PRODUCT_NAAM
+RELATION land[ESE*Land]              [UNI]   -- LAND_NAAM + LAND_CODE
+RELATION bak[ESE*Bak]                [UNI]   -- BAK_ID
+RELATION status[ESE*Status]          [UNI]   -- ESE_STATUS
+RELATION hoofdeis[ESE*ESE]           [UNI]   -- HOOFDEIS (verwijst naar de hoofd-ESE)
+RELATION eisNaam[ESE*Tekst]          [UNI]   -- ESE_EIS_NAAM (nederlandse_formulering)
+RELATION organisme[ESE*Organisme]            -- ESE_ORGANISME + OGE_ID (meervoudig)
+RELATION typeEis[ESE*Typeeis]        [UNI]   -- SES_TYPE_EIS_NAAM
+RELATION bron[ESE*Tekst]             [UNI]   -- ESE_BRON
+RELATION interneMemo[ESE*Tekst]      [UNI]   -- ESE_INTERNE_MEMO
+RELATION externeMemo[ESE*Tekst]      [UNI]   -- ESE_EXTERNE_MEMO
+RELATION beginDatum[ESE*Datum]       [UNI]   -- ESE_BEGIN_DATUM
+RELATION eindDatum[ESE*Datum]        [UNI]   -- ESE_EIND_DATUM
+RELATION verklaring[ESE*Verklaring]          -- ESE_VERKLARINGSCONCEPT/TEKST/TAAL (meervoudig)
+RELATION normOperator[ESE*Tekst]     [UNI]   -- ESE_NORM_OPERATOR
+RELATION normWaarde[ESE*Tekst]       [UNI]   -- ESE_NORM_WAARDE
+RELATION normEenheid[ESE*Eenheid]    [UNI]   -- ESE_NORM_EENHEID
+RELATION dekkingCode[ESE*Dekkingcode]        -- DEKKING_CODE (meervoudig via ';')
+
+-- ── Product / Land / Organisme ──────────────────────────────────────────────────────────
+RELATION productnaam[Product*Tekst]       [UNI]   -- PRODUCT_NAAM
+RELATION productgroep[Product*Productgroep][UNI]  -- PRODUCT_GROEP
+RELATION landnaam[Land*Tekst]             [UNI]   -- LAND_NAAM (LAND_CODE is de sleutel)
+RELATION organismenaam[Organisme*Tekst]   [UNI]   -- ESE_ORGANISME (OGE_ID is de sleutel)
+
+-- ── Verklaring ──────────────────────────────────────────────────────────────────────────
+RELATION verklaringconcept[Verklaring*Verklaringconcept] [UNI]  -- *_VERKLARINGSCONCEPT
+RELATION verklaringtaal[Verklaring*Taal]                 [UNI]  -- *_TAAL
+RELATION verklaringtekst[Verklaring*Tekst]               [UNI]  -- *_VERKLARINGSTEKST
+
+-- ── Kenmerk (EKK) ───────────────────────────────────────────────────────────────────────
+RELATION kenmerkVanEse[Kenmerk*ESE]         [UNI]   -- terug-link naar de ESE
+RELATION kenmerksoort[Kenmerk*Kenmerksoort] [UNI]   -- EKK_NAAM
+RELATION waardeOrigineel[Kenmerk*Tekst]     [UNI]   -- EKK_WAARDE_ORG
+RELATION waardeVertaald[Kenmerk*Tekst]      [UNI]   -- EKK_WAARDE_VERTAALD
+RELATION status[Kenmerk*Status]             [UNI]   -- EKK_STATUS
+RELATION eindDatum[Kenmerk*Datum]           [UNI]   -- EKK_EIND_DATUM
+
+-- ── Dekking (DKG) ───────────────────────────────────────────────────────────────────────
+RELATION dekkingVanEse[Dekking*ESE]      [UNI]   -- terug-link naar de ESE
+RELATION setnummer[Dekking*Getal]        [UNI]   -- SETNR
+RELATION alternatief[Dekking*Tekst]      [UNI]   -- ALT
+RELATION volgnummer[Dekking*Getal]       [UNI]   -- VOLGNR
+RELATION status[Dekking*Status]          [UNI]   -- DKG_STATUS
+RELATION eindDatum[Dekking*Datum]        [UNI]   -- DKG_EIND_DATUM
+RELATION typeDekking[Dekking*Typedekking][UNI]   -- DKG_TYPE_DEKKING
+RELATION codeInspectie[Dekking*Tekst]    [UNI]   -- DKG_CODE_INSPECTIE
+RELATION naamDekking[Dekking*Tekst]      [UNI]   -- DKG_NAAM_DEKKING
+RELATION moduleInspectie[Dekking*Tekst]  [UNI]   -- DKG_MODULE_INSPECTIE
+RELATION verklaring[Dekking*Verklaring]          -- DKG_VERKLARINGSCONCEPT/TEKST/TAAL (meervoudig)
+RELATION normOperator[Dekking*Tekst]     [UNI]   -- DKG_NORM_OPERATOR
+RELATION normWaarde[Dekking*Tekst]       [UNI]   -- DKG_NORM_WAARDE
+RELATION normEenheid[Dekking*Eenheid]    [UNI]   -- DKG_NORM_EENHEID
+
+-- ═══════════════════════════════════════════════════════════════════════════════════════
+-- IMPORT-INTERFACES.  Eén per worksheet-concept. SESSION-wortel (V[SESSION*C]) zodat de
+-- importer een startpunt heeft; volledige CRUD zodat atomen en links gemaakt mogen worden.
+-- Sheet-titel == interface-label; kolomkop == leaf-label; kolom A == atoom-id van C.
+-- ═══════════════════════════════════════════════════════════════════════════════════════
+
+INTERFACE ESE : "_SESSION";V[SESSION*ESE] CRUD BOX
+  [ product      : product CRUD
+  , land         : land CRUD
+  , bak          : bak CRUD
+  , status       : status CRUD
+  , hoofdeis     : hoofdeis CRUD
+  , eisNaam      : eisNaam CRUD
+  , organisme    : organisme CRUD
+  , typeEis      : typeEis CRUD
+  , bron         : bron CRUD
+  , interneMemo  : interneMemo CRUD
+  , externeMemo  : externeMemo CRUD
+  , beginDatum   : beginDatum CRUD
+  , eindDatum    : eindDatum CRUD
+  , verklaring   : verklaring CRUD
+  , normOperator : normOperator CRUD
+  , normWaarde   : normWaarde CRUD
+  , normEenheid  : normEenheid CRUD
+  , dekkingCode  : dekkingCode CRUD
+  ]
+
+INTERFACE Product : "_SESSION";V[SESSION*Product] CRUD BOX
+  [ productnaam  : productnaam CRUD
+  , productgroep : productgroep CRUD
+  ]
+
+INTERFACE Land : "_SESSION";V[SESSION*Land] CRUD BOX
+  [ landnaam : landnaam CRUD ]
+
+INTERFACE Organisme : "_SESSION";V[SESSION*Organisme] CRUD BOX
+  [ organismenaam : organismenaam CRUD ]
+
+INTERFACE Verklaring : "_SESSION";V[SESSION*Verklaring] CRUD BOX
+  [ verklaringconcept : verklaringconcept CRUD
+  , verklaringtaal    : verklaringtaal CRUD
+  , verklaringtekst   : verklaringtekst CRUD
+  ]
+
+INTERFACE Kenmerk : "_SESSION";V[SESSION*Kenmerk] CRUD BOX
+  [ kenmerkVanEse   : kenmerkVanEse CRUD
+  , kenmerksoort    : kenmerksoort CRUD
+  , waardeOrigineel : waardeOrigineel CRUD
+  , waardeVertaald  : waardeVertaald CRUD
+  , status          : status CRUD
+  , eindDatum       : eindDatum CRUD
+  ]
+
+INTERFACE Dekking : "_SESSION";V[SESSION*Dekking] CRUD BOX
+  [ dekkingVanEse   : dekkingVanEse CRUD
+  , setnummer       : setnummer CRUD
+  , alternatief     : alternatief CRUD
+  , volgnummer      : volgnummer CRUD
+  , status          : status CRUD
+  , eindDatum       : eindDatum CRUD
+  , typeDekking     : typeDekking CRUD
+  , codeInspectie   : codeInspectie CRUD
+  , naamDekking     : naamDekking CRUD
+  , moduleInspectie : moduleInspectie CRUD
+  , verklaring      : verklaring CRUD
+  , normOperator    : normOperator CRUD
+  , normWaarde      : normWaarde CRUD
+  , normEenheid     : normEenheid CRUD
+  ]
+
+ENDCONTEXT

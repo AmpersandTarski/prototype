@@ -1,0 +1,12 @@
+CONTEXT GibraltarBB IN ENGLISH
+-- Compile-time entry point: the relations (main.adl) plus the population (population.adl),
+-- both pulled in with INCLUDE. Compiling this file exercises the Ampersand compiler's
+-- (Haskell) population importer:
+--
+--     ampersand check model/GibraltarBB.adl
+--
+-- The runtime counterpart imports e2e/GibraltarBB.yml into a running prototype instead;
+-- see this project's README.
+INCLUDE "main.adl"
+INCLUDE "population.adl"
+ENDCONTEXT

@@ -51,6 +51,47 @@ These are loaded last and overwrite previous set settings.
   
   This means that when you start the application in production mode `true`, and the database doesn't exist or is outdated (new tables/columns are needed), an exception is thrown. And you are stuck.
 
+  The Ampersand compiler sets this value in `generics/settings.json` from its `--[no-]production` flag (a production build sets it to `true`, a development build to `false`). So the build target you pass to the compiler drives the framework's behaviour, including [OpenAPI publication](#openapi-publication). As always, `config/project.yaml` and the environment variable can still override it.
+
+* frontend.menuGrouping (`none` | `byType`, default `none`)
+
+  Controls the default navigation menu population that the installer writes (see [Navigation menu](#navigation-menu)). With `byType`, interfaces whose expression targets a domain concept (lists, expression ⊆ `V[SESSION*Concept]`) are grouped in one submenu; interfaces targeting `SESSION` (task screens, expression ⊆ `I[SESSION]`) stay top-level.
+
+* frontend.menuGroupingLabel (default `Lists`)
+
+  The label of the submenu that groups the list interfaces. Only used with `menuGrouping: byType`.
+
+* frontend.menuMode (`static` | `overlay` | `horizontal`, default `static`)
+
+  The default orientation of the navigation menu in the frontend: a vertical sidebar (`static`), a collapsible vertical sidebar (`overlay`), or a horizontal menu bar with dropdown submenus (`horizontal`). In horizontal mode, items that do not fit the viewport width move into a "More" dropdown at the end of the bar, so every item stays reachable. Below the desktop breakpoint (992px) the horizontal bar falls back to the mobile drawer.
+
+## Navigation menu
+
+The navigation menu is *population*, not code: `NavMenuItem` atoms in the `PrototypeContext` metamodel, with `label`, `ifc`, `seqNr`, `isVisible` and `isSubItemOf` (submenu trees of arbitrary depth). Role visibility is derived (`navItemRoles` via the `isSubItemOf` closure): a (sub)menu item shows exactly when the active role can reach one of the interfaces below it.
+
+`Installer::reinstallNavigationMenus()` writes the default population:
+
+* it first **clears** the current nav menu population, then rebuilds it — reinstalling the nav menu (or the whole application) is idempotent and re-applies the default, so manual edits are overwritten;
+* with `frontend.menuGrouping: none` (default) every readable interface with source concept `SESSION` becomes a top-level item, in declaration order;
+* with `frontend.menuGrouping: byType` the list interfaces group into one submenu item with the fixed id `_MainMenu_lists` and label `frontend.menuGroupingLabel`.
+
+Menu structure is presentation, not semantics: the grouping is derived from *type* information only (the target concept of the interface expression) and adds no work for the modeler. A project that wants a different structure overrides it with its own population import or the `PrototypeContext.Editnavigationmenu` admin interface — keeping in mind that a reinstall re-applies the default.
+
+The regression vehicle for this behavior is `test/projects/navmenu-grouping` with `test/regression/issue-406/test.mjs`.
+
+## OpenAPI publication
+
+The compiler generates an [OpenAPI](https://www.openapis.org/) 3.0 description of the prototype's REST API in `generics/openapi.json` (for a development build). When that file is present and the prototype is **not** in production mode, the framework publishes it:
+
+* `GET /api/v1/openapi.json` — the machine-readable spec (CORS open, for Postman/codegen/Swagger tooling).
+* `GET /api/v1/docs` — a Swagger UI (loaded from CDN) to browse and try the API.
+
+Both routes are public (no session/checksum middleware). They are served by `OpenApiController` (`backend/src/Ampersand/Controller/OpenApiController.php`) and registered in `backend/bootstrap/api/openapi.php`.
+
+Compiler and framework stay consistent through one switch: a production build (`ampersand proto --production`) omits `openapi.json` *and* sets `global.productionEnv = true`, so nothing is published; a development build does both. The compiler flag `--[no-]openapi` overrides whether the spec is generated. Because the spec describes the whole API surface, it is published in development only by default; expose it in production only deliberately (set `productionEnv = false`, or force the spec and serve it behind your own protection).
+
+For the full wiring — routes, controller, path resolution and the production gate — see the reference page [OpenAPI publication](openapi-publication.md). For how to use the description, see the guide [Using the OpenAPI Description of Your Prototype](../guides/using-the-openapi-description.md).
+
 ## File System
 
 #### Introduction
@@ -252,19 +293,35 @@ For developers that work on the Ampersand compiler itself it may be convenient t
 a) injecting the custom Ampersand compiler in a specific prototype project directly or b) locally building a new prototype-framework image.
 
 #### Option A: inject custom compiler in prototype image
-The quickest and most easiest way is to inject a custom Ampersand compiler directly in your prototype image. Update your Docker file and add the following line BEFORE running the compiler:
+The file `backend/generics/compiler-version.txt` contains the semantic version constraint that describes which Ampersand compiler versions are compatible with this framework release. Check whether the constraint is still correct for the compiler version that ships in the `Dockerfile`.
 
-Custom compiler that is released on Github:
-```Dockerfile
-# Lines to add specific compiler version (from Github releases)
-ADD https://github.com/AmpersandTarski/Ampersand/releases/download/Ampersand-v4.1.0/ampersand /usr/local/bin/ampersand
-RUN chmod +x /usr/local/bin/ampersand
+The `Dockerfile` contains this construction:
+```dockerfile
+ARG COMPILER_IMAGE=ampersandtarski/ampersand:v5.9.7
+FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
+
+<...>
+
+COPY --from=compiler /bin/ampersand /usr/local/bin
 ```
+
+This allows us to update the tag `20260617` in one place only, to ensure building uses one Ampersand compiler consistently throughout.
+
+Occasionally, you you want to break this consistency temporarily.
+For instance, when you want to try out a compiler version of your own or if you want to stick to an older version for a while.
+Achieve this by injecting a custom Ampersand compiler directly in your prototype image by changing the line `COPY --from=compiler /bin/ampersand /usr/local/bin` into (three examples):
 
 Custom compiler from specific (local) Docker image
 ```Dockerfile
 # Line to add specific compiler version from some (local) Docker image
 COPY --from=ampersandtarski/ampersand:local /bin/ampersand /usr/local/bin
+```
+
+Custom compiler from Github:
+```Dockerfile
+# Lines to add specific compiler version (from Github releases)
+ADD https://github.com/AmpersandTarski/Ampersand/releases/download/Ampersand-v4.1.0/ampersand /usr/local/bin/ampersand
+RUN chmod +x /usr/local/bin/ampersand
 ```
 
 Custom compiler from local binary

@@ -1,14 +1,13 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
-import { AppLayoutComponent } from '../layout/app.layout.component';
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
 import { MenuItem } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { FileUploadModule } from 'primeng/fileupload';
+import { MenuModule } from 'primeng/menu';
 import { InstallerComponent } from './installer/installer.component';
 import { InstallerService } from './installer/installer.service';
-import { NgxDropzoneModule } from 'ngx-dropzone';
-import { MenuModule } from 'primeng/menu';
 import { UtilsComponent } from './utils/utils.component';
 import { UtilsService } from './utils/utils.service';
 import { PopulationComponent } from './population/population.component';
@@ -85,8 +84,8 @@ export const menuItems: MenuItem[] = [
     RouterModule.forChild(routes),
     CardModule,
     ButtonModule,
-    NgxDropzoneModule,
     MenuModule,
+    FileUploadModule,
   ],
   providers: [
     { provide: InstallerService, useClass: InstallerService },

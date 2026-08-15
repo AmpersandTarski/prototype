@@ -1,0 +1,88 @@
+CONTEXT SessionGCLogin IN ENGLISH
+PURPOSE CONTEXT SessionGCLogin
+{+Minimal SIAM-style login/logout model to test session garbage collection
+in combination with the login functionality (session.loginEnabled: true).
+The ExecEngine rules copy the mechanism of SIAM_LoginWithUPW.adl and
+SIAM_Basics.adl (without navigation and password hashing, which are
+orthogonal to session/transaction behaviour).+}
+
+REPRESENT Userid TYPE ALPHANUMERIC
+REPRESENT Password TYPE ALPHANUMERIC -- plaintext in this test model; hashing is orthogonal to what we test
+REPRESENT DateTime TYPE DATETIME
+
+--[Accounts]--
+RELATION accUserid[Account*Userid] [UNI]
+RELATION accPassword[Account*Password] [UNI]
+RELATION accIsActive[Account*Account] [PROP]
+RELATION accMostRecentLogin[Account*DateTime] [UNI] -- required by the framework's login functionality
+RELATION accLoginTimestamps[Account*DateTime]       -- required by the framework's login functionality
+RELATION sessionAccount[SESSION*Account] [UNI]      -- required by the framework's login functionality
+
+POPULATION accUserid CONTAINS [ ("alice", "alice") ]
+POPULATION accPassword CONTAINS [ ("alice", "secret123") ]
+POPULATION accIsActive CONTAINS [ ("alice", "alice") ]
+
+--[Session properties (SIAM_Basics pattern)]--
+RELATION sessionIsAnon[SESSION*SESSION] [PROP]
+RELATION sessionIsUser[SESSION*SESSION] [PROP]
+
+ROLE ExecEngine MAINTAINS SetSessionIsAnon
+RULE SetSessionIsAnon LABEL "Set property 'sessionIsAnon'": I - sessionAccount;sessionAccount~ |- sessionIsAnon
+VIOLATION (TXT "{EX} InsPair;sessionIsAnon;SESSION;", SRC I, TXT ";SESSION;", TGT I)
+ROLE ExecEngine MAINTAINS ClearSessionIsAnon
+RULE ClearSessionIsAnon LABEL "Clear property 'sessionIsAnon'": sessionIsAnon |- I - sessionAccount;sessionAccount~
+VIOLATION (TXT "{EX} DelPair;sessionIsAnon;SESSION;", SRC I, TXT ";SESSION;", TGT I)
+ROLE ExecEngine MAINTAINS SetSessionIsUser
+RULE SetSessionIsUser LABEL "Set property 'sessionIsUser'": I /\ sessionAccount;sessionAccount~ |- sessionIsUser
+VIOLATION (TXT "{EX} InsPair;sessionIsUser;SESSION;", SRC I, TXT ";SESSION;", TGT I)
+ROLE ExecEngine MAINTAINS ClearSessionIsUser
+RULE ClearSessionIsUser LABEL "Clear property 'sessionIsUser'": sessionIsUser |- I /\ sessionAccount;sessionAccount~
+VIOLATION (TXT "{EX} DelPair;sessionIsUser;SESSION;", SRC I, TXT ";SESSION;", TGT I)
+
+--[U/PW login (SIAM_LoginWithUPW pattern)]--
+RELATION sessionLoginReq[SESSION*SESSION] [PROP]
+RELATION loginUserid[SESSION*Userid] [UNI]
+RELATION loginPassword[SESSION*Password] [UNI]
+
+RULE AuthenticateUPW LABEL "Authenticate user with U/PW": loginUserid~;sessionIsAnon;sessionLoginReq;loginPassword |- accUserid~;accPassword
+MESSAGE "You may only login with valid credentials (username/password)."
+VIOLATION (TXT "You are not logged in because the Userid and/or Password do not match.")
+
+ROLE ExecEngine MAINTAINS UPWLogin
+RULE UPWLogin LABEL "U/PW Login": sessionIsAnon;sessionLoginReq;(loginUserid;accUserid~ /\ loginPassword;accPassword~);accIsActive |- sessionIsUser;sessionAccount
+MEANING "When a user is authenticated, the corresponding Account becomes the sessionAccount (provided it is active)."
+VIOLATION (TXT "{EX} InsPair;sessionAccount;SESSION;", SRC I, TXT ";Account;", TGT I
+          ,TXT "{EX} DelPair;sessionLoginReq;SESSION;", SRC I, TXT ";SESSION;", SRC I
+          ,TXT "{EX} DelPair;loginUserid;SESSION;", SRC I, TXT ";Userid;", SRC loginUserid
+          ,TXT "{EX} DelPair;loginPassword;SESSION;", SRC I, TXT ";Password;", SRC loginPassword
+          ,TXT "{EX} InsPair;sessionIsUser;SESSION;", SRC I, TXT ";SESSION;", SRC I
+          ,TXT "{EX} DelPair;sessionIsAnon;SESSION;", SRC I, TXT ";SESSION;", SRC I
+          )
+
+--[Logout (SIAM_Basics pattern): the session deletes itself]--
+RELATION sessionLogoutReq[SESSION*SESSION] [PROP]
+ROLE ExecEngine MAINTAINS Logout
+RULE Logout LABEL "Logout": "_SESSION";sessionLogoutReq |- -V
+MEANING "A request to logout in a session must be processed in that session."
+VIOLATION (TXT "{EX} DelAtom;SESSION;", SRC I)
+
+--[Roles: user sessions get the allowed role User (SIAM_Roles pattern, on the PrototypeContext relations)]--
+ROLE ExecEngine MAINTAINS GrantUserRole
+RULE GrantUserRole LABEL "User sessions have allowed role User": sessionIsUser |- PrototypeContext.sessionAllowedRoles;"User";PrototypeContext.sessionAllowedRoles~
+VIOLATION (TXT "{EX} InsPair;PrototypeContext.sessionAllowedRoles;SESSION;", SRC I, TXT ";PrototypeContext.Role;User")
+
+--[Interfaces]--
+INTERFACE Login FOR Anonymous : "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "userid"    : loginUserid cRUd
+   , "password"  : loginPassword cRUd
+   , "loginReq"  : sessionLoginReq cRUd
+   , "logoutReq" : sessionLogoutReq cRUd
+   , "loggedInAs": sessionAccount;accUserid cRud
+   ]
+
+INTERFACE Secured FOR User : "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "myAccount" : sessionAccount;accUserid cRud
+   , "logoutReq" : sessionLogoutReq cRUd
+   ]
+
+ENDCONTEXT

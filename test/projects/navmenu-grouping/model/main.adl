@@ -1,0 +1,62 @@
+CONTEXT NavMenuGrouping IN ENGLISH
+
+PURPOSE CONTEXT NavMenuGrouping
+{+Regression vehicle for issue #406 (navigation menu grouping by interface expression type).
+This model mixes the two kinds of SESSION interfaces:
+- task screens (expression subset of I[SESSION]): SearchRequirements, UpcomingRequirements
+- lists (expression subset of V[SESSION*Concept]): Countries, Organisms, ProductForms,
+  Requirements, Suppliers
+With setting frontend.menuGrouping=byType the five lists must group under one "Lists"
+menu item; the two task screens must stay top-level. With frontend.menuGrouping=none
+(default) the menu must stay a flat list. See test/regression/issue-406/test.mjs.+}
+
+REPRESENT Name TYPE ALPHANUMERIC
+
+RELATION countryName[Country*Name] [UNI]
+RELATION organismName[Organism*Name] [UNI]
+RELATION productName[Product*Name] [UNI]
+RELATION requirementName[Requirement*Name] [UNI]
+RELATION supplierName[Supplier*Name] [UNI]
+RELATION sessionQuery[SESSION*Name] [UNI]
+
+-- A role, so that sessions have an active role and menu items are visible
+-- (mirrors the hello-world test project)
+ROLE User MAINTAINS AlwaysSatisfied
+RULE AlwaysSatisfied : I[Country] |- I[Country]
+
+--[Task screens: SESSION as target concept -> stay top-level]--
+INTERFACE SearchRequirements LABEL "Search requirements" : "_SESSION"[SESSION] cRud BOX<FORM>
+    [ "Search" : sessionQuery cRUd
+    ]
+
+INTERFACE UpcomingRequirements LABEL "Upcoming requirements" : "_SESSION"[SESSION] cRud BOX<FORM>
+    [ "Query" : sessionQuery cRud
+    ]
+
+--[Lists: domain concept as target -> grouped with menuGrouping=byType]--
+INTERFACE Countries : V[SESSION*Country] cRud BOX<TABLE>
+    [ "Name" : countryName cRUd
+    ]
+
+INTERFACE Organisms : V[SESSION*Organism] cRud BOX<TABLE>
+    [ "Name" : organismName cRUd
+    ]
+
+INTERFACE ProductForms LABEL "Product forms" : V[SESSION*Product] cRud BOX<TABLE>
+    [ "Name" : productName cRUd
+    ]
+
+INTERFACE Requirements : V[SESSION*Requirement] cRud BOX<TABLE>
+    [ "Name" : requirementName cRUd
+    ]
+
+INTERFACE Suppliers : V[SESSION*Supplier] cRud BOX<TABLE>
+    [ "Name" : supplierName cRUd
+    ]
+
+POPULATION countryName CONTAINS
+    [ ("nl", "Netherlands")
+    , ("be", "Belgium")
+    ]
+
+ENDCONTEXT

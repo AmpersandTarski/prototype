@@ -1,34 +1,103 @@
-<div class="flex flex-wrap">
-    <div class="flex-2 mb-3 mr-3 min-h-full">
-        <p-card header="Upload population file(s)" styleClass="p-card-shadow">
-            <div
-                class="custom-dropzone"
-                ngx-dropzone
-                [expandable]="true"
-                (change)="onSelect($event)"
-            >
-                <ngx-dropzone-label
-                    >Drag and drop files here, or click to select files.</ngx-dropzone-label
-                >
-                <ngx-dropzone-preview
-                    class="custom-dropzone-preview"
-                    *ngFor="let file of files"
-                    [removable]="true"
-                    (removed)="onRemove(file)"
-                >
-                    <ngx-dropzone-label>{{ file.name }} ({{ file.type }})</ngx-dropzone-label>
-                </ngx-dropzone-preview>
+<h3>Import population file(s)</h3>
+
+<!-- Selected files list (queued + in-progress + done/error) -->
+<div class="file-list" *ngIf="selectedFiles.length">
+    <div class="file-row header">
+        <div class="col name">File name</div>
+        <div class="col size">Size</div>
+        <div class="col action"></div>
+    </div>
+
+    <div class="file-item" *ngFor="let item of selectedFiles">
+        <div class="file-row">
+            <div class="col name">
+                <span class="filename" [ngClass]="item.status">{{ item.name }}</span>
             </div>
-            <ng-template pTemplate="footer">
-                <p-button
-                    label="Upload"
-                    icon="pi pi-arrow-circle-up"
-                    (onClick)="uploadFiles()"
-                    [loading]="buttonState1.isLoading()"
-                    [disabled]="hasNoFiles()"
-                    [styleClass]="buttonState1.getStyleClass()"
-                ></p-button>
-            </ng-template>
-        </p-card>
+            <div class="col size">
+                <span class="filesize">{{ formatSize(item.size) }}</span>
+            </div>
+            <div class="col action">
+                <!-- Show per-item action based on status -->
+                <button
+                    *ngIf="item.status === 'uploading'"
+                    pButton
+                    type="button"
+                    icon="pi pi-times"
+                    class="p-button-danger p-button-sm square-btn"
+                    (click)="cancelItem(item)"
+                    aria-label="Cancel upload"
+                    title="cancel upload"
+                ></button>
+
+                <button
+                    *ngIf="item.status === 'error'"
+                    pButton
+                    type="button"
+                    icon="pi pi-refresh"
+                    class="p-button-text p-button-warning p-button-sm"
+                    (click)="retryItem(item)"
+                    aria-label="Retry upload"
+                    title="retry upload"
+                ></button>
+
+                <!-- Canceled: show both Retry and Clear -->
+                <button
+                    *ngIf="item.status === 'canceled'"
+                    pButton
+                    type="button"
+                    icon="pi pi-refresh"
+                    class="p-button-text p-button-warning p-button-sm"
+                    (click)="retryItem(item)"
+                    aria-label="Retry upload"
+                    title="retry upload"
+                ></button>
+                <button
+                    *ngIf="item.status === 'canceled'"
+                    pButton
+                    type="button"
+                    icon="pi pi-trash"
+                    class="p-button-danger p-button-sm square-btn"
+                    (click)="clearItem(item)"
+                    aria-label="Clear item"
+                    title="clear"
+                ></button>
+            </div>
+        </div>
+
+        <!-- Subtle full-width progress bar under each item while uploading -->
+        <div class="progress-row" *ngIf="item.status === 'uploading'">
+            <p-progressBar
+                [value]="item.progress"
+                [showValue]="false"
+                styleClass="subtle-progress"
+            ></p-progressBar>
+        </div>
+
+        <!-- Full-width error message under each item when there's an error -->
+        <div class="error-row" *ngIf="item.status === 'error' && item.errorMessage">
+            <div class="error-message">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span style="white-space: pre-wrap">{{ item.errorMessage }}</span>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- PrimeNG FileUpload -->
+<p-fileUpload
+    #uploader
+    name="file[]"
+    [multiple]="true"
+    accept="application/json, application/x-yaml, application/yaml, text/yaml, text/plain, .json, .yaml, .yml, .txt, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.oasis.opendocument.spreadsheet"
+    maxFileSize="10000000"
+    [customUpload]="true"
+    [showUploadButton]="false"
+    chooseLabel="Select files"
+    [cancelLabel]="CANCEL_ALL_LABEL"
+    [disabled]="false"
+    [styleClass]="fileUploadClasses"
+    (uploadHandler)="handleUpload($event)"
+    (onSelect)="onSelect($event)"
+    (onClear)="onClear()"
+>
+</p-fileUpload>

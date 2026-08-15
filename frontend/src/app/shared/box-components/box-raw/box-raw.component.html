@@ -1,4 +1,5 @@
-<div *ngFor="let item of data">
+<!-- filterNullish: a UNI expression without a value arrives as [null] (see Box-RAW.html) -->
+<div *ngFor="let item of filterNullish(data)">
     <ng-container
         *ngTemplateOutlet="template || defaultTemplate; context: { $implicit: item }"
     ></ng-container>

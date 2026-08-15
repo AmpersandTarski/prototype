@@ -65,7 +65,11 @@
 </ng-template>
 
 <ng-template #cRud>
-    <div *ngFor="let row of data" class="wordwrap">{{ row }}</div>
+    <!-- file:line:col positions are clickable and jump the code editor there;
+         pre-wrap keeps multi-line messages readable (handled in the component). -->
+    <div *ngFor="let row of data" class="wordwrap">
+        <app-diagnostics-text [text]="row"></app-diagnostics-text>
+    </div>
 </ng-template>
 
 <ng-template #crud>

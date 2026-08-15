@@ -1,0 +1,482 @@
+CONTEXT IFC4x3 IN ENGLISH
+-- Gefocust app-model: alleen wat de 45 imports + interfaces + ruggengraat raken.
+
+-- == Generalisaties (supertype-sluiting) ==
+CLASSIFY IfcAdvancedBrep ISA IfcManifoldSolidBrep
+CLASSIFY IfcAdvancedFace ISA IfcFaceSurface
+CLASSIFY IfcAlignment ISA IfcLinearPositioningElement
+CLASSIFY IfcAlignmentCant ISA IfcLinearElement
+CLASSIFY IfcAlignmentCantSegment ISA IfcAlignmentParameterSegment
+CLASSIFY IfcAlignmentHorizontal ISA IfcLinearElement
+CLASSIFY IfcAlignmentHorizontalSegment ISA IfcAlignmentParameterSegment
+CLASSIFY IfcAlignmentSegment ISA IfcLinearElement
+CLASSIFY IfcAlignmentVertical ISA IfcLinearElement
+CLASSIFY IfcAlignmentVerticalSegment ISA IfcAlignmentParameterSegment
+CLASSIFY IfcArbitraryClosedProfileDef ISA IfcProfileDef
+CLASSIFY IfcAxis1Placement ISA IfcPlacement
+CLASSIFY IfcAxis2Placement2D ISA IfcPlacement
+CLASSIFY IfcAxis2Placement3D ISA IfcPlacement
+CLASSIFY IfcAxis2PlacementLinear ISA IfcPlacement
+CLASSIFY IfcBSplineCurve ISA IfcBoundedCurve
+CLASSIFY IfcBSplineCurveWithKnots ISA IfcBSplineCurve
+CLASSIFY IfcBSplineSurface ISA IfcBoundedSurface
+CLASSIFY IfcBSplineSurfaceWithKnots ISA IfcBSplineSurface
+CLASSIFY IfcBeam ISA IfcBuiltElement
+CLASSIFY IfcBeamType ISA IfcBuiltElementType
+CLASSIFY IfcBlobTexture ISA IfcSurfaceTexture
+CLASSIFY IfcBlock ISA IfcCsgPrimitive3D
+CLASSIFY IfcBoilerType ISA IfcEnergyConversionDeviceType
+CLASSIFY IfcBooleanResult ISA IfcGeometricRepresentationItem
+CLASSIFY IfcBoundaryNodeCondition ISA IfcBoundaryCondition
+CLASSIFY IfcBoundedCurve ISA IfcCurve
+CLASSIFY IfcBoundedSurface ISA IfcSurface
+CLASSIFY IfcBuilding ISA IfcFacility
+CLASSIFY IfcBuildingElementProxy ISA IfcBuiltElement
+CLASSIFY IfcBuildingElementProxyType ISA IfcBuiltElementType
+CLASSIFY IfcBuildingStorey ISA IfcSpatialStructureElement
+CLASSIFY IfcBuiltElement ISA IfcElement
+CLASSIFY IfcBuiltElementType ISA IfcElementType
+CLASSIFY IfcCartesianPoint ISA IfcPoint
+CLASSIFY IfcCartesianPointList ISA IfcGeometricRepresentationItem
+CLASSIFY IfcCartesianPointList2D ISA IfcCartesianPointList
+CLASSIFY IfcCartesianPointList3D ISA IfcCartesianPointList
+CLASSIFY IfcCartesianTransformationOperator ISA IfcGeometricRepresentationItem
+CLASSIFY IfcCartesianTransformationOperator2D ISA IfcCartesianTransformationOperator
+CLASSIFY IfcCartesianTransformationOperator3D ISA IfcCartesianTransformationOperator
+CLASSIFY IfcCartesianTransformationOperator3DnonUniform ISA IfcCartesianTransformationOperator3D
+CLASSIFY IfcCircle ISA IfcConic
+CLASSIFY IfcCircleHollowProfileDef ISA IfcCircleProfileDef
+CLASSIFY IfcCircleProfileDef ISA IfcParameterizedProfileDef
+CLASSIFY IfcClosedShell ISA IfcConnectedFaceSet
+CLASSIFY IfcClothoid ISA IfcSpiral
+CLASSIFY IfcColourRgb ISA IfcColourSpecification
+CLASSIFY IfcColourRgbList ISA IfcPresentationItem
+CLASSIFY IfcColourSpecification ISA IfcPresentationItem
+CLASSIFY IfcColumn ISA IfcBuiltElement
+CLASSIFY IfcColumnType ISA IfcBuiltElementType
+CLASSIFY IfcCompositeCurve ISA IfcBoundedCurve
+CLASSIFY IfcCompositeCurveSegment ISA IfcSegment
+CLASSIFY IfcConic ISA IfcCurve
+CLASSIFY IfcConnectedFaceSet ISA IfcTopologicalRepresentationItem
+CLASSIFY IfcContext ISA IfcObjectDefinition
+CLASSIFY IfcControl ISA IfcObject
+CLASSIFY IfcConversionBasedUnit ISA IfcNamedUnit
+CLASSIFY IfcConversionBasedUnitWithOffset ISA IfcConversionBasedUnit
+CLASSIFY IfcCovering ISA IfcBuiltElement
+CLASSIFY IfcCsgPrimitive3D ISA IfcGeometricRepresentationItem
+CLASSIFY IfcCsgSolid ISA IfcSolidModel
+CLASSIFY IfcCurve ISA IfcGeometricRepresentationItem
+CLASSIFY IfcCurveSegment ISA IfcSegment
+CLASSIFY IfcDerivedProfileDef ISA IfcProfileDef
+CLASSIFY IfcDirection ISA IfcGeometricRepresentationItem
+CLASSIFY IfcDirectrixCurveSweptAreaSolid ISA IfcSweptAreaSolid
+CLASSIFY IfcDistributionElement ISA IfcElement
+CLASSIFY IfcDistributionElementType ISA IfcElementType
+CLASSIFY IfcDistributionFlowElement ISA IfcDistributionElement
+CLASSIFY IfcDistributionFlowElementType ISA IfcDistributionElementType
+CLASSIFY IfcDocumentReference ISA IfcExternalReference
+CLASSIFY IfcDoor ISA IfcBuiltElement
+CLASSIFY IfcEdge ISA IfcTopologicalRepresentationItem
+CLASSIFY IfcEdgeCurve ISA IfcEdge
+CLASSIFY IfcEdgeLoop ISA IfcLoop
+CLASSIFY IfcElement ISA IfcProduct
+CLASSIFY IfcElementAssembly ISA IfcElement
+CLASSIFY IfcElementComponent ISA IfcElement
+CLASSIFY IfcElementComponentType ISA IfcElementType
+CLASSIFY IfcElementType ISA IfcTypeProduct
+CLASSIFY IfcElementarySurface ISA IfcSurface
+CLASSIFY IfcEllipse ISA IfcConic
+CLASSIFY IfcEnergyConversionDeviceType ISA IfcDistributionFlowElementType
+CLASSIFY IfcExtendedProperties ISA IfcPropertyAbstraction
+CLASSIFY IfcExtrudedAreaSolid ISA IfcSweptAreaSolid
+CLASSIFY IfcFace ISA IfcTopologicalRepresentationItem
+CLASSIFY IfcFaceBasedSurfaceModel ISA IfcGeometricRepresentationItem
+CLASSIFY IfcFaceBound ISA IfcTopologicalRepresentationItem
+CLASSIFY IfcFaceOuterBound ISA IfcFaceBound
+CLASSIFY IfcFaceSurface ISA IfcFace
+CLASSIFY IfcFacetedBrep ISA IfcManifoldSolidBrep
+CLASSIFY IfcFacility ISA IfcSpatialStructureElement
+CLASSIFY IfcFeatureElement ISA IfcElement
+CLASSIFY IfcFeatureElementSubtraction ISA IfcFeatureElement
+CLASSIFY IfcFixedReferenceSweptAreaSolid ISA IfcDirectrixCurveSweptAreaSolid
+CLASSIFY IfcFlowTerminal ISA IfcDistributionFlowElement
+CLASSIFY IfcFlowTerminalType ISA IfcDistributionFlowElementType
+CLASSIFY IfcGeographicCRS ISA IfcCoordinateReferenceSystem
+CLASSIFY IfcGeometricCurveSet ISA IfcGeometricSet
+CLASSIFY IfcGeometricRepresentationContext ISA IfcRepresentationContext
+CLASSIFY IfcGeometricRepresentationItem ISA IfcRepresentationItem
+CLASSIFY IfcGeometricRepresentationSubContext ISA IfcGeometricRepresentationContext
+CLASSIFY IfcGeometricSet ISA IfcGeometricRepresentationItem
+CLASSIFY IfcGradientCurve ISA IfcCompositeCurve
+CLASSIFY IfcGrid ISA IfcPositioningElement
+CLASSIFY IfcGridPlacement ISA IfcObjectPlacement
+CLASSIFY IfcGroup ISA IfcObject
+CLASSIFY IfcIShapeProfileDef ISA IfcParameterizedProfileDef
+CLASSIFY IfcImageTexture ISA IfcSurfaceTexture
+CLASSIFY IfcIndexedColourMap ISA IfcPresentationItem
+CLASSIFY IfcIndexedPolyCurve ISA IfcBoundedCurve
+CLASSIFY IfcIndexedPolygonalFace ISA IfcTessellatedItem
+CLASSIFY IfcIndexedPolygonalFaceWithVoids ISA IfcIndexedPolygonalFace
+CLASSIFY IfcIndexedTextureMap ISA IfcTextureCoordinate
+CLASSIFY IfcIndexedTriangleTextureMap ISA IfcIndexedTextureMap
+CLASSIFY IfcLine ISA IfcCurve
+CLASSIFY IfcLinearElement ISA IfcProduct
+CLASSIFY IfcLinearPlacement ISA IfcObjectPlacement
+CLASSIFY IfcLinearPositioningElement ISA IfcPositioningElement
+CLASSIFY IfcLocalPlacement ISA IfcObjectPlacement
+CLASSIFY IfcLoop ISA IfcTopologicalRepresentationItem
+CLASSIFY IfcManifoldSolidBrep ISA IfcSolidModel
+CLASSIFY IfcMapConversion ISA IfcCoordinateOperation
+CLASSIFY IfcMappedItem ISA IfcRepresentationItem
+CLASSIFY IfcMaterial ISA IfcMaterialDefinition
+CLASSIFY IfcMaterialDefinitionRepresentation ISA IfcProductRepresentation
+CLASSIFY IfcMaterialLayer ISA IfcMaterialDefinition
+CLASSIFY IfcMaterialLayerSet ISA IfcMaterialDefinition
+CLASSIFY IfcMaterialLayerSetUsage ISA IfcMaterialUsageDefinition
+CLASSIFY IfcMaterialLayerWithOffsets ISA IfcMaterialLayer
+CLASSIFY IfcMaterialProfile ISA IfcMaterialDefinition
+CLASSIFY IfcMaterialProfileSet ISA IfcMaterialDefinition
+CLASSIFY IfcMaterialProfileSetUsage ISA IfcMaterialUsageDefinition
+CLASSIFY IfcMaterialProperties ISA IfcExtendedProperties
+CLASSIFY IfcObject ISA IfcObjectDefinition
+CLASSIFY IfcObjectDefinition ISA IfcRoot
+CLASSIFY IfcOpeningElement ISA IfcFeatureElementSubtraction
+CLASSIFY IfcOrientedEdge ISA IfcEdge
+CLASSIFY IfcParameterizedProfileDef ISA IfcProfileDef
+CLASSIFY IfcPixelTexture ISA IfcSurfaceTexture
+CLASSIFY IfcPlacement ISA IfcGeometricRepresentationItem
+CLASSIFY IfcPlane ISA IfcElementarySurface
+CLASSIFY IfcPoint ISA IfcGeometricRepresentationItem
+CLASSIFY IfcPointByDistanceExpression ISA IfcPoint
+CLASSIFY IfcPolyLoop ISA IfcLoop
+CLASSIFY IfcPolygonalFaceSet ISA IfcTessellatedFaceSet
+CLASSIFY IfcPolyline ISA IfcBoundedCurve
+CLASSIFY IfcPositioningElement ISA IfcProduct
+CLASSIFY IfcPostalAddress ISA IfcAddress
+CLASSIFY IfcProcess ISA IfcObject
+CLASSIFY IfcProduct ISA IfcObject
+CLASSIFY IfcProductDefinitionShape ISA IfcProductRepresentation
+CLASSIFY IfcProfileProperties ISA IfcExtendedProperties
+CLASSIFY IfcProject ISA IfcContext
+CLASSIFY IfcProjectedCRS ISA IfcCoordinateReferenceSystem
+CLASSIFY IfcProperty ISA IfcPropertyAbstraction
+CLASSIFY IfcPropertyDefinition ISA IfcRoot
+CLASSIFY IfcPropertySet ISA IfcPropertySetDefinition
+CLASSIFY IfcPropertySetDefinition ISA IfcPropertyDefinition
+CLASSIFY IfcPropertySingleValue ISA IfcSimpleProperty
+CLASSIFY IfcRailway ISA IfcFacility
+CLASSIFY IfcRectangleProfileDef ISA IfcParameterizedProfileDef
+CLASSIFY IfcReferent ISA IfcPositioningElement
+CLASSIFY IfcReinforcingBar ISA IfcReinforcingElement
+CLASSIFY IfcReinforcingBarType ISA IfcReinforcingElementType
+CLASSIFY IfcReinforcingElement ISA IfcElementComponent
+CLASSIFY IfcReinforcingElementType ISA IfcElementComponentType
+CLASSIFY IfcRelAggregates ISA IfcRelDecomposes
+CLASSIFY IfcRelAssigns ISA IfcRelationship
+CLASSIFY IfcRelAssignsToControl ISA IfcRelAssigns
+CLASSIFY IfcRelAssignsToGroup ISA IfcRelAssigns
+CLASSIFY IfcRelAssignsToProduct ISA IfcRelAssigns
+CLASSIFY IfcRelAssociates ISA IfcRelationship
+CLASSIFY IfcRelAssociatesDocument ISA IfcRelAssociates
+CLASSIFY IfcRelAssociatesMaterial ISA IfcRelAssociates
+CLASSIFY IfcRelConnects ISA IfcRelationship
+CLASSIFY IfcRelConnectsElements ISA IfcRelConnects
+CLASSIFY IfcRelConnectsPathElements ISA IfcRelConnectsElements
+CLASSIFY IfcRelConnectsStructuralActivity ISA IfcRelConnects
+CLASSIFY IfcRelConnectsStructuralMember ISA IfcRelConnects
+CLASSIFY IfcRelContainedInSpatialStructure ISA IfcRelConnects
+CLASSIFY IfcRelDeclares ISA IfcRelationship
+CLASSIFY IfcRelDecomposes ISA IfcRelationship
+CLASSIFY IfcRelDefines ISA IfcRelationship
+CLASSIFY IfcRelDefinesByProperties ISA IfcRelDefines
+CLASSIFY IfcRelDefinesByType ISA IfcRelDefines
+CLASSIFY IfcRelNests ISA IfcRelDecomposes
+CLASSIFY IfcRelPositions ISA IfcRelConnects
+CLASSIFY IfcRelSequence ISA IfcRelConnects
+CLASSIFY IfcRelVoidsElement ISA IfcRelDecomposes
+CLASSIFY IfcRelationship ISA IfcRoot
+CLASSIFY IfcRevolvedAreaSolid ISA IfcSweptAreaSolid
+CLASSIFY IfcRigidOperation ISA IfcCoordinateOperation
+CLASSIFY IfcRoundedRectangleProfileDef ISA IfcRectangleProfileDef
+CLASSIFY IfcSIUnit ISA IfcNamedUnit
+CLASSIFY IfcSanitaryTerminal ISA IfcFlowTerminal
+CLASSIFY IfcSanitaryTerminalType ISA IfcFlowTerminalType
+CLASSIFY IfcSectionedSolid ISA IfcSolidModel
+CLASSIFY IfcSectionedSolidHorizontal ISA IfcSectionedSolid
+CLASSIFY IfcSegment ISA IfcGeometricRepresentationItem
+CLASSIFY IfcSegmentedReferenceCurve ISA IfcCompositeCurve
+CLASSIFY IfcShapeModel ISA IfcRepresentation
+CLASSIFY IfcShapeRepresentation ISA IfcShapeModel
+CLASSIFY IfcSignal ISA IfcFlowTerminal
+CLASSIFY IfcSignalType ISA IfcFlowTerminalType
+CLASSIFY IfcSimpleProperty ISA IfcProperty
+CLASSIFY IfcSite ISA IfcSpatialStructureElement
+CLASSIFY IfcSlab ISA IfcBuiltElement
+CLASSIFY IfcSlabType ISA IfcBuiltElementType
+CLASSIFY IfcSolidModel ISA IfcGeometricRepresentationItem
+CLASSIFY IfcSpace ISA IfcSpatialStructureElement
+CLASSIFY IfcSpatialElement ISA IfcProduct
+CLASSIFY IfcSpatialStructureElement ISA IfcSpatialElement
+CLASSIFY IfcSpiral ISA IfcCurve
+CLASSIFY IfcStructuralAction ISA IfcStructuralActivity
+CLASSIFY IfcStructuralActivity ISA IfcProduct
+CLASSIFY IfcStructuralAnalysisModel ISA IfcSystem
+CLASSIFY IfcStructuralConnection ISA IfcStructuralItem
+CLASSIFY IfcStructuralCurveAction ISA IfcStructuralAction
+CLASSIFY IfcStructuralCurveMember ISA IfcStructuralMember
+CLASSIFY IfcStructuralCurveReaction ISA IfcStructuralReaction
+CLASSIFY IfcStructuralItem ISA IfcProduct
+CLASSIFY IfcStructuralLoadCase ISA IfcStructuralLoadGroup
+CLASSIFY IfcStructuralLoadConfiguration ISA IfcStructuralLoad
+CLASSIFY IfcStructuralLoadGroup ISA IfcGroup
+CLASSIFY IfcStructuralLoadLinearForce ISA IfcStructuralLoadStatic
+CLASSIFY IfcStructuralLoadOrResult ISA IfcStructuralLoad
+CLASSIFY IfcStructuralLoadSingleDisplacement ISA IfcStructuralLoadStatic
+CLASSIFY IfcStructuralLoadSingleForce ISA IfcStructuralLoadStatic
+CLASSIFY IfcStructuralLoadStatic ISA IfcStructuralLoadOrResult
+CLASSIFY IfcStructuralMember ISA IfcStructuralItem
+CLASSIFY IfcStructuralPointConnection ISA IfcStructuralConnection
+CLASSIFY IfcStructuralPointReaction ISA IfcStructuralReaction
+CLASSIFY IfcStructuralReaction ISA IfcStructuralActivity
+CLASSIFY IfcStructuralResultGroup ISA IfcGroup
+CLASSIFY IfcStyleModel ISA IfcRepresentation
+CLASSIFY IfcStyledItem ISA IfcRepresentationItem
+CLASSIFY IfcStyledRepresentation ISA IfcStyleModel
+CLASSIFY IfcSurface ISA IfcGeometricRepresentationItem
+CLASSIFY IfcSurfaceStyle ISA IfcPresentationStyle
+CLASSIFY IfcSurfaceStyleRendering ISA IfcSurfaceStyleShading
+CLASSIFY IfcSurfaceStyleShading ISA IfcPresentationItem
+CLASSIFY IfcSurfaceStyleWithTextures ISA IfcPresentationItem
+CLASSIFY IfcSurfaceTexture ISA IfcPresentationItem
+CLASSIFY IfcSweptAreaSolid ISA IfcSolidModel
+CLASSIFY IfcSweptDiskSolid ISA IfcSolidModel
+CLASSIFY IfcSystem ISA IfcGroup
+CLASSIFY IfcTShapeProfileDef ISA IfcParameterizedProfileDef
+CLASSIFY IfcTask ISA IfcProcess
+CLASSIFY IfcTaskTime ISA IfcSchedulingTime
+CLASSIFY IfcTessellatedFaceSet ISA IfcTessellatedItem
+CLASSIFY IfcTessellatedItem ISA IfcGeometricRepresentationItem
+CLASSIFY IfcTextureCoordinate ISA IfcPresentationItem
+CLASSIFY IfcTextureVertexList ISA IfcPresentationItem
+CLASSIFY IfcTopologicalRepresentationItem ISA IfcRepresentationItem
+CLASSIFY IfcTopologyRepresentation ISA IfcShapeModel
+CLASSIFY IfcTriangulatedFaceSet ISA IfcTessellatedFaceSet
+CLASSIFY IfcTrimmedCurve ISA IfcBoundedCurve
+CLASSIFY IfcTypeObject ISA IfcObjectDefinition
+CLASSIFY IfcTypeProduct ISA IfcTypeObject
+CLASSIFY IfcVector ISA IfcGeometricRepresentationItem
+CLASSIFY IfcVertex ISA IfcTopologicalRepresentationItem
+CLASSIFY IfcVertexPoint ISA IfcVertex
+CLASSIFY IfcWall ISA IfcBuiltElement
+CLASSIFY IfcWallType ISA IfcBuiltElementType
+CLASSIFY IfcWindow ISA IfcBuiltElement
+CLASSIFY IfcWorkCalendar ISA IfcControl
+CLASSIFY IfcWorkControl ISA IfcControl
+CLASSIFY IfcWorkPlan ISA IfcWorkControl
+CLASSIFY IfcWorkSchedule ISA IfcWorkControl
+CLASSIFY IfcWorkTime ISA IfcSchedulingTime
+
+-- == Relaties (met multipliciteiten uit IFC-data.adl) ==
+RELATION actionSource[IfcStructuralLoadGroup*IfcActionSourceTypeEnum] [UNI,TOT]
+RELATION actionType[IfcStructuralLoadGroup*IfcActionTypeEnum] [UNI,TOT]
+RELATION addressLines[IfcPostalAddress*IfcLabel]
+RELATION amountOfSubstanceExponent[IfcDimensionalExponents*IfcRawInteger] [UNI,TOT]
+RELATION angleUnit[IfcGeographicCRS*IfcNamedUnit] [UNI]
+RELATION applicationDeveloper[IfcApplication*IfcOrganization] [UNI,TOT]
+RELATION applicationFullName[IfcApplication*IfcLabel] [UNI,TOT]
+RELATION applicationIdentifier[IfcApplication*IfcIdentifier] [UNI,TOT]
+RELATION assemblyPlace[IfcElementAssembly*IfcAssemblyPlaceEnum] [UNI]
+RELATION axisTag[IfcGridAxis*IfcLabel] [UNI]
+RELATION axis[IfcAxis1Placement*IfcDirection] [UNI]
+RELATION axis[IfcAxis2Placement3D*IfcDirection] [UNI]
+RELATION buildingAddress[IfcBuilding*IfcPostalAddress] [UNI]
+RELATION cardinalPoint[IfcMaterialProfileSetUsage*IfcCardinalPointReference] [UNI]
+RELATION category[IfcMaterial*IfcLabel] [UNI]
+RELATION changeAction[IfcOwnerHistory*IfcChangeActionEnum] [UNI]
+RELATION coefficient[IfcStructuralLoadGroup*IfcRatioMeasure] [UNI]
+RELATION compositionType[IfcSpatialStructureElement*IfcElementCompositionEnum] [UNI]
+RELATION contextIdentifier[IfcRepresentationContext*IfcLabel] [UNI]
+RELATION contextType[IfcRepresentationContext*IfcLabel] [UNI]
+RELATION conversionFactor[IfcConversionBasedUnit*IfcMeasureWithUnit] [UNI,TOT]
+RELATION conversionOffset[IfcConversionBasedUnitWithOffset*IfcReal] [UNI,TOT]
+RELATION coordinateSpaceDimension[IfcGeometricRepresentationContext*IfcDimensionCount] [UNI]
+RELATION coordinates[IfcCartesianPoint*IfcLengthMeasure] [TOT]
+RELATION country[IfcPostalAddress*IfcLabel] [UNI]
+RELATION creationDate[IfcOwnerHistory*IfcTimeStamp] [UNI,TOT]
+RELATION currency[IfcMonetaryUnit*IfcLabel] [UNI,TOT]
+RELATION description[IfcCoordinateReferenceSystem*IfcText] [UNI]
+RELATION description[IfcMaterial*IfcText] [UNI]
+RELATION description[IfcMaterialLayer*IfcText] [UNI]
+RELATION description[IfcMaterialLayerSet*IfcText] [UNI]
+RELATION description[IfcRoot*IfcText] [UNI]
+RELATION dimensions[IfcNamedUnit*IfcDimensionalExponents] [UNI]
+RELATION directionRatios[IfcDirection*IfcReal] [TOT]
+RELATION directionSense[IfcMaterialLayerSetUsage*IfcDirectionSenseEnum] [UNI,TOT]
+RELATION eastings[IfcMapConversion*IfcLengthMeasure] [UNI,TOT]
+RELATION electricCurrentExponent[IfcDimensionalExponents*IfcRawInteger] [UNI,TOT]
+RELATION elements[IfcDerivedUnit*IfcDerivedUnitElement] [TOT]
+RELATION elevationOfRefHeight[IfcBuilding*IfcLengthMeasure] [UNI]
+RELATION elevationOfTerrain[IfcBuilding*IfcLengthMeasure] [UNI]
+RELATION elevationWithFlooring[IfcSpace*IfcLengthMeasure] [UNI]
+RELATION elevation[IfcBuildingStorey*IfcLengthMeasure] [UNI]
+RELATION endTime[IfcTimePeriod*IfcTime] [UNI,TOT]
+RELATION exponent[IfcDerivedUnitElement*IfcRawInteger] [UNI,TOT]
+RELATION familyName[IfcPerson*IfcLabel] [UNI]
+RELATION firstCoordinate[IfcRigidOperation*IfcMeasureValue] [UNI,TOT]
+RELATION forLayerSet[IfcMaterialLayerSetUsage*IfcMaterialLayerSet] [UNI,TOT]
+RELATION forProfileSet[IfcMaterialProfileSetUsage*IfcMaterialProfileSet] [UNI,TOT]
+RELATION geodeticDatum[IfcCoordinateReferenceSystem*IfcIdentifier] [UNI]
+RELATION givenName[IfcPerson*IfcLabel] [UNI]
+RELATION globalId[IfcRoot*IfcGloballyUniqueId] [UNI,TOT]
+RELATION hasProperties[IfcPropertySet*IfcProperty] [TOT]
+RELATION hasResults[IfcStructuralAnalysisModel*IfcStructuralResultGroup] [INJ]
+RELATION heightUnit[IfcGeographicCRS*IfcNamedUnit] [UNI]
+RELATION height[IfcRigidOperation*IfcLengthMeasure] [UNI]
+RELATION identification[IfcExternalReference*IfcIdentifier] [UNI]
+RELATION identification[IfcPerson*IfcIdentifier] [UNI]
+RELATION intersectingAxes[IfcVirtualGridIntersection*IfcGridAxis] [TOT]
+RELATION isLinear[IfcStructuralResultGroup*IfcBoolean] [UNI,TOT]
+RELATION isVentilated[IfcMaterialLayer*IfcLogical] [UNI]
+RELATION landTitleNumber[IfcSite*IfcLabel] [UNI]
+RELATION lastModifiedDate[IfcOwnerHistory*IfcTimeStamp] [UNI]
+RELATION layerSetDirection[IfcMaterialLayerSetUsage*IfcLayerSetDirectionEnum] [UNI,TOT]
+RELATION layerSetName[IfcMaterialLayerSet*IfcLabel] [UNI]
+RELATION layerThickness[IfcMaterialLayer*IfcNonNegativeLengthMeasure] [UNI,TOT]
+RELATION lengthExponent[IfcDimensionalExponents*IfcRawInteger] [UNI,TOT]
+RELATION loadedBy[IfcStructuralAnalysisModel*IfcStructuralLoadGroup]
+RELATION location[IfcPlacement*IfcPoint] [UNI,TOT]
+RELATION longName[IfcContext*IfcLabel] [UNI]
+RELATION longName[IfcSpatialElement*IfcLabel] [UNI]
+RELATION luminousIntensityExponent[IfcDimensionalExponents*IfcRawInteger] [UNI,TOT]
+RELATION mapProjection[IfcProjectedCRS*IfcIdentifier] [UNI]
+RELATION mapUnit[IfcProjectedCRS*IfcNamedUnit] [UNI]
+RELATION mapZone[IfcProjectedCRS*IfcIdentifier] [UNI]
+RELATION mappingOrigin[IfcRepresentationMap*IfcAxis2Placement] [UNI,TOT]
+RELATION massExponent[IfcDimensionalExponents*IfcRawInteger] [UNI,TOT]
+RELATION materialLayers[IfcMaterialLayerSet*IfcMaterialLayer] [INJ,SUR,TOT]
+RELATION materialProfiles[IfcMaterialProfileSet*IfcMaterialProfile] [INJ,SUR,TOT]
+RELATION material[IfcMaterialLayer*IfcMaterial] [UNI]
+RELATION material[IfcMaterialProfile*IfcMaterial] [UNI]
+RELATION material[IfcMaterialProperties*IfcMaterialDefinition] [UNI,TOT]
+RELATION name[IfcConversionBasedUnit*IfcLabel] [UNI,TOT]
+RELATION name[IfcCoordinateReferenceSystem*IfcLabel] [UNI]
+RELATION name[IfcDerivedUnit*IfcLabel] [UNI]
+RELATION name[IfcExtendedProperties*IfcIdentifier] [UNI]
+RELATION name[IfcExternalReference*IfcLabel] [UNI]
+RELATION name[IfcMaterial*IfcLabel] [UNI,TOT]
+RELATION name[IfcMaterialLayer*IfcLabel] [UNI]
+RELATION name[IfcMaterialProfile*IfcLabel] [UNI]
+RELATION name[IfcMaterialProfileSet*IfcLabel] [UNI]
+RELATION name[IfcOrganization*IfcLabel] [UNI,TOT]
+RELATION name[IfcProperty*IfcIdentifier] [UNI,TOT]
+RELATION name[IfcRoot*IfcLabel] [UNI]
+RELATION name[IfcSIUnit*IfcSIUnitName] [UNI,TOT]
+RELATION nominalValue[IfcPropertySingleValue*IfcValue] [UNI]
+RELATION northings[IfcMapConversion*IfcLengthMeasure] [UNI,TOT]
+RELATION objectPlacement[IfcProduct*IfcObjectPlacement] [UNI]
+RELATION objectType[IfcContext*IfcLabel] [UNI]
+RELATION objectType[IfcObject*IfcLabel] [UNI]
+RELATION offsetDirection[IfcMaterialLayerWithOffsets*IfcLayerSetDirectionEnum] [UNI,TOT]
+RELATION offsetDistances[IfcVirtualGridIntersection*IfcLengthMeasure] [TOT]
+RELATION offsetFromReferenceLine[IfcMaterialLayerSetUsage*IfcLengthMeasure] [UNI,TOT]
+RELATION offsetValues[IfcMaterialLayerWithOffsets*IfcLengthMeasure] [TOT]
+RELATION orientationOf2DPlane[IfcStructuralAnalysisModel*IfcAxis2Placement3D] [UNI]
+RELATION orthogonalHeight[IfcMapConversion*IfcLengthMeasure] [UNI,TOT]
+RELATION ownerHistory[IfcRoot*IfcOwnerHistory] [UNI]
+RELATION owningApplication[IfcOwnerHistory*IfcApplication] [UNI,TOT]
+RELATION owningUser[IfcOwnerHistory*IfcPersonAndOrganization] [UNI,TOT]
+RELATION parentContext[IfcGeometricRepresentationSubContext*IfcGeometricRepresentationContext] [UNI,TOT]
+RELATION phase[IfcContext*IfcLabel] [UNI]
+RELATION placementLocation[IfcGridPlacement*IfcVirtualGridIntersection] [UNI,TOT]
+RELATION placementRelTo[IfcObjectPlacement*IfcObjectPlacement] [UNI]
+RELATION postalCode[IfcPostalAddress*IfcLabel] [UNI]
+RELATION precision[IfcGeometricRepresentationContext*IfcReal] [UNI]
+RELATION predefinedType[IfcBeam*IfcBeamTypeEnum] [UNI]
+RELATION predefinedType[IfcBuildingElementProxy*IfcBuildingElementProxyTypeEnum] [UNI]
+RELATION predefinedType[IfcColumn*IfcColumnTypeEnum] [UNI]
+RELATION predefinedType[IfcCovering*IfcCoveringTypeEnum] [UNI]
+RELATION predefinedType[IfcDoor*IfcDoorTypeEnum] [UNI]
+RELATION predefinedType[IfcElementAssembly*IfcElementAssemblyTypeEnum] [UNI]
+RELATION predefinedType[IfcOpeningElement*IfcOpeningElementTypeEnum] [UNI]
+RELATION predefinedType[IfcRailway*IfcRailwayTypeEnum] [UNI]
+RELATION predefinedType[IfcSlab*IfcSlabTypeEnum] [UNI]
+RELATION predefinedType[IfcSpace*IfcSpaceTypeEnum] [UNI]
+RELATION predefinedType[IfcStructuralAnalysisModel*IfcAnalysisModelTypeEnum] [UNI,TOT]
+RELATION predefinedType[IfcStructuralLoadGroup*IfcLoadGroupTypeEnum] [UNI,TOT]
+RELATION predefinedType[IfcWall*IfcWallTypeEnum] [UNI]
+RELATION predefinedType[IfcWindow*IfcWindowTypeEnum] [UNI]
+RELATION prefix[IfcSIUnit*IfcSIPrefix] [UNI]
+RELATION primeMeridian[IfcGeographicCRS*IfcIdentifier] [UNI]
+RELATION priority[IfcMaterialProfile*IfcInteger] [UNI]
+RELATION properties[IfcExtendedProperties*IfcProperty] [TOT]
+RELATION recurrenceType[IfcRecurrencePattern*IfcRecurrenceTypeEnum] [UNI,TOT]
+RELATION refDirection[IfcAxis2Placement2D*IfcDirection] [UNI]
+RELATION refDirection[IfcAxis2Placement3D*IfcDirection] [UNI]
+RELATION refElevation[IfcSite*IfcLengthMeasure] [UNI]
+RELATION refLatitude[IfcSite*IfcCompoundPlaneAngleMeasure] [UNI]
+RELATION refLongitude[IfcSite*IfcCompoundPlaneAngleMeasure] [UNI]
+RELATION relatedConnectionType[IfcRelConnectsPathElements*IfcConnectionTypeEnum] [UNI,TOT]
+RELATION relatedDefinitions[IfcRelDeclares*IfcDefinitionSelect] [TOT]
+RELATION relatedElement[IfcRelConnectsElements*IfcElement] [UNI,TOT]
+RELATION relatedElements[IfcRelContainedInSpatialStructure*IfcProduct] [TOT]
+RELATION relatedObjects[IfcRelAggregates*IfcObjectDefinition] [INJ,TOT]
+RELATION relatedObjects[IfcRelAssigns*IfcObjectDefinition] [TOT]
+RELATION relatedObjects[IfcRelAssociates*IfcDefinitionSelect] [TOT]
+RELATION relatedObjects[IfcRelDefinesByProperties*IfcObjectDefinition] [TOT]
+RELATION relatedObjects[IfcRelDefinesByType*IfcObject] [INJ,TOT]
+RELATION relatedObjects[IfcRelNests*IfcObjectDefinition] [INJ,TOT]
+RELATION relatedOpeningElement[IfcRelVoidsElement*IfcFeatureElementSubtraction] [UNI,INJ,SUR,TOT]
+RELATION relatedProducts[IfcRelPositions*IfcProduct] [TOT]
+RELATION relatingBuildingElement[IfcRelVoidsElement*IfcElement] [UNI,TOT]
+RELATION relatingConnectionType[IfcRelConnectsPathElements*IfcConnectionTypeEnum] [UNI,TOT]
+RELATION relatingContext[IfcRelDeclares*IfcContext] [UNI,TOT]
+RELATION relatingDocument[IfcRelAssociatesDocument*IfcDocumentSelect] [UNI,TOT]
+RELATION relatingElement[IfcRelConnectsElements*IfcElement] [UNI,TOT]
+RELATION relatingElement[IfcRelConnectsStructuralActivity*IfcStructuralActivityAssignmentSelect] [UNI,TOT]
+RELATION relatingGroup[IfcRelAssignsToGroup*IfcGroup] [UNI,TOT]
+RELATION relatingMaterial[IfcRelAssociatesMaterial*IfcMaterialSelect] [UNI,TOT]
+RELATION relatingObject[IfcRelAggregates*IfcObjectDefinition] [UNI,TOT]
+RELATION relatingObject[IfcRelNests*IfcObjectDefinition] [UNI,TOT]
+RELATION relatingProduct[IfcRelAssignsToProduct*IfcProductSelect] [UNI,TOT]
+RELATION relatingPropertyDefinition[IfcRelDefinesByProperties*IfcPropertySetDefinitionSelect] [UNI,TOT]
+RELATION relatingStructure[IfcRelContainedInSpatialStructure*IfcSpatialElement] [UNI,TOT]
+RELATION relatingType[IfcRelDefinesByType*IfcTypeObject] [UNI,INJ,TOT]
+RELATION relativePlacement[IfcLocalPlacement*IfcAxis2Placement] [UNI,TOT]
+RELATION representationContexts[IfcContext*IfcRepresentationContext]
+RELATION representationMaps[IfcTypeProduct*IfcRepresentationMap]
+RELATION resultForLoadGroup[IfcStructuralResultGroup*IfcStructuralLoadGroup] [UNI,INJ]
+RELATION sameSense[IfcGridAxis*IfcBoolean] [UNI,TOT]
+RELATION scale[IfcMapConversion*IfcReal] [UNI]
+RELATION secondCoordinate[IfcRigidOperation*IfcMeasureValue] [UNI,TOT]
+RELATION selfWeightCoefficients[IfcStructuralLoadCase*IfcRatioMeasure]
+RELATION sequenceType[IfcRelSequence*IfcSequenceEnum] [UNI]
+RELATION sharedPlacement[IfcStructuralAnalysisModel*IfcObjectPlacement] [UNI]
+RELATION sourceCRS[IfcCoordinateOperation*IfcCoordinateReferenceSystemSelect] [UNI,TOT]
+RELATION startTime[IfcTimePeriod*IfcTime] [UNI,TOT]
+RELATION state[IfcOwnerHistory*IfcStateEnum] [UNI]
+RELATION tag[IfcElement*IfcIdentifier] [UNI]
+RELATION targetCRS[IfcCoordinateOperation*IfcCoordinateReferenceSystem] [UNI,TOT]
+RELATION targetView[IfcGeometricRepresentationSubContext*IfcGeometricProjectionEnum] [UNI,TOT]
+RELATION theOrganization[IfcPersonAndOrganization*IfcOrganization] [UNI,TOT]
+RELATION thePerson[IfcPersonAndOrganization*IfcPerson] [UNI,TOT]
+RELATION theoryType[IfcStructuralResultGroup*IfcAnalysisTheoryTypeEnum] [UNI,TOT]
+RELATION thermodynamicTemperatureExponent[IfcDimensionalExponents*IfcRawInteger] [UNI,TOT]
+RELATION timeExponent[IfcDimensionalExponents*IfcRawInteger] [UNI,TOT]
+RELATION timePeriods[IfcRecurrencePattern*IfcTimePeriod]
+RELATION town[IfcPostalAddress*IfcLabel] [UNI]
+RELATION trueNorth[IfcGeometricRepresentationContext*IfcDirection] [UNI]
+RELATION unitComponent[IfcMeasureWithUnit*IfcUnit] [UNI,TOT]
+RELATION unitType[IfcDerivedUnit*IfcDerivedUnitEnum] [UNI,TOT]
+RELATION unitType[IfcNamedUnit*IfcUnitEnum] [UNI,TOT]
+RELATION unit[IfcDerivedUnitElement*IfcNamedUnit] [UNI,TOT]
+RELATION unitsInContext[IfcContext*IfcUnitAssignment] [UNI]
+RELATION units[IfcUnitAssignment*IfcUnit] [TOT]
+RELATION valueComponent[IfcMeasureWithUnit*IfcValue] [UNI,TOT]
+RELATION version[IfcApplication*IfcLabel] [UNI,TOT]
+RELATION verticalDatum[IfcProjectedCRS*IfcIdentifier] [UNI]
+RELATION weekdayComponent[IfcRecurrencePattern*IfcDayInWeekNumber]
+RELATION worldCoordinateSystem[IfcGeometricRepresentationContext*IfcAxis2Placement] [UNI]
+RELATION xAxisAbscissa[IfcMapConversion*IfcReal] [UNI]
+RELATION xAxisOrdinate[IfcMapConversion*IfcReal] [UNI]
+
+ENDCONTEXT

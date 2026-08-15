@@ -3,6 +3,9 @@ import { Notifications } from './notifications.interface';
 
 type ErrorCode = number;
 
+// Utility type to represent stringified JSON
+type Stringified<T> = string;
+
 export type HttpBackendErrorResponse = Omit<HttpErrorResponse, 'error'> & {
   error: BackendErrorResponse;
 };

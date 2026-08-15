@@ -1,4 +1,5 @@
 # Changelog
+
 We use [Semantic Versioning (https://semver.org/)](https://semver.org/)
 
 Given a version number MAJOR.MINOR.PATCH, increment the:
@@ -9,36 +10,460 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased changes
-* [Issue 156](https://github.com/AmpersandTarski/prototype/issues/156) Adapt to introduced namespace in ADL
-  * This is a breaking change. Requires version update to v2.x
-  * It affects names and labels of all artefacts (concepts, relations, interfaces, rules, views, etc)
-  * It affects metadata from PrototypeContext. Be sure to update those when used in application extensions or running environments
+## v2.6.0 (14 August 2026)
+
+* **A model compiled with Ampersand v5.9.4 or later now boots.** Since compiler
+  v5.9.4 a concept gets a SQL table only when it stores relations or some
+  generated query enumerates it; other concepts arrive with `conceptTable: null`.
+  The framework only accepted that for `ONE` and refused to load the model for
+  every other concept. A concept without a table now behaves like `ONE`: model
+  load accepts it, the atom-level operations skip the table writes, and its
+  population reads as empty — which is exact, because by the compiler's own
+  criterion no generated query reads such a concept's population.
+
+* **The bundled Ampersand compiler moves to v5.9.7.** This compiler carries the new
+  `ampersand incremental-bench` command and the releases up to v5.9.7 (see the
+  [Ampersand release notes](https://github.com/AmpersandTarski/Ampersand/blob/main/ReleaseNotes.md)).
+  The framework's compiler constraint (`>=5.9.2 <6.0.0`) is unchanged, so prototypes built
+  with any compiler from v5.9.2 onwards keep working.
+
+* **Bulk-load mode: a population import of n records now runs in O(n) instead of O(n²).**
+  Importing record-by-record used to re-evaluate the affected invariants with a
+  full-population query on every record, so record k paid a pass over ~k rows. A resource
+  `POST` with `?defer=true` commits each record without evaluating conjuncts; the caller
+  runs one validation pass afterwards (`GET /admin/ruleengine/evaluate/all`). A dry run
+  never defers, because its purpose is to check invariants. During a bulk load, data is
+  committed durably before the final validation, so a failing invariant is reported rather
+  than rolled back (see DesignChoices OK-07). Measured on a 400-chunk import: baseline
+  per-chunk time rises 15s→30s, defer mode stays flat.
+
+* **Population import now reads YAML as well as JSON, and recognizes the format from the
+  file content.** Uploading a population no longer depends on the file extension: the
+  importer inspects the content, so a JSON or YAML population imports whether it is named
+  `.json`, `.yaml`, `.txt` or has no extension at all. YAML is offered as a human-friendlier
+  authoring format (comments, no mandatory quotes and commas). It is transcoded to JSON and
+  imported by the very same importer as JSON, so the two formats behave identically — neither
+  accepts what the other rejects. Excel (`.xls`/`.xlsx`/`.ods`) import is unchanged. Tests:
+  `test/projects/import/`. Resolves AmpersandTarski/ampersand#1673.
+
+* **Uploading a file that is not a population now reports a clear error instead of a false
+  success.** A JSON or YAML document without an `atoms` or `links` key (e.g. an unrelated YAML
+  file) used to "import successfully" while changing nothing. It is now rejected with
+  `Invalid population file: expected an 'atoms' and/or 'links' key`, matching how the Ampersand
+  compiler rejects such a file at compile time. A well-formed but empty population
+  (`{"atoms":[],"links":[]}`) still imports.
+
+## v2.5.2 (16 July 2026)
+
+* **Search results now respect the session's read rights.** `GET /api/v1/search`
+  returned every matching atom together with the stored value that matched, without
+  checking whether the session may read it. A session holding no role at all (not
+  logged in) received those values. A concept is now only searched when the session
+  has at least one interface to open it in — the criterion the module already applied
+  when presenting the interfaces per result. Prototypes that keep data behind
+  role-restricted interfaces are advised to upgrade to this release. Tests:
+  `test/search-guard/`.
+
+* **`I[SESSION]` now only contains live sessions.** Expired session atoms used to
+  accumulate until an admin manually called `/admin/sessions/delete/expired`. The
+  framework now garbage collects them whenever a new session starts, so at any
+  moment `I[SESSION]` holds only sessions that were active within
+  `session.expirationTime`. Safe under concurrent requests (advisory lock,
+  idempotent atom delete, per-atom commits); the admin endpoint remains available
+  for manual cleanup. Concurrency tests: `test/session-gc/`.
+
+## v2.5.1 (15 July 2026)
+
+* **A login no longer silently degrades to an anonymous session.** At app startup
+  several API requests left in parallel before the browser held a session cookie;
+  the backend answered each with its own fresh session, and whichever response
+  arrived last won the browser's cookie jar. A straggler arriving after login
+  (e.g. delayed behind a long login commit) replaced the logged-in session with an
+  anonymous one, after which every request returned 401. The frontend now
+  serializes the very first backend request, so the session cookie is established
+  before any other request goes out (`SessionBootstrapInterceptor`).
+* **Variable fonts load again (no 500 on `*.var.*.woff2`).** Apache's mime module
+  treats ".var" anywhere in a filename as a type map, breaking the Inter variable
+  font that ships with the theme since v2.5.0. Both the production image
+  (`apache-conf/.htaccess`) and the dev image (`docker/apache/000-default.conf`)
+  now remove that handler, so downstream projects can drop their own workaround.
+* **Sortable tables sort again, without red error toasts.** Every render of a
+  `BOX<TABLE sortable>` raised "can't access property tableService, this.dt is
+  undefined" and clicking a column header could not sort: the header cells live in
+  a template outside the p-table, where PrimeNG's sort directives cannot reach the
+  table. The framework now ships its own sort directives that can
+  (`appSortableColumn`/`app-sort-icon`; regression vehicle: `test/projects/box-annotations`,
+  interface "Categories (sortable)").
+* **An empty field no longer crashes PROPBUTTON and RAW boxes.** A UNI expression
+  without a value arrives as `null`; the page raised "can't access property label,
+  t is null" and stopped rendering the rest of the form. Such fields now simply
+  render nothing (regression vehicle: `test/projects/propbutton-unit-test`).
+
+## v2.5.0 (14 July 2026)
+
+* **Ships with Ampersand compiler v5.9.3.** This compiler release changes only its
+  own build and test infrastructure; generated prototypes are identical to v5.9.2.
+  The compatibility constraint stays `>=5.9.2`.
+* **The navigation menu scales beyond a handful of interfaces** (issue
+  [#406](https://github.com/AmpersandTarski/prototype/issues/406)). Menu structure is
+  presentation, not semantics, so the framework offers structure without any change
+  to the model:
+  * With the new setting `frontend.menuGrouping: byType`, the installer groups list
+    interfaces (expression ⊆ `V[SESSION*Concept]`) into one submenu (label via
+    `frontend.menuGroupingLabel`, default "Lists"); task screens (expression ⊆
+    `I[SESSION]`) stay top-level. Default `none` keeps the flat menu.
+  * The new setting `frontend.menuMode: horizontal` renders the menu as a horizontal
+    bar with dropdown submenus; items that do not fit move into a "More" dropdown, so
+    every item stays reachable at any viewport width. Below the desktop breakpoint the
+    bar falls back to the existing mobile drawer.
+  * Reinstalling the navigation menu now first clears the old population: reinstalls
+    are idempotent and leave no stale items (manual menu edits are therefore
+    re-applied from the default on reinstall — override via population instead).
+  * The frontend menu builder attaches submenu containers to their parent (they used
+    to render as stray root sections), searches parents recursively and orders items
+    by `seqNr`.
+
+## v2.4.8 (13 July 2026)
+
+* **A TRANSACTIONAL interface pulled in as a subinterface reference now brings its
+  SAVE/CANCEL bar along.** The compiler inlines a referenced interface
+  (`"label" : <expr> INTERFACE <name>`) into the referring interface's template, so
+  the referenced interface's component never instantiated and its bar, border and
+  buffering were lost — the login fields of a wrapped `TRANSACTIONAL INTERFACE
+  Aanmelden` rendered inline and committed directly. The framework now detects such
+  references via `interfaces.json` (`refSubInterfaceName` + `isTransactional`): the
+  inlined subtree gets its accent border and SAVE/CANCEL bar, and edits inside it are
+  buffered until SAVE (or a PROPBUTTON click) commits them as one transaction. Edits
+  outside the subtree stay direct. (Frontend-only; compiler stays v5.9.2.)
+
+## v2.4.7 (13 July 2026)
+
+* **The transaction bar no longer shows the resource label.** The bar in the accent
+  border of a transactional interface read "Editing 1[SESSION]" (the raw
+  `id[Concept]` fallback of the interface's root resource), which leaked a
+  technical identifier into the UI. It now reads just "Editing" (clean) or
+  "Unsaved changes" (dirty). (Frontend-only; compiler stays v5.9.2.)
+
+## v2.4.6 (12 July 2026)
+
+* **No more spurious "You do not have access to this page" toast on editable text
+  fields.** Every editable `ALPHANUMERIC` field asked the backend to list its concept
+  (`GET resource/<concept>`) for autocomplete/validation, but scalar concepts are
+  deliberately not listable, so the request always returned 403 and popped an
+  access-denied toast on each such field. The atom editor no longer issues that doomed
+  request; input is validated by the backend as before. (Frontend-only; compiler stays
+  v5.9.2.)
+
+## v2.4.5 (12 July 2026)
+
+* **The SAVE/CANCEL controls of a transactional interface now live in the accent
+  border of the (sub-)interface the transaction applies to**, as a footer inside the
+  blue box, instead of a global bar at the bottom of the window. **CANCEL is shown
+  only while there are buffered edits to roll back**; when the interface just shows
+  committed database content there is nothing to cancel, so the button is hidden.
+  SAVE stays visible (disabled while an invariant is violated).
+* **Bundled Ampersand compiler upgraded to v5.9.2.** This fixes two compiler issues
+  in the "Any"-role model: (1) a normaliser bug that made `sessionAllowedRoles` the
+  full `SESSION*Role` cartesian, so a login-enabled prototype granted every session
+  every role — now a session only gets its IAM roles plus Anonymous; (2) role-less
+  interfaces (coupled to the `"Any"` wildcard) now also appear in the navigation
+  menu for authenticated sessions, not only reachable by URL. The supported range in
+  `backend/generics/compiler-version.txt` moves to `>=5.9.2 <6.0.0`; the image
+  reference is bumped in `Dockerfile`, `dev.Dockerfile`, the frontend-tests workflow
+  and the docs.
+
+## v2.4.4 (9 July 2026)
+
+* **An interface without a `FOR`-clause is reachable again under the new "Any"-role
+  access model.** Ampersand v5.9.1 delivers a role-less interface coupled to the single
+  role `"Any"` (instead of expanding it to every role). Access is granted per active
+  role, so such an interface would otherwise match no concrete session role and return
+  403 for everyone. The runtime now treats `"Any"` as a wildcard: any **authenticated**
+  active role reaches the role-less interfaces, but the **Anonymous** (no-user) role does
+  not — a userless session still only reaches interfaces explicitly `FOR Anonymous` (e.g.
+  the login/landing page). `"Any"` is never a role a session can hold or activate: it is
+  excluded from the login-disabled role set and hidden from the role picker.
+* **Bundled Ampersand compiler upgraded to v5.9.1**, the first compiler that emits the
+  "Any"-role contract (the `"Any"` role atom and role-less interfaces coupled to `"Any"`).
+  The supported range in `backend/generics/compiler-version.txt` moves to `>=5.9.1
+  <6.0.0`; the image reference is bumped in `Dockerfile`, `dev.Dockerfile`, the
+  frontend-tests workflow and the docs.
+
+## v2.4.3 (8 July 2026)
+
+* **Transactional interfaces are now model-driven and opt-in.** An interface is
+  transactional only when the model declares `TRANSACTIONAL INTERFACE` (the compiler
+  records this as `isTransactional` in `interfaces.json`); a plain `INTERFACE` is
+  **Direct** (immediate commit). Previously every interface buffered edits by default;
+  that Transactional default is removed — an absent/false `isTransactional` means no
+  transactional functionality. A transactional interface is marked with an accent
+  border, shows its **SAVE**/**CANCEL** controls from the moment it opens, and — when
+  SAVE is disabled by a violated invariant — lists the concrete violation messages on
+  hover. Reference: `docs/reference-material/transactional-interfaces.md`.
+* **Bundled Ampersand compiler upgraded to v5.9.0**, the first compiler that parses
+  `TRANSACTIONAL INTERFACE` and emits the `isTransactional` flag on every interface —
+  which the transactional feature above depends on. The supported range in
+  `backend/generics/compiler-version.txt` moves to `>=5.9.0 <6.0.0`, and the image
+  reference is bumped in `Dockerfile`, `dev.Dockerfile`, the frontend-tests workflow
+  and the docs.
+
+## v2.4.2 (8 July 2026)
+
+* CI: the release workflow (`.github/workflows/release.yml`) moves from the soon-to-be-retired `ubuntu-22.04` runner to `ubuntu-24.04` (current LTS). The Ubuntu 22.04 runner images begin deprecation on 17 Sep 2026 and are unsupported from 17 Apr 2027, after which the build environment stops receiving security patches. No framework code changes; the runner builds the image but is not part of it, so this does not by itself change the shipped image's dependencies or its `php:8.3-apache-bookworm` base — those remain the actual vulnerability surface (kept current via Dependabot and by rebuilding the base image on each release).
+
+## v2.4.1 (7 July 2026)
+
+* Bundled Ampersand compiler upgraded to **v5.8.0**. It adds the transitive-reduction operator `%` (for an acyclic endorelation `r`, `r%` is the Hasse diagram, syntactic sugar for `r - (r;r+)`), replaces four unsound Kleene normalizer laws with sound unfoldings, and fixes two SQL-generation bugs around `r*` (the zero-step identity pairs were missing, and a `*/` inside a term could terminate a generated SQL comment early). No framework code changes; the supported compiler range in `backend/generics/compiler-version.txt` (`>=5.6.2 <6.0.0`) still holds. The image reference is bumped in `Dockerfile`, `dev.Dockerfile`, the frontend-tests workflow and the docs.
+
+## v2.4.0 (7 July 2026)
+
+* New feature: **per-interface transaction mode** — an interface runs as `Transactional` or `Direct`. Reference: `docs/reference-material/transactional-interfaces.md`.
+  - **Transactional** (the new default): the interface buffers the user's edits on the client; nothing commits until the user presses **SAVE**. **CANCEL**, or navigating away ("Lose your edits?"), discards the buffer. SAVE is enabled only when the buffered edits leave no invariant rule violated.
+  - **Direct**: every edit commits immediately, as before.
+  - **Behaviour change**: because the default is `Transactional`, an interface that previously committed each edit on blur now waits for SAVE. A **PROPBUTTON** flushes the buffer on click (it acts as the SAVE), so single-click forms — including login — keep working unchanged. Set an interface to `Direct` via `TransactionModeService` to restore the old per-edit commit.
+  - Frontend: buffer + `save`/`cancel`/`commitAction` + dry-run validation in `frontend/src/app/shared/interfacing/ampersand-interface.class.ts`; `TransactionModeService` and `TransactionService` in `frontend/src/app/shared/services/`; global SAVE/CANCEL bar in `frontend/src/app/layout/transaction-bar/`; `unsavedChangesGuard` (`frontend/src/app/shared/guards/`) attached to every generated route via the `project.module.ts.txt` route template; PROPBUTTON flush in `box-prop-button.component.ts`.
+  - Backend: a `?dryRun=` query parameter on the resource PATCH endpoint (`backend/src/Ampersand/Controller/ResourceController.php`) validates a buffered edit set without committing, on the existing `Transaction::dryRun()`. Default `false`, so the endpoint stays backwards compatible.
+  - The mode is runtime-changeable (`setOverride`, `setDefault`); a future compiler version will declare it per interface via the box header.
+  - Current scope: buffering covers field/link edits (`patch`); creating or deleting a whole atom (`POST`/`DELETE`) still commits immediately.
+
+* Fix: **read-only multi-line text keeps its line breaks**. The `BIGALPHANUMERIC` and `HUGEALPHANUMERIC` atomic components rendered a read-only value with HTML interpolation, which collapses newlines, so a multi-line value (e.g. a compiler message) ran together on one line. Both now render with `white-space: pre-wrap`.
+
+* New feature: **Monaco code editor with clickable diagnostics**.
+  - An editable `HUGEALPHANUMERIC` now renders as a [Monaco](https://microsoft.github.io/monaco-editor/) code editor (line numbers, etc.) instead of a plain textarea. Monaco is loaded on demand from `assets/monaco` (copied by the build), so it stays out of the main bundle until an editor is shown. New `MonacoEditorComponent` + loader in `frontend/src/app/shared/monaco-editor/`.
+  - A read-only `BIGALPHANUMERIC` (e.g. a compiler message) renders every `file:line[:column]` position as a clickable link that moves the code editor's cursor there, via a new `EditorService` and `DiagnosticsTextComponent`.
+  - Monaco reports a blur asynchronously, so the editable `HUGEALPHANUMERIC` commits its value shortly after typing stops (debounced) as well as on blur, so the value is persisted before a following action (e.g. a Compile button) flushes the transaction.
+
+* Fix: **a dry run no longer runs the ExecEngine**. A transactional interface validates a buffered edit set with a `?dryRun=` PATCH. That request now only evaluates the invariant rules; it no longer calls `runExecEngine()` (nor `checkProcessRules`), so a dry run cannot trigger a side-effecting ExecEngine function (e.g. one that shells out to a compiler) on an edit set the user has not committed.
+
+* New feature: **a PROPBUTTON is disabled while a code editor on the page is empty**. When a Monaco editor is mounted and empty, its `EditorService` reports that, and PROPBUTTONs (e.g. a Compile button) disable themselves — an action on an empty editor makes no sense.
+
+* Fix: **a 401 returns the user to the start page**. When loading an interface's data fails with `401` (the session is gone), the app navigates to `/` instead of leaving the user on a page that can only show loading skeletons. Field-level fetches that legitimately `401` (such as the anonymous login form's) do not trigger it, and the `/` and `/login` routes are exempt, so the login page keeps working. Reconciled with the v2.3.0 error-handling refactor: the redirect is now a status side-effect in `HttpErrorInterceptor` (no `switch`/`sendErrorMessage`); all other errors re-throw to `GlobalErrorHandler` as before.
+
+## v2.3.1 (6 July 2026)
+
+* New feature: **streaming JSON population import**. `POST /api/v1/admin/import` of a `.json` population file no longer loads the whole file into memory three times (raw string, decoded tree, `Atom`/`Link` object arrays); a new `Ampersand\IO\JsonPopulationImporter` reads the file incrementally (dependency `halaxa/json-machine`) and calls `Atom::add()`/`Link::add()` per item. Peak memory is now bounded by the largest single block (one concept's atom list or one relation's link list), not by the total population size — a 60 MB file with 2 M atoms imports at ~10 MB peak. The file format, the REST API and the response are unchanged, and the import still runs inside one transaction, so the all-or-nothing guarantee (invariants checked at commit, full rollback otherwise) is identical. Works for any Ampersand script and population. This removes the memory ceiling on importing large real-world models; it does not change import duration (still one `add()` per item). `Population::loadFromPopulationFile()` remains for the in-memory use cases (installer, export round-trips).
+
+* Bugfix: **an edit field no longer loses the text the user is typing when a concurrent server sync lands.** After every mutation the interface re-syncs (`syncWithServer`, interim fix for [#298](https://github.com/AmpersandTarski/prototype/issues/298)) and `mergeDeep`s the fresh server data into the in-memory resource. That merge overwrote scalar values **unconditionally** — including the value in a field the user was at that moment typing into (most visible when a slow exec-engine cascade made the sync land seconds later, in a sibling field).
+  - Fix: a small focus registry (`frontend/src/app/shared/helper/edit-registry.ts`). Atomic inputs mark themselves on `(focus)` and clear on `(blur)`; `mergeDeep` takes an optional `isProtected` predicate (`frontend/src/app/shared/helper/deepmerge.ts`) and skips a field that is currently focused. `syncWithServer` (`frontend/src/app/shared/interfacing/ampersand-interface.class.ts`) passes that predicate. Focus-based on purpose: a field's OWN post-patch sync (fired on blur, focus already gone) must still update it. Wired for text inputs in `atomic-alphanumeric`; other atomic components can adopt the same `markEditing()`/`clearEditing()` hooks on `BaseAtomicComponent`.
+
+## v2.3.0 (6 July 2026)
+
+* Bugfix: **real HTTP errors are now surfaced instead of the cryptic `EmptyError: no elements in sequence` toast.** When a backend request failed (session expired `401`, missing resource `404`, backend `500`, gateway timeout `504`, …), the user saw a red "EmptyError / no elements in sequence" toast that hid the actual cause.
+  - Root cause: `HttpErrorInterceptor` caught the error and returned an empty `of()`. Every generated top-level interface component (and `InterfacesJsonService`) reads its data with `firstValueFrom(...)`, which throws `EmptyError` on a stream that completes without a value; `GlobalErrorHandler` then displayed that secondary error.
+  - Fix: `frontend/src/app/backend/http-interceptors/http-error-interceptor.ts` now re-throws the original `HttpErrorResponse` (keeping the `404 → /404` navigation as a side-effect), so consumers reject with the real error. `frontend/src/app/core/global-error-handler.ts` is the single toast presenter and prefers the backend message (`error.error.msg`) over Angular's verbose auto-generated string. `InterfacesJsonService` is fixed by the same change, because its own `catchError` now fires.
+* Tests: added FILTEREDDROPDOWN end-to-end regression specs covering the Default tab and all four tabs.
+
+## v2.2.0 (6 July 2026)
+
+* New feature: **restored BOX-template annotations** that were lost in the AngularJS → Angular migration (framework v1.18.0). The Ampersand compiler already forwards every BOX-header key/value to the template generically (`renderTemplate` in `ProtoUtil.hs`), so these are frontend-only and need no compiler change. Implemented in `frontend/src/app/generated/.templates/Box-*.html` and `frontend/src/app/shared/box-components/`:
+  - **TABLE**: `noHeader` ([#300](https://github.com/AmpersandTarski/prototype/issues/300)), `hideOnNoRecords` ([#301](https://github.com/AmpersandTarski/prototype/issues/301)), `title` ([#302](https://github.com/AmpersandTarski/prototype/issues/302)), `showNavMenu` ([#304](https://github.com/AmpersandTarski/prototype/issues/304)).
+  - **FORM**: `hideOnNoRecords` ([#305](https://github.com/AmpersandTarski/prototype/issues/305)), `hideSubOnNoRecords` ([#306](https://github.com/AmpersandTarski/prototype/issues/306)), `hideLabels` ([#307](https://github.com/AmpersandTarski/prototype/issues/307)), `title` ([#308](https://github.com/AmpersandTarski/prototype/issues/308)), `showNavMenu` ([#310](https://github.com/AmpersandTarski/prototype/issues/310)).
+  - **TABS**: `title` ([#311](https://github.com/AmpersandTarski/prototype/issues/311)), `hideOnNoRecords` ([#313](https://github.com/AmpersandTarski/prototype/issues/313)), `hideSubOnNoRecords` ([#314](https://github.com/AmpersandTarski/prototype/issues/314)). `hideSubOnNoRecords` filters the rendered tab panels per record (`BoxTabsComponent.visibleTabs`) instead of using `*ngIf` on `<p-tabPanel>`, avoiding the PrimeNG tab-index problem.
+  - **RAW**: `table` ([#316](https://github.com/AmpersandTarski/prototype/issues/316)), `form` ([#315](https://github.com/AmpersandTarski/prototype/issues/315), wrapped as a non-submitting `<form>`).
+  - `showNavMenu` reuses the existing `app-ifcs-dropdown` and the `_ifcs_` data that `Options::DEFAULT_OPTIONS` already includes in every interface read.
+  - New test project `test/projects/box-annotations` exercises every annotation.
+  - Docs: `docs/reference-material/built-in-box-templates.md` (user reference), `docs/reference-material/box-template-architecture.md` (the generic annotation mechanism) and `docs/guides/box-template-development-guide.md` (how to add an annotation).
+  - **Not included**: `noRootTitle` ([#303](https://github.com/AmpersandTarski/prototype/issues/303)/[#309](https://github.com/AmpersandTarski/prototype/issues/309)/[#312](https://github.com/AmpersandTarski/prototype/issues/312)). It must suppress the interface heading in `component.html`, which is rendered without the box header's key/values, so it needs a compiler change rather than a framework edit.
+
+## v2.1.5 (2 July 2026)
+
+* Bundled Ampersand compiler upgraded to **v5.7.0**. This is the first released compiler that generates `generics/openapi.json` (an OpenAPI 3.0 description of the prototype's REST API) and supports `--[no-]production` / `--[no-]openapi`, which **activates the OpenAPI publication feature shipped in v2.1.1**: a development build now serves the spec at `GET /api/v1/openapi.json` and a Swagger UI at `GET /api/v1/docs`; a production build (compiler `--production`) generates no spec and sets `global.productionEnv = true`, so nothing is published. No framework code changes.
+
+## v2.1.4 (1 July 2026)
+
+* Bundled Ampersand compiler upgraded to **v5.6.3**. From v5.6.2 the compiler makes `PrototypeContext.sessionActiveRoles` univalent (`[UNI]`), so a session activates at most one role — the backend counterpart of the single-active-role role switcher shipped in v2.1.3. It also brings convergent NavMenu role maintenance (removes an oscillation warning from every generated prototype) and a new IFC/EXPRESS/STEP reader. The minimum supported compiler version is raised to `>=5.6.2` accordingly.
+
+## v2.1.3 (30 June 2026)
+
+* New feature: **single active role** — the role switcher in the top bar now activates exactly one role at a time. Picking a role activates it and deactivates every other role, so a session always has a single active role (a single-choice list, not independently toggled roles). The picker hides itself when there is nothing to choose (at most one selectable role besides `Anonymous`); after switching it rebuilds the side menu and returns to the start page when the current page is not visible to the new role.
+  - Frontend only: `frontend/src/app/admin/roles/roles.service.ts` (`activateRole` replaces the toggling `patchRole`) plus `roles.component.ts` / `roles.component.html`.
+  - Pairs with Ampersand ≥ v5.6.2, which declares `PrototypeContext.sessionActiveRoles` as `[UNI]` (a session has at most one active role). The existing backend `setActiveRoles` / `toggleActiveRole` already apply the per-role active flags the switcher sends, so no backend change is needed.
+
+## v2.1.1 (22 June 2026)
+
+* Bugfix import: **OBJECT atom identities longer than 254 characters are now deterministically shortened** to `<first 243 chars>_<10 hex chars of sha1(id)>` in `Atom::setId` (OBJECT case), so they stay unique within the `VARCHAR(255)` identity column. This covers both runtime importers (Excel + JSON population) and the API, because every atom is built via `new Atom`. The algorithm is byte-for-byte identical to the Ampersand compiler's `shortenObjectId` (Ampersand ≥ v5.6.1), so a compile-time-imported object atom and the same atom created at runtime map to the same database row. Shared known-answer vector: `"a" × 300 → "a" × 243 + "_003ef1ba9e"`.
+
+* Compiler upgrade: the Ampersand compiler image is bumped from `ampersand-compiler:20260617` (v5.5.6) to `ampersand:v5.6.1` in `Dockerfile` and `dev.Dockerfile`. v5.6.1 is required by `backend/generics/compiler-version.txt` (`>=5.6.1`) and provides the matching `shortenObjectId` for the object-identity bugfix above.
+
+* New feature: **full-text search module** — a home-screen search box searches across all stored data of the prototype and lets the user open each found atom in any interface that can display it.
+  - New `SearchController` (`backend/src/Ampersand/Controller/SearchController.php`) and route file `backend/bootstrap/api/search.php` (`GET /api/v1/search?q=<term>`, auto-loaded via the existing `api/*.php` glob).
+  - **TType-aware**: it searches every stored column whose TType the term could be a value of (e.g. `983` in `INTEGER` *and* alphanumeric columns; `Solanum` only in alphanumeric columns). `OBJECT`, `PASSWORD`, `BINARY*`, `BOOLEAN` and `TYPEOFONE` columns are never searched. This is invisible to the user.
+  - Results are the **entity atoms** that own a matching value; each is returned in the `ObjectBase` shape (`_id_`, `_label_`, `_ifcs_`) with the interfaces that can display it (via `AmpersandApp::getInterfacesToReadConcept`).
+  - New frontend feature `frontend/src/app/search/` (standalone `SearchComponent`, `SearchService`), wired into the home screen via `app.layout.module.ts` and `home.component.html`. Reuses the application's interface route map for navigation.
+  - Design notes: `docs/reference-material/search-module.md`.
+
+* New feature: **OpenAPI publication** — the compiler-generated `openapi.json` is now served by the running prototype, with a Swagger UI.
+  - `GET /api/v1/openapi.json` returns the spec; `GET /api/v1/docs` renders a Swagger UI (loaded from CDN). Both routes are public (no session/checksum middleware) so external tooling (Postman, codegen) can read them, with `Access-Control-Allow-Origin: *` on the spec.
+  - New `OpenApiController` (`backend/src/Ampersand/Controller/OpenApiController.php`) and route file `backend/bootstrap/api/openapi.php` (auto-loaded via the existing `api/*.php` glob).
+  - **Production vs development is driven by the compiler**: a development build generates `openapi.json` and sets `global.productionEnv = false`; a production build (compiler `--production`) does neither. The controller publishes the spec only when not in production **and** the file exists, so compiler and framework behave consistently. The compiler flag `--[no-]openapi` overrides whether the file is generated.
+  - Requires a compiler that emits `global.productionEnv` and supports `--production` (Ampersand ≥ the build that adds these). With older compilers `productionEnv` defaults to `false` (development) and the spec is published when present.
+
+* Compiler upgrade: the Ampersand compiler image is bumped from `20260322` to `20260617` in `Dockerfile` and `dev.Dockerfile`. The documented tag in `docs/guides/updating-and-releasing.md` and `docs/reference-material/prototype-framework.md` is updated to match. This compiler generates `openapi.json` and supports `--[no-]production` / `--[no-]openapi` (see the OpenAPI publication entry above).
+
+* New feature: **multi-value (multi-column) spreadsheet import** — the runtime importer now handles multi-value cells the same way as the Ampersand compiler's compile-time importer.
+  - A header cell `[Concept,]` (a concept name plus a delimiter, wrapped in square brackets) lets a single spreadsheet cell hold multiple atoms separated by that delimiter. Each value is trimmed and empty values are dropped.
+  - RELATION approach: target multi-value, source multi-value (cartesian product), and flipped (`~`) relations. INTERFACE approach: multi-value sub-interface columns.
+  - Block detection now matches the compiler's `isStartOfTable`: a bracketed cell in column A only starts a new block when the cell directly above is not bracketed, so a source `[Concept,]` on the concept row is not mistaken for the start of a new block.
+  - Tests (standalone, on-demand — not wired into CI): `test/unit/ExcelImporterMultiValueTest.php` and `test/projects/import-multivalue/`.
+* Bugfix signal notifications: individual violation messages were never shown to the user — only the rule-level message was displayed.
+  - Root cause: in `logging-interceptor.ts`, the `violationMessages` string was built by iterating over `signal.violations[]` but then **discarded**; `sendMessage()` was called with only `field.message` and no `detail`.
+  - Fix: violation messages are now concatenated and passed as the `detail` parameter, analogous to how invariant violations are already displayed.
+  - Signal notifications are additionally made **sticky** (no auto-close, `sticky: true`). Because a signal demands user action, it must remain visible until the user explicitly dismisses it with the × button.
+* New feature: **admin mode / production environment** — developer and model-debugging interfaces are hidden by default.
+  - Background: interfaces from `PrototypeContext.*` (Installer, population management, rule/relation inspectors, etc.) were always shown in the navigation menu, also in deployments meant for end users.
+  - A new backend setting `global.productionEnv` is exposed to the frontend via the navbar response (`SessionController`). When set, `AngularJSApp::getNavMenuItems()` filters out every interface whose name starts with `PrototypeContext.`.
+  - The frontend adds an **"Admin" toggle** (`p-inputSwitch`) in the topbar. `MenuService` keeps the admin-mode state in a `BehaviorSubject`, persisted in `sessionStorage`, and exposes `getNavbar()`.
+  - `app.menu.component` rebuilds the menu from the navbar: developer interfaces (`PrototypeContext.*`) and the admin menu items are only shown when admin mode is active **and** the app is not in production. In production the toggle has no effect.
+  - `Navbar` type (`navbar.interface.ts`) gains an optional `productionEnv` field.
+
+* Code style: project-wide **Prettier reformatting** of the frontend (line wrapping, trailing commas, `var` → `const`, import wrapping). No behavioural changes. Added `eslint-plugin-storybook` dev dependency.
+
+* New feature: **dedicated signals page** — violations of MAINTAIN rules are no longer shown as transient toast notifications.
+  - Background: signal (process rule) violations were previously shown as blue toast messages in the corner of the screen. Individual violations were discarded; only the rule-level message was shown. Violations could not be inspected further.
+  - The new approach replaces toast messages with a **dedicated page at `/signals`**:
+    - All current signal violations are shown, grouped per rule (accordion), with the individual violation messages and clickable interface links per violation.
+    - Data is read directly from the conjunct violation cache (`__conj_violation_cache__` database table) via a new backend endpoint `GET /admin/signals`. This endpoint filters violations to the currently active roles (same as `checkProcessRules()`).
+    - The page has a "Ververs" button to refresh the data manually.
+  - A **badge icon** (⚠ with count) appears in the topbar whenever there are open signal violations. Clicking it navigates to `/signals`.
+  - `Signal` type in `notifications.interface.ts` is now exported so it can be used by other parts of the frontend.
+  - New `SignalService` (`signal.service.ts`) maintains the current signal state as a reactive `BehaviorSubject<Signal[]>`, updated by the interceptor and the signals page.
+  - `LoggingInterceptor`: instead of calling `sendSignalMessage()` for each signal, signals are now routed to `SignalService.update()`.
+  - New backend: `GET /admin/signals` in `RuleEngineController::getSignalViolations()`. No extra role requirement — only violations relevant to the active roles are returned.
+
+* `atomic-object`: `editAsText` input is now **deprecated** and has no effect.
+  - The component always renders a `p-dropdown` with `[editable]="true"` for UNI updatable relations. This dropdown already supports typing-to-filter (same as the old text input), so no functionality is lost.
+  - Eliminates the need for per-concept `Concept-X.html` template files that existed only to suppress `editAsText`.
+  - The `editAsText` input remains accepted for backwards compatibility but is ignored.
+  - `#uniUpdateText` template removed from `atomic-object.component.html`; dead code (`editTextValue`, `uniTextValue()`, `onEditTextChange()`, `finishTextEdit()`) removed from `atomic-object.component.ts`.
+
+## v2.1.0 (13 May 2026)
+
+* Bugfix `atomic-object`: in `cRud` mode with a non-UNI relation, existing atoms were never displayed — the column appeared empty even when backend data was present.
+  - Root cause: the `#nonUni` template renders via `*ngFor="let object of selection()"`, but the `selection` signal was only initialised inside the reactive chain that is skipped for read-only mode (`canUpdate() = false`). So `selection` always stayed `[]`.
+  - Fix: immediately before the early return, `selection.set([...this.data])` is called when `!isUni`. The UNI read-only path (`#uniRead`) reads `resource[propertyName]` directly and was unaffected.
+
+* Bugfix `atomic-alphanumeric`: typing a new value in a standalone `setRelation` field (e.g. `projectMaster cRUd`) was immediately reverted after pressing Enter.
+  - Root cause: when the autocomplete options endpoint (e.g. `resource/Employee`) returns HTTP 403, `options` was set to `[]` and the client-side validation guard `!options.includes(val)` rejected every typed value.
+  - Fix: `options` is now typed `string[] | null`; `null` means "fetch failed / not loaded". Client-side validation is only applied when `options !== null` (i.e. a successful fetch returned a non-empty list). If `null`, the backend validates.
+  - `*ngFor` in the datalist templates updated to `(options ?? [])` to avoid errors when `options` is `null`.
+
+* Bugfix `AmpersandInterfaceComponent.delete()` / `BaseAtomicComponent.delete()`: clicking the trash icon deleted the atom in the backend but the UI kept showing the old value until a manual page refresh.
+  - Fix: after the HTTP DELETE, `AmpersandInterfaceComponent.delete()` now does a GET to the root interface path and applies `mergeDeep` with the fresh backend data — identical to how `patch()` handles response content. This means: commit + invariants hold → atom disappears immediately; rollback due to invariant violation → atom stays visible (invariant checking remains fully intact).
+  - `BaseAtomicComponent.delete()` simplified to a bare `.subscribe()` since the data refresh and `patched.emit()` are now handled upstream in `AmpersandInterfaceComponent.delete()`.
+
+* Bugfix `BOX<FILTEREDDROPDOWN>`: did not work for scalar concept types (ALPHANUMERIC, Integer, Date) — the backend returns a plain string instead of a `{_id_, _label_}` object, so the dropdown could neither display nor submit values.
+  - `atomic-object`: `normalizeAtom()` converts scalar values to ObjectBase shape; `handleUniDropdownChange()` + `onUniFilteredDropdownBlur()` handle blur correctly (exact match → patch, canCreate → create, else → reset); `selection` changed from private to public; `override delete()` for signal-aware UI updates
+  - `Box-FILTEREDDROPDOWN.html` template: pass `$crud$`, `$if(exprIsUni)$isUni$endif$`, `$if(exprIsTot)$isTot$endif$` so template-level CRUD takes precedence over the interfaces.json lookup
+  - `InterfacesJsonService.findSubObject()`: replaced SESSION-specific path parser with a lenient path-segment walker that supports both direct-resource paths and SESSION-based paths
+
+* The atomic-alphanumeric component did not support independent Update and Delete operations: values could not be edited in-place, atoms could not be deleted, and there was no autocomplete to suggest existing values.
+  - Rewritten templates with independent C/U/D controls per CRUD flag
+  - Browser-native `<datalist>` autocomplete populated from the backend
+  - `validateAndUpdate()` rejects unknown atoms when crud-`c` is not permitted
+  - `BaseAtomicComponent`: `updateItem()` for non-UNI inline edits (remove old link + add new); `delete()` base implementation that deletes the atom and all its relations; workaround for compiler-generated `CRu+UNI` combination (treated as `cRu`)
+
+* The `box-filtered-dropdown` test project lacked build infrastructure and did not cover all CRUD variants.
+  - Added `Dockerfile` (builds with `--crud-defaults cRud`)
+  - Extended `main.adl` with inline `setRelation` fields and test scenarios for all CRUD combinations
+
+* Chore: exclude `test/projects/**/.proto/` from git (compiler-generated output, not to be committed)
+
+## v2.0.8 (5 mei 2026)
+
+* Bugfix import: show invariant violation details instead of generic "400 Bad Request" error when population import (in the excel importer) fails due to rule violations
+
+## v2.0.7 (7 apr 2026)
+
+* Documentation: add guide "Configuring Development and Production Environments" explaining `global.debugMode`, `global.productionEnv`, the configuration loading order, all environment variables, and a Docker Compose example for switching between environments
+* Documentation: add BOX Template Development Guide for contributors — a comprehensive guide on creating and documenting new BOX templates
+* Documentation: add PROPBUTTON Template reference page and expand the Frontend Components reference
+* Documentation: extend sidebar navigation with all newly added guides and reference pages
+* Add Box-PROPBUTTON template to generated templates
+* Add `propbutton-unit-test` test project for testing PROPBUTTON behaviour
+* Update `box-filtered-dropdown` test model
+* Remove obsolete generated `project.module.ts`
+* Dependency: bump phpoffice/phpspreadsheet from 1.29.10 to 1.30.0
+
+## v2.0.6 (7 apr 2026)
+
+* Dockerfile: make compiler image configurable via `ARG COMPILER_IMAGE` (default: `ampersandtarski/ampersand-compiler:20260322`)
+* Bugfix execEngineWarshall: fix PHP 8 "Undefined array key" warnings in Warshall algorithm using null-coalescing operator (`?? false`)
+* Bugfix logging: cap `FingersCrossedHandler` buffer at 500 entries to prevent memory exhaustion on large Excel imports
+* Bugfix Box-FORM/TABLE templates: use `$targetLabel$` instead of `$target$` for "Add existing …" placeholder
+* Bugfix BaseBoxComponent: fix stale tap-operators accumulating in dropdown after adding an item; refresh dropdown from scratch; fix filter on nullish data
+
+## v2.0.5 (22 mrt 2026)
+
+* Update Dockerfile: use dedicated `ampersandtarski/ampersand-compiler:20260322` stage instead of direct copy from `ampersandtarski/ampersand:v5.3.2`
+* Add attributes sourceLabel and targetLabel to the JSON file for use in the prototype framework.
+* Revert ONE-concept plug skip in AmpersandApp (introduced in v2.0.4, caused regression)
+
+## v2.0.5 (18 mrt 2026)
+
+* Update Dockerfile: use dedicated `ampersandtarski/ampersand-compiler:20260317` stage instead of direct copy from `ampersandtarski/ampersand:v5.3.2`
+* Bugfix Box-FILTEREDDROPDOWN and Box-SELECT templates: correct `[property]` binding (remove erroneous `.setRelation` property access)
+* Revert ONE-concept plug skip in AmpersandApp (introduced in v2.0.4, caused regression)
+
+## v2.0.4 (6 mrt 2026)
+
+* Bugfix: Handle concept ONE correctly — no SQL table, no plug, correct atom id
+
+## v2.0.3 (4 mrt 2026)
+
+* [PR 296](https://github.com/AmpersandTarski/prototype/pull/296) Add `editAsText` mode to the atomic-object component: UNI updatable object fields can now be edited as plain text input
+
+## v2.0.2 (4 mrt 2026)
+
+* [Issue 266](https://github.com/AmpersandTarski/prototype/issues/266) Box-FILTEREDDROPDOWN: refined implementation with TOT/UNI support, improved placeholders, always shows all items from selectFrom
+* [Issue 262](https://github.com/AmpersandTarski/prototype/issues/262) Excel importer v2 with Storybook and Cypress tests
+* [Issue 268](https://github.com/AmpersandTarski/prototype/issues/268) Fix memory leaks in frontend components
+
+## v2.0.1 (24 aug 2025)
+
+* **Breaking change** [Issue 156](https://github.com/AmpersandTarski/prototype/issues/156) Adapt to introduced namespace in ADL
+  * Affects names and labels of all artefacts (concepts, relations, interfaces, rules, views, etc.)
+  * Affects metadata from PrototypeContext — update application extensions and running environments accordingly
 * [Issue 161](https://github.com/AmpersandTarski/prototype/issues/161) Bugfix ConceptNotDefinedException
 * [Issue 180](https://github.com/AmpersandTarski/prototype/issues/180) Bugfix Php warning about undefined array key 'ifcPath'
-* [Issue 210](https://github.com/AmpersandTarski/prototype/issues/210) Bugfix using TableType enum for method to empty a relation population
 * [Issue 218](https://github.com/AmpersandTarski/prototype/issues/218) Improve error reporting for exceptions in excel importer
 * [Issue 221](https://github.com/AmpersandTarski/prototype/issues/221) Bugfix typescript type object property naming by surrounding view labels with quotes
-* Add regression tests to automatically check if certain Ampersand (ADL) scripts generate valid backend and frontend files
+* Add Box-FILTEREDDROPDOWN template (initial implementation)
+* Improve import UI
+* Migrate frontend test framework from Karma to Jest; add code coverage reporting
+* Add regression tests to automatically check if ADL scripts generate valid backend and frontend files
+* Upgrade to Ampersand compiler v5.3
+* Align release policy with the Ampersand repository ([Issue 272](https://github.com/AmpersandTarski/prototype/issues/272))
+
+## v1.19.0 (24 jul 2025)
+
+* Maintenance release on v1 branch
+* [Issue 246](https://github.com/AmpersandTarski/prototype/issues/246) Bugfix
+
+## v2.0.0-alpha.5 (10 jan 2025)
+
+* Fix php 8.3 compatibility for ResourceEvent
 
 ## v2.0.0-alpha.4 (25 dec 2024)
-* Fix php 8.3 compatability
 
-## v2.0.0-alpha.4 (25 dec 2024)
+* Fix php 8.3 compatibility
 * Dispatch resource events for PUT, PATCH, POST and DELETE actions
 
 ## v2.0.0-alpha.3 (3 dec 2024)
+
 * [Issue 210](https://github.com/AmpersandTarski/prototype/issues/210) Bugfix using TableType enum for method to empty a relation population
 * Bugfixes for using Flysystem v3
 
 ## v2.0.0-alpha.2 (16 nov 2024)
+
 * Update Flysystem library to v3
 
 ## v2.0.0-alpha.1 (1 november 2024)
+
 * Library updates (in particular Symfony)
 * Refactoring configuration of logger
 
 ## v1.18.0 (27 april 2024)
+
 * [Issue 79](https://github.com/AmpersandTarski/prototype/issues/79) Add support for delimited multi value columns in excel importer
 * [Issue 115](https://github.com/AmpersandTarski/prototype/issues/115) Bugfix name ConceptNotDefinedException to match class filename
 * [Issue 165](https://github.com/AmpersandTarski/prototype/issues/165) Only show warning 'Generated model is changed...'on startup of browser app
@@ -48,19 +473,23 @@ Additional labels for pre-release and build metadata are available as extensions
   * This is a major change. Justifies major version update to v2.x
 
 ## v1.17.0 (24 may 2023)
+
 * [Issue 91](https://github.com/AmpersandTarski/prototype/issues/91) Display errors/exceptions in the frontend that occur before the API ExceptionHandler is initialized. E.g. database connection failure
 * [Issue 97](https://github.com/AmpersandTarski/prototype/issues/97) Fix issue with Excel importer date value 0. Improve error message with cell location
 * [Issue 100](https://github.com/AmpersandTarski/prototype/issues/100) Add admin API to cleanup metapopulation (i.e. removing interfaces that don't exists anymore)
 * Add workflow to automatically trigger documentation update for our landingpage
 
 ## v1.16.0 (27 july 2022)
+
 * [Issue 92](https://github.com/AmpersandTarski/prototype/issues/92) Bugfix issue with exec-engine function to merge atoms that not exist (anymore)
 * Update to Ampersand compiler v4.7.z
 
 ## v1.15.1 (5 may 2022)
+
 * Bugfix default values for new atom
 
 ## v1.15.0 (9 apr 2022)
+
 * [Issue 90](https://github.com/AmpersandTarski/prototype/issues/90) Bugfix php warning when logging non-string setting value
 * **Backward incompatible changes**
   * Remove Ampersand specific RotatingFileHandler for logger. Logs are written to stderr and stdout by default. Projects can add their own handlers
@@ -69,9 +498,11 @@ Additional labels for pre-release and build metadata are available as extensions
 * Add env variable AMPERSAND_DATA_DIR to set global.dataPath config
 
 ## v1.14.1 (6 feb 2022)
+
 * Bugfix wrong return type of method Session::getSessionAccount()
 
 ## v1.14.0 (30 jan 2022)
+
 * **Note! Contains backward incompatible changes for projects that extend or customize the backend framework**
 * [Issue 70](https://github.com/AmpersandTarski/prototype/issues/70) Improve exec engine error message
 * [Issue 88](https://github.com/AmpersandTarski/prototype/issues/88) Initialize model before registering current ampersand model version during reinstall of application
@@ -85,58 +516,70 @@ Additional labels for pre-release and build metadata are available as extensions
 * Refactor bootstrapping of framework, including API definitions. PHP files with API routes in './bootstrap/api' are bootstrapped automatically
 
 ## v1.13.0 (10 dec 2021)
+
 * [Issue 68](https://github.com/AmpersandTarski/prototype/issues/68) Update Docker image to PHP v8.1. Make backend compatible with php 8.x
 * **Backward incompatible change** Refactor Resource::all() to return array of Resource instead ResourceList object
 * **Backward incompatible change** Remove ArrayAccess methods from Resource class
 * Add methods Resource::value() and Resource::values() to replace ArrayAccess methods offsetGet()
 
 ## v1.12.0 (2 dec 2021)
+
 * Add transaction reference to AtomEvent and LinkEvent
 * Update to Ampersand compiler from v4.5.z to v4.6.z. **Backward incompatible change**. See compiler [releases](https://github.com/AmpersandTarski/Ampersand/releases)
 
 ## v1.11.0 (11 nov 2021)
+
 * [Issue 1189](https://github.com/AmpersandTarski/Ampersand/issues/1189) Add support for DEFAULT SRC/TGT atoms for RELATION statement
 * [Issue 1208](https://github.com/AmpersandTarski/Ampersand/issues/1208) Fix warning when a reinstall of the database may be needed based on model hash
 * Use main branch instead of master
 * Update to Ampersand compiler v4.5.z
 
 ## v1.10.4 (16 sept 2021)
+
 * [Issue 1170](https://github.com/AmpersandTarski/Ampersand/issues/1170) Rename Concept::inSameClassificationTree to inSameClassificationBranch. Adapt error messages.
 * [Issue 1212](https://github.com/AmpersandTarski/Ampersand/issues/1212) Change database collation to utf8mb4_nopad_bin to fix issue with trailing whitespace
 * Update build-push to docker hub. We are moving to master branch only, no development anymore
 * Fix a warning in the devcontainer
 
 ## v1.10.3 (14 aug 2021)
+
 * Bugfix issue with unhandled exception in frontend when API patch returns error
 * Bugfix redirect to previous url after navigating manually to login page
 
 ## v1.10.2 (12 aug 2021)
+
 * [Issue 993](https://github.com/AmpersandTarski/Ampersand/issues/993) Don't call API to save field when value is unchanged
 * Provide more specific error message when file upload failed (e.g. exceeded maximum filesize)
 
 ## v1.10.1 (14 jul 2021)
+
 * Library update indicated by dependabot
 * Add helper methods to Population class
 
 ## v1.10.0 (14 may 2021)
+
 * Remove OAuth module. Should be implementated by applications that use the framework instead.
 * Remove frontend package from dist folder. Package is now build every time.
 * Update frontend dev libraries (npm update)
 * Update backend libraries (composer update)
 
 ## v1.9.3 (14 apr 2021)
+
 * [Issue 1155](https://github.com/AmpersandTarski/Ampersand/issues/1155) Fix issue with MrgAtom exec-engine function in case of non-existing atoms
 * Hotfix bug introduced in v1.9.2 related to query data optimization
 
 ## v1.9.2 (13 apr 2021)
+
 * Fix query data optimization in case of transformation from Atom to Resource. Improves performance by reducing amount of queries significantly.
 
 ## v1.9.1 (1 apr 2021)
+
 * [Issue 1151](https://github.com/AmpersandTarski/Ampersand/issues/1151) Bugfix boolean population transformation to database
 * [Issue 1152](https://github.com/AmpersandTarski/Ampersand/issues/1152) Handle violation segments for expressions with multiple targets
 * Add OAuth2 handler for Microsoft accounts
 
 ## v1.9.0 (19 feb 2021)
+
 * [Issue 1103](https://github.com/AmpersandTarski/Ampersand/issues/1103) Adapt templates TABS and FORM: by default don't show 'hamburger' item to nav to other interfaces. Add template attribute 'showNavMenu'
 * [Issue 1143](https://github.com/AmpersandTarski/Ampersand/issues/1143) For template TABS change interpretation of hideOnNoRecords from a single TAB to the complete TABSET
 * [Issue 1144](https://github.com/AmpersandTarski/Ampersand/issues/1144) For templates TABS and FORM add attribute hideSubOnNoRecords to hide a single sub interface when result set is empty
@@ -144,40 +587,49 @@ Additional labels for pre-release and build metadata are available as extensions
 * [Issue 1148](https://github.com/AmpersandTarski/Ampersand/issues/1148) Allow exec-engine delpair function to handle multiple src and/or tgt atoms
 
 ## v1.8.6 (7 feb 2021)
+
 * Update EasyRdf library to v1.x
 
 ## v1.8.5 (28 jan 2021)
+
 * Set content-type to mime type when downloading files using /file api. Let browser determine if content can be loaded in the browser
 
 ## v1.8.4 (8 jan 2021)
+
 * Use Ampersand compiler v4.1.3. First time we use an explicit version number instead of development tag
 * Meta population installer: cleanup interface atoms from database when they are not defined in the Ampersand model (anymore)
 
 ## v1.8.3 (5 jan 2021)
+
 * Bugfix auto create (crudC) for non-ident interface expressions
 
 ## v1.8.2 (1 dec 2020)
+
 * Try to create missing data directory
 * Remove unused extensions folder from Phan static analysis check
 * Update dev dependency Phan to v3.x
 
 ## v1.8.1 (1 december 2020)
+
 * Bugfix word-wrap css class
 
 ## v1.8.0 (30 november 2020)
-* **Breaking change**: OAuthLogin module is not an extension anymore, but built in the framework. 
+
+* **Breaking change**: OAuthLogin module is not an extension anymore, but built in the framework.
   * Changes are required in configuration files, see [readme](./config/README.md)
   * Implemented state token to prevent CSRF
-  * Removed whole CA certificates stuff, because this is already provided and configured by the php-apache docker image 
+  * Removed whole CA certificates stuff, because this is already provided and configured by the php-apache docker image
 * [Issue 1125](https://github.com/AmpersandTarski/Ampersand/issues/1125) Use UUIDs when automatically creating atom identifiers instead of a timestamp
 * Bugfix link to population exporter API
 * Add administrator api functionality to regenerate atom identifiers for all concepts or a specific concept
 
 ## v1.7.1 (9 november 2020)
+
 * [Issue 1104](https://github.com/AmpersandTarski/Ampersand/issues/1104) Built-in template revisions
 * Add `hideOnNoRecords` functionality to TABS template
 
 ## v1.7.0 (12 august 2020)
+
 * [Issue 1070](https://github.com/AmpersandTarski/Ampersand/issues/1070) Don't pick up database configurations from Ampersand compiler anymore
 * [Issue 1096](https://github.com/AmpersandTarski/Ampersand/issues/1096) Show more usefull error message when composer autoloader file can not be found
 * [Issue 1097](https://github.com/AmpersandTarski/Ampersand/issues/1097) Implement file system interface to allow for other storage solutions
@@ -185,11 +637,13 @@ Additional labels for pre-release and build metadata are available as extensions
 * Removed Hook class implementation. Replaced by event dispatcher
 
 ## v1.6.1 (24 july 2020)
+
 * [Issue 1067](https://github.com/AmpersandTarski/Ampersand/issues/1067) Update CI scripts. Add script to build-push to Docker Hub instead of Github package repository
 * Update to PHP version 7.4
 * Update cacert.pem file for OAuthLogin extension. Automatically download latest version during Docker build
 
 ## v1.6.0 (18 july 2020)
+
 * Introduction of BOX attributes functionality
   * See [readme about templates](./templates/README.md)
   * Template `FORM` replaces `ROWS`, `ROWSNL`, `HROWS`, `HROWSNL`
@@ -197,10 +651,12 @@ Additional labels for pre-release and build metadata are available as extensions
   * Template `RAW` replaces `DIV`, `CDIV`, `RDIV`
 
 ## v1.5.1 (12 may 2020)
+
 * Upgrade unmaintained phpexcel package to newer library phpoffice/phpspreadsheet
 * Allow to configure database username and password using environment variables
 
 ## v1.5.0 (21 april 2020)
+
 * [Issue 1009](https://github.com/AmpersandTarski/Ampersand/issues/1009) Fix 404 session not found when session is expired
 * Bugfix issue due to not taking into account [php's short circuit evaluation](https://stackoverflow.com/questions/5694733/does-php-have-short-circuit-evaluation)
 * Bugfix uncaught AccessDeniedException for patches on top-level interface atoms
@@ -214,6 +670,7 @@ Additional labels for pre-release and build metadata are available as extensions
 * Don't use php's $_SESSION records anymore. This doesn't fit with containerized design priciples like process disposability principle
 
 ## v1.4.0 (3 january 2020)
+
 * Bugfix issue with API interfaces shown in UI to solve signal violations. Caused by wrongly placed parentheses.
 * Add sort values for all BOX templates that start with the char 'S' (for SORT). Instead of only for the SCOLS, SHCOLS and SPCOLS templates.
 * [Issue 1005](https://github.com/AmpersandTarski/Ampersand/issues/1005) Bugfix deadlock due to un-defined interfaces
@@ -229,11 +686,13 @@ Additional labels for pre-release and build metadata are available as extensions
 * [Issue 1016](https://github.com/AmpersandTarski/Ampersand/issues/1016) Fix for invariant violation in metapopulation that will be resolved by initial population. Installing application is now in a single transaction
 
 ## v1.3.0 (15 july 2019)
+
 * Bugfix error message in case of network/connection error
 * Many bugfixes (see commit history)
 * Implement dynamic RBAC. Accessible interfaces for a given role are now queries from database instead of generated json files
 
 ## v1.2.0 (30 april 2019)
+
 * [Issue 787](https://github.com/AmpersandTarski/Ampersand/issues/787) Remove header in interface templates ROWS, HROWS, ROWSNL, HROWSNL. Delete templates ROWSNH (no header)
 * [Issue 487](https://github.com/AmpersandTarski/Ampersand/issues/487) Allow application meta-model export in OWL language (first partial implementation)
 * [Issue 447](https://github.com/AmpersandTarski/Ampersand/issues/447) Fix issue with certain interface labels that interfere with Restangular method names
@@ -245,12 +704,14 @@ Additional labels for pre-release and build metadata are available as extensions
 * Add functionality to export subset of population
 
 ## v1.1.1 (21 january 2019)
+
 * Hotfix: bug in delete query when removing multiple links at once
 
 ## v1.1.0 (18 january 2019)
+
 * **Major refactoring of backend implementation of prototype framework**
 * Minimum requirement of php version >= 7.1 (was >= 7.0)
-* Update OAuthLogin extension: use Linkedin API v2, because v1 is phases out by 2019-03-01. Note! in project config file the linkedin 'apiUrl' must be updated to: 'https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))'
+* Update OAuthLogin extension: use Linkedin API v2, because v1 is phases out by 2019-03-01. Note! in project config file the linkedin 'apiUrl' must be updated to: "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))'
 * [Issue 866](https://github.com/AmpersandTarski/Ampersand/issues/866) Automatically reload javascript resources when needed
 * [Issue 792](https://github.com/AmpersandTarski/Ampersand/issues/792) Support for TXT in interface definitions
 * [Issue 819](https://github.com/AmpersandTarski/Ampersand/issues/819) Refactor initialization phase of Ampersand application. Config -> Init -> Session -> Run
@@ -269,7 +730,9 @@ Additional labels for pre-release and build metadata are available as extensions
 * [Issue 143](https://github.com/AmpersandTarski/Ampersand/issues/143) Introduction of service runs (special kind of exec engines that must be called explicitly)
 
 ## v1.0.1 (27 july 2018)
+
 Several bugfixes. See commit messages.
 
 ## v1.0.0 (26 june 2018)
+
 Initial version of Ampersand prototype framework in its own repository. Earlier the complete prototype framework was included (zipped) in the [Ampersand generator](https://github.com/AmpersandTarski/Ampersand). As of this release the prototype framework, including a PHP backend and a HTML/JS frontend implementation are maintained in a [seperate repository](https://github.com/AmpersandTarski/Prototype). This enables us to add automated tests and CI/CD more easily. For more background see related issue [Ampersand #756](https://github.com/AmpersandTarski/Ampersand/issues/756).

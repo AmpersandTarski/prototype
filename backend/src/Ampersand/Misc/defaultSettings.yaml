@@ -67,6 +67,9 @@ settings:
 
   ### Frontend settings
   frontend.homePage: "/prototype/welcome" # Angular route. Don't put a '#' in front of the path
+  frontend.menuGrouping: none # default grouping of the navigation menu on (re)install: 'none' = flat list, 'byType' = group list interfaces (V[SESSION*Concept]) in a submenu; task screens (I[SESSION]) stay top-level
+  frontend.menuGroupingLabel: Lists # label of the submenu that groups the list interfaces (only used with menuGrouping 'byType')
+  frontend.menuMode: static # default menu orientation: 'static' (vertical sidebar), 'overlay' (collapsible vertical sidebar) or 'horizontal' (menu bar with dropdowns and overflow)
 
   ### ExecEngine settings
   execengine.execEngineRoleNames: [ExecEngine]

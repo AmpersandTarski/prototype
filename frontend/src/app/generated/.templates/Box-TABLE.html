@@ -1,27 +1,37 @@
 <!-- Box-TABLE.html -->
 <div $if(isRoot)$*ngIf="resource?.data; else loading" $endif$>
     <app-box-table
-        $if(isRoot)$isRootBox
-        $endif$crud="$crud$"
+        $if(isRoot)$isRootBox$endif$
+        crud="$crud$"
         [interfaceComponent]="this"
         [resource]="resource"
         propertyName="$name$"
         [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
         tgtResourceType="$target$"
-        placeholder="Add existing $target$"
-        $if(sortable)$sortable$if(sortBy)$
+        placeholder="Add existing $targetLabel$"
+        $if(sortable)$sortable
+        $if(sortBy)$
         sortBy="_sortValues_.$sortBy$"
-        $endif$$if(order)$
+        $endif$
+        $if(order)$
         sortOrder="$order$"
         $endif$
-        $endif$$if(exprIsUni)$isUni
-        $endif$$if(exprIsTot)$isTot$endif$
+        $endif$
+        $if(exprIsUni)$isUni
+        $endif$$if(exprIsTot)$isTot
+        $endif$$if(noHeader)$noHeader
+        $endif$$if(hideOnNoRecords)$hideOnNoRecords
+        $endif$$if(showNavMenu)$showNavMenu
+        $endif$$if(title)$title="$title$"$endif$
     >
         <ng-template boxTableHeader
             >$subObjects:{subObj| $if(subObj.subObjExprIsUni)$$if(sortable)$
-            <th pSortableColumn="_sortValues_.$subObj.subObjName$">
+            <!-- appSortableColumn/app-sort-icon (NOT PrimeNG's pSortableColumn/p-sortIcon):
+                 this template is declared outside the p-table, so PrimeNG's directives
+                 cannot inject the Table instance here (see SortableColumnDirective). -->
+            <th appSortableColumn="_sortValues_.$subObj.subObjName$">
                 <span>$subObj.subObjLabel$</span>
-                <p-sortIcon field="_sortValues_.$subObj.subObjName$"></p-sortIcon>
+                <app-sort-icon field="_sortValues_.$subObj.subObjName$"></app-sort-icon>
             </th>
             $else$
             <th>$subObj.subObjLabel$</th>
@@ -40,6 +50,5 @@
 </div>
 $if(isRoot)$
 
-<ng-template #loading>
-    <app-box-table-loading [nrOfRows]="10"></app-box-table-loading> </ng-template
+<ng-template #loading> <app-box-table-loading [nrOfRows]="10"></app-box-table-loading> </ng-template
 >$endif$

@@ -1,0 +1,27 @@
+CONTEXT ImportMV IN ENGLISH
+
+-- Test model for runtime multi-value (multi-column) spreadsheet import.
+-- All relations below are many-to-many (no UNI/INJ), so a single cell may
+-- hold multiple target atoms separated by a delimiter, e.g. '[Skill,]'.
+
+CONCEPT Person "A person"
+CONCEPT Skill "A skill"
+CONCEPT Project "A project"
+
+RELATION skills[Person*Skill]     -- RELATION approach: target multi-value
+RELATION related[Skill*Skill]     -- RELATION approach: source multi-value (cartesian product)
+RELATION enrolled[Project*Person] -- RELATION approach: flipped (~) multi-value
+
+-- INTERFACE approach: worksheet named "PersonSkills" maps a column to sub-interface "Skills".
+-- Full CRUD so the importer may create persons (_NEW) and add skill links.
+INTERFACE "PersonSkills" FOR "Importer" : V[SESSION*Person] cRuD BOX
+  [ "Skills" : skills CRUd
+  ]
+
+-- Plain interfaces to browse the result in the UI (optional).
+INTERFACE "Persons" FOR "Importer" : V[SESSION*Person] cRud BOX
+  [ "skills"   : skills
+  , "enrolled" : enrolled~
+  ]
+
+ENDCONTEXT

@@ -1,0 +1,42 @@
+CONTEXT TransactionalDemo IN ENGLISH
+
+-- Minimal example to exercise the TRANSACTIONAL frontend feature.
+-- Requires Ampersand >= v5.9.0 (which parses `TRANSACTIONAL INTERFACE` and sets
+-- the `isTransactional` flag in interfaces.json).
+
+CONCEPT Booking ""
+REPRESENT Name TYPE ALPHANUMERIC
+RELATION guestName[Booking*Name] [UNI]
+MEANING "The name of the guest for a booking."
+RELATION confirmed[Booking*Booking] [PROP]
+MEANING "A booking that has been confirmed."
+
+-- Invariant: a confirmed booking must have a guest name.
+-- Editing 'confirmed' to true without a name violates this and must disable SAVE.
+RULE ConfirmedNeedsName LABEL "Confirmed booking needs a guest name":
+  confirmed |- guestName;guestName~
+MEANING "A confirmed booking must have a guest name."
+VIOLATION (TXT "Booking ", SRC I, TXT " is confirmed but has no guest name.")
+
+RELATION allBookings[SESSION*Booking]
+ROLE ExecEngine MAINTAINS ShowAllBookings
+RULE ShowAllBookings: V[SESSION*Booking] |- allBookings
+VIOLATION (TXT "{EX} InsPair;allBookings;SESSION;", SRC I, TXT ";Booking;", TGT I)
+
+TRANSACTIONAL INTERFACE Bookings: "_SESSION"[SESSION] cRud BOX<TABLE>
+  [ "Bookings": allBookings cRud BOX<FORM>
+      [ "Guest name": guestName cRUd
+      , "Confirmed": confirmed cRUd
+      ]
+  ]
+
+-- Non-transactional wrapper that pulls in the TRANSACTIONAL interface as a
+-- subinterface reference. The referenced interface must bring its own
+-- SAVE/CANCEL bar (and buffering) along.
+INTERFACE Wrapper : "_SESSION"[SESSION] cRud BOX<FORM>
+  [ "Bookings (via reference)" : I INTERFACE Bookings
+  ]
+
+POPULATION Booking CONTAINS [ "booking1", "booking2" ]
+
+ENDCONTEXT

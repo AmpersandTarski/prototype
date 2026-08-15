@@ -84,6 +84,11 @@ export class LayoutService {
     return this.config.menuMode === 'overlay';
   }
 
+  isHorizontal() {
+    // Below the desktop breakpoint the horizontal bar falls back to the mobile drawer
+    return this.config.menuMode === 'horizontal' && this.isDesktop();
+  }
+
   isDesktop() {
     return window.innerWidth > 991;
   }

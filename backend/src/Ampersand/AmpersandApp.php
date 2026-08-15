@@ -327,6 +327,14 @@ class AmpersandApp
     {
         $this->logger->debug("Resetting session");
         $this->session->deleteSessionAtom(); // delete Ampersand representation of session
+
+        // Commit the delete right away, before a new session atom is created below. This keeps
+        // delete locks and insert locks in separate (short) database transactions, so concurrent
+        // requests that garbage collect expired sessions (see Session::deleteExpiredSessions)
+        // can't build a lock cycle with this request. A new transaction is opened automatically
+        // for the remainder of the request (see getCurrentTransaction).
+        $this->getCurrentTransaction()->runExecEngine()->close();
+
         Session::resetPhpSessionId();
         $this->setSession($sessionAccount);
     }
@@ -384,9 +392,25 @@ class AmpersandApp
         
         // Else query interfaces for every active role
         } else {
+            $hasAuthenticatedRole = false;
             foreach ($this->getActiveRoles() as $roleAtom) {
-                // Query accessible interfaces
+                // Query accessible interfaces for this active role
                 $ifcAtoms = array_merge($ifcAtoms, $roleAtom->getTargetAtoms(ProtoContext::REL_IFC_ROLES, true));
+
+                // Track whether the session holds an authenticated (i.e. non-Anonymous) role.
+                if ($roleAtom->getId() !== ProtoContext::ROLE_ANONYMOUS) {
+                    $hasAuthenticatedRole = true;
+                }
+            }
+
+            // An interface without a FOR-clause is delivered with the wildcard role "Any"
+            // (PrototypeContext contract). "Any" is satisfied by every authenticated role, but
+            // NOT by the Anonymous (no-user) role. So grant the interfaces coupled to "Any"
+            // whenever the session has at least one authenticated active role. When "Any" carries
+            // no interfaces (e.g. an older compiler without this contract) this simply adds nothing.
+            if ($hasAuthenticatedRole) {
+                $anyRole = $this->model->getRoleConcept()->makeAtom(ProtoContext::ROLE_ANY);
+                $ifcAtoms = array_merge($ifcAtoms, $anyRole->getTargetAtoms(ProtoContext::REL_IFC_ROLES, true));
             }
         }
 
@@ -577,7 +601,11 @@ class AmpersandApp
                 $this->logger->warning("Invariant rules do not hold for meta population");
             }
 
-            $installer->reinstallNavigationMenus($this->getModel());
+            $installer->reinstallNavigationMenus(
+                $this->getModel(),
+                $this->getSettings()->get('frontend.menuGrouping', Installer::MENU_GROUPING_NONE),
+                $this->getSettings()->get('frontend.menuGroupingLabel', 'Lists')
+            );
             if (!$transaction->runExecEngine()->checkInvariantRules()) {
                 $this->logger->warning("Invariant rules do not hold for meta population and/or navigation menu");
             }

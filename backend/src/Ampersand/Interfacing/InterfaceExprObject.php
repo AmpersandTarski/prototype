@@ -687,7 +687,9 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         // If interface isIdent (i.e. expr = I[Concept]), and no epsilon is required (i.e. srcConcept equals tgtConcept of parent ifc) we can return the src
         // However, if query for this expression contains sub data, it is more efficient to evaluate the query (see Issue #217)
         if ($this->isIdent() && $this->srcConcept === $src->concept && !$this->queryContainsSubData) {
-            $tgts[] = $src;
+            $clone = clone $src;
+            $clone->setQueryData(null);
+            $tgts[] = $clone;
         } else {
             // Try to get tgt atom from src query data (in case of uni relation in same table)
             $tgtId = $src->getQueryData('ifc_' . $this->id, $exists); // column is prefixed with ifc_ in query data

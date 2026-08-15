@@ -3,6 +3,7 @@ import { Notifications } from './notifications.interface';
 export type Navbar = {
   defaultSetting: DefaultSettings;
   home: string;
+  menuMode?: string; // default menu orientation from backend setting frontend.menuMode: 'static' | 'overlay' | 'horizontal'
   session: Session;
   sessionRoles: Array<SessionRole>;
   sessionVars: false | { [key: string]: unknown };
@@ -11,6 +12,7 @@ export type Navbar = {
   new: Array<New>;
   ext: Array<unknown>; // ignore; not reusing in new frontend
   role: Array<unknown>; // ignore; not reusing in new frontend. This was structure for additional items in the role menu
+  productionEnv?: boolean;
 };
 
 type DefaultSettings = {

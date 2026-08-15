@@ -2,3 +2,23 @@
 **/lib/
 **/node_modules/
 ampersand
+
+# Ignore dev stuff
+.idea/
+.DS_Store
+**/.DS_Store
+backend/generics/*.json
+backend/generics/*.sql
+html/
+project/
+.env
+frontend/src/app/generated/project.module.ts
+
+# this will be regenerated and copied to assets during the build phase, so don't check it in
+frontend/src/assets/interfaces.son
+
+# Cypress screenshots
+frontend/cypress/screenshots/
+
+# Gegenereerde prototype-output in test-projecten (compiler output, niet committen)
+test/projects/**/.proto/

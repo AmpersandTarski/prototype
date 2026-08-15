@@ -31,6 +31,8 @@ import { AtomicPasswordComponent } from './atomic-components/atomic-password/ato
 import { BoxTableComponent } from './box-components/box-table/box-table.component';
 import { BoxTableHeaderTemplateDirective } from './box-components/box-table/box-table-header-template.directive';
 import { BoxTableRowTemplateDirective } from './box-components/box-table/box-table-row-template.directive';
+import { SortableColumnDirective } from './box-components/box-table/sortable-column.directive';
+import { SortIconComponent } from './box-components/box-table/sort-icon.component';
 import { BoxTableLoadingComponent } from './box-components/box-table-loading/box-table-loading.component';
 import { BoxTabsComponent } from './box-components/box-tabs/box-tabs.component';
 import { BoxTabsDirective } from './box-components/box-tabs/box-tabs.directive';
@@ -44,6 +46,8 @@ import { BoxPropButtonComponent } from './box-components/box-prop-button/box-pro
 import { AtomicUrlComponent } from './atomic-components/atomic-url/atomic-url.component';
 import { AtomicSelectComponent } from './atomic-components/atomic-select/atomic-select.component';
 import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.component';
+import { MonacoEditorComponent } from './monaco-editor/monaco-editor.component';
+import { DiagnosticsTextComponent } from './diagnostics-text/diagnostics-text.component';
 
 @NgModule({
   declarations: [
@@ -62,6 +66,8 @@ import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.comp
     BoxTableComponent,
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
+    SortableColumnDirective,
+    SortIconComponent,
     BoxTableLoadingComponent,
     BoxTabsComponent,
     BoxTabsDirective,
@@ -72,6 +78,8 @@ import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.comp
     BoxRawComponent,
     BoxRawTemplateDirective,
     BoxPropButtonComponent,
+    MonacoEditorComponent,
+    DiagnosticsTextComponent,
   ],
   imports: [
     CommonModule,
@@ -108,6 +116,8 @@ import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.comp
     BoxTableComponent,
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
+    SortableColumnDirective,
+    SortIconComponent,
     BoxTableLoadingComponent,
     BoxTabsComponent,
     BoxTabsDirective,
@@ -118,6 +128,9 @@ import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.comp
     BoxRawComponent,
     BoxRawTemplateDirective,
     BoxPropButtonComponent,
+    IfcsDropdownComponent,
+    MonacoEditorComponent,
+    DiagnosticsTextComponent,
   ],
   providers: [],
 })
