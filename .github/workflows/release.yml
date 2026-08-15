@@ -113,7 +113,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.3"
-          extensions: mysqli, curl, gd, fileinfo, zip
+          # opentelemetry: composer.lock pins ext-opentelemetry since the OTel work (v2.7.0)
+          extensions: mysqli, curl, gd, fileinfo, zip, opentelemetry
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-dev --optimize-autoloader --no-scripts
