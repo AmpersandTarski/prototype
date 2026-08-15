@@ -1,0 +1,20 @@
+CONTEXT OtelTracing IN ENGLISH
+
+PURPOSE CONTEXT OtelTracing
+{+ Minimal model for the OpenTelemetry regression spec (issue #440). It only needs
+   an interface (to have API routes) and an invariant rule (to have a conjunct that
+   the trace can show being evaluated). +}
+
+RELATION personName[Person*Name] [UNI]
+REPRESENT Name TYPE ALPHANUMERIC
+RELATION worksFor[Person*Organization]
+
+RULE PersonHasName : I[Person] |- personName;personName~
+MEANING "Every person has a name"
+
+INTERFACE Persons : V[SESSION*Person] cRud BOX
+  [ "Name" : personName cRUd
+  , "Works for" : worksFor cRUd
+  ]
+
+ENDCONTEXT
