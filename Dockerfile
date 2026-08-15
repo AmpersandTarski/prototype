@@ -14,7 +14,9 @@ RUN apt-get update \
   # libpng needed for php-ext gd below
   libpng-dev \
   # vim for easy editing files in container
-  vim
+  vim \
+  # build tools needed by pecl to compile the opentelemetry extension below
+  $PHPIZE_DEPS
 
 # Install additional php and apache extensions (see composer.json file)
 RUN docker-php-ext-install mysqli curl gd fileinfo zip \
@@ -26,6 +28,24 @@ RUN php  -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
  && php -r "unlink('composer-setup.php');" \
  && rm -rf /var/lib/apt/lists/*
 ENV COMPOSER_HOME=/usr/local/bin/
+
+# Install the OpenTelemetry PHP extension (needed for zero-code auto-instrumentation)
+RUN pecl install opentelemetry \
+ && docker-php-ext-enable opentelemetry
+
+# OpenTelemetry configuration. Disabled by default; enable per deployment by setting
+# OTEL_SDK_DISABLED=false. See docs/guides/measuring-performance-with-opentelemetry.md
+ENV OTEL_SDK_DISABLED=true
+ENV OTEL_PHP_AUTOLOAD_ENABLED=true
+ENV OTEL_SERVICE_NAME=ampersand-prototype
+ENV OTEL_TRACES_EXPORTER=console
+ENV OTEL_METRICS_EXPORTER=none
+ENV OTEL_LOGS_EXPORTER=none
+ENV OTEL_PROPAGATORS=baggage,tracecontext
+# To ship traces to a collector instead of the container log:
+# ENV OTEL_TRACES_EXPORTER=otlp
+# ENV OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+# ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318
 
 # Install NodeJs with NPM
 RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - \

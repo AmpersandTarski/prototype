@@ -13,11 +13,27 @@ RUN apt-get update \
   # libpng needed for php-ext gd below
   libpng-dev \
   # vim for easy editing files in container
-  vim
+  vim \
+  # build tools needed by pecl to compile the opentelemetry extension below
+  $PHPIZE_DEPS
 
 # Install additional php and apache extensions (see composer.json file)
 RUN docker-php-ext-install mysqli curl gd fileinfo zip \
  && a2enmod rewrite
+
+# Install the OpenTelemetry PHP extension (needed for zero-code auto-instrumentation)
+RUN pecl install opentelemetry \
+ && docker-php-ext-enable opentelemetry
+
+# OpenTelemetry configuration. Disabled by default; enable per deployment by setting
+# OTEL_SDK_DISABLED=false. See docs/guides/measuring-performance-with-opentelemetry.md
+ENV OTEL_SDK_DISABLED=true
+ENV OTEL_PHP_AUTOLOAD_ENABLED=true
+ENV OTEL_SERVICE_NAME=ampersand-prototype
+ENV OTEL_TRACES_EXPORTER=console
+ENV OTEL_METRICS_EXPORTER=none
+ENV OTEL_LOGS_EXPORTER=none
+ENV OTEL_PROPAGATORS=baggage,tracecontext
 
 # Copy site configuration file
 COPY ./docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf

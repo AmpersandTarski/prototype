@@ -103,6 +103,7 @@ Lees eerst hier voordat je gaat zoeken. Paden zijn geverifieerd op 2026-05-31.
 - `reference-material/frontend-components.md` + `frontend-component-internals.md` — atomic/box-components, type-mapping, CRUD, multipliciteit.
 - `reference-material/data_flow_analysis.md` — dataflow backend-API → frontend.
 - `guides/frontender-quick-start.md`, `guides/back-end-services.md`, `guides/creating-custom-view-templates.md` — dev-setup, PHP-extensie (plugins/listeners/ExecEngine), VIEW-templates.
+- `guides/measuring-performance-with-opentelemetry.md` — performancemetingen op gegenereerde prototypes: OTel aanzetten (env-vars, default uit), Jaeger-overlay `compose.otel.yaml`, spans lezen.
 
 ### (c) Deployment van een gegenereerd prototype
 - Base image `ampersandtarski/prototype-framework:local` ← `Dockerfile` (prod, PHP 8.3-apache) / `dev.Dockerfile` (dev). **Altijd `--platform linux/amd64` bouwen** (zie §3).

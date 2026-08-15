@@ -217,6 +217,9 @@ $dispatcher->addListener(AtomEvent::ADDED, function (AtomEvent $event) {
 
 
 
+## Observability (OpenTelemetry)
+The backend is instrumented with OpenTelemetry: one trace per API request, with spans for app/session initialization, conjunct evaluation, the ExecEngine, transaction close and every database query. It is disabled by default and enabled per deployment with environment variables. See the guide [Measuring performance with OpenTelemetry](../guides/measuring-performance-with-opentelemetry.md).
+
 ## Generics folder
 A compiled Ampersand script results in different model files that configure the prototype framework and must be placed in a specific. This folder is historically called 'generics'.
 

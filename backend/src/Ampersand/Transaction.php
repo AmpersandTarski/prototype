@@ -18,6 +18,7 @@ use Ampersand\AmpersandApp;
 use Ampersand\Event\TransactionEvent;
 use Ampersand\Exception\FatalException;
 use Ampersand\Exception\InvalidOptionException;
+use Ampersand\Misc\Otel;
 use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
 
@@ -157,6 +158,11 @@ class Transaction
      */
     public function runExecEngine(bool $checkAllRules = false): Transaction
     {
+        return Otel::span('execengine run', fn () => $this->doRunExecEngine($checkAllRules));
+    }
+
+    protected function doRunExecEngine(bool $checkAllRules = false): Transaction
+    {
         $logger = Logger::getLogger('EXECENGINE');
         $logger->info("ExecEngine started");
 
@@ -292,6 +298,11 @@ class Transaction
      * Close transaction
      */
     public function close(bool $dryRun = false, bool $ignoreInvariantViolations = false, bool $deferConjuncts = false): self
+    {
+        return Otel::span('transaction close', fn () => $this->doClose($dryRun, $ignoreInvariantViolations, $deferConjuncts));
+    }
+
+    protected function doClose(bool $dryRun, bool $ignoreInvariantViolations, bool $deferConjuncts): self
     {
         $this->logger->info("Request to close transaction: {$this->id}");
 

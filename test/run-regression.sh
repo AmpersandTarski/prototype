@@ -99,8 +99,10 @@ run_project() {
   wait_for_web || { log "  web server did not come up"; stack_down "$project"; return 1; }
 
   step "dependencies"
+  # Always run composer install: it is a fast no-op when backend/lib matches composer.lock,
+  # and it refreshes a stale backend/lib when the branch under test changed the lock file.
   docker exec "reg-$project-prototype" sh -c \
-    '[ -f /var/www/backend/lib/autoload.php ] || (cd /var/www && composer install --no-interaction)' \
+    'cd /var/www && composer install --no-interaction --no-progress' \
     >/dev/null 2>&1
 
   step "compile $model"
