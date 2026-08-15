@@ -10,7 +10,25 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.7.0 (15 August 2026)
+
+* **Measure where a prototype spends its time, with OpenTelemetry.** Tracing is off by
+  default and switches on through environment variables — no code changes to a generated
+  prototype. Each request gets a root span with phase spans for application init, session
+  init, every conjunct evaluation, the ExecEngine run and the transaction close;
+  zero-code instrumentation covers database, HTTP and I/O calls. A Jaeger overlay
+  (`compose.otel.yaml`) shows the traces; the guide is
+  `docs/guides/measuring-performance-with-opentelemetry.md`. Completes the OpenTelemetry
+  line started by Peter Zandbergen (#235, #243).
+
+* **SESSION/ONE-scope interfaces no longer produce dead links.** The "New" menu and the
+  `BOX<FORM>` create buttons skip these singleton concepts, the interface dropdown links to
+  their base path, and a bookmarked `/{session-route}/{id}` URL redirects to the base path
+  instead of a 404 (#431, #433, #434 by Sebastiaan Joosten).
+
+* **Error toasts show the backend's message again.** The interface error handlers read a
+  response field that did not exist, so their toasts showed an empty detail. They now show
+  the backend's message, and in debug mode the stack trace.
 
 * **Import-bootstrap mode: load a large dataset before the invariants take over.** A prototype
   configured with `global.importMode` (or env `AMPERSAND_IMPORT_MODE=true`) boots locked into
