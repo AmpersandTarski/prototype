@@ -30,7 +30,7 @@ Use the application on http://localhost, then open the Jaeger UI on **http://loc
 
 ## Enabling on any deployed prototype
 
-Any prototype built on the base image (`FROM ampersandtarski/prototype-framework:<version>`) accepts the standard [OTel environment variables](https://opentelemetry.io/docs/languages/sdk-configuration/). The image defaults are:
+Any prototype built on base image **v2.7.0 or later** (`FROM ampersandtarski/prototype-framework:<version>`) accepts the standard [OTel environment variables](https://opentelemetry.io/docs/languages/sdk-configuration/); older images do not contain the instrumentation, so these variables have no effect there. The image defaults are:
 
 ```bash
 OTEL_SDK_DISABLED=true            # tracing off; set to false to enable
