@@ -581,6 +581,10 @@ class Concept
                 if ($trackAffected) {
                     // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
                     $transaction->addAffectedConcept($this);
+                } else {
+                    // Even a mutation that bypasses affected-tracking invalidates the
+                    // clean-since-evaluation status of conjuncts evaluated earlier (issue #443)
+                    $transaction->registerMutation();
                 }
 
                 if ($this->hasConceptTable()) {

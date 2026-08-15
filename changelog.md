@@ -10,6 +10,16 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **Skip the close's re-evaluation of rule queries the ExecEngine has just evaluated**
+  (opt-in). With `transactions.skipCleanConjuncts: true` the transaction close keeps the
+  in-memory result of a conjunct that was evaluated in this transaction with no mutation
+  registered afterwards — typically by the ExecEngine's last fixpoint iteration — instead
+  of running the same violation query a second time. Sound because a violation query is a
+  deterministic function of the database state and no other writer can intervene within
+  one SQL transaction on one connection. Default `false` (#443).
+
 ## v2.7.0 (15 August 2026)
 
 * **Measure where a prototype spends its time, with OpenTelemetry.** Tracing is off by
