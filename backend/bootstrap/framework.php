@@ -7,6 +7,7 @@ use Ampersand\API\Handler\PhpErrorHandler;
 use Ampersand\API\Middleware\InitAmpersandAppMiddleware;
 use Ampersand\API\Middleware\JsonRequestParserMiddleware;
 use Ampersand\API\Middleware\LogPerformanceMiddleware;
+use Ampersand\API\Middleware\OtelRequestSpanMiddleware;
 use Ampersand\API\Middleware\PostMaxSizeMiddleware;
 use Ampersand\Frontend\AngularJSApp;
 use Ampersand\Log\Logger;
@@ -186,4 +187,5 @@ $api
 ->add(new PostMaxSizeMiddleware()) // catch when post_max_size is exceeded
 ->add(new JsonRequestParserMiddleware()) // overwrite default media type parser for application/json
 ->add(new LogPerformanceMiddleware($logger, 'TOTAL PERFORMANCE | ', $scriptStartTime)) // wrapper to log total performance
+->add(new OtelRequestSpanMiddleware($scriptStartTime)) // outermost: one OpenTelemetry span per request (no-op unless enabled)
 ->run();

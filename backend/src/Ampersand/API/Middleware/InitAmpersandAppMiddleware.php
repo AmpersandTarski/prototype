@@ -4,6 +4,7 @@ namespace Ampersand\API\Middleware;
 
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\NotInstalledException;
+use Ampersand\Misc\Otel;
 use Ampersand\Exception\SessionExpiredException;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
@@ -26,9 +27,9 @@ class InitAmpersandAppMiddleware
         $sessionIsResetFlag = false;
     
         try {
-            $this->app->init(); // initialize Ampersand application
+            Otel::span('app init', fn () => $this->app->init()); // initialize Ampersand application
 
-            $this->app->setSession(); // initialize session
+            Otel::span('session init', fn () => $this->app->setSession()); // initialize session (slow session creation shows up here)
         
         } catch (NotInstalledException $e) {
             // Make sure to close any open transaction

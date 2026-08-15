@@ -8,6 +8,7 @@
 namespace Ampersand\Rule;
 
 use Ampersand\AmpersandApp;
+use Ampersand\Misc\Otel;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Exception;
 use Psr\Cache\CacheItemInterface;
@@ -189,26 +190,29 @@ class Conjunct
     public function evaluate(): self
     {
         $this->logger->debug("Evaluating conjunct '{$this->id}'");
-        
+
         try {
-            // Execute conjunct query
-            $violations = array_map(function (array $pair) {
-                // Adds conjunct id to every pair
-                $pair['conjId'] = $this->id;
-                return $pair;
-            }, $this->database->execute($this->getQuery()));
+            return Otel::span("conjunct {$this->id}", function ($span) {
+                // Execute conjunct query
+                $violations = array_map(function (array $pair) {
+                    // Adds conjunct id to every pair
+                    $pair['conjId'] = $this->id;
+                    return $pair;
+                }, $this->database->execute($this->getQuery()));
 
-            $this->isEvaluated = true;
-            $this->cacheItem->set($violations);
-            $this->cachePool->saveDeferred($this->cacheItem);
-            
-            if (($count = count($violations)) == 0) {
-                $this->logger->debug("Conjunct '{$this->id}' holds");
-            } else {
-                $this->logger->debug("Conjunct '{$this->id}' broken: {$count} violations");
-            }
+                $this->isEvaluated = true;
+                $this->cacheItem->set($violations);
+                $this->cachePool->saveDeferred($this->cacheItem);
 
-            return $this;
+                if (($count = count($violations)) == 0) {
+                    $this->logger->debug("Conjunct '{$this->id}' holds");
+                } else {
+                    $this->logger->debug("Conjunct '{$this->id}' broken: {$count} violations");
+                }
+                $span->setAttribute('ampersand.violations', $count);
+
+                return $this;
+            }, ['ampersand.conjunct' => $this->id]);
         } catch (Exception $e) {
             $this->logger->error("Error evaluating conjunct '{$this->id}': " . $e->getMessage());
             throw $e;
