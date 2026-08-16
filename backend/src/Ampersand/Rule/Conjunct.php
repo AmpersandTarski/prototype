@@ -75,7 +75,22 @@ class Conjunct
      * Specifies if conjunct is already evaluated
      */
     protected bool $isEvaluated = false;
-    
+
+    /**
+     * Shape class of this conjunct's violation query, as published by the compiler
+     *
+     * Null when the model was generated before the cost-profile contract existed
+     * (Ampersand issue #1692); such a conjunct keeps the integral route.
+     */
+    protected ?CostClass $costClass = null;
+
+    /**
+     * Tables this conjunct's violation query reads in full
+     *
+     * @var string[]
+     */
+    protected array $scanTables = [];
+
     /**
      * Constructor
      */
@@ -95,6 +110,14 @@ class Conjunct
         $this->query = $conjDef['violationsSQL'];
         $this->invRuleNames = (array)$conjDef['invariantRuleNames'];
         $this->sigRuleNames = (array)$conjDef['signalRuleNames'];
+
+        // Cost profile (Ampersand issue #1692). Optional: a model generated before the
+        // contract has no such field, and an unknown class name is treated the same way,
+        // so a newer compiler can add a class without breaking this framework.
+        if (isset($conjDef['costProfile']['class'])) {
+            $this->costClass = CostClass::tryFrom((string)$conjDef['costProfile']['class']);
+            $this->scanTables = (array)($conjDef['costProfile']['scanTables'] ?? []);
+        }
 
         $this->cachePool = $cachePool;
         $this->cacheItem = $cachePool->getItem($this->id);
@@ -137,6 +160,41 @@ class Conjunct
     public function getRuleNames(): array
     {
         return array_merge($this->sigRuleNames, $this->invRuleNames);
+    }
+
+    /**
+     * The shape class the compiler assigned to this conjunct's violation query
+     */
+    public function getCostClass(): ?CostClass
+    {
+        return $this->costClass;
+    }
+
+    /**
+     * The tables this conjunct's violation query reads in full
+     *
+     * @return string[]
+     */
+    public function getScanTables(): array
+    {
+        return $this->scanTables;
+    }
+
+    /**
+     * Record that this conjunct holds, without running its query
+     *
+     * Reserved for the skip route of the cost gate: a conjunct whose violation set is
+     * empty in every state the table layout admits. The cache is written exactly as an
+     * evaluation would write it, so every reader downstream — the invariant check, the
+     * signal notifications, the persisted cache — sees one kind of result.
+     */
+    public function markHolds(): self
+    {
+        $this->isEvaluated = true;
+        $this->cacheItem->set([]);
+        $this->cachePool->saveDeferred($this->cacheItem);
+
+        return $this;
     }
 
     /**

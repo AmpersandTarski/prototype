@@ -10,6 +10,30 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **Route each rule query by the cost profile the compiler generated** (opt-in). A model
+  compiled with Ampersand ≥ v5.9.8 carries, per conjunct, the shape class of its violation
+  query and the tables that query reads in full. With `transactions.costGate.enabled: true`
+  the transaction close turns that profile into a route per conjunct, comparing the scan
+  tables against the live table sizes: a query stays integral while the tables it reads are
+  small, and is marked for incremental maintenance once the largest passes
+  `transactions.costGate.scanThreshold` (default 30 000 rows). Delta maintenance itself is
+  not part of this release, so a conjunct marked for it still gets its full query; the route
+  is logged, which makes the classification visible in the model that runs.
+* **A rule the table layout already enforces can run no query at all** (opt-in, off by
+  default). `transactions.costGate.skipStructural: true` lets the close skip the violation
+  query of a conjunct whose property the schema makes unbreakable — a univalent relation
+  stored on a unique key column cannot hold two values for one key. This rests on Ampersand
+  proof-track claim PRF-8, whose status is *stated*: it is precisely formulated but not yet
+  proved, which is why the switch is separate and off. A sampled self-check
+  (`transactions.costGate.selfCheckRate`, default 1%) runs the query after all for a fraction
+  of skipped conjuncts; if it finds violations, the real result is kept and the discrepancy
+  is logged as an error, so a defect in the claim surfaces as an alarm rather than as a rule
+  that silently stops holding.
+* A model compiled without cost profiles, or a deployment that leaves the gate off, keeps
+  running every violation query in full — the behaviour of every release so far.
+
 ## v2.7.0 (15 August 2026)
 
 * **Measure where a prototype spends its time, with OpenTelemetry.** Tracing is off by

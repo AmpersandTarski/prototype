@@ -11,6 +11,9 @@ use Exception;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Plugs\StorageInterface;
+use Ampersand\Rule\Conjunct;
+use Ampersand\Rule\ConjunctRoute;
+use Ampersand\Rule\CostGate;
 use Ampersand\Rule\RuleEngine;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Rule\Rule;
@@ -323,8 +326,25 @@ class Transaction
             return $this;
         }
 
-        // (Re)evaluate affected conjuncts
+        // (Re)evaluate affected conjuncts, each by the route the cost gate assigns it.
+        // With the gate off every conjunct takes the integral route, which is the query
+        // this loop has always run.
+        $gate = $this->app->getCostGate();
         foreach ($this->getAffectedConjuncts() as $conj) {
+            $route = $gate->route($conj);
+
+            if ($route === ConjunctRoute::Skip) {
+                $this->skipStructuralConjunct($gate, $conj);
+                continue;
+            }
+
+            if ($route === ConjunctRoute::Incremental) {
+                // Delta maintenance is not part of this build, so a conjunct the gate
+                // would maintain incrementally still gets its full query. Logging the
+                // route makes the classification visible in the model that runs.
+                $this->logger->debug("Conjunct '{$conj}' qualifies for incremental maintenance; this build evaluates it in full");
+            }
+
             $conj->evaluate(); // violations are persisted below, only when transaction is committed
         }
 
@@ -350,6 +370,30 @@ class Transaction
         
         self::$currentTransaction = null; // unset currentTransaction
         return $this;
+    }
+
+    /**
+     * Record that a structurally enforced conjunct holds, and now and then verify that it does
+     *
+     * The skip route rests on claim PRF-8: a relation stored on a unique key column cannot
+     * violate the multiplicity that layout enforces. The sampled check runs the query after
+     * all for a fraction of these conjuncts and compares. Finding violations means the claim
+     * does not hold for this model, so the real result is kept — correctness first — and the
+     * discrepancy is reported.
+     */
+    protected function skipStructuralConjunct(CostGate $gate, Conjunct $conj): void
+    {
+        if (!$gate->selfCheckDue()) {
+            $this->logger->debug("Skip evaluation of conjunct '{$conj}': structurally enforced by the table layout");
+            $conj->markHolds();
+            return;
+        }
+
+        $conj->evaluate();
+        $violations = $conj->getViolations();
+        if ($violations !== []) {
+            $gate->reportSelfCheckFailure($conj, $violations);
+        }
     }
 
     /**
