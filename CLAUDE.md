@@ -35,6 +35,8 @@ Raakt je wijziging gedrag dat nog geen project bewaakt? Voeg dan een project of 
 
 De runner compileert het model in je werkkopie: ná een run staan in `backend/generics/` en `html/` de bestanden van het laatst gedraaide project (allebei gitignored). Draai `./generate.sh <project>` om je dev-stack terug te zetten op het project waaraan je werkt.
 
+**Een nieuw bronbestand heeft `git add -f` nodig.** Regel 4 van `.gitignore` is `ampersand`, bedoeld voor de gecompileerde binary. Op een hoofdletterongevoelig bestandssysteem (macOS, `core.ignorecase=true`) matcht dat patroon óók de map `backend/src/Ampersand`, dus git negeert elk níeuw bestand daarin zonder iets te melden — bestaande bestanden blijven gewoon getrackt, wat het verschil makkelijk verbergt. Controleer na het aanmaken van een klasse dus met `git status --untracked-files=all` of hij meekomt, en voeg hem anders toe met `git add -f`.
+
 ## 3. Base Image Bouwen (Voor linux/amd64)
 Het base image (`ampersandtarski/prototype-framework:local`) wordt gebruikt in `FROM` statements van alle test- en klantprojecten.
 **ALTIJD bouwen voor `linux/amd64`**, ook op Apple Silicon:
