@@ -11,6 +11,11 @@ module.exports = {
     ],
   },
   moduleFileExtensions: ["ts", "html", "js", "json", "mjs"],
+  // The application imports from the "src/..." root that tsconfig's baseUrl provides. Jest
+  // resolves modules itself, so it needs the same mapping to load any file that uses it.
+  moduleNameMapper: {
+    "^src/(.*)$": "<rootDir>/src/$1",
+  },
   collectCoverage: true,
   coverageDirectory: "coverage",
   coverageReporters: ["html", "text-summary", "lcov"],
