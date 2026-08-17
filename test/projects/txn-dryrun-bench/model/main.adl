@@ -1,0 +1,139 @@
+CONTEXT DryRunBench IN ENGLISH
+
+-- Measurement vehicle for the dry-run cadence of a TRANSACTIONAL interface
+-- (AmpersandTarski/prototype#445). The driver in e2e/bench.mjs fills the fields one by
+-- one and times every round. See README.md.
+
+CONCEPT Record ""
+CONCEPT Val ""
+REPRESENT Val TYPE ALPHANUMERIC
+
+-- Twenty independently editable fields, so a buffer of twenty edits touches twenty
+-- different relations and every round has exactly one relation the previous round
+-- did not see.
+RELATION f1[Record*Val] [UNI]
+RELATION f2[Record*Val] [UNI]
+RELATION f3[Record*Val] [UNI]
+RELATION f4[Record*Val] [UNI]
+RELATION f5[Record*Val] [UNI]
+RELATION f6[Record*Val] [UNI]
+RELATION f7[Record*Val] [UNI]
+RELATION f8[Record*Val] [UNI]
+RELATION f9[Record*Val] [UNI]
+RELATION f10[Record*Val] [UNI]
+RELATION f11[Record*Val] [UNI]
+RELATION f12[Record*Val] [UNI]
+RELATION f13[Record*Val] [UNI]
+RELATION f14[Record*Val] [UNI]
+RELATION f15[Record*Val] [UNI]
+RELATION f16[Record*Val] [UNI]
+RELATION f17[Record*Val] [UNI]
+RELATION f18[Record*Val] [UNI]
+RELATION f19[Record*Val] [UNI]
+RELATION f20[Record*Val] [UNI]
+
+-- The only allowed value is "ok". Any other value breaks that field's rule, which puts
+-- one entry on the worklist per field the driver spoils.
+RELATION allowed[Val*Val] [PROP]
+
+RULE Ok1 LABEL "Field 1 must hold an allowed value" : f1 |- f1;allowed
+VIOLATION (TXT "Field 1 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok2 LABEL "Field 2 must hold an allowed value" : f2 |- f2;allowed
+VIOLATION (TXT "Field 2 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok3 LABEL "Field 3 must hold an allowed value" : f3 |- f3;allowed
+VIOLATION (TXT "Field 3 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok4 LABEL "Field 4 must hold an allowed value" : f4 |- f4;allowed
+VIOLATION (TXT "Field 4 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok5 LABEL "Field 5 must hold an allowed value" : f5 |- f5;allowed
+VIOLATION (TXT "Field 5 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok6 LABEL "Field 6 must hold an allowed value" : f6 |- f6;allowed
+VIOLATION (TXT "Field 6 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok7 LABEL "Field 7 must hold an allowed value" : f7 |- f7;allowed
+VIOLATION (TXT "Field 7 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok8 LABEL "Field 8 must hold an allowed value" : f8 |- f8;allowed
+VIOLATION (TXT "Field 8 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok9 LABEL "Field 9 must hold an allowed value" : f9 |- f9;allowed
+VIOLATION (TXT "Field 9 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok10 LABEL "Field 10 must hold an allowed value" : f10 |- f10;allowed
+VIOLATION (TXT "Field 10 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok11 LABEL "Field 11 must hold an allowed value" : f11 |- f11;allowed
+VIOLATION (TXT "Field 11 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok12 LABEL "Field 12 must hold an allowed value" : f12 |- f12;allowed
+VIOLATION (TXT "Field 12 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok13 LABEL "Field 13 must hold an allowed value" : f13 |- f13;allowed
+VIOLATION (TXT "Field 13 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok14 LABEL "Field 14 must hold an allowed value" : f14 |- f14;allowed
+VIOLATION (TXT "Field 14 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok15 LABEL "Field 15 must hold an allowed value" : f15 |- f15;allowed
+VIOLATION (TXT "Field 15 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok16 LABEL "Field 16 must hold an allowed value" : f16 |- f16;allowed
+VIOLATION (TXT "Field 16 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok17 LABEL "Field 17 must hold an allowed value" : f17 |- f17;allowed
+VIOLATION (TXT "Field 17 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok18 LABEL "Field 18 must hold an allowed value" : f18 |- f18;allowed
+VIOLATION (TXT "Field 18 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok19 LABEL "Field 19 must hold an allowed value" : f19 |- f19;allowed
+VIOLATION (TXT "Field 19 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+RULE Ok20 LABEL "Field 20 must hold an allowed value" : f20 |- f20;allowed
+VIOLATION (TXT "Field 20 of ", SRC I, TXT " still holds a value that is not allowed.")
+
+-- Deliberately expensive: a self-join over "near", whose cost grows with the population
+-- the driver imports. It mentions f1, so the first edit of a buffer pulls it into the
+-- affected set and every later edit finds it there without touching it. That is exactly
+-- the conjunct a carried verdict spares (DesignChoices OK-10), and the reason this model
+-- can show the difference at all.
+RELATION near[Val*Val]
+
+RULE Reach LABEL "A field-1 value keeps its reach" : f1;near;near |- f1;near
+VIOLATION (TXT "Reach broken for ", SRC I)
+
+-- The records hang under the session through V, so no ExecEngine rule is needed to make
+-- them visible and the measurement has nothing but the dry-run cadence in it.
+TRANSACTIONAL INTERFACE Records : "_SESSION"[SESSION] cRud BOX<FORM>
+  [ "Records" : V[SESSION*Record] cRud BOX<FORM>
+      [ "Field 1" : f1 cRUd
+      , "Field 2" : f2 cRUd
+      , "Field 3" : f3 cRUd
+      , "Field 4" : f4 cRUd
+      , "Field 5" : f5 cRUd
+      , "Field 6" : f6 cRUd
+      , "Field 7" : f7 cRUd
+      , "Field 8" : f8 cRUd
+      , "Field 9" : f9 cRUd
+      , "Field 10" : f10 cRUd
+      , "Field 11" : f11 cRUd
+      , "Field 12" : f12 cRUd
+      , "Field 13" : f13 cRUd
+      , "Field 14" : f14 cRUd
+      , "Field 15" : f15 cRUd
+      , "Field 16" : f16 cRUd
+      , "Field 17" : f17 cRUd
+      , "Field 18" : f18 cRUd
+      , "Field 19" : f19 cRUd
+      , "Field 20" : f20 cRUd
+      ]
+  ]
+
+POPULATION Record CONTAINS [ "record1" ]
+POPULATION allowed CONTAINS [ ("ok", "ok"), ("v0_0", "v0_0") ]
+
+ENDCONTEXT
