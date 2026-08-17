@@ -122,3 +122,118 @@ The service watches router events instead of a per-route `canActivate` guard: th
 routes come from the compiler, so the framework has no place to attach a guard to them, while
 router events cover every route uniformly. The regression spec
 (`test/projects/import-bootstrap/e2e/`) drives the red→green scenario through the real UI.
+
+**A dry-run round carries the verdicts of the conjuncts it does not re-evaluate in its own response, and the client hands them back on the next round**
+*OK-10 · geldig · 2026-08-17 · herkomst: prototype#445, Ampersand#1682 (heuristic H3), design-heuristics O10*
+
+A dry-run round of a transactional interface evaluates only the conjuncts that the operations
+added since the previous round affect, plus every affected conjunct for which it holds no earlier
+verdict. For the remaining conjuncts the round uses the verdict of the previous round, which the
+response of that round returned to the client and which the client sends back inside the request
+envelope `{ops, carriedVerdicts, carriedOpCount}`. The server keeps nothing between rounds. A dry
+run evaluates conjuncts of invariant rules only. The SAVE round is untouched: it sends the bare
+operation array, evaluates every conjunct affected by the whole buffer with its full violation
+query, and decides the commit on that. The setting `transactions.editScopedDryRun` (default
+`true`) is the kill switch; with it `false`, or with a client that sends no envelope, a dry run
+behaves exactly as before.
+
+*Overwegingen:*
+
+1. The purpose is the gap the user feels between leaving a field and seeing the SAVE state
+   settle. A transactional interface of *n* edits costs *n+1* rounds of full evaluation over an
+   affected-conjunct set that grows with the buffer, while only the newest operation can change
+   any verdict. Bounding the work to that operation is heuristic H3 — deduplicate before you
+   incrementalize — applied to the dry-run cadence, and it needs no delta calculus.
+2. The verdicts of the skipped conjuncts cannot come from `__conj_violation_cache__`. A dry run
+   rolls back and never persists, so that table holds the violations of the last committed state,
+   and a conjunct touched by operations 1…*k−1* but not by operation *k* differs from it. The
+   round-*(k−1)* result is the one that must survive, so the question is only where it lives.
+3. The client is the one place that already has the buffer, the round order and the lifetime of
+   the transaction, and it needs no invalidation logic because it holds no authority. Whichever
+   verdicts it returns feed the advisory alone: SAVE re-evaluates everything server-side and
+   refuses to commit on a violation, so a forged or stale carried verdict costs a user a wrong
+   worklist, never a wrong commit. That is what makes the client an acceptable home for state
+   the server would otherwise have to own.
+4. A cancelled or failed round leaves the carried state describing the last prefix that actually
+   completed, and `carriedOpCount` names that prefix, so the next round simply has a longer
+   segment of new operations. Correctness therefore survives an aborted round without any
+   cleanup. Server-side state has no such property: a round whose response never reaches the
+   client has already written its state.
+5. Rejected — **a per-session, per-buffer map in the session or the cache pool** (direction B of
+   the issue). It keeps the server authoritative, but it introduces state with a lifetime nobody
+   owns: abandoned buffers, several tabs on one session, and an invalidation obligation when a
+   second session commits, which needs a generation counter shared across processes. The
+   authority it buys is authority over an advisory that the commit round overrules anyway.
+6. Rejected — **the server keeps the buffer and the client sends only the new operation**
+   (direction C). It removes the *n(n+1)/2* replayed pair writes as well, which is the larger
+   prize, and it is the right shape for a later transaction-server. It also moves the transaction
+   boundary from the browser into the server and needs buffer lifetime, recovery and eviction
+   before the first edit works. That is a separate change of its own size, and it is not blocked
+   by this one.
+7. Rejected — **attribution only, keeping the full evaluation** (direction D). It delivers the
+   worklist without touching evaluation cost. The worklist here does not depend on the carried
+   verdicts at all, so choosing D would have meant leaving the measurable half undone for no
+   saving in risk.
+8. A conjunct that no operation in the buffer touches after the round that evaluated it keeps its
+   verdict for the lifetime of the buffer, so a commit by a second session in that window is
+   invisible to the worklist. The staleness is real, bounded to the advisory, and corrected at
+   SAVE; the client bounds it in time as well by discarding carried state older than 30 seconds
+   and taking a full round instead. Rejected as a mitigation: a commit-generation counter on the
+   server, which would reintroduce exactly the shared state direction B was rejected for.
+9. The entry on the worklist that the user's newest edit caused is the entry that was absent from
+   the previous round's worklist. Rejected: marking entries server-side from the conjuncts the
+   round newly evaluated. The server's answer names every rule the edit *could* have affected,
+   including rules whose violation was already there, whereas the difference between two rounds
+   names what actually appeared; and the difference also works with the feature switched off.
+10. Rejected — **keeping SAVE clickable and letting the advisory catch up asynchronously**
+    (intervention 1 of design-heuristics). It removes the felt wait outright, and it changes what
+    a transactional interface promises the user: SAVE would become a request whose refusal
+    arrives afterwards. That is a decision about the interface, not about evaluation cost, and it
+    belongs to whoever owns the feature.
+
+*Impact op de specificatie:* none. The Ampersand source of an application is unaffected: no
+concept, relation, rule or interface changes, and `TRANSACTIONAL INTERFACE` keeps its meaning.
+What changes is the cadence at which the generated application evaluates the rules the script
+already declares.
+
+*Impact in productie:* a running prototype answers a dry-run round with one extra response field
+(`dryRunVerdicts`) and accepts one extra request shape, both confined to `dryRun=true`. The
+commit path sends and receives exactly what it did before. Setting
+`transactions.editScopedDryRun: false` in `project.yaml` restores the previous evaluation on the
+dry-run path without a rebuild, which is how the "identical commit decision, feature on and off"
+comparison is run.
+
+**The transaction bar shows the buffered invariant violations as a worklist, not as error toasts**
+*OK-11 · geldig · 2026-08-17 · herkomst: prototype#445*
+
+While a transaction is open, the invariant violations of the buffered edits appear inside the
+transaction bar as a list of things still to be done before the transaction can be completed,
+under the heading "Before you can save", in the neutral register of guidance. Entries that were
+absent from the previous round carry the marker "from your last edit". The response of a dry run
+produces no toast at all: the logging interceptor passes over every request carrying
+`dryRun=true`, as it already did for `admin/import`. Outside a transaction nothing changes — a
+rule violation is still reported as the red error message it is.
+
+*Overwegingen:*
+
+1. The purpose is that a half-filled form reads as unfinished rather than as broken. The same red
+   toast served both meanings, so a rule that is simply not satisfied *yet* arrived with the
+   weight of a genuine failure, once per edit, on top of a form the user is still filling in.
+2. The list lives in the transaction bar because that is where the action it guards sits. The
+   previous form — a tooltip on the disabled SAVE button — required the user to discover that
+   hovering a disabled button says something, and it vanished on the way to the field it was
+   about.
+3. Rejected: a toast of severity `info` or `warn` instead of `error`. It softens the colour and
+   keeps everything else that made the toast wrong here — it stacks per edit, it covers the form,
+   and it disappears on a timer while the obligation it describes does not.
+4. Passing over `dryRun=true` in the interceptor also keeps the signal badge intact. A dry-run
+   response carries an empty `signals` array, and the interceptor fed that array to
+   `SignalService`, so every buffered edit cleared the badge count until the next committed
+   request restored it.
+
+*Impact op de specificatie:* none. The `VIOLATION` text of a rule is what the worklist shows, so
+an application influences the worklist exactly where it already influenced the tooltip.
+
+*Impact in productie:* the transaction bar of a transactional interface grows a list above its
+buttons, and buffered edits no longer raise toasts. Applications that are not transactional see
+no change, because no dry run happens in them.
