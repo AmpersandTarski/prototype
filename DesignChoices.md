@@ -135,7 +135,11 @@ run evaluates conjuncts of invariant rules only. The SAVE round is untouched: it
 operation array, evaluates every conjunct affected by the whole buffer with its full violation
 query, and decides the commit on that. The setting `transactions.editScopedDryRun` (default
 `true`) is the kill switch; with it `false`, or with a client that sends no envelope, a dry run
-behaves exactly as before.
+behaves exactly as before. How much the restriction leaves out depends on the edit. An edit that
+only changes a link leaves the edited relation affected and everything else is carried; an edit
+that creates or destroys an atom marks the atom's concept affected as well, and a concept reaches
+every conjunct over a relation with that concept as an endpoint, so then the affected set and the
+newly affected set coincide and nothing is carried.
 
 *Overwegingen:*
 
@@ -190,6 +194,27 @@ behaves exactly as before.
     a transactional interface promises the user: SAVE would become a request whose refusal
     arrives afterwards. That is a decision about the interface, not about evaluation cost, and it
     belongs to whoever owns the feature.
+11. The size of the win is set by how coarsely the runtime knows what an edit affects, and that
+    granularity is the compiler's. `Concept::getRelatedConjuncts()` returns the `affectedConjuncts`
+    list of the generated `concepts.json` (`Concept.php:168-171`), which the compiler fills in
+    `fSpecAllConjsPerConcept` (Ampersand, `src/Ampersand/FSpec/ToFSpec/ADL2FSpec.hs:229-237`) by
+    registering, per modifiable subterm of a conjunct, both its source and its target concept plus
+    their specialisations. A concept therefore reaches the conjuncts of every relation it is an
+    endpoint of. Since writing a value that is not yet in the population creates an atom
+    (`Core/Concept.php:581`), such an edit affects everything, and the bench measures exactly that:
+    46 of 46 affected conjuncts evaluated, at every buffer length.
+12. Rejected — **a counter-measure in the framework that treats a concept as affected only for the
+    conjuncts that depend on its population** (`I[C]`, `V`, cardinalities), leaving the rest to the
+    affectedness of the relation itself. The reasoning is sound, and the information it needs is
+    absent from the generated model: the framework receives the coarse list and cannot sharpen it.
+    A sharper list belongs in the compiler, where it carries a proof obligation because it decides
+    which conjuncts a commit re-evaluates. This is recorded on the Ampersand side as heuristic H8
+    and hypothesis O11.
+13. Rejected — **restricting a dry run by relation-affectedness alone and ignoring
+    concept-affectedness**, on the argument that a dry run is advisory and SAVE corrects it. It
+    would deliver the saving on every edit, and it would let a conjunct of the `I[C]`/`V` shape
+    report a verdict one edit out of date. The issue's acceptance asks for a worklist identical to
+    what a full re-evaluation would have produced, so a knowingly late entry is not on offer here.
 
 *Impact op de specificatie:* none. The Ampersand source of an application is unaffected: no
 concept, relation, rule or interface changes, and `TRANSACTIONAL INTERFACE` keeps its meaning.
