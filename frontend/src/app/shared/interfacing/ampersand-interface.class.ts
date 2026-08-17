@@ -609,12 +609,17 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
     this.txnService.refresh();
 
     const renderedAt = performance.now();
+    const scopes = round.responses.map(
+      (r) => r?.dryRunEvaluationScope ?? { evaluated: 0, affected: 0 },
+    );
     recordDryRunTiming({
       bufferSize: round.bufferSize,
       carriedOpCount: round.carriedOpCount,
       triggerToRendered: renderedAt - round.triggeredAt,
       sentToRendered: renderedAt - round.sentAt,
       worklistSize: this._worklist.length,
+      evaluated: scopes.reduce((n, s) => n + s.evaluated, 0),
+      affected: scopes.reduce((n, s) => n + s.affected, 0),
       at: Date.now(),
     });
   }

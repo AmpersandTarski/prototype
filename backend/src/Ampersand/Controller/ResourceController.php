@@ -180,6 +180,9 @@ class ResourceController extends AbstractController
             // round's response is what it always was.
             , 'dryRunVerdicts'        => $dryRun ? $transaction->getDryRunVerdicts() : null
             , 'dryRunOpCount'         => $dryRun ? count((array) $body) : null
+            // How many conjuncts this round evaluated out of how many it affected, so the
+            // restriction is observable from outside instead of only in the log.
+            , 'dryRunEvaluationScope' => $dryRun ? $transaction->getEvaluationScope() : null
             , 'sessionRefreshAdvice'  => $this->frontend->getSessionRefreshAdvice()
             , 'navTo'                 => $this->frontend->getNavToResponse($transaction->isCommitted() ? 'COMMIT' : 'ROLLBACK')
             ],

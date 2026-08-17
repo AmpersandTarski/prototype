@@ -96,15 +96,18 @@ VIOLATION (TXT "Field 19 of ", SRC I, TXT " still holds a value that is not allo
 RULE Ok20 LABEL "Field 20 must hold an allowed value" : f20 |- f20;allowed
 VIOLATION (TXT "Field 20 of ", SRC I, TXT " still holds a value that is not allowed.")
 
--- Deliberately expensive: a self-join over "near", whose cost grows with the population
--- the driver imports. It mentions f1, so the first edit of a buffer pulls it into the
--- affected set and every later edit finds it there without touching it. That is exactly
--- the conjunct a carried verdict spares (DesignChoices OK-10), and the reason this model
--- can show the difference at all.
+-- Deliberately expensive: a self-join over "near" that no atom anchors, so the query scans
+-- the whole relation and its cost grows with the population the driver imports. The term
+-- also mentions f1, so the first edit of a buffer pulls this conjunct into the affected set
+-- and every later edit finds it there without touching it. That is exactly the conjunct a
+-- carried verdict spares (DesignChoices OK-10), and the reason this model can show the
+-- difference at all. An anchored variant (f1;near;near |- f1;near) measured flat: one
+-- record pins the join to a handful of rows, and then there is nothing to save.
 RELATION near[Val*Val]
 
-RULE Reach LABEL "A field-1 value keeps its reach" : f1;near;near |- f1;near
-VIOLATION (TXT "Reach broken for ", SRC I)
+RULE Reach LABEL "Reachability in two steps is reachability in one" :
+  near;near |- near \/ f1~;f1
+VIOLATION (TXT "Reachability is broken at ", SRC I)
 
 -- The records hang under the session through V, so no ExecEngine rule is needed to make
 -- them visible and the measurement has nothing but the dry-run cadence in it.

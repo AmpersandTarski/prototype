@@ -40,6 +40,8 @@ const SIZES = (process.env.BENCH_SIZES ?? '20,40,60')
 const GROUPS = Number(process.env.BENCH_GROUPS ?? 4);
 const REPEATS = Number(process.env.BENCH_REPEATS ?? 3);
 const BUFFERS = [1, 5, 20];
+/** See operations(): where an edit's value comes from decides whether an atom is created. */
+const STREAMS = ['reuse', 'fresh'];
 
 let failures = 0;
 function assert(cond, msg) {
@@ -147,14 +149,30 @@ async function recordPath() {
 /**
  * The operations of one buffer. Field 1 always takes a value that exists in `near`, so the
  * expensive rule's join is not empty. `spoil` decides whether the values break their
- * field's rule: only "ok" is allowed.
+ * field's rule: only "ok" and "v0_0" are allowed.
+ *
+ * `stream` decides where the values come from, and that turns out to decide everything:
+ *
+ *  - "fresh": every edit writes a value that does not exist yet, so the edit creates an
+ *    atom of concept Val. Concept::addAtom then marks Val as affected
+ *    (backend/src/Ampersand/Core/Concept.php:581), and the compiler maps a concept to
+ *    every conjunct mentioning any relation with that concept as source or target
+ *    (Ampersand, src/Ampersand/FSpec/ToFSpec/ADL2FSpec.hs:229). The newest edit therefore
+ *    affects everything and there is nothing left to carry.
+ *  - "reuse": every edit writes a value that already exists, as a dropdown, a checkbox or
+ *    a retyped value does. No atom is created, only the relation is affected, and the
+ *    restriction to the newest edit does what it says.
  */
-function operations(length, spoil, tag) {
-  return Array.from({ length }, (_, i) => ({
-    op: 'replace',
-    path: `Field${i + 1}`,
-    value: i === 0 ? 'v0_0' : spoil ? `bad-${tag}-${i + 1}` : 'ok',
-  }));
+function operations(length, spoil, tag, stream) {
+  return Array.from({ length }, (_, i) => {
+    if (i === 0) return { op: 'replace', path: 'Field1', value: 'v0_0' };
+    const value = !spoil
+      ? 'ok'
+      : stream === 'reuse'
+        ? `v0_${i}` // an atom the imported `near` population already holds
+        : `bad-${tag}-${i + 1}`;
+    return { op: 'replace', path: `Field${i + 1}`, value };
+  });
 }
 
 /** The worklist of a round: the invariant messages, sorted so order cannot cause a difference. */
@@ -206,6 +224,7 @@ async function replayBuffer(path, ops, carry) {
       worklist: worklistOf(res.body),
       holds: res.body.invariantRulesHold,
       carriedOpCount: body.carriedOpCount,
+      scope: res.body.dryRunEvaluationScope ?? { evaluated: 0, affected: 0 },
     });
   }
   return rounds;
@@ -244,21 +263,23 @@ const median = (xs) => {
 };
 const fmt = (x) => x.toFixed(1).padStart(7);
 
-async function measure(carry, path, size) {
+async function measure(carry, path, size, stream) {
   const result = {};
   for (const n of BUFFERS) {
     const perRound = Array.from({ length: n }, () => []);
     let worklists = null;
+    let scopes = null;
     for (let r = 0; r < REPEATS; r++) {
       const rounds = await replayBuffer(
         path,
-        operations(n, true, `${size}-${r}`),
+        operations(n, true, `${size}-${r}`, stream),
         carry,
       );
       rounds.forEach((round, i) => perRound[i].push(round.ms));
       // The worklist text contains the value the driver wrote, so compare the shape:
       // the number of entries per round is what must match between the two settings.
       worklists = rounds.map((round) => round.worklist.length);
+      scopes = rounds.map((round) => round.scope);
     }
     const perRoundMedian = perRound.map(median);
     result[n] = {
@@ -266,6 +287,7 @@ async function measure(carry, path, size) {
       // What a user of a buffer of this length pays over the whole edit session.
       total: perRoundMedian.reduce((a, b) => a + b, 0),
       worklistSizes: worklists,
+      scopes,
     };
   }
   return result;
@@ -292,64 +314,105 @@ async function main() {
     const path = await recordPath();
     await resetRecord(path);
 
-    const off = await measure(false, path, size);
-    await resetRecord(path);
+    const measured = {};
+    for (const stream of STREAMS) {
+      console.log(`\n-- edit stream "${stream}"`);
+      setSetting('transactions.editScopedDryRun', 'false');
+      await resetRecord(path);
+      const off = await measure(false, path, size, stream);
 
-    setSetting('transactions.editScopedDryRun', 'true');
-    const on = await measure(true, path, size);
-    await resetRecord(path);
+      setSetting('transactions.editScopedDryRun', 'true');
+      await resetRecord(path);
+      const on = await measure(true, path, size, stream);
+      await resetRecord(path);
+      measured[stream] = { off, on };
 
-    // --- the advisory must be the same, round for round
-    for (const n of BUFFERS) {
-      assert(
-        JSON.stringify(off[n].worklistSizes) === JSON.stringify(on[n].worklistSizes),
-        `buffer ${n}: worklist identical round by round ` +
-          `(off ${off[n].worklistSizes.join('/')} · on ${on[n].worklistSizes.join('/')})`,
-      );
-    }
-
-    // --- the commit decision must be the same, for a buffer that may commit and one that may not
-    for (const [label, spoil, expectCommit] of [
-      ['a clean buffer commits', false, true],
-      ['a violating buffer does not commit', true, false],
-    ]) {
-      const decisions = [];
-      for (const [setting, carry] of [['false', false], ['true', true]]) {
-        setSetting('transactions.editScopedDryRun', setting);
-        await resetRecord(path);
-        const ops = operations(5, spoil, `commit-${setting}`);
-        await replayBuffer(path, ops, carry); // the advisory rounds first, as a user produces them
-        decisions.push(await saveBuffer(path, ops));
+      // --- the advisory must be the same, round for round
+      for (const n of BUFFERS) {
+        assert(
+          JSON.stringify(off[n].worklistSizes) === JSON.stringify(on[n].worklistSizes),
+          `buffer ${n}: worklist identical round by round ` +
+            `(off ${off[n].worklistSizes.join('/')} · on ${on[n].worklistSizes.join('/')})`,
+        );
       }
-      assert(
-        decisions[0].committed === decisions[1].committed &&
-          decisions[0].holds === decisions[1].holds &&
-          decisions[0].committed === expectCommit,
-        `${label} — off: committed=${decisions[0].committed} holds=${decisions[0].holds}, ` +
-          `on: committed=${decisions[1].committed} holds=${decisions[1].holds}`,
-      );
+
+      // --- how far the restriction reached, in the last round of the longest buffer
+      const lastOff = off[20].scopes[19];
+      const lastOn = on[20].scopes[19];
+      const scopeLine =
+        `buffer 20, last round: evaluated ${lastOn.evaluated} of ${lastOn.affected} affected ` +
+        `conjuncts, where the unrestricted round evaluated ${lastOff.evaluated}`;
+      if (stream === 'reuse') {
+        // An edit that creates no atom leaves only the edited relation affected, so the
+        // restriction must bite here or it does not work at all.
+        assert(
+          lastOn.evaluated < lastOff.evaluated && lastOn.affected === lastOff.affected,
+          scopeLine,
+        );
+      } else {
+        // An edit that creates an atom marks its concept affected, and the concept maps to
+        // every conjunct over a relation with that concept as an endpoint. The restriction
+        // is still correct, but there is nothing left for it to leave out. Reported, not
+        // asserted: this is a property of the model and of Ampersand's granularity, not of
+        // the change under test.
+        console.log(`  ℹ️  ${scopeLine}`);
+      }
     }
 
-    report.push({ size, pairs, off, on });
+    // --- the commit decision must be the same, for a buffer that may commit and one that
+    //     may not, in both edit streams
+    console.log('\n-- commit decisions');
+    for (const stream of STREAMS) {
+      for (const [label, spoil, expectCommit] of [
+        ['a clean buffer commits', false, true],
+        ['a violating buffer does not commit', true, false],
+      ]) {
+        const decisions = [];
+        for (const [setting, carry] of [['false', false], ['true', true]]) {
+          setSetting('transactions.editScopedDryRun', setting);
+          await resetRecord(path);
+          const ops = operations(5, spoil, `commit-${setting}`, stream);
+          // The advisory rounds first, exactly as a user produces them, so the commit round
+          // meets the same server state a real SAVE meets.
+          await replayBuffer(path, ops, carry);
+          decisions.push(await saveBuffer(path, ops));
+        }
+        assert(
+          decisions[0].committed === decisions[1].committed &&
+            decisions[0].holds === decisions[1].holds &&
+            JSON.stringify(decisions[0].worklist) === JSON.stringify(decisions[1].worklist) &&
+            decisions[0].committed === expectCommit,
+          `${stream}: ${label} — off: committed=${decisions[0].committed} ` +
+            `holds=${decisions[0].holds} violations=${decisions[0].worklist.length}, ` +
+            `on: committed=${decisions[1].committed} holds=${decisions[1].holds} ` +
+            `violations=${decisions[1].worklist.length}`,
+        );
+      }
+    }
+
+    report.push({ size, pairs, measured });
     await resetRecord(path);
   }
 
   console.log('\n\n================ dry-run round latency (median of ' + REPEATS + ') ================');
   console.log('All times in ms: the PATCH round trip, i.e. patch-sent to verdict-available.');
-  console.log('"whole buffer" is the sum over the rounds a user of that buffer length pays.\n');
+  console.log('"whole buffer" is the sum over the rounds a user of that buffer length pays.');
+  console.log('"reuse" = the edit writes an existing value; "fresh" = it creates an atom.\n');
   console.log(
-    'near pairs  buffer   off: 1st   off: last  off: whole   on: 1st   on: last   on: whole   saved',
+    'stream  near pairs  buffer   off: 1st  off: last off: whole    on: 1st   on: last  on: whole   saved',
   );
-  for (const row of report) {
-    for (const n of BUFFERS) {
-      const o = row.off[n];
-      const c = row.on[n];
-      const saved = o.total > 0 ? ((1 - c.total / o.total) * 100).toFixed(0) : '0';
-      console.log(
-        `${String(row.pairs).padStart(10)}  ${String(n).padStart(6)}  ` +
-          `${fmt(o.perRound[0])}  ${fmt(o.perRound[n - 1])}  ${fmt(o.total)}  ` +
-          `${fmt(c.perRound[0])}  ${fmt(c.perRound[n - 1])}  ${fmt(c.total)}  ${String(saved).padStart(5)}%`,
-      );
+  for (const stream of STREAMS) {
+    for (const row of report) {
+      for (const n of BUFFERS) {
+        const o = row.measured[stream].off[n];
+        const c = row.measured[stream].on[n];
+        const saved = o.total > 0 ? ((1 - c.total / o.total) * 100).toFixed(0) : '0';
+        console.log(
+          `${stream.padEnd(6)}  ${String(row.pairs).padStart(10)}  ${String(n).padStart(6)}  ` +
+            `${fmt(o.perRound[0])}  ${fmt(o.perRound[n - 1])}  ${fmt(o.total)}  ` +
+            `${fmt(c.perRound[0])}  ${fmt(c.perRound[n - 1])}  ${fmt(c.total)}  ${String(saved).padStart(5)}%`,
+        );
+      }
     }
   }
 

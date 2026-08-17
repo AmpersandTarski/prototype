@@ -115,6 +115,13 @@ class Transaction
     private array $carriedVerdicts = [];
 
     /**
+     * How many conjuncts this transaction evaluated, out of how many it affected
+     *
+     * @var array{evaluated: int, affected: int}
+     */
+    private array $evaluationScope = ['evaluated' => 0, 'affected' => 0];
+
+    /**
      * Specifies if the transaction is committed or rolled back
      *
      * Null if transaction is still open (i.e. not committed nor rolled back)
@@ -600,6 +607,7 @@ class Transaction
     protected function conjunctsToEvaluate(bool $dryRun): array
     {
         $affected = $this->getAffectedConjuncts();
+        $this->evaluationScope = ['evaluated' => count($affected), 'affected' => count($affected)];
 
         if (!$dryRun || !$this->boundaryMarked || !$this->app->getSettings()->get('transactions.editScopedDryRun')) {
             return $affected;
@@ -622,11 +630,24 @@ class Transaction
             $conjunct->useCarriedViolations($this->carriedVerdicts[$conjunct->getId()]);
         }
 
+        $this->evaluationScope = ['evaluated' => count($toEvaluate), 'affected' => count($affected)];
         $this->logger->info(
             "Edit-scoped dry run: evaluating " . count($toEvaluate) . " of " . count($affected) . " affected conjuncts"
         );
 
         return $toEvaluate;
+    }
+
+    /**
+     * How many conjuncts this transaction evaluated, out of how many it affected. The
+     * dry-run response reports it, which is what makes the restriction observable from
+     * outside and lets the bench project assert that it happens at all.
+     *
+     * @return array{evaluated: int, affected: int}
+     */
+    public function getEvaluationScope(): array
+    {
+        return $this->evaluationScope;
     }
 
     /**

@@ -25,6 +25,8 @@ export interface DryRunEnvelope {
 export interface DryRunVerdictResponse {
   dryRunVerdicts?: CarriedVerdicts | null;
   dryRunOpCount?: number | null;
+  /** How many conjuncts the round evaluated, out of how many the whole buffer affects. */
+  dryRunEvaluationScope?: { evaluated: number; affected: number } | null;
 }
 
 /** One measured dry-run round. Times are milliseconds on the `performance.now()` clock. */
@@ -39,6 +41,9 @@ export interface DryRunTiming {
   sentToRendered: number;
   /** Number of worklist entries the round produced. */
   worklistSize: number;
+  /** Conjuncts the backend evaluated, out of the conjuncts the whole buffer affects. */
+  evaluated: number;
+  affected: number;
   /** Wall-clock moment the round was recorded, for correlating with a server-side trace. */
   at: number;
 }
