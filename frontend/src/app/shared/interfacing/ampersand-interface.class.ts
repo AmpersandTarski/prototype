@@ -68,6 +68,17 @@ const VALIDATION_DEBOUNCE_MS = 120;
  */
 const CARRIED_VERDICT_MAX_AGE_MS = 30_000;
 
+/** One completed dry-run round: what came back, and the two moments that bracket it. */
+interface DryRunRound<T extends ObjectBase | ObjectBase[]> {
+  responses: (PatchResponse<T> | null)[];
+  /** When the edit that asked for this round happened; the debounce sits between the two. */
+  triggeredAt: number;
+  /** When the request left the client. */
+  sentAt: number;
+  bufferSize: number;
+  carriedOpCount: number;
+}
+
 @Component({ template: '' })
 export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
   implements OnDestroy, TransactionalInterface
@@ -534,13 +545,7 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
   }
 
   /** Dry-run the buffer (no commit) to enable/disable SAVE and rebuild the worklist. */
-  private dryRunRound(triggeredAt: number): Observable<{
-    responses: (PatchResponse<T> | null)[];
-    triggeredAt: number;
-    sentAt: number;
-    bufferSize: number;
-    carriedOpCount: number;
-  } | null> {
+  private dryRunRound(triggeredAt: number): Observable<DryRunRound<T> | null> {
     const groups = this.groupByRoot();
     if (groups.length === 0) return of(null);
 
@@ -583,15 +588,7 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
   }
 
   /** Render the round: SAVE state, worklist, and the measured latency of the round. */
-  private applyVerdict(
-    round: {
-      responses: (PatchResponse<T> | null)[];
-      triggeredAt: number;
-      sentAt: number;
-      bufferSize: number;
-      carriedOpCount: number;
-    } | null,
-  ): void {
+  private applyVerdict(round: DryRunRound<T> | null): void {
     if (round === null) {
       this._canSave = false;
       this._worklist = [];

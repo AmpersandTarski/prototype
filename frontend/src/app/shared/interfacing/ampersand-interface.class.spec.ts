@@ -1,8 +1,4 @@
-import {
-  HttpClient,
-  HttpClientModule,
-  HttpErrorResponse,
-} from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import {
   HttpClientTestingModule,
   HttpTestingController,
@@ -270,6 +266,3 @@ describe('AmpersandInterfaceComponent — dry-run rounds', () => {
     );
   }));
 });
-
-// Keeps the unused-import checker quiet about the type used only in a cast above.
-export type _Unused = HttpErrorResponse;
