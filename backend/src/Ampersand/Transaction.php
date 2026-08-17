@@ -79,6 +79,42 @@ class Transaction
     private bool $conjunctsDeferred = false;
     
     /**
+     * Upper bound on the number of violation pairs a dry-run response hands to the client.
+     *
+     * Beyond it the response omits the verdicts altogether and the next round evaluates
+     * everything, which keeps a conjunct that is broken across the whole population from
+     * turning the advisory into a bulk transfer.
+     */
+    private const CARRY_PAIR_LIMIT = 2000;
+
+    /**
+     * True once markEvaluationBoundary() has run, i.e. once the operations of earlier dry-run
+     * rounds have been applied and everything from here on belongs to the newest edit.
+     */
+    private bool $boundaryMarked = false;
+
+    /**
+     * Concepts affected after the evaluation boundary (i.e. by the newest edit)
+     *
+     * @var \Ampersand\Core\Concept[]
+     */
+    private array $newlyAffectedConcepts = [];
+
+    /**
+     * Relations affected after the evaluation boundary (i.e. by the newest edit)
+     *
+     * @var \Ampersand\Core\Relation[]
+     */
+    private array $newlyAffectedRelations = [];
+
+    /**
+     * Verdicts of the previous dry-run round, keyed by conjunct id (DesignChoices OK-10)
+     *
+     * @var array<string, array{src: string, tgt: string}[]>
+     */
+    private array $carriedVerdicts = [];
+
+    /**
      * Specifies if the transaction is committed or rolled back
      *
      * Null if transaction is still open (i.e. not committed nor rolled back)
@@ -323,8 +359,9 @@ class Transaction
             return $this;
         }
 
-        // (Re)evaluate affected conjuncts
-        foreach ($this->getAffectedConjuncts() as $conj) {
+        // (Re)evaluate affected conjuncts. Outside a dry run this is every affected conjunct, so
+        // the commit decision below rests on the same fresh evaluation it always did.
+        foreach ($this->conjunctsToEvaluate($dryRun) as $conj) {
             $conj->evaluate(); // violations are persisted below, only when transaction is committed
         }
 
@@ -436,6 +473,13 @@ class Transaction
      */
     public function addAffectedConcept(Concept $concept): void
     {
+        // Record separately what the newest edit touches. A concept the buffer already touched
+        // in an earlier round is not in affectedConcepts twice, but its conjuncts can still
+        // change verdict, so this list is kept on its own instead of as a tail of that one.
+        if ($this->boundaryMarked && !in_array($concept, $this->newlyAffectedConcepts, true)) {
+            $this->newlyAffectedConcepts[] = $concept;
+        }
+
         if (!in_array($concept, $this->affectedConcepts)) {
             $this->logger->debug("Mark concept '{$concept}' as affected concept");
             
@@ -453,6 +497,10 @@ class Transaction
      */
     public function addAffectedRelations(Relation $relation): void
     {
+        if ($this->boundaryMarked && !in_array($relation, $this->newlyAffectedRelations, true)) {
+            $this->newlyAffectedRelations[] = $relation;
+        }
+
         if (!in_array($relation, $this->affectedRelations)) {
             $this->logger->debug("Mark relation '{$relation}' as affected relation");
 
@@ -484,6 +532,137 @@ class Transaction
         
         // Remove duplicates and return conjuncts
         return array_unique($affectedConjuncts);
+    }
+
+    /**********************************************************************************************
+     * EDIT-SCOPED DRY RUN (DesignChoices OK-10)
+     *********************************************************************************************/
+
+    /**
+     * Declare that everything applied from here on belongs to the newest edit.
+     *
+     * A dry-run round of a transactional interface re-applies the whole buffered edit set. The
+     * caller applies the operations of the earlier rounds first, calls this, and then applies the
+     * operations the client added since. Only the conjuncts affected after this point can have a
+     * different verdict than the previous round found.
+     */
+    public function markEvaluationBoundary(): void
+    {
+        $this->boundaryMarked = true;
+        $this->newlyAffectedConcepts = [];
+        $this->newlyAffectedRelations = [];
+    }
+
+    /**
+     * Hand this transaction the verdicts of the previous dry-run round.
+     *
+     * @param array<string, array{src: string, tgt: string}[]> $verdicts keyed by conjunct id
+     */
+    public function setCarriedVerdicts(array $verdicts): void
+    {
+        $this->carriedVerdicts = $verdicts;
+    }
+
+    /**
+     * Conjuncts affected by the operations applied after the evaluation boundary
+     *
+     * @return \Ampersand\Rule\Conjunct[]
+     */
+    public function getNewlyAffectedConjuncts(): array
+    {
+        if (!$this->boundaryMarked) {
+            return $this->getAffectedConjuncts();
+        }
+
+        $conjuncts = [];
+        foreach ($this->newlyAffectedConcepts as $concept) {
+            $conjuncts = array_merge($conjuncts, $concept->getRelatedConjuncts());
+        }
+        foreach ($this->newlyAffectedRelations as $relation) {
+            $conjuncts = array_merge($conjuncts, $relation->getRelatedConjuncts());
+        }
+
+        return array_unique($conjuncts);
+    }
+
+    /**
+     * The conjuncts this transaction evaluates when it closes.
+     *
+     * Outside a dry run, and whenever the setting is off, this is every affected conjunct — the
+     * behaviour a commit depends on, unchanged. Within a dry run it is the affected conjuncts of
+     * invariant rules that either the newest edit touches or that carry no verdict from the
+     * previous round; the rest adopt that verdict here. Signal conjuncts drop out because a dry
+     * run neither reports signals (ResourceController skips checkProcessRules) nor keeps them
+     * (it rolls back without persisting the violation cache).
+     *
+     * @return \Ampersand\Rule\Conjunct[]
+     */
+    protected function conjunctsToEvaluate(bool $dryRun): array
+    {
+        $affected = $this->getAffectedConjuncts();
+
+        if (!$dryRun || !$this->boundaryMarked || !$this->app->getSettings()->get('transactions.editScopedDryRun')) {
+            return $affected;
+        }
+
+        $newlyAffected = $this->getNewlyAffectedConjuncts();
+        $toEvaluate = [];
+        foreach ($affected as $conjunct) {
+            if (!$conjunct->isInvConj()) {
+                continue; // a dry run reports invariant violations only
+            }
+            if (in_array($conjunct, $newlyAffected, true)) {
+                $toEvaluate[] = $conjunct;
+                continue;
+            }
+            if (!array_key_exists($conjunct->getId(), $this->carriedVerdicts)) {
+                $toEvaluate[] = $conjunct; // no earlier verdict to fall back on
+                continue;
+            }
+            $conjunct->useCarriedViolations($this->carriedVerdicts[$conjunct->getId()]);
+        }
+
+        $this->logger->info(
+            "Edit-scoped dry run: evaluating " . count($toEvaluate) . " of " . count($affected) . " affected conjuncts"
+        );
+
+        return $toEvaluate;
+    }
+
+    /**
+     * The verdicts of every affected invariant conjunct, for the client to hand back on the next
+     * dry-run round. Null when this round did not restrict its evaluation, or when the verdicts
+     * together exceed CARRY_PAIR_LIMIT pairs; the next round then evaluates everything.
+     *
+     * @return array<string, array{src: string, tgt: string}[]>|null
+     */
+    public function getDryRunVerdicts(): ?array
+    {
+        if (!$this->app->getSettings()->get('transactions.editScopedDryRun')) {
+            return null;
+        }
+
+        $verdicts = [];
+        $pairCount = 0;
+        foreach ($this->getAffectedConjuncts() as $conjunct) {
+            if (!$conjunct->isInvConj()) {
+                continue;
+            }
+            $violations = $conjunct->getViolationsOfThisRequest();
+            if (is_null($violations)) {
+                continue; // neither evaluated nor carried; the next round evaluates it
+            }
+            $pairCount += count($violations);
+            if ($pairCount > self::CARRY_PAIR_LIMIT) {
+                $this->logger->info("Dry-run verdicts exceed " . self::CARRY_PAIR_LIMIT . " pairs; not handing them to the client");
+                return null;
+            }
+            $verdicts[$conjunct->getId()] = array_map(function (array $violation): array {
+                return ['src' => $violation['src'], 'tgt' => $violation['tgt']];
+            }, $violations);
+        }
+
+        return $verdicts;
     }
 
     /**

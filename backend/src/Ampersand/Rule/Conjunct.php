@@ -8,6 +8,7 @@
 namespace Ampersand\Rule;
 
 use Ampersand\AmpersandApp;
+use Ampersand\Exception\FatalException;
 use Ampersand\Misc\Otel;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Exception;
@@ -75,7 +76,13 @@ class Conjunct
      * Specifies if conjunct is already evaluated
      */
     protected bool $isEvaluated = false;
-    
+
+    /**
+     * True when the violations held by this conjunct come from a previous dry-run round
+     * (handed back by the client) instead of from a query. See DesignChoices OK-10.
+     */
+    protected bool $verdictIsCarried = false;
+
     /**
      * Constructor
      */
@@ -219,8 +226,50 @@ class Conjunct
         }
     }
 
+    /**
+     * Adopt the violations this conjunct had in the previous dry-run round.
+     *
+     * A dry run of a transactional interface re-applies the whole buffered edit set, but only the
+     * operations added since the previous round can change a verdict. For every other affected
+     * conjunct the previous round's answer still holds, and the client hands it back
+     * (DesignChoices OK-10). The violations land in the in-memory cache item only, so
+     * Rule::checkRule() reads them without a query and without touching the violation cache
+     * table. Persisting them is refused outright, see persistCacheItem().
+     *
+     * @param array{src: string, tgt: string}[] $pairs
+     */
+    public function useCarriedViolations(array $pairs): void
+    {
+        $this->cacheItem->set(array_map(function (array $pair): array {
+            return ['conjId' => $this->id, 'src' => (string) $pair['src'], 'tgt' => (string) $pair['tgt']];
+        }, $pairs));
+
+        $this->isEvaluated = true;
+        $this->verdictIsCarried = true;
+
+        $this->logger->debug("Conjunct '{$this->id}' takes its verdict from the previous dry-run round");
+    }
+
+    /**
+     * The violations this conjunct holds within the current request, or null when it neither
+     * evaluated nor adopted a verdict. Never falls back on the violation cache table.
+     *
+     * @return array{conjId: string, src: string, tgt: string}[]|null
+     */
+    public function getViolationsOfThisRequest(): ?array
+    {
+        return $this->isEvaluated ? $this->cacheItem->get() : null;
+    }
+
     public function persistCacheItem(): void
     {
+        // A carried verdict describes an uncommitted, rolled-back state and belongs to the
+        // advisory only. It can only be reached on a dry run, which never commits; a commit
+        // that gets here anyway would write violations that were never queried.
+        if ($this->verdictIsCarried) {
+            throw new FatalException("Refusing to persist conjunct '{$this->id}': its verdict was carried from a dry-run round, not evaluated");
+        }
+
         $this->cachePool->save($this->cacheItem);
     }
 

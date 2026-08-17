@@ -54,6 +54,7 @@ settings:
   ### Transaction settings
   transactions.ignoreInvariantViolations: false # for debugging can be set to true (transactions will be committed regardless off invariant violations)
   transactions.skipUniInjConjuncts: false # TODO: remove after fix for issue #535
+  transactions.editScopedDryRun: true # a dry run of a transactional interface evaluates only the conjuncts the newest edit affects, reusing the previous round's verdicts (DesignChoices OK-10). Set to false to evaluate every affected conjunct on every round. Does not touch the commit round.
   transactions.interfaceAutoSaveChanges: true # specifies whether changes in interface are directly communicated (saved) to server
 
   ### Notification settings

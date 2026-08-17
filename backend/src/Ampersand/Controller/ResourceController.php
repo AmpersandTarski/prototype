@@ -92,8 +92,24 @@ class ResourceController extends AbstractController
         $defer = filter_var($request->getQueryParam('defer', false), FILTER_VALIDATE_BOOLEAN);
         $body = $request->reparseBody()->getParsedBody();
 
+        // A dry-run round of a transactional interface may wrap its operations in an envelope
+        // {ops, carriedVerdicts, carriedOpCount} that hands back the verdicts of the previous
+        // round (DesignChoices OK-10). Without the envelope — and on every non-dry-run request,
+        // the SAVE round included — the body is the bare operation list it always was.
+        $carriedOpCount = 0;
+        $carriedVerdicts = [];
+        if ($dryRun && is_object($body) && property_exists($body, 'ops')) {
+            $carriedOpCount = max(0, (int) ($body->carriedOpCount ?? 0));
+            $carriedVerdicts = array_map(
+                fn ($pairs) => array_map(fn ($pair) => ['src' => $pair->src ?? '', 'tgt' => $pair->tgt ?? ''], (array) $pairs),
+                (array) ($body->carriedVerdicts ?? [])
+            );
+            $body = (array) $body->ops;
+        }
+
         // Prepare
         $transaction = $this->app->newTransaction();
+        $transaction->setCarriedVerdicts($carriedVerdicts);
         $entry = ResourceList::makeWithoutInterface($this->app->getModel()->getConcept($args['resourceType']))->one($args['resourceId']);
 
         // Perform action
@@ -104,7 +120,17 @@ class ResourceController extends AbstractController
                 $this->app->eventDispatcher()->dispatch(new ResourceEvent($resource, $transaction, $body), ResourceEvent::PUT);
                 break;
             case 'PATCH':
-                $resource = $entry->walkPathToResource($pathList)->patch($body);
+                $target = $entry->walkPathToResource($pathList);
+                // Apply the operations the previous round already saw, mark the boundary, then
+                // apply the ones the newest edit added. What the transaction records as affected
+                // after the boundary is exactly what can still change a verdict.
+                if ($carriedOpCount > 0 && $carriedOpCount < count($body)) {
+                    $target->patch(array_slice($body, 0, $carriedOpCount));
+                    $transaction->markEvaluationBoundary();
+                    $resource = $target->patch(array_slice($body, $carriedOpCount));
+                } else {
+                    $resource = $target->patch($body);
+                }
                 $successMessage = "{$resource->getLabel()} updated";
                 $this->app->eventDispatcher()->dispatch(new ResourceEvent($resource, $transaction, $body), ResourceEvent::PATCHED);
                 break;
@@ -149,6 +175,11 @@ class ResourceController extends AbstractController
             , 'notifications'         => $this->app->userLog()->getAll()
             , 'invariantRulesHold'    => $transaction->invariantRulesHold()
             , 'isCommitted'           => $transaction->isCommitted()
+            // Verdicts for the next dry-run round to hand back, and the length of the buffer
+            // they describe (DesignChoices OK-10). Both null outside a dry run, so the SAVE
+            // round's response is what it always was.
+            , 'dryRunVerdicts'        => $dryRun ? $transaction->getDryRunVerdicts() : null
+            , 'dryRunOpCount'         => $dryRun ? count((array) $body) : null
             , 'sessionRefreshAdvice'  => $this->frontend->getSessionRefreshAdvice()
             , 'navTo'                 => $this->frontend->getNavToResponse($transaction->isCommitted() ? 'COMMIT' : 'ROLLBACK')
             ],
