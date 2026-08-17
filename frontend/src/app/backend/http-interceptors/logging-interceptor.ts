@@ -52,8 +52,13 @@ export class LoggingInterceptor implements HttpInterceptor {
           // Let import requests handle their own messaging - don't show automatic notifications
           const isImportRequest = req.url.includes('admin/import');
 
+          // A dry run validates a buffered edit set that the user is still filling in. Its
+          // invariant violations are the transaction bar's worklist, not errors (DesignChoices
+          // OK-11), and its empty `signals` array must not clear the signal badge.
+          const isDryRun = req.urlWithParams.includes('dryRun=true');
+
           // If notifications have been found, the error field exists (possibly with empty array, but it exists)
-          if (notifications.errors && !isImportRequest)
+          if (notifications.errors && !isImportRequest && !isDryRun)
             this.sendMessagesFromNotifications(notifications);
           if (patchResponse.sessionRefreshAdvice) {
             // clear session storage and reload page

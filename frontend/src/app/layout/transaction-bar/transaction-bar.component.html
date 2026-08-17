@@ -1,28 +1,44 @@
 <div class="transaction-bar" *ngIf="(active$ | async) as active">
-  <span class="transaction-bar__label">
-    <ng-container *ngIf="active.isDirty(); else clean"
-      >Unsaved changes</ng-container
-    >
-    <ng-template #clean>Editing</ng-template>
-  </span>
-  <span class="transaction-bar__spacer"></span>
-  <!-- Cancel only makes sense while there are buffered edits to roll back; when the
-       interface just shows committed database content there is nothing to cancel. -->
-  <button
-    *ngIf="active.isDirty()"
-    pButton
-    type="button"
-    label="Cancel"
-    class="p-button-text p-button-secondary"
-    (click)="cancel(active)"
-  ></button>
-  <!-- Wrapper carries the tooltip so it also fires while the button is disabled. -->
-  <span
-    [pTooltip]="violationTooltip(active)"
-    [tooltipDisabled]="active.canSave()"
-    [escape]="false"
-    tooltipPosition="top"
-  >
+  <!-- The worklist: what still has to happen before this transaction can be completed. It is
+       guidance towards completion, deliberately not the red violation message that a rule
+       violation outside a transaction produces. See DesignChoices OK-11. -->
+  <div class="transaction-worklist" *ngIf="active.worklist().length > 0">
+    <div class="transaction-worklist__heading">
+      <i class="pi pi-check-square" aria-hidden="true"></i>
+      <span>Before you can save</span>
+    </div>
+    <ul class="transaction-worklist__items">
+      <li
+        *ngFor="let entry of active.worklist()"
+        class="transaction-worklist__item"
+        [class.transaction-worklist__item--new]="entry.isNew"
+      >
+        <span class="transaction-worklist__text">{{ entry.message }}</span>
+        <span class="transaction-worklist__badge" *ngIf="entry.isNew"
+          >from your last edit</span
+        >
+      </li>
+    </ul>
+  </div>
+
+  <div class="transaction-bar__controls">
+    <span class="transaction-bar__label">
+      <ng-container *ngIf="active.isDirty(); else clean"
+        >Unsaved changes</ng-container
+      >
+      <ng-template #clean>Editing</ng-template>
+    </span>
+    <span class="transaction-bar__spacer"></span>
+    <!-- Cancel only makes sense while there are buffered edits to roll back; when the
+         interface just shows committed database content there is nothing to cancel. -->
+    <button
+      *ngIf="active.isDirty()"
+      pButton
+      type="button"
+      label="Cancel"
+      class="p-button-text p-button-secondary"
+      (click)="cancel(active)"
+    ></button>
     <button
       pButton
       type="button"
@@ -30,5 +46,5 @@
       [disabled]="!active.canSave()"
       (click)="save(active)"
     ></button>
-  </span>
+  </div>
 </div>

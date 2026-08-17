@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import {
   catchError,
+  debounceTime,
   forkJoin,
   map,
   Observable,
@@ -44,8 +45,28 @@ import {
 import {
   TransactionService,
   TransactionalInterface,
+  WorklistEntry,
 } from '../services/transaction.service';
 import { InterfacesJsonService } from '../services/interfaces-json.service';
+import {
+  CarriedVerdicts,
+  DryRunEnvelope,
+  recordDryRunTiming,
+} from './dry-run.interface';
+
+/**
+ * Edits arriving within this window collapse into one dry-run round. Fields patch on blur,
+ * so a burst only happens when the user tabs quickly through several fields; the delay is
+ * short enough not to register as waiting.
+ */
+const VALIDATION_DEBOUNCE_MS = 120;
+
+/**
+ * A carried verdict describes conjuncts the buffer has not touched since the round that
+ * evaluated them, so a commit by another session makes it stale. Beyond this age the client
+ * drops it and takes a full round, which bounds that staleness in time (DesignChoices OK-10).
+ */
+const CARRIED_VERDICT_MAX_AGE_MS = 30_000;
 
 @Component({ template: '' })
 export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
@@ -90,8 +111,21 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
   /** Buffered, retargeted patch ops awaiting an explicit SAVE (Transactional mode). */
   private buffer: { rootPath: string; op: Patch | PatchValue }[] = [];
   private _canSave = false;
-  /** Concrete invariant violations from the last dry-run, shown on a disabled SAVE. */
-  private _violations: string[] = [];
+  /** What still has to happen before this transaction can be completed. */
+  private _worklist: WorklistEntry[] = [];
+
+  /**
+   * Verdicts of the last completed dry-run round, per root resource, with the length of the
+   * buffer prefix they describe. A round that is cancelled or fails leaves this untouched, so
+   * the next round simply hands the backend a longer segment of new operations to evaluate.
+   */
+  private carriedVerdicts = new Map<
+    string,
+    { opCount: number; verdicts: CarriedVerdicts; at: number }
+  >();
+
+  /** Fires on every buffered edit; the debounced pipeline below turns it into one round. */
+  private validationTrigger$ = new Subject<number>();
 
   /**
    * Marks the host element of a transactional interface, so `styles.scss` can draw
@@ -105,7 +139,20 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
   constructor(
     protected http: HttpClient,
     private messageService: MessageService,
-  ) {}
+  ) {
+    // One round at a time, and the round that was sent last is the one that decides. `switchMap`
+    // unsubscribes the previous round, which aborts its request; the debounce collapses a burst
+    // of edits into a single round. Before this, each edit started its own `forkJoin` and
+    // cancelled nothing, so whichever answer arrived last won — on a large database that is
+    // regularly the stale one.
+    this.validationTrigger$
+      .pipe(
+        debounceTime(VALIDATION_DEBOUNCE_MS),
+        switchMap((triggeredAt) => this.dryRunRound(triggeredAt)),
+        takeUntil(this.destroy$),
+      )
+      .subscribe((round) => this.applyVerdict(round));
+  }
 
   ngOnDestroy(): void {
     // Release ownership of the open transaction, if any.
@@ -400,9 +447,9 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
     return this.buffer.length === 0 || this._canSave;
   }
 
-  /** Concrete invariant-violation messages that currently block SAVE (hover text). */
-  violations(): string[] {
-    return this._violations;
+  /** What still has to happen before this transaction can be completed. */
+  worklist(): WorklistEntry[] {
+    return this._worklist;
   }
 
   private bufferPatch(
@@ -450,37 +497,153 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
     return rootPath + (rootPath.includes('?') ? '&' : '?') + 'dryRun=true';
   }
 
-  /** Dry-run the buffer (no commit) to enable/disable SAVE and collect violations. */
+  /** Ask for a dry-run round. The pipeline in the constructor decides when it actually runs. */
   private runValidation(): void {
-    const groups = this.groupByRoot();
-    if (groups.length === 0) {
+    if (this.buffer.length === 0) {
       this._canSave = false;
-      this._violations = [];
+      this._worklist = [];
+      this.carriedVerdicts.clear();
       this.txnService.refresh();
       return;
     }
-    const checks = groups.map((g) =>
-      this.http
-        .patch<PatchResponse<T>>(this.dryRunUrl(g.rootPath), g.ops)
-        .pipe(catchError(() => of(null))),
-    );
-    forkJoin(checks)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((responses) => {
-        // A failed dry-run (null) is treated as "not saveable".
-        this._canSave = responses.every((r) => r != null && r.invariantRulesHold);
-        this._violations = responses.flatMap((r) => this.collectViolations(r));
-        this.txnService.refresh();
-      });
+    this.validationTrigger$.next(performance.now());
   }
 
-  /** Flatten a dry-run response's invariant notifications into human-readable lines. */
-  private collectViolations(resp: PatchResponse<T> | null): string[] {
+  /**
+   * The request body of one root group. It carries the verdicts of the previous round back to
+   * the backend, so that round evaluates only the conjuncts the newest operations affect. An
+   * absent or aged-out carried verdict simply yields an envelope with `carriedOpCount: 0`, on
+   * which the backend evaluates everything — the behaviour without this feature.
+   */
+  private dryRunBody(
+    rootPath: string,
+    ops: (Patch | PatchValue)[],
+  ): DryRunEnvelope {
+    const carried = this.carriedVerdicts.get(rootPath);
+    const usable =
+      carried !== undefined &&
+      carried.opCount > 0 &&
+      carried.opCount < ops.length &&
+      Date.now() - carried.at <= CARRIED_VERDICT_MAX_AGE_MS;
+
+    return {
+      ops,
+      carriedVerdicts: usable ? carried!.verdicts : {},
+      carriedOpCount: usable ? carried!.opCount : 0,
+    };
+  }
+
+  /** Dry-run the buffer (no commit) to enable/disable SAVE and rebuild the worklist. */
+  private dryRunRound(triggeredAt: number): Observable<{
+    responses: (PatchResponse<T> | null)[];
+    triggeredAt: number;
+    sentAt: number;
+    bufferSize: number;
+    carriedOpCount: number;
+  } | null> {
+    const groups = this.groupByRoot();
+    if (groups.length === 0) return of(null);
+
+    const bodies = groups.map((g) => ({
+      rootPath: g.rootPath,
+      body: this.dryRunBody(g.rootPath, g.ops),
+    }));
+    const sentAt = performance.now();
+    const checks = bodies.map(({ rootPath, body }) =>
+      this.http
+        .patch<PatchResponse<T>>(this.dryRunUrl(rootPath), body)
+        .pipe(
+          tap((response) => this.rememberVerdicts(rootPath, response)),
+          catchError(() => of(null)),
+        ),
+    );
+
+    return forkJoin(checks).pipe(
+      map((responses) => ({
+        responses,
+        triggeredAt,
+        sentAt,
+        bufferSize: this.buffer.length,
+        carriedOpCount: bodies.reduce((n, b) => n + b.body.carriedOpCount, 0),
+      })),
+    );
+  }
+
+  /** Keep a completed round's verdicts for the next one; ignore an answer about a shorter buffer. */
+  private rememberVerdicts(rootPath: string, response: PatchResponse<T>): void {
+    const verdicts = response.dryRunVerdicts;
+    const opCount = response.dryRunOpCount;
+    if (!verdicts || typeof opCount !== 'number') {
+      this.carriedVerdicts.delete(rootPath);
+      return;
+    }
+    const held = this.carriedVerdicts.get(rootPath);
+    if (held && held.opCount > opCount) return;
+    this.carriedVerdicts.set(rootPath, { opCount, verdicts, at: Date.now() });
+  }
+
+  /** Render the round: SAVE state, worklist, and the measured latency of the round. */
+  private applyVerdict(
+    round: {
+      responses: (PatchResponse<T> | null)[];
+      triggeredAt: number;
+      sentAt: number;
+      bufferSize: number;
+      carriedOpCount: number;
+    } | null,
+  ): void {
+    if (round === null) {
+      this._canSave = false;
+      this._worklist = [];
+      this.txnService.refresh();
+      return;
+    }
+
+    // A failed dry-run (null) is treated as "not saveable".
+    this._canSave = round.responses.every(
+      (r) => r != null && r.invariantRulesHold,
+    );
+    this._worklist = this.buildWorklist(
+      round.responses.flatMap((r) => this.collectViolations(r)),
+    );
+    this.txnService.refresh();
+
+    const renderedAt = performance.now();
+    recordDryRunTiming({
+      bufferSize: round.bufferSize,
+      carriedOpCount: round.carriedOpCount,
+      triggerToRendered: renderedAt - round.triggeredAt,
+      sentToRendered: renderedAt - round.sentAt,
+      worklistSize: this._worklist.length,
+      at: Date.now(),
+    });
+  }
+
+  /**
+   * Turn this round's violations into the worklist, marking the entries the previous round did
+   * not have. Those are the ones the user's most recent edit brought about (DesignChoices OK-11).
+   */
+  private buildWorklist(
+    violations: { rule: string; message: string }[],
+  ): WorklistEntry[] {
+    const key = (e: { rule: string; message: string }) =>
+      [e.rule, e.message].join('|');
+    const before = new Set(this._worklist.map(key));
+    return violations.map((v) => ({ ...v, isNew: !before.has(key(v)) }));
+  }
+
+  /** Flatten a dry-run response's invariant notifications into rule/message pairs. */
+  private collectViolations(
+    resp: PatchResponse<T> | null,
+  ): { rule: string; message: string }[] {
     const invariants = resp?.notifications?.invariants ?? [];
     return invariants.flatMap((inv) =>
       inv.tuples.length === 0
-        ? [inv.ruleMessage]
-        : inv.tuples.map((t) => t.violationMessage || inv.ruleMessage),
+        ? [{ rule: inv.ruleMessage, message: inv.ruleMessage }]
+        : inv.tuples.map((t) => ({
+            rule: inv.ruleMessage,
+            message: t.violationMessage || inv.ruleMessage,
+          })),
     );
   }
 
@@ -499,7 +662,8 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
         if (allCommitted) {
           this.buffer = [];
           this._canSave = false;
-          this._violations = [];
+          this._worklist = [];
+          this.carriedVerdicts.clear();
           // Keep the transaction open (bar/border stay visible) for further edits,
           // unless the interface is being left — ngOnDestroy releases ownership.
           this.txnService.refresh();
@@ -532,7 +696,8 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
   public cancel(): void {
     this.buffer = [];
     this._canSave = false;
-    this._violations = [];
+    this._worklist = [];
+    this.carriedVerdicts.clear();
     // The interface stays transactional and open; only the buffer is discarded.
     this.txnService.refresh();
     this.syncWithServer()

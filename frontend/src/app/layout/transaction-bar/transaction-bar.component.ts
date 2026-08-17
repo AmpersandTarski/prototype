@@ -13,9 +13,11 @@ import {
  * transaction applies to (not in a global bar at the window bottom). Visible from
  * entry onward. CANCEL is shown only while there are buffered edits to roll back
  * (`isDirty()`); when the interface just shows committed database content there is
- * nothing to cancel. SAVE is disabled while any invariant is violated, and its hover
- * text lists the concrete violations. The transaction boundary is a single interface
- * (one root interface per route), so one bar suffices.
+ * nothing to cancel. SAVE is disabled while any invariant is violated, and the bar
+ * then shows the worklist: what still has to happen before this transaction can be
+ * completed, with the entries the user's most recent edit brought about marked as
+ * such (DesignChoices OK-11). The transaction boundary is a single interface (one
+ * root interface per route), so one bar suffices.
  */
 @Component({
   selector: 'app-transaction-bar',
@@ -36,10 +38,5 @@ export class TransactionBarComponent {
 
   public cancel(active: TransactionalInterface): void {
     active.cancel();
-  }
-
-  /** Violation lines joined for the disabled-SAVE tooltip (`[escape]="false"`). */
-  public violationTooltip(active: TransactionalInterface): string {
-    return active.violations().join('<br>');
   }
 }
