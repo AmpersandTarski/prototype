@@ -110,26 +110,26 @@ VIOLATION (TXT "Reach broken for ", SRC I)
 -- them visible and the measurement has nothing but the dry-run cadence in it.
 TRANSACTIONAL INTERFACE Records : "_SESSION"[SESSION] cRud BOX<FORM>
   [ "Records" : V[SESSION*Record] cRud BOX<FORM>
-      [ "Field 1" : f1 cRUd
-      , "Field 2" : f2 cRUd
-      , "Field 3" : f3 cRUd
-      , "Field 4" : f4 cRUd
-      , "Field 5" : f5 cRUd
-      , "Field 6" : f6 cRUd
-      , "Field 7" : f7 cRUd
-      , "Field 8" : f8 cRUd
-      , "Field 9" : f9 cRUd
-      , "Field 10" : f10 cRUd
-      , "Field 11" : f11 cRUd
-      , "Field 12" : f12 cRUd
-      , "Field 13" : f13 cRUd
-      , "Field 14" : f14 cRUd
-      , "Field 15" : f15 cRUd
-      , "Field 16" : f16 cRUd
-      , "Field 17" : f17 cRUd
-      , "Field 18" : f18 cRUd
-      , "Field 19" : f19 cRUd
-      , "Field 20" : f20 cRUd
+      [ "Field1" : f1 cRUd
+      , "Field2" : f2 cRUd
+      , "Field3" : f3 cRUd
+      , "Field4" : f4 cRUd
+      , "Field5" : f5 cRUd
+      , "Field6" : f6 cRUd
+      , "Field7" : f7 cRUd
+      , "Field8" : f8 cRUd
+      , "Field9" : f9 cRUd
+      , "Field10" : f10 cRUd
+      , "Field11" : f11 cRUd
+      , "Field12" : f12 cRUd
+      , "Field13" : f13 cRUd
+      , "Field14" : f14 cRUd
+      , "Field15" : f15 cRUd
+      , "Field16" : f16 cRUd
+      , "Field17" : f17 cRUd
+      , "Field18" : f18 cRUd
+      , "Field19" : f19 cRUd
+      , "Field20" : f20 cRUd
       ]
   ]
 

@@ -10,6 +10,26 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **A transactional interface tells you what is still to be done, instead of reporting an
+  error per keystroke.** While a transaction is open, the invariant violations of the
+  buffered edits appear in the transaction bar as a worklist headed "Before you can save",
+  with the entries your most recent edit brought about marked as such. A dry run raises no
+  toast at all, so filling in a half-finished form no longer produces the red message that
+  a genuine rule violation outside a transaction produces — and it no longer clears the
+  signal badge either. The tooltip on the disabled SAVE button is gone; the list it used to
+  hide is now in plain sight. See DesignChoices OK-11.
+
+* **Feedback while editing keeps up with a growing database.** A dry-run round now evaluates
+  only the conjuncts the newest edit affects and reuses the previous round's verdicts for the
+  rest, so the wait after leaving a field stops growing with the length of the buffer. The
+  rounds also run one at a time: a new edit cancels the round in flight, so the verdict that
+  was sent last is the one you see rather than whichever answer happened to arrive last. The
+  commit decision is untouched — SAVE still evaluates every affected conjunct afresh — and
+  `transactions.editScopedDryRun: false` restores the previous evaluation. See DesignChoices
+  OK-10.
+
 ## v2.7.0 (15 August 2026)
 
 * **Measure where a prototype spends its time, with OpenTelemetry.** Tracing is off by

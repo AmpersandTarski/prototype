@@ -152,7 +152,7 @@ async function recordPath() {
 function operations(length, spoil, tag) {
   return Array.from({ length }, (_, i) => ({
     op: 'replace',
-    path: `Field ${i + 1}`,
+    path: `Field${i + 1}`,
     value: i === 0 ? 'v0_0' : spoil ? `bad-${tag}-${i + 1}` : 'ok',
   }));
 }
@@ -230,7 +230,7 @@ async function saveBuffer(path, ops) {
 async function resetRecord(path) {
   const ops = Array.from({ length: 20 }, (_, i) => ({
     op: 'replace',
-    path: `Field ${i + 1}`,
+    path: `Field${i + 1}`,
     value: i === 0 ? 'v0_0' : 'ok',
   }));
   await saveBuffer(path, ops);
