@@ -30,7 +30,25 @@ or, against a stack of your own:
 population of `near` holds `groups × size²` pairs and its self-join costs `groups × size³`
 intermediate rows, so the group size is the knob that makes the expensive rule expensive.
 
+## The two edit streams
+
+Where an edit's value comes from decides how much the restriction can leave out, so the
+driver runs both cases.
+
+In the **reuse** stream every edit writes a value that already exists, as a dropdown, a
+checkbox or a retyped value does. No atom is created, only the edited relation is affected,
+and the round evaluates 2 of 41 affected conjuncts.
+
+In the **fresh** stream every edit writes a value that does not exist yet. That creates an
+atom, `Concept::addAtom` marks its concept affected
+(`backend/src/Ampersand/Core/Concept.php:581`), and the compiler maps a concept to the
+conjuncts of every relation it is an endpoint of (Ampersand,
+`src/Ampersand/FSpec/ToFSpec/ADL2FSpec.hs:229`). The round then evaluates 46 of 46: the
+restriction is still correct, and there is nothing left for it to leave out. A sharper
+affectedness belongs in the compiler; the framework receives the coarse list.
+
 **Green means:** for every population size and every buffer length, the worklist is the same
-round for round with the setting on and off, a clean buffer commits and a violating buffer
-does not — with the setting on and off alike. The latency table is reported, never asserted:
-a wall-clock number is evidence, not a gate.
+round for round with the setting on and off; the reuse stream evaluates fewer conjuncts with
+the setting on; and a clean buffer commits while a violating buffer does not, with the
+setting on and off alike. The latency table is reported, never asserted: a wall-clock number
+is evidence, not a gate.

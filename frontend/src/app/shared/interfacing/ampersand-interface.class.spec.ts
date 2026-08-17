@@ -36,7 +36,13 @@ describe('AmpersandInterfaceComponent — dry-run rounds', () => {
     }
     /** Buffer one operation and ask for a round, as an edit on blur does. */
     public edit(name: string, value: string): void {
-      (this as unknown as { bufferPatch: Function }).bufferPatch(ROOT, [
+      type Buffering = {
+        bufferPatch(
+          root: string,
+          ops: { op: string; path: string; value: string }[],
+        ): void;
+      };
+      (this as unknown as Buffering).bufferPatch(ROOT, [
         { op: 'replace', path: name, value },
       ]);
     }
@@ -90,7 +96,10 @@ describe('AmpersandInterfaceComponent — dry-run rounds', () => {
         },
         {
           provide: InterfacesJsonService,
-          useValue: { isTransactional: () => true, transactionalRefPaths: () => [] },
+          useValue: {
+            isTransactional: () => true,
+            transactionalRefPaths: () => [],
+          },
         },
         {
           provide: ElementRef,
@@ -99,7 +108,10 @@ describe('AmpersandInterfaceComponent — dry-run rounds', () => {
         { provide: Renderer2, useValue: { appendChild: () => undefined } },
         {
           provide: ApplicationRef,
-          useValue: { attachView: () => undefined, detachView: () => undefined },
+          useValue: {
+            attachView: () => undefined,
+            detachView: () => undefined,
+          },
         },
       ],
     });
@@ -216,7 +228,10 @@ describe('AmpersandInterfaceComponent — dry-run rounds', () => {
     ifc.edit('other', 'x');
     tick(DEBOUNCE);
     openRound().flush(
-      response(['booking1 has no guest name.', 'booking2 has no guest name.'], 2),
+      response(
+        ['booking1 has no guest name.', 'booking2 has no guest name.'],
+        2,
+      ),
     );
     tick(DEBOUNCE);
 
@@ -260,8 +275,9 @@ describe('AmpersandInterfaceComponent — dry-run rounds', () => {
     openRound().flush(response([], 1));
     tick(DEBOUNCE);
 
-    expect(window.ampersandDryRunTimings).toHaveLength(1);
-    expect(window.ampersandDryRunTimings![0]).toEqual(
+    const timings = window.ampersandDryRunTimings ?? [];
+    expect(timings).toHaveLength(1);
+    expect(timings[0]).toEqual(
       expect.objectContaining({ bufferSize: 1, carriedOpCount: 0 }),
     );
   }));

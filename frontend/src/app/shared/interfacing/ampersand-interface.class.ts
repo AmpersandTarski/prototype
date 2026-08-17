@@ -388,7 +388,9 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
       if (i < refPath.length && segment === refPath[i]) i++;
     }
     if (i !== refPath.length) return false;
-    return !exact || segments[segments.length - 1] === refPath[refPath.length - 1];
+    return (
+      !exact || segments[segments.length - 1] === refPath[refPath.length - 1]
+    );
   }
 
   /** Segments of a resource path below `resource/{Concept}/{atomId}/{InterfaceName}`. */
@@ -406,15 +408,22 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
     propertyName: string,
   ): boolean {
     if (!parentResourcePath || this.txnRefPaths().length === 0) return false;
-    const segments = [...this.relativeSegments(parentResourcePath), propertyName];
-    return this.txnRefPaths().some((p) => this.matchesRefPath(segments, p, true));
+    const segments = [
+      ...this.relativeSegments(parentResourcePath),
+      propertyName,
+    ];
+    return this.txnRefPaths().some((p) =>
+      this.matchesRefPath(segments, p, true),
+    );
   }
 
   /** Whether a patch on `resourcePath` lands inside an inlined transactional reference. */
   private isUnderTransactionalRef(resourcePath: string): boolean {
     if (this.txnRefPaths().length === 0) return false;
     const segments = this.relativeSegments(resourcePath);
-    return this.txnRefPaths().some((p) => this.matchesRefPath(segments, p, false));
+    return this.txnRefPaths().some((p) =>
+      this.matchesRefPath(segments, p, false),
+    );
   }
 
   /** Memoized `isTransactional` lookup, keyed by the interface name it was read for. */
@@ -537,10 +546,13 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
       carried.opCount < ops.length &&
       Date.now() - carried.at <= CARRIED_VERDICT_MAX_AGE_MS;
 
+    if (!usable || carried === undefined) {
+      return { ops, carriedVerdicts: {}, carriedOpCount: 0 };
+    }
     return {
       ops,
-      carriedVerdicts: usable ? carried!.verdicts : {},
-      carriedOpCount: usable ? carried!.opCount : 0,
+      carriedVerdicts: carried.verdicts,
+      carriedOpCount: carried.opCount,
     };
   }
 
@@ -555,12 +567,10 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
     }));
     const sentAt = performance.now();
     const checks = bodies.map(({ rootPath, body }) =>
-      this.http
-        .patch<PatchResponse<T>>(this.dryRunUrl(rootPath), body)
-        .pipe(
-          tap((response) => this.rememberVerdicts(rootPath, response)),
-          catchError(() => of(null)),
-        ),
+      this.http.patch<PatchResponse<T>>(this.dryRunUrl(rootPath), body).pipe(
+        tap((response) => this.rememberVerdicts(rootPath, response)),
+        catchError(() => of(null)),
+      ),
     );
 
     return forkJoin(checks).pipe(

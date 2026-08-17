@@ -41,9 +41,7 @@ describe('TransactionBarComponent — worklist', () => {
     await TestBed.configureTestingModule({
       declarations: [TransactionBarComponent],
       imports: [CommonModule, ButtonModule],
-      providers: [
-        { provide: TransactionService, useValue: { active$ } },
-      ],
+      providers: [{ provide: TransactionService, useValue: { active$ } }],
     }).compileComponents();
     fixture = TestBed.createComponent(TransactionBarComponent);
   });
@@ -59,8 +57,16 @@ describe('TransactionBarComponent — worklist', () => {
 
   it('lists what still has to happen, in the register of guidance', () => {
     worklist = [
-      { rule: 'A booking needs a guest name.', message: 'booking1 has no guest name.', isNew: false },
-      { rule: 'A booking needs a guest name.', message: 'booking2 has no guest name.', isNew: true },
+      {
+        rule: 'A booking needs a guest name.',
+        message: 'booking1 has no guest name.',
+        isNew: false,
+      },
+      {
+        rule: 'A booking needs a guest name.',
+        message: 'booking2 has no guest name.',
+        isNew: true,
+      },
     ];
     active$.next(activeInterface(false));
     fixture.detectChanges();
@@ -94,7 +100,9 @@ describe('TransactionBarComponent — worklist', () => {
 
     const save = Array.from(
       fixture.nativeElement.querySelectorAll('button'),
-    ).find((b) => (b as HTMLButtonElement).textContent?.includes('Save')) as HTMLButtonElement;
+    ).find((b) =>
+      (b as HTMLButtonElement).textContent?.includes('Save'),
+    ) as HTMLButtonElement;
     expect(save.disabled).toBe(true);
   });
 });

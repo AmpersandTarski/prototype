@@ -43,9 +43,8 @@ export interface TransactionalInterface {
  */
 @Injectable({ providedIn: 'root' })
 export class TransactionService {
-  private readonly _active$ = new BehaviorSubject<TransactionalInterface | null>(
-    null,
-  );
+  private readonly _active$ =
+    new BehaviorSubject<TransactionalInterface | null>(null);
   public readonly active$: Observable<TransactionalInterface | null> =
     this._active$.asObservable();
 
