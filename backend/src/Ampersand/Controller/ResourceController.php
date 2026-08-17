@@ -120,16 +120,17 @@ class ResourceController extends AbstractController
                 $this->app->eventDispatcher()->dispatch(new ResourceEvent($resource, $transaction, $body), ResourceEvent::PUT);
                 break;
             case 'PATCH':
+                $ops = (array) $body;
                 $target = $entry->walkPathToResource($pathList);
                 // Apply the operations the previous round already saw, mark the boundary, then
                 // apply the ones the newest edit added. What the transaction records as affected
                 // after the boundary is exactly what can still change a verdict.
-                if ($carriedOpCount > 0 && $carriedOpCount < count($body)) {
-                    $target->patch(array_slice($body, 0, $carriedOpCount));
+                if ($carriedOpCount > 0 && $carriedOpCount < count($ops)) {
+                    $target->patch(array_slice($ops, 0, $carriedOpCount));
                     $transaction->markEvaluationBoundary();
-                    $resource = $target->patch(array_slice($body, $carriedOpCount));
+                    $resource = $target->patch(array_slice($ops, $carriedOpCount));
                 } else {
-                    $resource = $target->patch($body);
+                    $resource = $target->patch($ops);
                 }
                 $successMessage = "{$resource->getLabel()} updated";
                 $this->app->eventDispatcher()->dispatch(new ResourceEvent($resource, $transaction, $body), ResourceEvent::PATCHED);
