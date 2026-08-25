@@ -11,6 +11,7 @@ use Exception;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Plugs\StorageInterface;
+use Ampersand\Rule\Conjunct;
 use Ampersand\Rule\RuleEngine;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Rule\Rule;
@@ -107,7 +108,34 @@ class Transaction
      * @var string[]
      */
     protected array $requestedServiceIds = [];
-    
+
+    /**
+     * Counts every mutation registered in this transaction (link add/delete, atom add/delete,
+     * set-level deletes). Together with $conjunctEvalStamps this tells whether a conjunct's
+     * in-memory evaluation is still current: a conjunct whose stamp equals the current counter
+     * was evaluated after the last mutation, so re-evaluating it must return the same result
+     * (a violation query is a deterministic function of the database state, and within one
+     * SQL transaction on one connection no other writer can intervene). See issue #443.
+     */
+    protected int $mutationCount = 0;
+
+    /**
+     * Mutation counter value at the time each conjunct was last evaluated in this transaction
+     *
+     * @var array<string, int> conjunct id => mutation counter value
+     */
+    protected array $conjunctEvalStamps = [];
+
+    /**
+     * Return the current open transaction, or null when no transaction is open
+     *
+     * Unlike AmpersandApp::getCurrentTransaction() this never opens a new transaction
+     */
+    public static function getCurrent(): ?Transaction
+    {
+        return self::$currentTransaction;
+    }
+
     /**
      * Constructor
      *
@@ -324,7 +352,16 @@ class Transaction
         }
 
         // (Re)evaluate affected conjuncts
+        $skipCleanConjuncts = $this->app->getSettings()->get('transactions.skipCleanConjuncts', false);
         foreach ($this->getAffectedConjuncts() as $conj) {
+            // A conjunct that was evaluated in this transaction (typically by the ExecEngine's
+            // last fixpoint iteration) with no mutation registered afterwards would evaluate
+            // to the same result; its in-memory result already serves the invariant check and
+            // the cache persist below. See issue #443.
+            if ($skipCleanConjuncts && $this->isCleanSinceEvaluation($conj)) {
+                $this->logger->debug("Skip evaluation of conjunct '{$conj}': evaluated in this transaction with no mutations afterwards");
+                continue;
+            }
             $conj->evaluate(); // violations are persisted below, only when transaction is committed
         }
 
@@ -432,10 +469,43 @@ class Transaction
     }
     
     /**
+     * Register that a mutation (link add/delete, atom add/delete, set-level delete) happened
+     *
+     * Called on every mutation, also when the concept/relation is already marked as affected
+     * and also for mutations that deliberately bypass affected-tracking (trackAffected=false).
+     * Invalidates the clean-since-evaluation status of all conjuncts evaluated so far.
+     */
+    public function registerMutation(): void
+    {
+        $this->mutationCount++;
+    }
+
+    /**
+     * Record that a conjunct was evaluated at the current mutation counter value
+     *
+     * Called by Conjunct::evaluate() whenever a transaction is open
+     */
+    public function recordConjunctEvaluation(Conjunct $conjunct): void
+    {
+        $this->conjunctEvalStamps[$conjunct->getId()] = $this->mutationCount;
+    }
+
+    /**
+     * Return whether a conjunct was evaluated in this transaction with no mutation registered afterwards
+     */
+    protected function isCleanSinceEvaluation(Conjunct $conjunct): bool
+    {
+        return isset($this->conjunctEvalStamps[$conjunct->getId()])
+            && $this->conjunctEvalStamps[$conjunct->getId()] === $this->mutationCount;
+    }
+
+    /**
      * Mark a concept as affected within the open transaction
      */
     public function addAffectedConcept(Concept $concept): void
     {
+        $this->registerMutation();
+
         if (!in_array($concept, $this->affectedConcepts)) {
             $this->logger->debug("Mark concept '{$concept}' as affected concept");
             
@@ -453,6 +523,8 @@ class Transaction
      */
     public function addAffectedRelations(Relation $relation): void
     {
+        $this->registerMutation();
+
         if (!in_array($relation, $this->affectedRelations)) {
             $this->logger->debug("Mark relation '{$relation}' as affected relation");
 

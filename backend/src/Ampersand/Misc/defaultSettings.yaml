@@ -54,6 +54,7 @@ settings:
   ### Transaction settings
   transactions.ignoreInvariantViolations: false # for debugging can be set to true (transactions will be committed regardless off invariant violations)
   transactions.skipUniInjConjuncts: false # TODO: remove after fix for issue #535
+  transactions.skipCleanConjuncts: false # skip the close's re-evaluation of conjuncts that were evaluated in this transaction with no mutations registered afterwards (issue #443)
   transactions.interfaceAutoSaveChanges: true # specifies whether changes in interface are directly communicated (saved) to server
 
   ### Notification settings

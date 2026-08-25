@@ -9,6 +9,7 @@ namespace Ampersand\Rule;
 
 use Ampersand\AmpersandApp;
 use Ampersand\Misc\Otel;
+use Ampersand\Transaction;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Exception;
 use Psr\Cache\CacheItemInterface;
@@ -203,6 +204,11 @@ class Conjunct
                 $this->isEvaluated = true;
                 $this->cacheItem->set($violations);
                 $this->cachePool->saveDeferred($this->cacheItem);
+
+                // Stamp this evaluation with the transaction's mutation counter, so the
+                // transaction close can skip a re-evaluation when nothing changed since.
+                // See transactions.skipCleanConjuncts (issue #443)
+                Transaction::getCurrent()?->recordConjunctEvaluation($this);
 
                 if (($count = count($violations)) == 0) {
                     $this->logger->debug("Conjunct '{$this->id}' holds");
