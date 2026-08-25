@@ -122,3 +122,29 @@ The service watches router events instead of a per-route `canActivate` guard: th
 routes come from the compiler, so the framework has no place to attach a guard to them, while
 router events cover every route uniformly. The regression spec
 (`test/projects/import-bootstrap/e2e/`) drives the red→green scenario through the real UI.
+
+**sortByAndHide: the hidden sort column is dropped by a generated constant *ngIf**
+OK-12 · geldig · 2026-08-25 · herkomst: gebruikerswens (variant op sortBy)
+
+The `BOX<TABLE sortByAndHide="<column>">` annotation sorts the rows on the named column
+while that column is absent from the rendered table. The annotation reaches the template
+without compiler changes (the compiler passes every BOX-header key/value generically).
+StringTemplate has no string comparison, so the template does not drop the column itself:
+every `<th>`/`<td>` carries an Angular `*ngIf` that compares two compile-time literals
+(`$any('<columnName>') !== '<sortByAndHide>'`), and Angular leaves the one constant-false
+column out of the DOM. The `$any()` keeps strict template type checking from rejecting a
+comparison of two distinct literals as unintentional (TS2367). The backend delivers `_sortValues_` on the strength of `sortByAndHide`
+alone (`BoxHeader::isSortable()`), so the annotation works without `sortable`.
+
+Rejected: hiding at the component level (app-box-table) — the header and row cells arrive
+as projected templates, so the component has no handle on which cell belongs to which
+column. Rejected: filtering the column out in StringTemplate — the template language
+cannot compare strings, and teaching the compiler a special-cased attribute would breach
+the generic key/value contract. Rejected: `BOX<NOVIEW>` on the sub-interface — that hides
+the field but leaves nothing to sort on in the table template.
+
+Technisch: `frontend/src/app/generated/.templates/Box-TABLE.html` (the sortBy binding and
+the per-cell `*ngIf`), `backend/src/Ampersand/Interfacing/BoxHeader.php` (isSortable),
+docs in `docs/reference-material/built-in-box-templates.md`, regression in
+`test/projects/box-annotations` (API sort values + rendered component HTML). The hidden
+column's values still travel to the browser: presentation, not access control.
