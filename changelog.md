@@ -12,6 +12,13 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased
 
+* **Sort a table on a column the user does not see.** The new
+  `BOX<TABLE sortByAndHide="<column>">` annotation sorts the rows on the named
+  (univalent) column and hides that column from the table — for sort keys that are
+  bookkeeping, such as a rank or sequence number. It works without `sortable` and
+  overrides `sortBy`; `order` sets the direction. See
+  `docs/reference-material/built-in-box-templates.md`.
+
 * **Skip the close's re-evaluation of rule queries the ExecEngine has just evaluated**
   (opt-in). With `transactions.skipCleanConjuncts: true` the transaction close keeps the
   in-memory result of a conjunct that was evaluated in this transaction with no mutation

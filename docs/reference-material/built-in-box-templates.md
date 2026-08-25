@@ -34,7 +34,8 @@ and ignores the rest.
 | `showNavMenu` | ✅ | ✅ | — | — | flag | Adds a navigation menu (links to other interfaces) per record. |
 | `sortable` | ✅ | — | — | — | flag | Makes column headers clickable to sort. Combine with `sortBy` / `order`. |
 | `sortBy` | ✅ | — | — | — | string | Default sort column (a sub-interface label). Use with `sortable`. |
-| `order` | ✅ | — | — | — | `asc`/`desc` | Default sort direction. Use with `sortBy`. |
+| `sortByAndHide` | ✅ | — | — | — | string | Sorts the rows on the named column and hides that column. Works without `sortable`; overrides `sortBy`. |
+| `order` | ✅ | — | — | — | `asc`/`desc` | Default sort direction. Use with `sortBy` or `sortByAndHide`. |
 | `table` | — | — | — | ✅ | flag | Lays each record's fields out as an HTML table row. |
 | `form` | — | — | — | ✅ | flag | Wraps each record in a non-submitting `<form>` element. |
 
@@ -127,6 +128,35 @@ included in interface reads by default, so no extra configuration is needed.
 "Categories" : V[SESSION*Category] cRud BOX<TABLE showNavMenu>
   [ "Name" : catName cRud ]
 ```
+
+### `sortable`, `sortBy`, `sortByAndHide` and `order` (TABLE)
+
+`sortable` makes the column headers clickable to sort. `sortBy="<column>"` picks
+the column the table is sorted on when it opens, and `order="asc"`/`order="desc"`
+picks the direction. The column name is the sub-interface label, written as it
+appears in the interface definition.
+
+`sortByAndHide="<column>"` sorts the rows on the named column and hides that
+column from the table. Use it when the sort key is bookkeeping the user should
+not see — a rank, a sequence number, a normalized date:
+
+```ampersand
+"Steps" : procedureStep cRud BOX<TABLE sortByAndHide="Seq">
+  [ "Step" : stepText cRud
+  , "Seq"  : stepSeq  cRud
+  ]
+```
+
+- It works on its own: `sortable` is not required. Combined with `sortable`, the
+  user can still re-sort on the visible columns; `sortByAndHide` then overrides
+  `sortBy` as the initial sort.
+- `order` sets the direction, as with `sortBy`.
+- The named column must be a univalent (`UNI`) sub-interface; sorting needs one
+  value per row.
+- The column is hidden from view only. Its values still travel to the browser in
+  the interface data, so `sortByAndHide` is presentation, not access control —
+  restrict the CRUD rights where the user may not read the values at all (but
+  note that without read rights there is nothing to sort on either).
 
 ### `table` and `form` (RAW)
 

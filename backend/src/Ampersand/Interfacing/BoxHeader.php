@@ -29,7 +29,11 @@ class BoxHeader
 
     public function isSortable(): bool
     {
-        return strtoupper(substr($this->type, 0, 1)) === 'S' || $this->hasKey('sortable');
+        // sortByAndHide sorts on a column that is not rendered, so it needs the
+        // sort values even when the box carries no 'sortable' annotation.
+        return strtoupper(substr($this->type, 0, 1)) === 'S'
+            || $this->hasKey('sortable')
+            || $this->hasKey('sortByAndHide');
     }
 
     public function hasKey(string $key): bool
