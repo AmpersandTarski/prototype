@@ -103,13 +103,13 @@ try {
     hiddenHtml.includes('sortBy="_sortValues_.Rank"'),
     'table sorts on _sortValues_.Rank',
   );
-  const dropRank = (hiddenHtml.match(/\*ngIf="'Rank' !== 'Rank'"/g) ?? []).length;
+  const dropRank = (hiddenHtml.match(/\*ngIf="\$any\('Rank'\) !== 'Rank'"/g) ?? []).length;
   assert(
     dropRank >= 2,
     `header and row cells of 'Rank' carry the dropping *ngIf (found ${dropRank})`,
   );
   assert(
-    hiddenHtml.includes(`*ngIf="'Name' !== 'Rank'"`),
+    hiddenHtml.includes(`*ngIf="$any('Name') !== 'Rank'"`),
     `the visible 'Name' column keeps rendering (constant-true *ngIf)`,
   );
 
@@ -117,7 +117,7 @@ try {
     `cat ${SCRATCH}/*categoriessortable*/*.component.html`,
   );
   assert(
-    !sortableHtml.includes('sortBy=') && !sortableHtml.includes('*ngIf="\''),
+    !sortableHtml.includes('sortBy=') && !sortableHtml.includes('*ngIf="$any('),
     'a table without sortByAndHide renders as before (no sortBy binding, no column *ngIf)',
   );
 } finally {

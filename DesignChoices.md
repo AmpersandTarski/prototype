@@ -131,8 +131,9 @@ while that column is absent from the rendered table. The annotation reaches the 
 without compiler changes (the compiler passes every BOX-header key/value generically).
 StringTemplate has no string comparison, so the template does not drop the column itself:
 every `<th>`/`<td>` carries an Angular `*ngIf` that compares two compile-time literals
-(`'<columnName>' !== '<sortByAndHide>'`), and Angular leaves the one constant-false column
-out of the DOM. The backend delivers `_sortValues_` on the strength of `sortByAndHide`
+(`$any('<columnName>') !== '<sortByAndHide>'`), and Angular leaves the one constant-false
+column out of the DOM. The `$any()` keeps strict template type checking from rejecting a
+comparison of two distinct literals as unintentional (TS2367). The backend delivers `_sortValues_` on the strength of `sortByAndHide`
 alone (`BoxHeader::isSortable()`), so the annotation works without `sortable`.
 
 Rejected: hiding at the component level (app-box-table) — the header and row cells arrive

@@ -1,6 +1,8 @@
 <!-- Box-TABLE.html -->
 <!-- sortByAndHide: StringTemplate has no string comparison, so the hidden column is not
-     dropped here but by the generated *ngIf, which compares two compile-time literals. -->
+     dropped here but by the generated *ngIf, which compares two compile-time literals.
+     The \$any() keeps strict template type checking from rejecting a comparison of two
+     distinct literals as unintentional (TS2367). -->
 
 <div $if(isRoot)$*ngIf="resource?.data; else loading" $endif$>
     <app-box-table
@@ -41,21 +43,21 @@
             <!-- appSortableColumn/app-sort-icon (NOT PrimeNG's pSortableColumn/p-sortIcon):
                  this template is declared outside the p-table, so PrimeNG's directives
                  cannot inject the Table instance here (see SortableColumnDirective). -->
-            <th$if(sortByAndHide)$ *ngIf="'$subObj.subObjName$' !== '$sortByAndHide$'"$endif$ appSortableColumn="_sortValues_.$subObj.subObjName$">
+            <th$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$ appSortableColumn="_sortValues_.$subObj.subObjName$">
                 <span>$subObj.subObjLabel$</span>
                 <app-sort-icon field="_sortValues_.$subObj.subObjName$"></app-sort-icon>
             </th>
             $else$
-            <th$if(sortByAndHide)$ *ngIf="'$subObj.subObjName$' !== '$sortByAndHide$'"$endif$>$subObj.subObjLabel$</th>
+            <th$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$>$subObj.subObjLabel$</th>
             $endif$$else$
-            <th$if(sortByAndHide)$ *ngIf="'$subObj.subObjName$' !== '$sortByAndHide$'"$endif$>$subObj.subObjLabel$</th>
+            <th$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$>$subObj.subObjLabel$</th>
             $endif$}$
         </ng-template>
         <ng-template
             [boxTableRow]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
             let-resource
             >$subObjects:{subObj|
-            <td$if(sortByAndHide)$ *ngIf="'$subObj.subObjName$' !== '$sortByAndHide$'"$endif$>$subObj.subObjContents$</td>
+            <td$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$>$subObj.subObjContents$</td>
             }$
         </ng-template>
     </app-box-table>
