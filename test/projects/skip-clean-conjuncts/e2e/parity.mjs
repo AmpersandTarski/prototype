@@ -14,26 +14,27 @@
  *      edit commits, the ExecEngine repair works, and signals appear/disappear
  *      with the data (violation cache);
  *   3. the skip actually fires: the "Skip evaluation of conjunct" debug line
- *      appears in the container log during the on-run and never during the
- *      off-run.
+ *      appears in the debug log during the on-run and never during the off-run.
  *
  * Run via `test/run-regression.sh skip-clean-conjuncts` (the runner prepares
  * the backend API), or against the dev stack with this project compiled:
  * node test/projects/skip-clean-conjuncts/e2e/parity.mjs
  */
-import { execSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
+const e2eDir = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(e2eDir, '../../../..');
 const projectYaml = resolve(repoRoot, 'backend/config/project.yaml');
 const loggingPhp = resolve(repoRoot, 'backend/config/logging.php');
+const debugLog = resolve(e2eDir, '.debug.log');
 const baseUrl = process.env.PROTOTYPE_URL ?? 'http://localhost';
-const container = process.env.PROTOTYPE_CONTAINER ?? 'prototype';
 
 const originalYaml = readFileSync(projectYaml, 'utf8');
 const originalLogging = readFileSync(loggingPhp, 'utf8');
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let failures = 0;
 function assert(cond, msg) {
@@ -48,15 +49,18 @@ function assert(cond, msg) {
 // ── temporary config, restored in the finally below ─────────────────────────────
 
 // The dev logging config buffers DEBUG lines and only dumps them on an ERROR
-// (FingersCrossed). To observe the skip's debug line we log DEBUG straight to
-// stdout for the duration of this spec.
-const debugLogging = `<?php
+// (FingersCrossed). To observe the skip's debug line we log DEBUG to a file on
+// the bind mount, which this spec reads back directly — no docker access needed.
+// Effectiveness of these config writes is awaited behaviorally (see
+// waitForSettingEffective): the macOS bind mount can serve Apache a stale file
+// for a short while after the host wrote it.
+const debugLogging = String.raw`<?php
 // TEMPORARY test config, written by test/projects/skip-clean-conjuncts/e2e/parity.mjs
-use Ampersand\\Log\\RequestIDProcessor;
-use Monolog\\Handler\\StreamHandler;
-use Monolog\\Logger as MonologLogger;
-use Monolog\\Processor\\WebProcessor;
-use Monolog\\Registry;
+use Ampersand\Log\RequestIDProcessor;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger as MonologLogger;
+use Monolog\Processor\WebProcessor;
+use Monolog\Registry;
 
 ini_set('error_reporting', E_ALL & ~E_NOTICE); // @phan-suppress-current-line PhanTypeMismatchArgumentInternal
 ini_set("display_errors", '0');
@@ -67,50 +71,38 @@ $processors = [new RequestIDProcessor(), new WebProcessor(extraFields: [
     'method' => 'REQUEST_METHOD',
     'url' => 'REQUEST_URI',
 ])];
-$handlers = [new StreamHandler('php://stdout', level: MonologLogger::DEBUG)];
+$handlers = [
+    new StreamHandler('/var/www/test/projects/skip-clean-conjuncts/e2e/.debug.log', level: MonologLogger::DEBUG),
+    new StreamHandler('php://stderr', level: MonologLogger::WARNING),
+];
 foreach (['EXECENGINE', 'IO', 'API', 'APPLICATION', 'DATABASE', 'CORE', 'RULEENGINE', 'TRANSACTION', 'INTERFACING'] as $name) {
     Registry::addLogger(new MonologLogger($name, $handlers, $processors));
 }
 `;
-
-// Write a config file and wait until the container sees it: the macOS bind
-// mount propagates file changes with a delay.
-function writeConfig(hostPath, containerPath, content) {
-  writeFileSync(hostPath, content);
-  const deadline = Date.now() + 15000;
-  for (;;) {
-    const inContainer = execSync(`docker exec ${container} cat ${containerPath}`, { encoding: 'utf8' });
-    if (inContainer === content) {
-      return;
-    }
-    if (Date.now() > deadline) {
-      throw new Error(`${containerPath} did not propagate to the container`);
-    }
-    execSync('sleep 0.2');
-  }
-}
 
 function setSettings(settings) {
   const lines = Object.entries(settings)
     .map(([k, v]) => `  ${k}: ${v}`)
     .join('\n');
   const content = `# TEMPORARY test config, written by test/projects/skip-clean-conjuncts/e2e/parity.mjs\nsettings:\n${lines}\n`;
-  writeConfig(projectYaml, '/var/www/backend/config/project.yaml', content);
+  writeFileSync(projectYaml, content);
 }
 
-// ── container log observation ───────────────────────────────────────────────────
+// ── debug-log observation ───────────────────────────────────────────────────────
 
-const SKIP_LINE = "Skip evaluation of conjunct";
+const SKIP_LINE = 'Skip evaluation of conjunct';
 function skipCount() {
-  const out = execSync(`docker logs ${container} 2>&1 | grep -c "${SKIP_LINE}" || true`, { encoding: 'utf8' });
-  return parseInt(out.trim(), 10) || 0;
+  if (!existsSync(debugLog)) {
+    return 0;
+  }
+  return readFileSync(debugLog, 'utf8').split(SKIP_LINE).length - 1;
 }
 
 // ── API access with one session per scenario run ────────────────────────────────
 
 let cookies;
 async function api(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json', ...(opts.headers ?? {}) };
+  const headers = { 'Content-Type': 'application/json', ...opts.headers };
   const cookie = [...cookies.entries()].map(([k, v]) => `${k}=${v}`).join('; ');
   if (cookie) {
     headers.Cookie = cookie;
@@ -167,11 +159,10 @@ async function sessionProbe() {
   return skipCount() - before;
 }
 
-// The content poll in writeConfig proves that `docker exec cat` sees the new
-// project.yaml, but Apache's PHP can still read a stale version for a short
-// while (macOS bind mount). So after flipping the setting, wait until the
-// backend's behavior matches it: a fresh session's transaction close skips
-// conjuncts exactly when the setting is on.
+// Wait until the backend's behavior matches the flipped setting: a fresh
+// session's transaction close skips conjuncts exactly when the setting is on.
+// This also covers the temporary logging.php becoming effective, since the
+// skip is only observable through it.
 async function waitForSettingEffective(on) {
   const deadline = Date.now() + 20000;
   for (;;) {
@@ -182,12 +173,12 @@ async function waitForSettingEffective(on) {
     if (Date.now() > deadline) {
       throw new Error(`skipCleanConjuncts=${on} did not become effective (last probe: ${skips} skips)`);
     }
-    execSync('sleep 0.5');
+    await sleep(500);
   }
 }
 
-// The scenario. Returns { digest, records } where digest is a normalized JSON
-// string that must be identical with the setting off and on.
+// The scenario. Returns a normalized JSON digest that must be identical with
+// the setting off and on.
 async function scenario(label) {
   cookies = new Map(); // fresh session
   const records = [];
@@ -272,17 +263,17 @@ async function scenario(label) {
 
   // Normalize what differs per run by construction: the generated atom id and
   // the session atom id (it can appear in _path_-like strings inside signals)
-  const digest = JSON.stringify(records, null, 1)
+  return JSON.stringify(records, null, 1)
     .replaceAll(newId, '«new-booking»')
     .replaceAll(sessionAtom, '«session»');
-  return digest;
 }
 
 // ── main ────────────────────────────────────────────────────────────────────────
 
 try {
-  console.log('▶ Enabling DEBUG logging to stdout (temporary logging.php)');
-  writeConfig(loggingPhp, '/var/www/backend/config/logging.php', debugLogging);
+  console.log('▶ Enabling DEBUG logging to a bind-mounted file (temporary logging.php)');
+  rmSync(debugLog, { force: true });
+  writeFileSync(loggingPhp, debugLogging);
 
   console.log('\n▶ Phase 1: transactions.skipCleanConjuncts off (default)');
   setSettings({});
@@ -315,6 +306,7 @@ try {
   // Leave the working copy as found
   writeFileSync(projectYaml, originalYaml);
   writeFileSync(loggingPhp, originalLogging);
+  rmSync(debugLog, { force: true });
 }
 
 process.exit(failures === 0 ? 0 : 1);
