@@ -54,6 +54,13 @@ settings:
   ### Transaction settings
   transactions.ignoreInvariantViolations: false # for debugging can be set to true (transactions will be committed regardless off invariant violations)
   transactions.skipUniInjConjuncts: false # TODO: remove after fix for issue #535
+  # Delta-scoped re-evaluation of conjunct violations (issue Ampersand#1684).
+  # 'off' = full re-evaluation as always; 'shadow' = maintain the cache with the
+  # delta protocol AND evaluate in full, log any difference, full result stays
+  # authoritative; 'on' = delta protocol maintains the cache, full evaluation
+  # only for conjuncts outside the supported class. Requires generics produced
+  # by a compiler that emits deltaQueries; without those the setting is a no-op.
+  transactions.deltaConjunctMaintenance: 'off'
   transactions.skipCleanConjuncts: false # skip the close's re-evaluation of conjuncts that were evaluated in this transaction with no mutations registered afterwards (issue #443)
   transactions.interfaceAutoSaveChanges: true # specifies whether changes in interface are directly communicated (saved) to server
 

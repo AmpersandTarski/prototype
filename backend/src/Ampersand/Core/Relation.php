@@ -104,7 +104,14 @@ class Relation
      * Contains information about mysql table and columns in which this relation is administrated
      */
     private MysqlDBRelationTable $mysqlTable;
-    
+
+    /**
+     * Name of the table that holds this relation's touched pairs during a
+     * transaction, for delta-scoped re-evaluation (issue Ampersand#1684).
+     * Null when the compiler did not emit one.
+     */
+    protected ?string $deltaTable = null;
+
     /**
      * Constructor
      */
@@ -112,6 +119,8 @@ class Relation
     {
         $this->logger = $logger;
         $this->app = $app;
+
+        $this->deltaTable = $relationDef['deltaTable'] ?? null;
 
         $this->name = $relationDef['name'];
         $this->srcConcept = $app->getModel()->getConcept($relationDef['srcConceptName']);
@@ -175,6 +184,14 @@ class Relation
     public function getMysqlTable(): MysqlDBRelationTable
     {
         return $this->mysqlTable;
+    }
+
+    /**
+     * Delta table for this relation, or null when the compiler did not emit one
+     */
+    public function getDeltaTable(): ?string
+    {
+        return $this->deltaTable;
     }
 
     /**
