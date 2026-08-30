@@ -101,6 +101,39 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      * Attribute is reset to 0 on start of (new) transaction
      */
     protected int $queryCount = 0;
+
+    /**
+     * Specifies if touched pairs are recorded in the relations' delta tables
+     * (delta-scoped re-evaluation, issue Ampersand#1684). Enabled from
+     * bootstrap when transactions.deltaConjunctMaintenance is not 'off'.
+     */
+    protected bool $deltaTracking = false;
+
+    /**
+     * Pairs recorded in delta tables within the open transaction, keyed by
+     * delta table name; per table a map "src|tgt" => [src, tgt] (DB
+     * representation). Used to dedupe inserts and to remove exactly these rows
+     * before commit, so concurrent transactions never touch each other's rows.
+     *
+     * @var array<string, array<string, array{0: string, 1: string}>>
+     */
+    protected array $deltaRecordedPairs = [];
+
+    /**
+     * Touched relations within the open transaction: signature => delta table
+     *
+     * @var array<string, string>
+     */
+    protected array $deltaTouchedRelations = [];
+
+    /**
+     * Relations that underwent a bulk mutation (deleteAllLinks/emptyRelation)
+     * in the open transaction; their conjuncts need full re-evaluation because
+     * the removed pairs are not individually recorded.
+     *
+     * @var array<string, true>
+     */
+    protected array $deltaBulkMutated = [];
     
     /**
      * Constructor
@@ -394,11 +427,12 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     public function commitTransaction(Transaction $transaction): void
     {
         $this->logger->info("Commit mysql database transaction for {$transaction}");
+        $this->cleanupDeltaTables(); // remove this transaction's delta rows before COMMIT, so they never leak
         $this->execute("COMMIT");
         $this->dbTransactionActive = false;
         $this->logger->info("{$this->queryCount} queries executed in this transaction");
     }
-    
+
     /**
      * Function to rollback changes made in the open database transaction
      */
@@ -407,7 +441,103 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $this->logger->info("Rollback mysql database transaction for {$transaction}");
         $this->execute("ROLLBACK");
         $this->dbTransactionActive = false;
+        $this->clearDeltaAdministration(); // delta rows are rolled back with the transaction
         $this->logger->info("{$this->queryCount} queries executed in this transaction");
+    }
+
+    /**
+     * Enable/disable recording of touched pairs in delta tables
+     */
+    public function setDeltaTracking(bool $enabled): void
+    {
+        $this->deltaTracking = $enabled;
+    }
+
+    /**
+     * Record a touched pair in the relation's delta table (inside the open
+     * transaction). Deduplicated per transaction; the exact rows are removed
+     * again in cleanupDeltaTables() before commit.
+     */
+    protected function recordDeltaPair(Relation $relation, string $srcAtomId, string $tgtAtomId): void
+    {
+        if (!$this->deltaTracking) {
+            return;
+        }
+        // Only record inside an open DB transaction: a write in autocommit mode
+        // (e.g. the session's lastAccess update) commits immediately, so its
+        // delta row would outlive the request — the pre-commit cleanup never
+        // runs for it. Conjunct evaluation of such writes does not go through
+        // Transaction::close anyway.
+        if (!$this->dbTransactionActive) {
+            return;
+        }
+        $deltaTable = $relation->getDeltaTable();
+        if ($deltaTable === null) {
+            return;
+        }
+        $key = "{$srcAtomId}|{$tgtAtomId}";
+        if (isset($this->deltaRecordedPairs[$deltaTable][$key])) {
+            return;
+        }
+        $this->deltaRecordedPairs[$deltaTable][$key] = [$srcAtomId, $tgtAtomId];
+        $this->deltaTouchedRelations[$relation->signature] = $deltaTable;
+        // INSERT IGNORE: a leftover row (from an aborted run) only widens the
+        // candidate set, which stays correct; it must not break the insert.
+        $this->execute("INSERT IGNORE INTO \"{$deltaTable}\" (\"src\", \"tgt\") VALUES ('{$srcAtomId}', '{$tgtAtomId}')");
+    }
+
+    /**
+     * Mark a relation as bulk-mutated in the open transaction (its removed
+     * pairs are not individually recorded)
+     */
+    protected function markDeltaBulkMutated(Relation $relation): void
+    {
+        if (!$this->deltaTracking) {
+            return;
+        }
+        $this->deltaBulkMutated[$relation->signature] = true;
+    }
+
+    /**
+     * Touched relations of the open transaction: signature => delta table name
+     *
+     * @return array<string, string>
+     */
+    public function getDeltaTouchedRelations(): array
+    {
+        return $this->deltaTouchedRelations;
+    }
+
+    /**
+     * True when the relation underwent a bulk mutation in the open transaction
+     */
+    public function isDeltaBulkMutated(string $relationSignature): bool
+    {
+        return isset($this->deltaBulkMutated[$relationSignature]);
+    }
+
+    /**
+     * Remove exactly the delta rows this transaction inserted, then forget the
+     * administration. Runs inside the open transaction (before COMMIT).
+     */
+    protected function cleanupDeltaTables(): void
+    {
+        foreach ($this->deltaRecordedPairs as $deltaTable => $pairs) {
+            foreach ($pairs as [$srcAtomId, $tgtAtomId]) {
+                $this->execute("DELETE FROM \"{$deltaTable}\" WHERE \"src\" = '{$srcAtomId}' AND \"tgt\" = '{$tgtAtomId}'");
+            }
+        }
+        $this->clearDeltaAdministration();
+    }
+
+    /**
+     * Forget the per-transaction delta administration
+     */
+    protected function clearDeltaAdministration(): void
+    {
+        $this->deltaRecordedPairs = [];
+        $this->deltaTouchedRelations = [];
+        $this->deltaBulkMutated = [];
     }
     
 /**************************************************************************************************
@@ -657,9 +787,11 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             default:
                 throw new FatalException("Unsupported TableType '{$relTable->inTableOf()->value}' to addLink for for relation '{$relation}'");
         }
-        
+
         // Check if query resulted in an affected row
         $this->checkForAffectedRows();
+
+        $this->recordDeltaPair($relation, $srcAtomId, $tgtAtomId);
     }
     
     /**
@@ -697,8 +829,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             default:
                 throw new FatalException("Unsupported TableType '{$relTable->inTableOf()->value}' to deleteLink for for relation '{$relation}'");
         }
-        
+
         $this->checkForAffectedRows(); // Check if query resulted in an affected row
+
+        $this->recordDeltaPair($relation, $srcAtomId, $tgtAtomId);
     }
     
     /**
@@ -733,8 +867,12 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             default:
                 throw new FatalException("Unsupported TableType '{$relationTable->inTableOf()->value}' to deleteAllLinks for for relation '{$relation}'");
         }
-        
+
         $this->execute($query);
+
+        // The removed pairs are not individually recorded; conjuncts on this
+        // relation need full re-evaluation this transaction.
+        $this->markDeltaBulkMutated($relation);
     }
 
     /**
@@ -757,6 +895,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             default:
                 throw new FatalException("Unknown 'tableOf' option for relation '{$relation}'");
         }
+
+        // The removed pairs are not individually recorded; conjuncts on this
+        // relation need full re-evaluation this transaction.
+        $this->markDeltaBulkMutated($relation);
     }
     
 /**************************************************************************************************

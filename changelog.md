@@ -12,6 +12,19 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased
 
+* **The violation cache can be maintained incrementally per transaction (feature switch, default off).**
+  For conjuncts whose compiler emitted candidate queries (Ampersand `delta-sql`,
+  [Ampersand#1684](https://github.com/AmpersandTarski/Ampersand/issues/1684)), the framework
+  can maintain `__conj_violation_cache__` by delta-scoped re-evaluation: the touched pairs of
+  each transaction are recorded in the relation's delta table, and only the candidate rows are
+  rechecked at commit. The setting `transactions.deltaConjunctMaintenance` knows three modes:
+  `off` (default — behaviour and performance identical to today, delta recording disabled),
+  `shadow` (both routes run; the full result stays authoritative and any difference is logged
+  as `DELTA SHADOW MISMATCH`) and `on` (the delta path maintains the cache for the supported
+  class; anything touched via a concept, a bulk mutation or a relation without candidate
+  queries keeps full evaluation). With generics from a compiler without `deltaQueries` the
+  setting is a no-op.
+
 * **The regression suite is green again on `main`.** `test/projects/project-administration`
   compiles once more (its model used the pre-v4 `rel :: A * B` relation syntax), and
   `test/projects/ifc45` — which cannot install until the compiler lays broad tables out

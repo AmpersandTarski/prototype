@@ -20,10 +20,15 @@
  * the backend API), or against the dev stack with this project compiled:
  * node test/projects/skip-clean-conjuncts/e2e/parity.mjs
  */
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import {
+  activateAnonymous, bookingScenario, countIn, debugLoggingPhp, makeClient,
+  reporter, runInstaller, settingsYaml, sleep, writeConfig,
+} from '../../../shared/conjunct-parity.mjs';
 
+const SPEC = 'test/projects/skip-clean-conjuncts/e2e/parity.mjs';
 const e2eDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(e2eDir, '../../../..');
 const projectYaml = resolve(repoRoot, 'backend/config/project.yaml');
@@ -33,136 +38,27 @@ const baseUrl = process.env.PROTOTYPE_URL ?? 'http://localhost';
 
 const originalYaml = readFileSync(projectYaml, 'utf8');
 const originalLogging = readFileSync(loggingPhp, 'utf8');
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-let failures = 0;
-function assert(cond, msg) {
-  if (cond) {
-    console.log(`  ✅ ${msg}`);
-  } else {
-    console.error(`  ❌ ${msg}`);
-    failures++;
-  }
-}
-
-// ── temporary config, restored in the finally below ─────────────────────────────
-
-// The dev logging config buffers DEBUG lines and only dumps them on an ERROR
-// (FingersCrossed). To observe the skip's debug line we log DEBUG to a file on
-// the bind mount, which this spec reads back directly — no docker access needed.
-// Effectiveness of these config writes is awaited behaviorally (see
-// waitForSettingEffective): the macOS bind mount can serve Apache a stale file
-// for a short while after the host wrote it.
-const debugLogging = String.raw`<?php
-// TEMPORARY test config, written by test/projects/skip-clean-conjuncts/e2e/parity.mjs
-use Ampersand\Log\RequestIDProcessor;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger as MonologLogger;
-use Monolog\Processor\WebProcessor;
-use Monolog\Registry;
-
-ini_set('error_reporting', E_ALL & ~E_NOTICE); // @phan-suppress-current-line PhanTypeMismatchArgumentInternal
-ini_set("display_errors", '0');
-ini_set("log_errors", '1');
-
-$processors = [new RequestIDProcessor(), new WebProcessor(extraFields: [
-    'ip' => 'REMOTE_ADDR',
-    'method' => 'REQUEST_METHOD',
-    'url' => 'REQUEST_URI',
-])];
-$handlers = [
-    new StreamHandler('/var/www/test/projects/skip-clean-conjuncts/e2e/.debug.log', level: MonologLogger::DEBUG),
-    new StreamHandler('php://stderr', level: MonologLogger::WARNING),
-];
-foreach (['EXECENGINE', 'IO', 'API', 'APPLICATION', 'DATABASE', 'CORE', 'RULEENGINE', 'TRANSACTION', 'INTERFACING'] as $name) {
-    Registry::addLogger(new MonologLogger($name, $handlers, $processors));
-}
-`;
-
-function setSettings(settings) {
-  const lines = Object.entries(settings)
-    .map(([k, v]) => `  ${k}: ${v}`)
-    .join('\n');
-  const content = `# TEMPORARY test config, written by test/projects/skip-clean-conjuncts/e2e/parity.mjs\nsettings:\n${lines}\n`;
-  writeFileSync(projectYaml, content);
-}
-
-// ── debug-log observation ───────────────────────────────────────────────────────
+const report = reporter();
+const { assert } = report;
+const client = makeClient(baseUrl);
 
 const SKIP_LINE = 'Skip evaluation of conjunct';
-function skipCount() {
-  if (!existsSync(debugLog)) {
-    return 0;
-  }
-  return readFileSync(debugLog, 'utf8').split(SKIP_LINE).length - 1;
-}
-
-// ── API access with one session per scenario run ────────────────────────────────
-
-let cookies;
-async function api(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json', ...opts.headers };
-  const cookie = [...cookies.entries()].map(([k, v]) => `${k}=${v}`).join('; ');
-  if (cookie) {
-    headers.Cookie = cookie;
-  }
-  const resp = await fetch(`${baseUrl}/api/v1/${path}`, { ...opts, headers });
-  for (const sc of resp.headers.getSetCookie?.() ?? []) {
-    const [k, ...v] = sc.split(';')[0].split('=');
-    cookies.set(k.trim(), v.join('='));
-  }
-  const text = await resp.text();
-  let body;
-  try {
-    body = JSON.parse(text);
-  } catch {
-    throw new Error(`${path}: HTTP ${resp.status}, non-JSON body: ${text.slice(0, 300)}`);
-  }
-  return { status: resp.status, body };
-}
-
-async function runInstaller() {
-  const r = await fetch(`${baseUrl}/api/v1/admin/installer`);
-  if (!r.ok) {
-    throw new Error(`installer failed: ${r.status} ${await r.text()}`);
-  }
-}
-
-// Reduce a notifications object to the messages that matter for parity
-function messagesOf(notifications, key) {
-  return (notifications?.[key] ?? [])
-    .map((n) => (typeof n === 'string' ? n : JSON.stringify(n)))
-    .sort();
-}
-
-function record(step, resp) {
-  return {
-    step,
-    status: resp.status,
-    isCommitted: resp.body.isCommitted,
-    invariantRulesHold: resp.body.invariantRulesHold,
-    invariants: messagesOf(resp.body.notifications, 'invariants'),
-    signals: messagesOf(resp.body.notifications, 'signals'),
-  };
-}
+const skipCount = () => countIn(debugLog, SKIP_LINE);
 
 // Create a fresh session (the role activation request carries the
 // session-creation transaction) and return how many skip lines it produced.
 async function sessionProbe() {
   const before = skipCount();
-  cookies = new Map();
-  await api('app/roles', {
-    method: 'PATCH',
-    body: JSON.stringify([{ id: 'Anonymous', active: true }]),
-  });
+  await activateAnonymous(client);
   return skipCount() - before;
 }
 
 // Wait until the backend's behavior matches the flipped setting: a fresh
 // session's transaction close skips conjuncts exactly when the setting is on.
-// This also covers the temporary logging.php becoming effective, since the
-// skip is only observable through it.
+// This covers both the project.yaml and the temporary logging.php becoming
+// effective (the macOS bind mount can serve Apache a stale file for a short
+// while after the host wrote it), since the skip is only observable through
+// the log.
 async function waitForSettingEffective(on) {
   const deadline = Date.now() + 20000;
   for (;;) {
@@ -177,119 +73,26 @@ async function waitForSettingEffective(on) {
   }
 }
 
-// The scenario. Returns a normalized JSON digest that must be identical with
-// the setting off and on.
-async function scenario(label) {
-  cookies = new Map(); // fresh session
-  const records = [];
-
-  // The Overview interface is FOR Anonymous; activate that role in this session
-  // (a fresh session activates roles per the compiled PrototypeContext, which
-  // need not include Anonymous).
-  await api('app/roles', {
-    method: 'PATCH',
-    body: JSON.stringify([{ id: 'Anonymous', active: true }]),
-  });
-
-  // Discover the interface content and its field keys from a real response,
-  // instead of assuming the API's field names (they are escaped labels).
-  const overview = await api('resource/SESSION/1/Overview');
-  const sessionAtom = overview.body._id_;
-  const bookingsKey = Object.keys(overview.body).find((k) => !k.startsWith('_') && Array.isArray(overview.body[k]));
-  if (!bookingsKey) {
-    throw new Error(`no list field in Overview; keys: ${Object.keys(overview.body)}`);
-  }
-  const listPath = `${overview.body._path_}/${bookingsKey}`;
-  const rows = () => api(`resource/SESSION/1/Overview`).then((r) => r.body[bookingsKey]);
-  let bookings = overview.body[bookingsKey];
-  const row0 = bookings[0];
-  const guestKey = Object.keys(row0).find((k) => k.includes('Guest'));
-  const confKey = Object.keys(row0).find((k) => k.includes('Confirmed'));
-  if (!guestKey || !confKey) {
-    throw new Error(`field keys not found in row; keys: ${Object.keys(row0)}`);
-  }
-  const pathOf = (id) => bookings.find((r) => r._id_ === id)._path_;
-  records.push({ step: 'initial list', ids: bookings.map((r) => r._id_).sort(), keys: [guestKey, confKey] });
-
-  // 1. Valid edit: name booking1 → must commit; its "needs a name" signal must clear
-  let r = await api(pathOf('booking1'), {
-    method: 'PATCH',
-    body: JSON.stringify([{ op: 'replace', path: guestKey, value: 'Alice' }]),
-  });
-  records.push(record('name booking1', r));
-  assert(r.body.isCommitted === true, `[${label}] naming booking1 commits`);
-  assert(!r.body.notifications.signals.some((s) => JSON.stringify(s).includes('booking1')),
-    `[${label}] booking1 signal cleared after naming`);
-
-  // 2. Valid edit on a named booking: confirm booking1 → must commit
-  r = await api(pathOf('booking1'), {
-    method: 'PATCH',
-    body: JSON.stringify([{ op: 'replace', path: confKey, value: true }]),
-  });
-  records.push(record('confirm booking1', r));
-  assert(r.body.isCommitted === true, `[${label}] confirming named booking1 commits`);
-
-  // 3. Invariant violation: confirm nameless booking2 → must roll back
-  r = await api(pathOf('booking2'), {
-    method: 'PATCH',
-    body: JSON.stringify([{ op: 'replace', path: confKey, value: true }]),
-  });
-  records.push(record('confirm booking2 (violates)', r));
-  assert(r.body.isCommitted === false && r.body.invariantRulesHold === false,
-    `[${label}] confirming nameless booking2 is rejected`);
-  assert(JSON.stringify(r.body.notifications.invariants).includes('booking2'),
-    `[${label}] invariant message names booking2`);
-
-  // 4. The rollback is real: booking2 is not confirmed in the database
-  bookings = await rows();
-  const b2 = bookings.find((row) => row._id_ === 'booking2');
-  records.push({ step: 'after rollback', booking2Confirmed: b2[confKey] });
-  assert(b2[confKey] === false || b2[confKey] == null, `[${label}] booking2 stays unconfirmed after rollback`);
-
-  // 5. Create a booking → must commit, ExecEngine adds it to the session list,
-  //    and its "needs a name" signal appears (violation cache gets the new row)
-  r = await api(listPath, {
-    method: 'POST',
-    body: JSON.stringify({}),
-  });
-  const newId = r.body.content?._id_;
-  records.push(record('create booking', r));
-  assert(r.body.isCommitted === true && typeof newId === 'string', `[${label}] creating a booking commits`);
-  bookings = await rows();
-  records.push({ step: 'final list', ids: bookings.map((row) => row._id_).sort() });
-  assert(bookings.some((row) => row._id_ === newId), `[${label}] new booking appears in the session list`);
-  assert(r.body.notifications.signals.some((s) => JSON.stringify(s).includes(newId)),
-    `[${label}] new booking raises the needs-a-name signal`);
-
-  // Normalize what differs per run by construction: the generated atom id and
-  // the session atom id (it can appear in _path_-like strings inside signals)
-  return JSON.stringify(records, null, 1)
-    .replaceAll(newId, '«new-booking»')
-    .replaceAll(sessionAtom, '«session»');
-}
-
-// ── main ────────────────────────────────────────────────────────────────────────
-
 try {
   console.log('▶ Enabling DEBUG logging to a bind-mounted file (temporary logging.php)');
   rmSync(debugLog, { force: true });
-  writeFileSync(loggingPhp, debugLogging);
+  writeConfig(loggingPhp, debugLoggingPhp(`/var/www/${SPEC.replace(/parity\.mjs$/, '.debug.log')}`, SPEC));
 
   console.log('\n▶ Phase 1: transactions.skipCleanConjuncts off (default)');
-  setSettings({});
-  await runInstaller();
+  writeConfig(projectYaml, settingsYaml({}, SPEC));
+  await runInstaller(baseUrl);
   await waitForSettingEffective(false);
   const skipsBeforeOff = skipCount();
-  const digestOff = await scenario('off');
+  const digestOff = await bookingScenario(client, 'off', assert);
   const skipsDuringOff = skipCount() - skipsBeforeOff;
   assert(skipsDuringOff === 0, `no conjunct evaluation skipped with the setting off (saw ${skipsDuringOff})`);
 
   console.log('\n▶ Phase 2: transactions.skipCleanConjuncts on');
-  setSettings({ 'transactions.skipCleanConjuncts': true });
-  await runInstaller();
+  writeConfig(projectYaml, settingsYaml({ 'transactions.skipCleanConjuncts': true }, SPEC));
+  await runInstaller(baseUrl);
   await waitForSettingEffective(true);
   const skipsBeforeOn = skipCount();
-  const digestOn = await scenario('on');
+  const digestOn = await bookingScenario(client, 'on', assert);
   const skipsDuringOn = skipCount() - skipsBeforeOn;
   assert(skipsDuringOn > 0, `the skip fires with the setting on (saw ${skipsDuringOn} skipped evaluations)`);
 
@@ -300,8 +103,7 @@ try {
     console.error('--- digest on ----\n' + digestOn);
   }
 } catch (e) {
-  console.error(`  ❌ ${e.message}`);
-  failures++;
+  report.fail(e.message);
 } finally {
   // Leave the working copy as found
   writeFileSync(projectYaml, originalYaml);
@@ -309,4 +111,4 @@ try {
   rmSync(debugLog, { force: true });
 }
 
-process.exit(failures === 0 ? 0 : 1);
+process.exit(report.failures === 0 ? 0 : 1);

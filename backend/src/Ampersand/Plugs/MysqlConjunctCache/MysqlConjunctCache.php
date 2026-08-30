@@ -41,6 +41,16 @@ class MysqlConjunctCache implements CacheItemPoolInterface
     /**
      * Constructor
      */
+    public function getTableName(): string
+    {
+        return $this->tableName;
+    }
+
+    public function getDatabase(): MysqlDB
+    {
+        return $this->database;
+    }
+
     public function __construct(MysqlDB $database, string $tableName = '__conj_violation_cache__')
     {
         $this->database = $database;

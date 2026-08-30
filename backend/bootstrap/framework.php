@@ -129,6 +129,7 @@ $mysqlDB = new MysqlDB(
     $settings->get('global.debugMode'),
     $settings->get('global.productionEnv')
 );
+$mysqlDB->setDeltaTracking($settings->get('transactions.deltaConjunctMaintenance', 'off') !== 'off');
 $ampersandApp->setDefaultStorage($mysqlDB);
 $ampersandApp->setConjunctCache(new MysqlConjunctCache($mysqlDB));
 
