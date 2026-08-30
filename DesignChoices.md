@@ -148,3 +148,21 @@ the per-cell `*ngIf`), `backend/src/Ampersand/Interfacing/BoxHeader.php` (isSort
 docs in `docs/reference-material/built-in-box-templates.md`, regression in
 `test/projects/box-annotations` (API sort values + rendered component HTML). The hidden
 column's values still travel to the browser: presentation, not access control.
+
+**A regression project can declare a failure it understands as "known red"**
+OK-13 · geldig · 2026-08-30 · herkomst: regressiesuite, issue #415
+
+A project in `test/projects/` may state `known_fail="<issue>: <reason>"` in its
+`regression.conf`. The runner then reports a failing run of that project as "known red"
+instead of FAIL, does not let it fail the suite, and reports "no longer failing" the moment
+the project passes, so the declaration gets removed. The report keeps showing every known
+red with its reason.
+
+Rejected: leaving the project FAIL — a suite that is always red trains its readers to
+ignore red, and the exit code of `run-regression.sh all` stops meaning anything. Rejected:
+removing or shrinking the project (ifc45) until it installs — the model exists to reach the
+scale at which the compiler's broad-table layout breaks (#415); shrinking it hides exactly
+that. Rejected: skipping the project silently — the limit must stay visible in every report.
+
+Technisch: `known_fail_of()` and return code 3 in `test/run-regression.sh`; the report line
+counts "known red" separately from "failed". First use: `test/projects/ifc45/regression.conf`.
