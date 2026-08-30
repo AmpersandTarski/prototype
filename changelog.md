@@ -10,6 +10,15 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **The regression suite is green again on `main`.** `test/projects/project-administration`
+  compiles once more (its model used the pre-v4 `rel :: A * B` relation syntax), and
+  `test/projects/ifc45` — which cannot install until the compiler lays broad tables out
+  differently (#415: the `IfcRoot` table needs 183 `VARCHAR(255)` columns) — declares that
+  failure as `known_fail` in its `regression.conf`. The runner reports such a project as
+  "known red" instead of FAIL, so `run-regression.sh all` only fails on a new red.
+
 ## v2.8.0 (25 August 2026)
 
 * **Sort a table on a column the user does not see.** The new
