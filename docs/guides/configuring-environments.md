@@ -8,6 +8,8 @@ The prototype framework has two settings that control how it behaves in developm
 
 `global.productionEnv` controls which management operations the framework allows. When set to `true`, reinstalling the database is permanently blocked. If the application starts and the database does not exist or is out of date, the framework throws an exception and will not start. This prevents accidental data loss in a deployed environment. The default value is `false`.
 
+`global.serviceKey` opens those same management operations to a machine — a deployment pipeline, for instance — while they stay closed for everyone else. The section "The service key" below describes how it works. The default value is `null`, which keeps production mode as strict as it has always been.
+
 ## How the framework loads configuration
 
 The framework loads configuration in the following order. Each step can overwrite values from the previous step.
@@ -27,6 +29,7 @@ The following environment variables map directly to configuration settings:
 |------------------------------|--------------------------|---------|
 | `AMPERSAND_DEBUG_MODE`       | `global.debugMode`       | boolean |
 | `AMPERSAND_PRODUCTION_MODE`  | `global.productionEnv`   | boolean |
+| `AMPERSAND_SERVICE_KEY`      | `global.serviceKey`      | string  |
 | `AMPERSAND_SERVER_URL`       | `global.serverURL`       | string  |
 | `AMPERSAND_DATA_DIR`         | `global.dataPath`        | string  |
 | `AMPERSAND_DBHOST`           | `mysql.dbHost`           | string  |
@@ -44,6 +47,7 @@ The table below lists the settings relevant to environment configuration, with t
 |---------------------------|--------------------|----------------|----------------------|
 | `global.debugMode`        | `true`             | `true`         | `false`              |
 | `global.productionEnv`    | `false`            | `false`        | `true`               |
+| `global.serviceKey`       | `null`             | `null`         | `null`, or a secret  |
 | `global.serverURL`        | `http://localhost` | local address  | public domain        |
 | `global.scriptTimeout`    | `30` (seconds)     | `0` (no limit) | `30` or higher       |
 | `mysql.dbHost`            | `localhost`        | container name | production host      |
@@ -114,16 +118,55 @@ Production mode and role settings interact in two ways.
 
 The Installer menu item is only shown when both conditions hold: the application is not in production mode, and the user has an active admin role. Even if only one condition fails, the item disappears from the menu. The same applies to the population exporter.
 
-At the API level, all installer and exporter endpoints call `preventProductionMode()` before checking roles. A request to these endpoints in production mode is blocked regardless of the caller's role. The population importer does not call `preventProductionMode()`, so it remains available in production — gated only by `rbac.importerRoles`.
+At the API level, all installer and exporter endpoints call `preventProductionMode()` before checking roles. A request to these endpoints in production mode is blocked regardless of the caller's role, unless it carries the service key described in the next section. The population importer does not call `preventProductionMode()`, so it remains available in production — gated only by `rbac.importerRoles`.
 
 | Function               | Blocked by productionEnv | Gated by role         |
 |------------------------|--------------------------|------------------------|
-| Reinstall database     | yes                      | `rbac.adminRoles`      |
+| Reinstall database     | yes                      | no role check          |
 | Export all population  | yes                      | `rbac.adminRoles`      |
 | Export selection       | yes                      | `rbac.adminRoles`      |
+| Reports and metamodel  | yes                      | `rbac.adminRoles`      |
+| Test login             | yes                      | no role check          |
 | Import population file | no                       | `rbac.importerRoles`   |
 | Run ExecEngine         | no                       | `rbac.adminRoles`      |
 | Check rules            | no                       | `rbac.adminRoles`      |
+
+Every "yes" in the middle column turns into "no" for a request that carries the service key. The role check in the right-hand column stays: a machine that reaches an endpoint with the key still needs an active role when `rbac.adminRoles` names one.
+
+## The service key
+
+A deployed application in production mode closes its administrative endpoints to everyone. A deployment pipeline needs exactly those endpoints: it exports the population and runs the installer to migrate the data when the model changes. The service key resolves that conflict. It lets a machine through the production-mode gate while the application stays closed for people.
+
+Set the key with the environment variable `AMPERSAND_SERVICE_KEY`, next to `AMPERSAND_PRODUCTION_MODE`:
+
+```yaml
+services:
+  prototype:
+    environment:
+      - AMPERSAND_PRODUCTION_MODE=true
+      - AMPERSAND_SERVICE_KEY=${AMPERSAND_SERVICE_KEY}
+```
+
+Keep the value out of version control, the same way you keep the database password out of it: put it in a `.env` file that `.gitignore` lists, or in the secret store of your deployment platform. Generate a value that nobody has to remember, for example with `openssl rand -hex 32`.
+
+A request presents the key in the `X-Ampersand-Service-Key` header:
+
+```bash
+curl -H "X-Ampersand-Service-Key: $AMPERSAND_SERVICE_KEY" \
+     "https://your-domain.example.com/api/v1/admin/exporter/export/all"
+```
+
+The header keeps the key out of the places a URL is written down: the access log of the web server, the log records of the framework itself, the browser history, and the referrer of a next request. A key in a query parameter would end up in all of them.
+
+Three properties are worth knowing before you rely on this.
+
+The mechanism fails closed. Without a configured key — the default — production mode refuses every request to these endpoints, exactly as it did before the key existed. A key that is empty or consists of whitespace only counts as no key at all, and a request that presents such a value is refused as well.
+
+A refused request always gets the same answer, whatever the reason. The caller cannot tell a wrong key from an application that has no key configured.
+
+The key never appears in a log line, an error message or a response. The framework masks it where it masks the database password, and the refusal message names no value.
+
+What the key does not do is replace a role. It lifts the production-mode gate and nothing else. When `rbac.adminRoles` names a role, the export endpoints still require a session with that role active. Grant the machine that role, or leave `rbac.adminRoles` at `null`, and treat the key as the credential it is: one key per deployment, rotated by changing the environment variable and restarting the container.
 
 ## Warning: starting production mode with an empty database
 

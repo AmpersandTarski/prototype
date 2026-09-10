@@ -166,3 +166,67 @@ that. Rejected: skipping the project silently — the limit must stay visible in
 
 Technisch: `known_fail_of()` and return code 3 in `test/run-regression.sh`; the report line
 counts "known red" separately from "failed". First use: `test/projects/ifc45/regression.conf`.
+
+**A service key in a request header lifts the production-mode gate for a machine**
+OK-14 · geldig · 2026-09-10 · herkomst: uitrolstraat VoedselVeurElkaar (twee ongewilde herinstallaties op 9 september)
+
+The production-mode gate of `AbstractController::preventProductionMode()` lets a request
+through when it carries the value of `global.serviceKey` (environment variable
+`AMPERSAND_SERVICE_KEY`) in the `X-Ampersand-Service-Key` header. Every endpoint behind that
+gate — the installer, the population exporter, the reports and the test login — is reachable
+for a machine that holds the key, while it stays closed for every other request. The decision
+lives in one place, `Ampersand\Misc\ServiceKey::productionGuardApplies()`, which the guard
+consults with the settings object and `$_SERVER`.
+
+Overwegingen:
+
+1. The purpose is a deployment pipeline that migrates the population when the model changes:
+   it calls the exporter and the installer itself. Before this choice an administrator had to
+   pick between a pipeline that works (`AMPERSAND_PRODUCTION_MODE` off, and one stray GET on
+   `/api/v1/admin/installer` wipes the database) and an application that is protected (the
+   production mode on, and the pipeline broken).
+
+2. The mechanism fails closed, which is what makes it safe to add. Without a configured key —
+   the default `null` — production mode refuses every request to these endpoints, exactly as
+   before; an empty or whitespace-only key counts as no key. A prototype that never sets the
+   variable therefore cannot behave differently than it did.
+
+3. The key travels in a request header, not in a query parameter, because the URL of a request
+   is written down in the access log of the web server, in the framework's own log records
+   (the WebProcessor adds `url` to every record), in the browser history and in the referrer of
+   a next request. An application-specific header name is used rather than `Authorization`,
+   which belongs to the session of a user and which some Apache configurations strip before PHP
+   sees it. Rejected: a query parameter, for the reasons above. Rejected: an allowlist of client
+   IP addresses — it identifies a network location instead of a caller and breaks the moment the
+   pipeline moves.
+
+4. The comparison runs over the SHA-256 digests of both values with `hash_equals`, so it takes
+   the same time for every wrong key and reveals the length of the configured key no more than
+   its content. Rejected: `==`, which returns as soon as two characters differ.
+
+5. The key is kept out of every rendering of the system's state: `Settings::set()` masks it in
+   the debug log (as it now masks `mysql.dbPass`), the refusal message names no reason at all,
+   and the guard passes the settings object and `$_SERVER` rather than the key itself, so a
+   stack trace shows `Object(Ampersand\Misc\Settings)` and `Array`. Rejected: a refusal message
+   that distinguishes "no key configured" from "wrong key" — it would tell a caller whether
+   guessing is worth the effort.
+
+6. The gate is lifted in one place instead of five. Rejected: a check per endpoint, which would
+   let the five call sites drift apart, and would leave a sixth endpoint added later unprotected
+   or unreachable by accident.
+
+7. The key lifts the production-mode gate and nothing else. The role check
+   (`requireAdminRole()`, `rbac.adminRoles`) runs after it and stays in force, and so does the
+   `inProductionMode()` check that hides the OpenAPI specification and the administrative menu
+   items from the frontend. Rejected: a key that also grants the admin role — that would make
+   one environment variable the whole of the access control.
+
+Impact op de specificatie: none. The mechanism is framework runtime; the Ampersand model, the
+generated code and the contract with the compiler are untouched.
+
+Impact in productie: an existing deployment that sets no `AMPERSAND_SERVICE_KEY` keeps the
+behaviour it has today. A deployment that sets one accepts machine access to its administrative
+endpoints, including the installer, which drops and rebuilds the database, and including the
+test login, which logs a caller in as any account. The key is therefore as sensitive as the
+database password: one key per deployment, stored in the secret store of the platform, rotated
+by changing the variable and restarting the container.

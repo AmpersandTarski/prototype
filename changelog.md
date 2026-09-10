@@ -10,7 +10,21 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.9.0 (10 september 2026)
+
+* **A deployment pipeline can reach the administrative endpoints of an application that
+  runs in production mode.** Set `AMPERSAND_SERVICE_KEY` and a request that carries that
+  key in the `X-Ampersand-Service-Key` header passes the production-mode gate in front of
+  the installer, the population exporter, the reports and the test login. An administrator
+  no longer has to choose between a working migration pipeline and an application that is
+  protected against an accidental reinstall. Without a configured key nothing changes:
+  production mode refuses every such request, as it always did. The key is compared in
+  constant time and never appears in a log line, an error message or a response. See
+  `docs/guides/configuring-environments.md`.
+
+* **The service key and the database password stay out of the debug log.** `Settings`
+  writes every setting it loads to the log at DEBUG level; for these two it now writes
+  `'***'` instead of the value.
 
 * **The regression suite is green again on `main`.** `test/projects/project-administration`
   compiles once more (its model used the pre-v4 `rel :: A * B` relation syntax), and

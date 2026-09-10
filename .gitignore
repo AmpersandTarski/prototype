@@ -1,7 +1,12 @@
 # note! also update .dockerignore
 **/lib/
 **/node_modules/
-ampersand
+# The Ampersand compiler binary, downloaded into the repository root. Anchored with a
+# leading slash: an unanchored 'ampersand' also matches the directory backend/src/Ampersand
+# on a case-insensitive filesystem (macOS), which silently keeps new framework source files
+# out of every commit.
+/ampersand
+/ampersand.exe
 
 # Ignore dev stuff
 .idea/
