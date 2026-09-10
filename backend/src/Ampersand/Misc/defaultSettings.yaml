@@ -6,6 +6,7 @@ settings:
   ### Application global settings
   global.version: v0.1.0 # version of your application
   global.productionEnv: false # set environment as production deployment (or not = default)
+  global.serviceKey: null # key with which a machine reaches the admin endpoints in production mode (set via env AMPERSAND_SERVICE_KEY). null = no machine reaches them
   global.debugMode: true # set debugMode (or not = default). Impacts the way errors are returned by API
   global.scriptTimeout: 30 # number of seconds for php to run. Use 0 to have no time limit (not advised)
   global.defaultTimezone: Europe/Amsterdam # see http://php.net/manual/en/timezones.php for a list of supported timezones

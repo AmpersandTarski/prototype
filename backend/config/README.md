@@ -19,6 +19,9 @@ Finally certain settings can be set using environment variables.
 These are loaded last and overwrite previous set settings.
 * AMPERSAND_DEBUG_MODE -> global.debugMode
 * AMPERSAND_PRODUCTION_MODE -> global.productionEnv
+* AMPERSAND_SERVICE_KEY -> global.serviceKey
 * AMPERSAND_DBHOST -> mysql.dbHost
 * AMPERSAND_SERVER_URL -> global.serverURL
 * AMPERSAND_DBNAME -> mysql.dbName
+
+`AMPERSAND_SERVICE_KEY` is the key with which a machine (a deployment pipeline, for instance) reaches the administrative endpoints while `AMPERSAND_PRODUCTION_MODE` is on. Such a request carries the key in the `X-Ampersand-Service-Key` header. Without a configured key, production mode blocks those endpoints for everybody. See the guide "Configuring Development and Production Environments".
