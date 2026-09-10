@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.9.0 (10 september 2026)
 
 * **A deployment pipeline can reach the administrative endpoints of an application that
   runs in production mode.** Set `AMPERSAND_SERVICE_KEY` and a request that carries that
