@@ -41,7 +41,7 @@
         "symfony/http-client": "^7.2",
         "http-interop/http-factory-slim": "^2.0",
         "open-telemetry/opentelemetry-auto-mysqli": "^0.4.0",
-        "open-telemetry/opentelemetry-auto-curl": "^0.3.0",
+        "open-telemetry/opentelemetry-auto-curl": "^0.4.0",
         "open-telemetry/opentelemetry-auto-io": "^0.3.0"
     },
     "autoload": {
