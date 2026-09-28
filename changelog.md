@@ -19,7 +19,7 @@ Additional labels for pre-release and build metadata are available as extensions
   months and days; a number gets a value list, or a range once it has more than twelve
   values; long text gets a search field; a yes/no property gets two choices. A column that
   holds an object with fields of its own offers those fields as facets as well. The choices
-  stand in the URL, so a filtered view can be bookmarked and sent. See
+  are kept in the URL, so a filtered view can be bookmarked and sent. See
   `docs/reference-material/built-in-box-templates.md` and DesignChoices OK-15 to OK-17.
 
 ## v2.9.0 (10 september 2026)

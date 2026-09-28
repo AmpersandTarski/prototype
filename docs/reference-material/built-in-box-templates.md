@@ -382,7 +382,7 @@ record or when the user should be able to create new atoms.
 
 `BOX <FACETS>` is a `BOX <TABLE>` with a facet panel next to it: a faceted search.
 Every facet belongs to one box item and lists the values the rows carry for it, each
-with the number of rows that has it. Choosing values shrinks the table, and the counts
+with the number of rows that have it. Choosing values shrinks the table, and the counts
 of the other facets follow. A search field above the table searches every value of a
 row. Use it for an overview that is too long to read whole, where the user wants to
 narrow it down by status, owner, date and the like.

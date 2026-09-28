@@ -29,7 +29,7 @@ BaseBoxComponent
 └── BoxPropButtonComponent
 ```
 
-`BoxFacetsComponent` (`shared/box-components/box-facets/`) is no `BaseBoxComponent`: it wraps a `BoxTableComponent`, which keeps all rows as its `data` and shows the filtered rows through its `shownRows` input. The facet logic (schema from `interfaces.json` and `concepts.json`, values, filtering, counting, URL state) is in `facet-engine.ts`, free of Angular, with its unit tests beside it.
+`BoxFacetsComponent` (`shared/box-components/box-facets/`) does not extend `BaseBoxComponent`: the generated template places a `BoxTableComponent` inside it, which keeps all rows as its `data` and shows the component's filtered rows through its `shownRows` input. The facet logic (schema from `interfaces.json` and `concepts.json`, values, filtering, counting, URL state) is in `facet-engine.ts`, free of Angular, with its unit tests beside it.
 
 `BaseAtomicComponent` provides shared logic for components that display or edit a single relation value. `BaseBoxComponent` provides shared logic for components that contain other components.
 
