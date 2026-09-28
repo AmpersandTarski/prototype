@@ -71,6 +71,14 @@ export class BoxTableComponent<
   @Input()
   sortBy?: string;
 
+  /**
+   * The rows the table shows, when they differ from `data`. BOX<FACETS> passes its
+   * filtered rows here and keeps `data` on all rows, so emptiness (`hideOnNoRecords`,
+   * `canCreate()` on a UNI box) and create/delete keep working on the whole set.
+   */
+  @Input()
+  shownRows?: TItem[];
+
   @Input()
   sortOrder: 'asc' | 'desc' = 'asc';
 

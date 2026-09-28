@@ -5,7 +5,7 @@ but can also be done with data.slice()
  -->
 <ng-container *ngIf="!hideBecauseEmpty()">
     <div class="box-title" *ngIf="title">{{ title }}</div>
-    <p-table [value]="filterNullish(data)" #primengTable>
+    <p-table [value]="filterNullish(shownRows ?? data)" #primengTable>
         <ng-template pTemplate="header">
             <!-- The `noHeader` annotation suppresses the column-header row. -->
             <tr *ngIf="!noHeader">

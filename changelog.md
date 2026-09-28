@@ -10,6 +10,18 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **A long overview can be narrowed down with facets.** `BOX<FACETS>` is a `BOX<TABLE>`
+  with a panel next to it: per column the values the rows carry, each with its number of
+  rows, so the reader chooses *open* and *Project X* instead of scrolling through the whole
+  list. The kind of facet follows the technical type of the column: a date gets years,
+  months and days; a number gets a value list, or a range once it has more than twelve
+  values; long text gets a search field; a yes/no property gets two choices. A column that
+  holds an object with fields of its own offers those fields as facets as well. The choices
+  stand in the URL, so a filtered view can be bookmarked and sent. See
+  `docs/reference-material/built-in-box-templates.md` and DesignChoices OK-15 to OK-17.
+
 ## v2.9.0 (10 september 2026)
 
 * **A deployment pipeline can reach the administrative endpoints of an application that

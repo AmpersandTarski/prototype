@@ -1,0 +1,177 @@
+<div class="facets" [class.facets--panel-closed]="!panelOpen || tree.length === 0">
+    <aside class="facets__panel" *ngIf="panelOpen && tree.length > 0" aria-label="Filters">
+        <div class="facets__panel-head">
+            <span class="facets__panel-title">Filters</span>
+            <button type="button" class="facets__link" *ngIf="hasSelection()" (click)="clearAll()">
+                Clear all
+            </button>
+        </div>
+        <ng-container *ngFor="let f of tree; trackBy: byId">
+            <ng-container *ngTemplateOutlet="facetTpl; context: { $implicit: f }"></ng-container>
+        </ng-container>
+    </aside>
+
+    <section class="facets__results">
+        <div class="facets__toolbar">
+            <button
+                type="button"
+                class="facets__toggle"
+                *ngIf="tree.length > 0"
+                (click)="panelOpen = !panelOpen"
+                [attr.aria-expanded]="panelOpen"
+                [attr.aria-label]="panelOpen ? 'Hide filters' : 'Show filters'"
+            >
+                <i class="pi pi-filter"></i>
+            </button>
+            <span class="p-input-icon-left facets__search">
+                <i class="pi pi-search"></i>
+                <input
+                    pInputText
+                    type="search"
+                    placeholder="Search"
+                    aria-label="Search"
+                    [ngModel]="state.search"
+                    (ngModelChange)="setSearch($event)"
+                />
+            </span>
+            <span class="facets__count" data-testid="facets-count"
+                >{{ filtered.length }} of {{ total }}</span
+            >
+        </div>
+
+        <div class="facets__chips" *ngIf="chips.length > 0">
+            <button type="button" class="facets__chip" *ngFor="let c of chips" (click)="c.remove()">
+                <span class="facets__chip-facet">{{ c.facet }}:</span> {{ c.value }}
+                <i class="pi pi-times"></i>
+            </button>
+        </div>
+
+        <ng-content></ng-content>
+    </section>
+</div>
+
+<ng-template #facetTpl let-f>
+    <div class="facet" *ngIf="view.get(f.id) as v" [attr.data-facet]="f.labelPath.join('.')">
+        <div class="facet__title">{{ v.title }}</div>
+
+        <ng-container [ngSwitch]="v.kind">
+            <ng-container *ngSwitchCase="'values'">
+                <input
+                    *ngIf="v.searchable"
+                    pInputText
+                    class="facet__filter"
+                    placeholder="Filter values"
+                    [ngModel]="valueFilterOf(f)"
+                    (ngModelChange)="setValueFilter(f, $event)"
+                />
+                <label class="facet__value" *ngFor="let b of v.values">
+                    <input
+                        type="checkbox"
+                        [checked]="isSelected(f, b.key)"
+                        (change)="toggleValue(f, b.key)"
+                    />
+                    <span class="facet__label">{{ b.label }}</span>
+                    <span class="facet__n">{{ b.count }}</span>
+                </label>
+                <div class="facet__none" *ngIf="v.values.length === 0">No values</div>
+                <button
+                    type="button"
+                    class="facets__link"
+                    *ngIf="v.hidden > 0"
+                    (click)="toggleExpanded(f)"
+                >
+                    Show {{ v.hidden }} more
+                </button>
+                <button
+                    type="button"
+                    class="facets__link"
+                    *ngIf="v.hidden === 0 && isExpanded(f)"
+                    (click)="toggleExpanded(f)"
+                >
+                    Show fewer
+                </button>
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'text'">
+                <input
+                    pInputText
+                    type="search"
+                    class="facet__filter"
+                    placeholder="Contains …"
+                    [attr.aria-label]="v.title + ' contains'"
+                    [ngModel]="textOf(f)"
+                    (ngModelChange)="setText(f, $event)"
+                />
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'range'">
+                <div class="facet__range">
+                    <input
+                        type="number"
+                        class="p-inputtext"
+                        [attr.aria-label]="v.title + ' from'"
+                        [placeholder]="v.extent ? v.extent.min : 'from'"
+                        [ngModel]="rangeOf(f).min"
+                        (ngModelChange)="setRange(f, 'min', $event)"
+                    />
+                    <span>–</span>
+                    <input
+                        type="number"
+                        class="p-inputtext"
+                        [attr.aria-label]="v.title + ' to'"
+                        [placeholder]="v.extent ? v.extent.max : 'to'"
+                        [ngModel]="rangeOf(f).max"
+                        (ngModelChange)="setRange(f, 'max', $event)"
+                    />
+                </div>
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'date'">
+                <ng-container
+                    *ngTemplateOutlet="dateTpl; context: { $implicit: v.dates, f: f }"
+                ></ng-container>
+                <div class="facet__none" *ngIf="v.dates.length === 0">No values</div>
+            </ng-container>
+        </ng-container>
+
+        <div class="facet__children" *ngIf="f.children.length > 0">
+            <button
+                type="button"
+                class="facets__link"
+                (click)="toggleChildren(f)"
+                [attr.aria-expanded]="childrenOpen(f)"
+            >
+                <i
+                    class="pi"
+                    [class.pi-angle-down]="childrenOpen(f)"
+                    [class.pi-angle-right]="!childrenOpen(f)"
+                ></i>
+                Filter on {{ v.title }} by …
+            </button>
+            <div class="facet__nested" *ngIf="childrenOpen(f)">
+                <ng-container *ngFor="let c of f.children; trackBy: byId">
+                    <ng-container
+                        *ngTemplateOutlet="facetTpl; context: { $implicit: c }"
+                    ></ng-container>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #dateTpl let-nodes let-f="f">
+    <ul class="facet__dates">
+        <li *ngFor="let n of nodes">
+            <label class="facet__value">
+                <input type="checkbox" [checked]="n.selected" (change)="toggleDate(f, n.key)" />
+                <span class="facet__label">{{ n.label }}</span>
+                <span class="facet__n">{{ n.count }}</span>
+            </label>
+            <ng-container *ngIf="n.children.length > 0">
+                <ng-container
+                    *ngTemplateOutlet="dateTpl; context: { $implicit: n.children, f: f }"
+                ></ng-container>
+            </ng-container>
+        </li>
+    </ul>
+</ng-template>

@@ -54,6 +54,28 @@ describe('InterfacesJsonService', () => {
     });
   });
 
+  describe('conceptTypes', () => {
+    it('maps every concept to its technical type, loading concepts.json once', async () => {
+      mockHttp.get.mockReturnValue(
+        of([
+          { name: 'Day', type: 'DATE' },
+          { name: 'Issue', type: 'OBJECT' },
+        ]),
+      );
+      const types = await service.conceptTypes();
+      expect(mockHttp.get).toHaveBeenCalledWith('/assets/concepts.json');
+      expect(types.get('Day')).toBe('DATE');
+      await service.conceptTypes();
+      expect(mockHttp.get).toHaveBeenCalledTimes(1);
+    });
+
+    it('resolves to an empty map when concepts.json is missing', async () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      mockHttp.get.mockReturnValue(throwError(() => new Error('not JSON')));
+      expect((await service.conceptTypes()).size).toBe(0);
+    });
+  });
+
   describe('getInterfaces', () => {
     it('should throw error when interfaces not loaded', () => {
       expect(() => service.getInterfaces()).toThrow(
