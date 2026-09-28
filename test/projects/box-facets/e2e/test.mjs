@@ -14,7 +14,12 @@
  *    and asserts the rows, the counts and the query parameters;
  * 5. opens a URL with a selection in it (bookmark) and asserts the result;
  * 6. asserts `facets`/`facetOnly` (TicketsByTeam) and a FACETS box nested in
- *    a FORM (TeamDetail).
+ *    a FORM (TeamDetail);
+ * 7. asserts that a sort the user chose survives a facet click, and `facetKind`
+ *    (TicketsReported);
+ * 8. creates a row in a plain TABLE (NewTickets) and asserts it appears once.
+ * Every error toast fails the spec. Step 8 adds a row, so a second run on the
+ * same stack needs a fresh install first.
  */
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -206,6 +211,24 @@ try {
   assert((await countText(page)) === '4 of 14', 'Due = Sep 2026 → 4 of 14');
   assert(queryOf(page).getAll('f.Due').join() === '2026-09', 'the month replaces the year: f.Due=2026-09');
 
+  console.log('\n▶ A sort the user chose survives a facet click');
+  await open(page, '/tickets');
+  const hours = await page.$$('p-table th');
+  for (const th of hours) {
+    if ((await th.evaluate((e) => e.innerText.trim())) === 'Hours') {
+      await th.click();
+      break;
+    }
+  }
+  await sleep(400);
+  const topRow = () => page.$eval('p-table tbody tr', (e) => e.innerText);
+  assert((await topRow()).includes('Broken link'), 'sorted on Hours: Broken link (0.25) first');
+  await clickValue(page, 'Status', 'open');
+  assert(
+    (await topRow()).includes('Add tooltip'),
+    `after Status=open still sorted on Hours: Add tooltip (1.0) first (got: ${(await topRow()).split('\n')[0]})`,
+  );
+
   console.log('\n▶ A bookmarked selection');
   await open(page, '/tickets?f.Status=open&f.Team.Lead=Ann&f.Due=2026-09');
   assert((await countText(page)) === '3 of 14', `URL selection → 3 of 14 (got: ${await countText(page)})`);
@@ -244,6 +267,10 @@ try {
   assert(
     chosen.Reported?.values['2026'] === 3,
     `Reported (ALPHANUMERIC) with facetKind=date groups by year (got: ${JSON.stringify(chosen.Reported?.values)})`,
+  );
+  assert(
+    chosen.Reported?.values['(empty)'] === 11,
+    `a text without a date counts as (empty) (got: ${chosen.Reported?.values['(empty)']})`,
   );
   assert(chosen.Priority?.inputs.filter((t) => t === 'number').length === 2, 'Priority with facetKind=range is a range');
   await clickValue(page, 'Reported', '2026');

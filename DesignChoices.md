@@ -393,12 +393,12 @@ Technisch: `shownRows` in `box-table.component.{ts,html}`, `[data]` and `[shownR
 tests in `box-facets.component.spec.ts`.
 
 **A modeller chooses the kind of a facet with facetKind, where the technical type does not fit the data**
-OK-18 · geldig · 2026-09-28 · herkomst: voorstel 3 bij OK-15 (akkoord van Stef, 28 september 2026)
+OK-18 · geldig · 2026-09-28 · herkomst: voorstel van de bouwer bij PR #464 (akkoord van Stef, 28 september 2026)
 
 `BOX<FACETS facetKind="Date=date, Size=range">` gives an item the kind of facet it names
 (`list`, `text`, `range` or `date`) instead of the kind its technical type and its data give.
-Under `date`, a text that starts with a date counts under that date. Under `range`, a text that
-is a number counts as that number.
+Under `date`, a text that starts with a date counts under that date, and a text without one
+counts as *(empty)*. Under `range`, a text that is a number counts as that number.
 
 Overwegingen:
 
@@ -422,7 +422,9 @@ Impact op de specificatie: an interface gains `facetKind` where an item's type d
 data. The model itself does not change.
 
 Impact in productie: none beyond OK-15. A name in `facetKind` that matches no item, or a kind
-outside the four, leaves a warning in the browser console and changes nothing.
+outside the four, leaves a warning in the browser console and changes nothing. Without
+`facetKind` the kinds stay as OK-15 describes, also for an item whose type is unknown: only a
+whole date or a JSON number makes such an item a date tree or a number facet.
 
 Technisch: `chosenKinds()` in `facet-engine.ts`, the `facetKind` input of `BoxFacetsComponent`,
 `Box-FACETS.html`, and the interface `TicketsReported` in `test/projects/box-facets`.

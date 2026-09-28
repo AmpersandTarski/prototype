@@ -512,6 +512,38 @@ describe('facet-engine', () => {
         state,
       );
       expect(out.rows).toEqual([dated[0]]);
+      const buckets = new Map(
+        out.buckets.get('Status')!.map((b) => [b.key, b.count]),
+      );
+      expect(buckets.get(EMPTY_KEY)).toBe(1); // "open" starts with no date: (empty)
+      state.selections.set('Status', {
+        kind: 'date',
+        prefixes: new Set([EMPTY_KEY]),
+      });
+      expect(
+        evaluate(dated, [status], new Map([['Status', 'date']]), state).rows,
+      ).toEqual([dated[2]]);
+    });
+
+    it('keeps the kind of an untyped item as before: only whole dates and JSON numbers count', () => {
+      const f: FacetField = {
+        id: 'u',
+        path: ['u'],
+        labelPath: ['u'],
+        label: 'u',
+        ttype: 'UNKNOWN',
+        isIdent: false,
+        children: [],
+      };
+      expect(
+        kindOf(f, [{ u: '2026-08-10, revised' }, { u: '2026-08-11' }]),
+      ).toBe('values');
+      const codes = Array.from({ length: 45 }, (_, i) => ({
+        u: String(i).padStart(4, '0'),
+      }));
+      expect(kindOf(f, codes)).toBe('text');
+      const numbers = Array.from({ length: 20 }, (_, i) => ({ u: i }));
+      expect(kindOf(f, numbers)).toBe('range');
     });
 
     it('searches the current text of a row after an edit in place', () => {

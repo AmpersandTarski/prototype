@@ -401,7 +401,7 @@ INTERFACE Issues : "_SESSION";V[SESSION*Issue] cRud
   ]
 ```
 
-The box items are the table columns, exactly as in `TABLE`. Two annotations choose the
+The box items are the table columns, exactly as in `TABLE`. Three annotations shape the
 facets:
 
 | Annotation | Value | Effect |
@@ -410,8 +410,8 @@ facets:
 | `facetOnly` | comma-separated item labels | Items that are facets but no table column. They need not be repeated in `facets`. |
 | `facetKind` | comma-separated `label=kind` | The kind of facet for an item, instead of the one its technical type gives: `list`, `text`, `range` or `date`. See below. |
 
-A name in either list that matches no box item, or that names an item that can never be
-a facet (see below), leaves a warning in the browser console. An item whose label
+A name in any of these lists that matches no box item, or that names an item that can
+never be a facet (see below), leaves a warning in the browser console. An item whose label
 contains a comma or a period cannot be named in these lists; it is still a facet when
 `facets` is absent.
 
@@ -441,8 +441,8 @@ decides how the facet filters:
 The identity item (`"Issue" : I`) is a text field whatever its type: its value is the
 row itself. A value list ends with *(empty)* when some rows have no value.
 
-`facetKind` overrides this choice per item. `facetKind="Date=date"` gives an ALPHANUMERIC
-item that holds dates as text a date tree; a text that starts with a date, such as
+`facetKind` overrides this choice per item. `facetKind="Date=date"` gives a date tree to
+an ALPHANUMERIC item that holds dates as text; a text that starts with a date, such as
 `2026-08-10, revised 2026-09-17`, counts under that date, and a text without one under
 *(empty)*. `facetKind="Size=range"` makes a range of a number with few values, and
 `list` or `text` choose a value list or a text field. Prefer a `REPRESENT … TYPE DATE`

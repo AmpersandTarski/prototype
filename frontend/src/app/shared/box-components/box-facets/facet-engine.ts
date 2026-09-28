@@ -22,6 +22,9 @@
  * An OBJECT item with a sub-box of its own carries its sub-items as child
  * facets, recursively: a facet on `Project` also offers the facets of the
  * items inside the Project box.
+ *
+ * `facetKind` (OK-18) lets the modeller choose the kind per item: list, text,
+ * range or date. See chosenKinds().
  */
 
 export type TTypeName =
@@ -82,10 +85,12 @@ export interface FacetField {
 export interface FacetValue {
   key: string;
   label: string;
-  /** Numeric value of an INTEGER/FLOAT, for range filters. */
+  /** The number a value is or reads as, for range filters. */
   num?: number;
-  /** yyyy-mm-dd of a DATE/DATETIME, for the date tree. */
+  /** The date a value is or starts with (yyyy-mm-dd), for the date tree. */
   day?: string;
+  /** The backend delivered a JSON number (not a text that reads as one). */
+  isNumber?: boolean;
 }
 
 export type FacetSelection =
@@ -322,7 +327,12 @@ export function toFacetValue(value: any, ttype: TTypeName): FacetValue {
     return { key: String(value), label: value ? 'yes' : 'no' };
   }
   if (typeof value === 'number') {
-    return { key: String(value), label: String(value), num: value };
+    return {
+      key: String(value),
+      label: String(value),
+      num: value,
+      isNumber: true,
+    };
   }
   if (typeof value === 'object') {
     const key = String(value._id_ ?? '');
@@ -350,6 +360,10 @@ function decodeId(id: string): string {
   } catch {
     return id;
   }
+}
+
+function isWholeDate(s: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}(T|$)/.test(s);
 }
 
 function startsWithDate(s: string): boolean {
@@ -412,9 +426,12 @@ export function kindOf(field: FacetField, rows: any[]): FacetKind {
     case 'FLOAT':
       return distinct(values) <= MAX_NUMERIC_VALUES ? 'values' : 'range';
     case 'UNKNOWN':
-      if (values.length > 0 && values.every((v) => v.day !== undefined))
+      // Without a type only a whole date or a JSON number counts: a text that merely
+      // starts with a date, or reads as a number ("0044"), stays text. The day and num of
+      // such a text serve facetKind only.
+      if (values.length > 0 && values.every((v) => isWholeDate(v.key)))
         return 'date';
-      if (values.length > 0 && values.every((v) => v.num !== undefined)) {
+      if (values.length > 0 && values.every((v) => v.isNumber)) {
         return distinct(values) <= MAX_NUMERIC_VALUES ? 'values' : 'range';
       }
       return listOrText(values, rows);
@@ -463,7 +480,8 @@ export function passes(
           (sel.max === undefined || v.num <= sel.max),
       );
     case 'date':
-      return values.length === 0
+      // A row without a date (no value, or a text that does not start with one) is *(empty)*.
+      return values.every((v) => v.day === undefined)
         ? sel.prefixes.has(EMPTY_KEY)
         : values.some(
             (v) =>
@@ -575,7 +593,8 @@ function count(
     return;
   }
   if (kind === 'text') return;
-  if (values.length === 0) {
+  const dated = kind !== 'date' || values.some((v) => v.day !== undefined);
+  if (values.length === 0 || !dated) {
     add(EMPTY_KEY, '(empty)');
     return;
   }

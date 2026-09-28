@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.10.0 (29 September 2026)
 
 * **A long overview can be narrowed down with facets.** `BOX<FACETS>` is a `BOX<TABLE>`
   with a panel next to it: per column the values the rows carry, each with its number of
@@ -24,13 +24,17 @@ Additional labels for pre-release and build metadata are available as extensions
   With `facetKind` a modeller chooses the kind of facet where the data does not match
   its type, such as dates kept as text (OK-18).
 
-* **A row created in a table appears once.** After Create, the new row stood twice in a
-  top-level list until the page was reloaded: the refresh after the POST already added it,
-  and the table added it again.
+* **A created row appears once.** After Create in a top-level list, the new row stood twice
+  until the page was reloaded: the refresh after the POST already added it,
+  and the box added it again (#464).
+
+* **A sort the user chose stays.** In a table with `sortBy`, the sort went back to
+  `sortBy` whenever the number of rows changed, after Create, after Delete, and in
+  `BOX<FACETS>` after every choice of a facet (#464).
 
 * **A sorted table raises no error in a development build.** A `BOX<TABLE sortable
   sortBy="…">` showed an ExpressionChangedAfterItHasBeenChecked error (NG0100) as soon as
-  it opened; production builds were not affected.
+  it opened; production builds were not affected (#464).
 
 ## v2.9.0 (10 september 2026)
 
