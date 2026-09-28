@@ -333,17 +333,14 @@ export function toFacetValue(value: any, ttype: TTypeName): FacetValue {
   }
   const s = String(value);
   const v: FacetValue = { key: s, label: s };
-  if (
-    ttype === 'DATE' ||
-    ttype === 'DATETIME' ||
-    (ttype === 'UNKNOWN' && looksLikeDate(s))
-  ) {
+  // The day and the number of a text are there for `facetKind`, which can make a date
+  // tree or a range of an ALPHANUMERIC item; a text that starts with a date is filed
+  // under that date ("2026-08-10, revised 2026-09-17" under 10 August).
+  if (ttype === 'DATE' || ttype === 'DATETIME' || startsWithDate(s)) {
     v.day = s.slice(0, 10);
   }
-  if (ttype === 'INTEGER' || ttype === 'FLOAT') {
-    const n = Number(s);
-    if (!Number.isNaN(n)) v.num = n;
-  }
+  const n = Number(s);
+  if (s.trim() !== '' && !Number.isNaN(n)) v.num = n;
   return v;
 }
 
@@ -355,8 +352,42 @@ function decodeId(id: string): string {
   }
 }
 
-function looksLikeDate(s: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}(T|$)/.test(s);
+function startsWithDate(s: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}/.test(s);
+}
+
+/** The names a modeller writes in `facetKind`, and the kind each stands for. */
+const KIND_NAMES: Record<string, FacetKind> = {
+  list: 'values',
+  text: 'text',
+  range: 'range',
+  date: 'date',
+};
+
+/**
+ * The kinds a modeller chose with `facetKind="Date=date, Size=range"`: per facet id, the
+ * kind that replaces the one the TType gives. The names are list, text, range and date.
+ */
+export function chosenKinds(
+  all: FacetField[],
+  facetKind: string | undefined,
+  warn: (msg: string) => void = () => undefined,
+): Map<string, FacetKind> {
+  const kinds = new Map<string, FacetKind>();
+  for (const entry of splitList(facetKind)) {
+    const at = entry.lastIndexOf('=');
+    const name = entry.slice(0, at).trim();
+    const kind = KIND_NAMES[entry.slice(at + 1).trim()];
+    const f = at > 0 ? findField(all, name) : undefined;
+    if (!f || !kind) {
+      warn(
+        `BOX<FACETS>: facetKind '${entry}' names no box item or no kind (list, text, range, date)`,
+      );
+    } else {
+      kinds.set(f.id, kind);
+    }
+  }
+  return kinds;
 }
 
 /** The kind of filter a facet offers, from its TType and the values the rows carry. */
@@ -636,7 +667,8 @@ export function decodeState(
     const values = params(paramName(f, prefix));
     if (values.length === 0) continue;
     const kind = kinds.get(f.id) ?? 'values';
-    const numeric = ['INTEGER', 'FLOAT', 'UNKNOWN'].includes(f.ttype);
+    const numeric =
+      ['INTEGER', 'FLOAT', 'UNKNOWN'].includes(f.ttype) || kind === 'range';
     selections.set(f.id, decodeSelection(kind, values, numeric));
   }
   return { search: params(`${prefix}q`)[0] ?? '', selections };

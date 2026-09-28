@@ -391,3 +391,38 @@ and behaves as before. The regression suite runs over all projects to confirm th
 Technisch: `shownRows` in `box-table.component.{ts,html}`, `[data]` and `[shownRows]` in
 `Box-FACETS.html`, `ngDoCheck` and `sourceChanged()` in `box-facets.component.ts`, unit
 tests in `box-facets.component.spec.ts`.
+
+**A modeller chooses the kind of a facet with facetKind, where the technical type does not fit the data**
+OK-18 · geldig · 2026-09-28 · herkomst: voorstel 3 bij OK-15 (akkoord van Stef, 28 september 2026)
+
+`BOX<FACETS facetKind="Date=date, Size=range">` gives an item the kind of facet it names
+(`list`, `text`, `range` or `date`) instead of the kind its technical type and its data give.
+Under `date`, a text that starts with a date counts under that date. Under `range`, a text that
+is a number counts as that number.
+
+Overwegingen:
+
+1. The purpose is a usable facet for data that the model types more loosely than it is. The
+   Artefactenkaart keeps its dates as ALPHANUMERIC, because 13 of its 1 859 dates carry a
+   remark ("2026-08-10, herzien 2026-09-17") that a DATE column refuses; as a value list those
+   dates give one line per day.
+
+2. The annotation lives in the box header, next to `facets` and `facetOnly`, so it needs no
+   compiler change. Rejected: an annotation per box item, which the Ampersand grammar does not
+   have (a box item carries no key/value pairs); it would need a parser change and a compiler
+   release.
+
+3. Rejected: changing the thresholds of OK-15 (12 numbers, 40 values) per box. A threshold
+   moves the boundary for every item at once; the kind per item says what the modeller means.
+
+4. The structural answer remains a correct `REPRESENT`: the documentation says to prefer it, and
+   `facetKind` is for data that does not allow it yet.
+
+Impact op de specificatie: an interface gains `facetKind` where an item's type does not fit its
+data. The model itself does not change.
+
+Impact in productie: none beyond OK-15. A name in `facetKind` that matches no item, or a kind
+outside the four, leaves a warning in the browser console and changes nothing.
+
+Technisch: `chosenKinds()` in `facet-engine.ts`, the `facetKind` input of `BoxFacetsComponent`,
+`Box-FACETS.html`, and the interface `TicketsReported` in `test/projects/box-facets`.

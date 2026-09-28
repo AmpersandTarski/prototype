@@ -2,9 +2,10 @@
 <!-- BOX<FACETS> is BOX<TABLE> with a facet panel (DesignChoices OK-15, OK-16, OK-17):
      app-box-facets receives the rows, and the projected app-box-table keeps all rows as
      its data but shows the rows that pass the chosen facets (`shownRows`). Every TABLE
-     annotation is forwarded unchanged. The two
-     FACETS annotations are `facets` (which items are facets, in which order) and
-     `facetOnly` (facets that are no table column); the component hides those
+     annotation is forwarded unchanged. The three
+     FACETS annotations are `facets` (which items are facets, in which order),
+     `facetOnly` (facets that are no table column) and `facetKind` (the kind of facet
+     chosen by the modeller, DesignChoices OK-18). The component hides the facetOnly
      columns at runtime, because StringTemplate cannot compare strings.
      The *ngIf on the outer div gives each box its own template scope, so the
      reference #facets never collides with that of a sibling FACETS box. -->
@@ -19,6 +20,7 @@
         [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
         $if(facets)$facets="$facets$"
         $endif$$if(facetOnly)$facetOnly="$facetOnly$"
+        $endif$$if(facetKind)$facetKind="$facetKind$"
         $endif$
     >
         <app-box-table

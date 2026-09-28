@@ -17,6 +17,7 @@ REPRESENT Hours      TYPE FLOAT
 REPRESENT Priority   TYPE INTEGER
 REPRESENT Flag       TYPE BOOLEAN
 REPRESENT Secret     TYPE PASSWORD
+REPRESENT Reported   TYPE ALPHANUMERIC
 
 RELATION title     [Ticket*Title]    [UNI]
 RELATION status    [Ticket*Status]   [UNI]
@@ -31,6 +32,7 @@ RELATION urgent    [Ticket*Flag]     [UNI]
 RELATION blocked   [Ticket]          [PROP]
 RELATION secret    [Ticket*Secret]   [UNI]
 RELATION team      [Ticket*Team]     [UNI]
+RELATION reported  [Ticket*Reported] [UNI]
 RELATION teamName  [Team*PersonName] [UNI]
 RELATION lead      [Team*PersonName] [UNI]
 RELATION teamSize  [Team*Priority]   [UNI]
@@ -87,6 +89,12 @@ POPULATION team CONTAINS
   , ("T11", "blue"), ("T12", "red"), ("T13", "green"), ("T14", "blue")
   ]
 
+-- Dates kept as text, as an extractor may deliver them: facetKind makes them a date tree.
+POPULATION reported CONTAINS
+  [ ("T01", "2026-08-10, revised 2026-09-17"), ("T02", "2026-08-12"), ("T03", "2026-09-01")
+  , ("T04", "unknown")
+  ]
+
 VIEW Ticket : Ticket(title)
 VIEW Team   : Team(teamName)
 
@@ -123,6 +131,20 @@ INTERFACE TicketsByTeam : "_SESSION";V[SESSION*Ticket] cRud BOX<FACETS facets="S
   , "Team"     : team               cRud BOX<FORM>
       [ "Lead" : lead               cRud
       ]
+  ]
+
+-- facetKind: an ALPHANUMERIC item with dates as text becomes a date tree, and an
+-- INTEGER with few values a range.
+INTERFACE TicketsReported : "_SESSION";V[SESSION*Ticket] cRud BOX<FACETS facets="Reported, Priority" facetKind="Reported=date, Priority=range">
+  [ "Ticket"   : I        cRud LINKTO INTERFACE TicketDetail
+  , "Reported" : reported cRud
+  , "Priority" : priority cRud
+  ]
+
+-- A plain TABLE that creates rows: a created row stands once in the list (the sync
+-- after the POST already appends it).
+INTERFACE NewTickets : "_SESSION";V[SESSION*Ticket] CRud BOX<TABLE>
+  [ "Title" : title cRUd
   ]
 
 -- The way to the teams.

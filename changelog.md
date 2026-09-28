@@ -21,6 +21,16 @@ Additional labels for pre-release and build metadata are available as extensions
   holds an object with fields of its own offers those fields as facets as well. The choices
   are kept in the URL, so a filtered view can be bookmarked and sent. See
   `docs/reference-material/built-in-box-templates.md` and DesignChoices OK-15 to OK-17.
+  With `facetKind` a modeller chooses the kind of facet where the data does not match
+  its type, such as dates kept as text (OK-18).
+
+* **A row created in a table appears once.** After Create, the new row stood twice in a
+  top-level list until the page was reloaded: the refresh after the POST already added it,
+  and the table added it again.
+
+* **A sorted table raises no error in a development build.** A `BOX<TABLE sortable
+  sortBy="…">` showed an ExpressionChangedAfterItHasBeenChecked error (NG0100) as soon as
+  it opened; production builds were not affected.
 
 ## v2.9.0 (10 september 2026)
 

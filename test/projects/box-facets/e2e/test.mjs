@@ -37,10 +37,6 @@ const baseUrl = process.env.PROTOTYPE_URL ?? 'http://localhost';
 // test/run-regression.sh runs this spec against its own stack; without it, the dev stack.
 const container = process.env.PROTOTYPE_CONTAINER ?? 'prototype';
 
-// A sortable BOX<TABLE> with sortBy raises NG0100 on `attr.aria-sort` in a development
-// build, with or without FACETS (measured on a plain TABLE, 2026-09-28). It is a known
-// framework defect outside this spec; any other error toast fails the spec.
-const KNOWN_TOAST = /NG0100.*attr\.aria-sort/;
 
 let failures = 0;
 function assert(cond, msg) {
@@ -70,12 +66,14 @@ function buildFrontend() {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Every error toast fails the spec (a success toast such as "created" does not). A sortable table with sortBy used to raise NG0100 on
+// `attr.aria-sort` in a development build (SortableColumnDirective); the sorted tables in
+// this model guard that it no longer does.
 const toasts = [];
-let knownSeen = 0;
 async function collectToasts(page) {
-  const texts = await page.$$eval('.p-toast-message', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ')));
-  knownSeen += texts.filter((t) => KNOWN_TOAST.test(t)).length;
-  toasts.push(...texts.filter((t) => !KNOWN_TOAST.test(t)));
+  toasts.push(
+    ...(await page.$$eval('.p-toast-message-error', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ')))),
+  );
 }
 
 async function open(page, path) {
@@ -239,8 +237,31 @@ try {
     'a nested box prefixes its parameters with its item name and the enclosing atom',
   );
 
+  console.log('\n▶ facetKind');
+  await open(page, '/ticketsreported');
+  const chosen = Object.fromEntries((await readFacets(page)).map((f) => [f.id, f]));
+  assert(
+    chosen.Reported?.values['2026'] === 3,
+    `Reported (ALPHANUMERIC) with facetKind=date groups by year (got: ${JSON.stringify(chosen.Reported?.values)})`,
+  );
+  assert(chosen.Priority?.inputs.filter((t) => t === 'number').length === 2, 'Priority with facetKind=range is a range');
+  await clickValue(page, 'Reported', '2026');
+  await clickValue(page, 'Reported', 'Aug');
+  assert((await countText(page)) === '2 of 14', `Reported in Aug 2026 → 2 of 14, a text that starts with a date included (got: ${await countText(page)})`);
+
+  // Last, because it adds a row that the counts above do not expect.
+  console.log('\n▶ A plain TABLE creates a row once');
   await collectToasts(page);
-  if (knownSeen > 0) console.log(`  ⚠️  known NG0100 aria-sort toast seen ${knownSeen}× (see KNOWN_TOAST)`);
+  await page.goto(`${baseUrl}/newtickets`, { waitUntil: 'networkidle0' });
+  await page.waitForSelector('p-table tbody tr');
+  const before = await page.$$eval('p-table tbody tr', (r) => r.length);
+  await page.click('p-table thead .pi-plus');
+  await page.waitForFunction((n) => document.querySelectorAll('p-table tbody tr').length > n, { timeout: 10000 }, before);
+  await sleep(1000);
+  const after = await page.$$eval('p-table tbody tr', (r) => r.length);
+  assert(after === before + 1, `one row more after Create (before: ${before}, after: ${after})`);
+
+  await collectToasts(page);
   const unexpected = [...errors, ...toasts];
   assert(unexpected.length === 0, `no errors (got: ${unexpected.join(' | ') || 'none'})`);
 } catch (e) {

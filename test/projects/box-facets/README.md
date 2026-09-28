@@ -7,8 +7,8 @@ other facets, the selection round-trips through the URL, `facets`/`facetOnly` ch
 hide, a FACETS box nested in a FORM finds its own box, and TABLE annotations still reach
 the table.
 
-**Origin:** DesignChoices OK-15 (types and recursion), OK-16 (`facets`, `facetOnly`) and
-OK-17 (the table keeps all rows). The request came from a user who follows a large
+**Origin:** DesignChoices OK-15 (types and recursion), OK-16 (`facets`, `facetOnly`),
+OK-17 (the table keeps all rows) and OK-18 (`facetKind`). The request came from a user who follows a large
 Ampersand application, a map of project artefacts, and wanted to narrow its overviews
 down instead of reading them whole.
 
@@ -23,7 +23,10 @@ HUGEALPHANUMERIC, DATE, DATETIME, FLOAT, INTEGER, BOOLEAN, PASSWORD, OBJECT), a 
 relation `[PROP]`, a multi-valued item, an identity item with LINKTO, and an OBJECT item
 with a sub-box. Three interfaces use FACETS: `Tickets` (every item a facet, sorted
 table), `TicketsByTeam` (`facets` and `facetOnly`) and `TeamDetail` (FACETS nested in a
-FORM). `Teams` (a TABLE) links to `TeamDetail`, and `TicketDetail` is the LINKTO target.
+FORM), and `TicketsReported` shows `facetKind` (dates kept as text, a number as a range).
+`NewTickets`, a plain TABLE with Create rights, guards that a created row appears once,
+and every sorted table guards that a development build raises no NG0100 error. `Teams`
+(a TABLE) links to `TeamDetail`, and `TicketDetail` is the LINKTO target.
 Create, delete and edit under a selection are guarded by the unit tests in
 `frontend/src/app/shared/box-components/box-facets/box-facets.component.spec.ts`, because
-this model gives read rights only. The population is synthetic.
+FACETS in this model gives read rights only. The population is synthetic.

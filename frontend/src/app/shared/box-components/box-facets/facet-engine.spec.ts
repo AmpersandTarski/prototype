@@ -1,6 +1,7 @@
 import {
   EMPTY_KEY,
   FacetField,
+  chosenKinds,
   FacetKind,
   FacetState,
   decodeState,
@@ -473,6 +474,44 @@ describe('facet-engine', () => {
         min: 5,
         max: undefined,
       });
+    });
+
+    it('lets facetKind choose the kind, and files a text that starts with a date under that date', () => {
+      const all = fieldsOf(
+        locateBox(interfaces, 'Issues', []),
+        interfaces,
+        types,
+      );
+      const warnings: string[] = [];
+      const kinds = chosenKinds(
+        all,
+        'Status=date, Text=list, Project.Owner=range, Nope=list, Size=wrong',
+        (w) => warnings.push(w),
+      );
+      expect([...kinds]).toEqual([
+        ['Status', 'date'],
+        ['Text', 'values'],
+        ['Project/Owner', 'range'],
+      ]);
+      expect(warnings.length).toBe(2);
+      const state = noState();
+      state.selections.set('Status', {
+        kind: 'date',
+        prefixes: new Set(['2026-08']),
+      });
+      const status: FacetField = { ...allFields()[1] };
+      const dated = [
+        { Status: '2026-08-10, revised 2026-09-17' },
+        { Status: '2026-09-01' },
+        { Status: 'open' },
+      ];
+      const out = evaluate(
+        dated,
+        [status],
+        new Map([['Status', 'date']]),
+        state,
+      );
+      expect(out.rows).toEqual([dated[0]]);
     });
 
     it('searches the current text of a row after an edit in place', () => {

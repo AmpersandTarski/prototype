@@ -28,6 +28,7 @@ import {
   fieldsOf,
   findField,
   isEmptySelection,
+  chosenKinds,
   kindOf,
   locateBox,
   selectFields,
@@ -97,6 +98,8 @@ export class BoxFacetsComponent
   @Input() facets?: string;
   /** Items that are facets but no table column: `facetOnly="Labels"`. */
   @Input() facetOnly?: string;
+  /** The kind of facet chosen by the modeller: `facetKind="Date=date, Size=range"`. */
+  @Input() facetKind?: string;
 
   /** The rows the table shows. */
   filtered: ObjectBase[] = [];
@@ -110,6 +113,7 @@ export class BoxFacetsComponent
   private flat: FacetField[] = [];
   private topIds = new Set<string>();
   private kinds = new Map<string, FacetKind>();
+  private chosen = new Map<string, FacetKind>();
   private labels = new Map<string, Map<string, string>>();
   private hiddenColumns = new Set<string>();
   private expanded = new Set<string>();
@@ -349,6 +353,7 @@ export class BoxFacetsComponent
     this.tree = selectFields(all, this.facets, this.facetOnly, warn);
     this.topIds = new Set(this.tree.map((f) => f.id));
     this.flat = flatten(this.tree);
+    this.chosen = chosenKinds(all, this.facetKind, warn);
     this.hiddenColumns = new Set(
       splitList(this.facetOnly)
         .map((entry) => findField(all, entry))
@@ -359,7 +364,9 @@ export class BoxFacetsComponent
 
   private recomputeKinds(): void {
     const rows = this.sourceRows().filter((r) => r !== null && r !== undefined);
-    this.kinds = new Map(this.flat.map((f) => [f.id, kindOf(f, rows)]));
+    this.kinds = new Map(
+      this.flat.map((f) => [f.id, this.chosen.get(f.id) ?? kindOf(f, rows)]),
+    );
     // Labels of every value, so a chosen value keeps its label when no row shows it.
     this.labels = new Map(
       this.flat.map((f) => [

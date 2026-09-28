@@ -39,8 +39,8 @@ and ignores the rest.
 | `table` | — | — | — | ✅ | flag | Lays each record's fields out as an HTML table row. |
 | `form` | — | — | — | ✅ | flag | Wraps each record in a non-submitting `<form>` element. |
 
-`FACETS` accepts every TABLE annotation in this matrix, plus its own `facets` and
-`facetOnly`; see [BOX \<FACETS\>](#box-facets).
+`FACETS` accepts every TABLE annotation in this matrix, plus its own `facets`,
+`facetOnly` and `facetKind`; see [BOX \<FACETS\>](#box-facets).
 
 > **Not yet available — `noRootTitle`.** Historically a root interface box could
 > suppress its automatic interface heading with `noRootTitle`. That heading is
@@ -408,6 +408,7 @@ facets:
 | --- | --- | --- |
 | `facets` | comma-separated item labels | The items that are facets, in this order. `A.B` names item `B` inside the box of item `A`. Without `facets`, every item is a facet. |
 | `facetOnly` | comma-separated item labels | Items that are facets but no table column. They need not be repeated in `facets`. |
+| `facetKind` | comma-separated `label=kind` | The kind of facet for an item, instead of the one its technical type gives: `list`, `text`, `range` or `date`. See below. |
 
 A name in either list that matches no box item, or that names an item that can never be
 a facet (see below), leaves a warning in the browser console. An item whose label
@@ -439,6 +440,13 @@ decides how the facet filters:
 
 The identity item (`"Issue" : I`) is a text field whatever its type: its value is the
 row itself. A value list ends with *(empty)* when some rows have no value.
+
+`facetKind` overrides this choice per item. `facetKind="Date=date"` gives an ALPHANUMERIC
+item that holds dates as text a date tree; a text that starts with a date, such as
+`2026-08-10, revised 2026-09-17`, counts under that date, and a text without one under
+*(empty)*. `facetKind="Size=range"` makes a range of a number with few values, and
+`list` or `text` choose a value list or a text field. Prefer a `REPRESENT … TYPE DATE`
+in the model where the data allows it; `facetKind` is for data that does not.
 
 ### Recursive facets for an OBJECT item
 
