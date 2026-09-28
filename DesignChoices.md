@@ -289,8 +289,10 @@ Overwegingen:
 8. The selection lives in the query string (`f.<label path>`, `q` for the search), so a view
    can be bookmarked and sent. Labels keep the URL readable; a label with a period appears by
    its item name. A nested FACETS box prefixes its item name and the atom of the enclosing
-   row, so the same box in two rows of a table keeps two selections. A bookmark on a number
-   facet keeps its meaning when the facet turns from a value list into a range or back.
+   row, so the same box in two rows of a table keeps two selections. The form of a value
+   decides how it filters (`~text` a text field, `min..max` on a number a range, anything
+   else chosen values), so a bookmark keeps its meaning when the data changes and a facet
+   turns from a value list into a text field or a range, or back.
 
 Impact op de specificatie: none. A model uses `BOX<FACETS>` where it used `BOX<TABLE>`; the
 concepts, relations, rules and the compiler contract stay as they are. The kind of facet follows
@@ -368,10 +370,14 @@ Overwegingen:
    internal splice of `deleteItem`.
 
 3. A created row stays visible because the user would otherwise see nothing happen after
-   Create: the new row has no values yet and passes almost no facet. Only the rows that
-   `createItem` puts at the front count as created; rows that a sync with the server adds
-   follow the facets. Rejected: pinning every row that was not visible before, which brought
-   back every row the selection hid.
+   Create: the new row has no values yet and passes almost no facet. A row counts as created
+   when it appears in front of every known row, which is where `createItem` puts it in a
+   list, and when it replaces the empty value of a UNI box. A set of rows that shares no row
+   with the known ones is a new load and keeps nothing visible. Rows that a sync appends
+   follow the facets; a sync that returns the rows of a nested box in a new order can put a
+   row in front, and that row then also stays visible until the selection changes. Rejected:
+   pinning every row that was not visible before, which brought back every row the
+   selection hid.
 
 4. Rejected: comparing the rows at every change detection to notice an edit. That costs a
    walk over all rows and facets many times per second; the `patched` event of the interface

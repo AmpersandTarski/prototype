@@ -437,6 +437,44 @@ describe('facet-engine', () => {
       });
     });
 
+    it('keeps a text bookmark on a facet that became a value list, and a range on an untyped number', () => {
+      const fields = flat(allFields());
+      const kinds = kindsOf(fields); // Status: a value list
+      const params = encodeState(
+        fields,
+        {
+          search: '',
+          selections: new Map([['Status', { kind: 'text', text: 'pen' }]]),
+        },
+        '',
+      );
+      expect(params['f.Status']).toEqual(['~pen']);
+      const back = decodeState(fields, kinds, (n) => params[n] ?? [], '');
+      expect(back.selections.get('Status')).toEqual({
+        kind: 'text',
+        text: 'pen',
+      });
+      const untyped: FacetField = {
+        ...fields[0],
+        id: 'H',
+        path: ['H'],
+        labelPath: ['H'],
+        ttype: 'UNKNOWN',
+        children: [],
+      };
+      const r = decodeState(
+        [untyped],
+        new Map([['H', 'values']]),
+        (n) => (n === 'f.H' ? ['5..'] : []),
+        '',
+      );
+      expect(r.selections.get('H')).toEqual({
+        kind: 'range',
+        min: 5,
+        max: undefined,
+      });
+    });
+
     it('searches the current text of a row after an edit in place', () => {
       const row = { Status: 'open' };
       expect(rowText(row)).toContain('open');

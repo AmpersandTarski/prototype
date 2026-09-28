@@ -607,7 +607,8 @@ export function toggleDate(prefixes: Set<string>, key: string): Set<string> {
 /**
  * The query parameters that carry a state: `<prefix>q` for the search and
  * `<prefix>f.<Label>.<Label>` per facet, with one parameter value per chosen
- * value (a range as `min..max`). Labels keep the URL readable and bookmarkable.
+ * value (a range as `min..max`, a text field as `~text`). Labels keep the URL readable
+ * and bookmarkable.
  */
 export function encodeState(
   fields: FacetField[],
@@ -635,7 +636,7 @@ export function decodeState(
     const values = params(paramName(f, prefix));
     if (values.length === 0) continue;
     const kind = kinds.get(f.id) ?? 'values';
-    const numeric = f.ttype === 'INTEGER' || f.ttype === 'FLOAT';
+    const numeric = ['INTEGER', 'FLOAT', 'UNKNOWN'].includes(f.ttype);
     selections.set(f.id, decodeSelection(kind, values, numeric));
   }
   return { search: params(`${prefix}q`)[0] ?? '', selections };
@@ -654,7 +655,7 @@ function encodeSelection(sel: FacetSelection): string[] {
     case 'values':
       return [...sel.keys];
     case 'text':
-      return [sel.text];
+      return [`${TEXT_MARK}${sel.text}`];
     case 'range':
       return [`${sel.min ?? ''}..${sel.max ?? ''}`];
     case 'date':
@@ -670,24 +671,32 @@ function isRange(v: string): boolean {
   );
 }
 
+/** Marks a text-field selection in the URL, so its form tells it from a chosen value. */
+const TEXT_MARK = '~';
+
 /**
- * A bookmark outlives the data: a number facet can turn from a range into a value list
- * (or back) when the rows change. The form of the value decides, so the bookmark keeps
- * its meaning instead of matching no row.
+ * A bookmark outlives the data: a facet can turn from a value list into a text field or
+ * a range (or back) when the rows change. The form of the value decides, so the bookmark
+ * keeps its meaning instead of matching no row: `~text` is a text field, `min..max` on a
+ * number is a range, anything else is chosen values (or date prefixes on a date facet).
  */
 function decodeSelection(
   kind: FacetKind,
   values: string[],
   numeric: boolean,
 ): FacetSelection {
-  if (numeric) {
-    kind = values.length === 1 && isRange(values[0]) ? 'range' : 'values';
+  if (values.length === 1 && values[0].startsWith(TEXT_MARK)) {
+    kind = 'text';
+  } else if (numeric && values.length === 1 && isRange(values[0])) {
+    kind = 'range';
+  } else if (kind !== 'date') {
+    kind = 'values';
   }
   switch (kind) {
     case 'values':
       return { kind, keys: new Set(values) };
     case 'text':
-      return { kind, text: values[0] ?? '' };
+      return { kind, text: (values[0] ?? '').slice(TEXT_MARK.length) };
     case 'range': {
       const [lo, hi] = (values[0] ?? '').split('..');
       const num = (s: string | undefined) =>

@@ -463,7 +463,9 @@ Every choice is written to the query string, so a filtered view can be bookmarke
 sent: `/issues?f.Status=open&f.Project.Owner=Ann&f.Date=2026-09&q=login`. Each facet has
 one parameter `f.<label path>`, with one value per chosen value: the atom identifier for
 an OBJECT, `true` or `false` for a yes/no facet, `min..max` for a range (either end may
-be empty), and a year, month or day for a date. `q` holds the search text. A label that
+be empty), `~text` for a text field, and a year, month or day for a date. `q` holds the
+search text. The form of a value decides how it filters, so a bookmark keeps its meaning
+when the data changes and a facet turns from a value list into a text field or a range. A label that
 contains a period appears in the parameter by its item name instead. A FACETS box nested
 in another box prefixes its parameters with its item name and the atom of the enclosing
 row, such as `Tickets.red.f.Status`.

@@ -85,11 +85,11 @@ describe('BoxFacetsComponent', () => {
 
   it('keeps a created row visible, without bringing back the rows the selection hides', async () => {
     const { c, data } = await setup({ 'f.Status': 'closed' });
-    data.unshift(row('N', 'open')); // what createItem does
+    data.unshift(row('N', 'new')); // what createItem does
     c.ngDoCheck();
     expect(ids(c.filtered)).toEqual(['N', 'B']);
     c.toggleValue(c.tree[0], 'open'); // a new selection releases the pinned row
-    expect(ids(c.filtered)).toEqual(['N', 'A', 'B', 'C']);
+    expect(ids(c.filtered)).toEqual(['A', 'B', 'C']);
   });
 
   it('drops a deleted row from the table and from the counts', async () => {
@@ -117,5 +117,41 @@ describe('BoxFacetsComponent', () => {
         queryParams: expect.objectContaining({ 'f.Status': ['open'] }),
       }),
     );
+  });
+
+  it('keeps a row created in an empty UNI box visible, although the array is new', async () => {
+    const { c } = await setup({ 'f.Status': 'closed' });
+    c.data = [undefined as any]; // [resource.X] while X is empty
+    c.ngDoCheck();
+    c.data = [row('N', 'new')]; // createItem sets X; the template makes a new array
+    c.ngDoCheck();
+    expect(ids(c.filtered)).toEqual(['N']);
+  });
+
+  it('pins nothing when a whole new set of rows arrives', async () => {
+    const { c } = await setup({ 'f.Status': 'closed' });
+    c.data = [row('X', 'open'), row('Y', 'closed')];
+    c.ngDoCheck();
+    expect(ids(c.filtered)).toEqual(['Y']);
+  });
+
+  it('takes the parameters of the new row when Angular reuses a nested box', async () => {
+    const { c } = await setup();
+    c.isRootBox = false;
+    c.resource = { ...c.resource, _id_: 'red' };
+    c.ngOnChanges({ resource: { firstChange: false } as any });
+    c.toggleValue(c.tree[0], 'open');
+    const params = (c as any).router.navigate.mock.calls.at(-1)[1].queryParams;
+    expect(params['Tickets.red.f.Status']).toEqual(['open']);
+  });
+
+  it('does not recount on every check when the rows contain empty entries', async () => {
+    const { c, data } = await setup();
+    data.push(null as any, null as any);
+    c.ngDoCheck();
+    const spy = jest.spyOn(c as any, 'sourceChanged');
+    c.ngDoCheck();
+    c.ngDoCheck();
+    expect(spy).not.toHaveBeenCalled();
   });
 });

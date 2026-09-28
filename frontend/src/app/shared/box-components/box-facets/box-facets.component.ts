@@ -2,7 +2,9 @@ import {
   Component,
   DoCheck,
   Input,
+  OnChanges,
   OnInit,
+  SimpleChanges,
   booleanAttribute,
   inject,
 } from '@angular/core';
@@ -65,9 +67,10 @@ interface Chip {
 }
 
 /**
- * BOX<FACETS>: a facet panel next to the table of BOX<TABLE> (DesignChoices OK-15 to OK-17). The template
- * (Box-FACETS.html) projects an app-box-table into this component and binds
- * that table to `filtered`; every TABLE annotation keeps working. The facet
+ * BOX<FACETS>: a facet panel next to the table of BOX<TABLE> (DesignChoices OK-15 to OK-17).
+ * The template (Box-FACETS.html) projects an app-box-table into this component; the
+ * table keeps all rows as its data and shows `filtered` through `shownRows`, so every
+ * TABLE annotation keeps working. The facet
  * logic lives in facet-engine.ts; this component holds the state, reads and
  * writes it in the URL, and renders the panel.
  */
@@ -78,7 +81,7 @@ interface Chip {
 })
 export class BoxFacetsComponent
   extends BaseComponent
-  implements OnInit, DoCheck
+  implements OnInit, OnChanges, DoCheck
 {
   @Input() resource!: ObjectBase & { [key: string]: any };
   @Input({ required: true }) propertyName!: string;
@@ -90,7 +93,7 @@ export class BoxFacetsComponent
   @Input({ required: true })
   interfaceComponent!: AmpersandInterfaceComponent<any>;
   @Input({ transform: booleanAttribute }) isRootBox = false;
-  /** Which items are facets, and in which order: `facets="Project, Status, Project.Owner"`. */
+  /** Which items are facets, and in which order: `facets="Status, Project.Owner"`. */
   @Input() facets?: string;
   /** Items that are facets but no table column: `facetOnly="Labels"`. */
   @Input() facetOnly?: string;
@@ -116,6 +119,7 @@ export class BoxFacetsComponent
   private paramPrefix = '';
 
   private lastSource?: ObjectBase[];
+  private lastLength = -1;
   /** The source rows at the last refresh, to recognise a row that is new. */
   private known = new Set<ObjectBase>();
   /** A row created through the table stays visible until the selection changes. */
@@ -126,11 +130,7 @@ export class BoxFacetsComponent
   private interfacesJson = inject(InterfacesJsonService);
 
   async ngOnInit(): Promise<void> {
-    // A nested box carries its parent atom in the prefix: the same box in two rows of an
-    // enclosing table must not share its parameters.
-    this.paramPrefix = this.isRootBox
-      ? ''
-      : `${this.propertyName}.${this.resource?._id_ ?? ''}.`;
+    this.paramPrefix = this.prefix();
     // An edit merges into the rows in place (syncWithServer); refresh the counts after it.
     this.interfaceComponent?.patched
       ?.pipe(takeUntil(this.destroy$))
@@ -145,22 +145,41 @@ export class BoxFacetsComponent
     this.refresh();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    // Angular reuses this component when the enclosing row changes (a new route
+    // parameter): the parameters and the selection belong to the new row.
+    const change = changes['resource'];
+    if (!change || change.firstChange || this.isRootBox) return;
+    const prefix = this.prefix();
+    if (prefix === this.paramPrefix) return;
+    this.paramPrefix = prefix;
+    if (!this.ready) return;
+    this.pinned.clear();
+    this.readUrl();
+    this.refresh();
+  }
+
   ngDoCheck(): void {
     const source = this.sourceRows();
-    if (source !== this.lastSource) {
-      this.lastSource = source;
-      this.pinned.clear();
-      this.sourceChanged();
-    } else if (source.length !== this.known.size) {
-      // The table created a row (createItem unshifts it) or deleted one (deleteItem
-      // splices it), or a sync with the server added or removed rows. Only the new rows
-      // at the front come from createItem; those stay visible whatever the selection.
-      for (const row of source) {
-        if (this.known.has(row)) break;
-        if (row) this.pinned.add(row);
+    const replaced = source !== this.lastSource;
+    if (!replaced && source.length === this.lastLength) return;
+    // A row created through the table appears in front of the known rows: createItem
+    // unshifts it into a list, and replaces the empty value of a UNI box. It stays
+    // visible whatever the selection. A set of rows that shares no row with the known
+    // ones is a new load, and pins nothing; neither does the very first set.
+    if (this.lastSource !== undefined) {
+      const real = source.filter((r) => r);
+      const overlap = real.some((r) => this.known.has(r));
+      const createdInEmpty = this.known.size === 0 && real.length === 1;
+      if (!replaced || overlap || createdInEmpty) {
+        for (const row of real) {
+          if (this.known.has(row)) break;
+          this.pinned.add(row);
+        }
       }
-      this.sourceChanged();
     }
+    this.lastSource = source;
+    this.sourceChanged();
   }
 
   // --- the table ------------------------------------------------------------
@@ -273,7 +292,9 @@ export class BoxFacetsComponent
   }
 
   private sourceChanged(): void {
-    this.known = new Set(this.sourceRows());
+    const source = this.sourceRows();
+    this.lastLength = source.length;
+    this.known = new Set(source.filter((r) => r));
     this.recomputeKinds();
     this.refresh();
   }
@@ -282,6 +303,16 @@ export class BoxFacetsComponent
     this.pinned.clear();
     this.refresh();
     this.writeUrl();
+  }
+
+  /**
+   * The prefix of this box's URL parameters. A nested box carries its parent atom: the
+   * same box in two rows of an enclosing table must not share its parameters.
+   */
+  private prefix(): string {
+    return this.isRootBox
+      ? ''
+      : `${this.propertyName}.${this.resource?._id_ ?? ''}.`;
   }
 
   private sourceRows(): ObjectBase[] {
