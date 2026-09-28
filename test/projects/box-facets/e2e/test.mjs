@@ -21,13 +21,14 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 
-// A fresh worktree has no test/node_modules yet (gitignored); install on demand
+// A fresh worktree has no test/node_modules yet (gitignored). The spec does not install
+// them itself: it states the one command that does.
 const require = createRequire(import.meta.url);
-const testDir = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 try {
   require.resolve('puppeteer');
 } catch {
-  execSync('npm install --no-audit --no-fund', { cwd: testDir, stdio: 'inherit' });
+  console.error('❌ Puppeteer is missing: run `npm install` in test/ first.');
+  process.exit(1);
 }
 const puppeteer = (await import('puppeteer')).default;
 
@@ -89,7 +90,7 @@ const countText = (page) => page.$eval('[data-testid=facets-count]', (e) => e.in
 function readFacets(page) {
   return page.$$eval('.facet', (els) =>
     els.map((e) => ({
-      id: e.getAttribute('data-facet'),
+      id: e.dataset.facet,
       title: e.querySelector('.facet__title')?.innerText.trim(),
       values: Object.fromEntries(
         [...e.querySelectorAll('.facet__value')].filter((v) => v.closest('.facet') === e).map((v) => [

@@ -581,16 +581,17 @@ function count(
   }
   const seen = new Set<string>();
   for (const v of values) {
-    const keys: [string, string][] =
-      kind === 'date'
-        ? v.day
-          ? [
-              [v.day.slice(0, 4), v.day.slice(0, 4)],
-              [v.day.slice(0, 7), v.day.slice(0, 7)],
-              [v.day, v.day],
-            ]
-          : []
-        : [[v.key, v.label]];
+    let keys: [string, string][] = [];
+    if (kind !== 'date') {
+      keys = [[v.key, v.label]];
+    } else if (v.day) {
+      const [year, month] = [v.day.slice(0, 4), v.day.slice(0, 7)];
+      keys = [
+        [year, year],
+        [month, month],
+        [v.day, v.day],
+      ];
+    }
     for (const [key, label] of keys) {
       if (seen.has(key)) continue; // a row counts once per bucket
       seen.add(key);

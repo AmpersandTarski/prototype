@@ -129,9 +129,9 @@ export class BoxFacetsComponent
   /** A row created through the table stays visible until the selection changes. */
   private pinned = new Set<ObjectBase>();
 
-  private router = inject(Router);
-  private route = inject(ActivatedRoute, { optional: true });
-  private interfacesJson = inject(InterfacesJsonService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute, { optional: true });
+  private readonly interfacesJson = inject(InterfacesJsonService);
 
   async ngOnInit(): Promise<void> {
     this.paramPrefix = this.prefix();
@@ -172,7 +172,7 @@ export class BoxFacetsComponent
     // visible whatever the selection. A set of rows that shares no row with the known
     // ones is a new load, and pins nothing; neither does the very first set.
     if (this.lastSource !== undefined) {
-      const real = source.filter((r) => r);
+      const real = source.filter(Boolean);
       const overlap = real.some((r) => this.known.has(r));
       const createdInEmpty = this.known.size === 0 && real.length === 1;
       if (!replaced || overlap || createdInEmpty) {
@@ -298,7 +298,7 @@ export class BoxFacetsComponent
   private sourceChanged(): void {
     const source = this.sourceRows();
     this.lastLength = source.length;
-    this.known = new Set(source.filter((r) => r));
+    this.known = new Set(source.filter(Boolean));
     this.recomputeKinds();
     this.refresh();
   }
@@ -320,8 +320,10 @@ export class BoxFacetsComponent
   }
 
   private sourceRows(): ObjectBase[] {
-    if (this.data === null || this.data === undefined)
-      return (this.lastSource ??= []);
+    if (this.data === null || this.data === undefined) {
+      this.lastSource ??= [];
+      return this.lastSource;
+    }
     return Array.isArray(this.data) ? this.data : [this.data];
   }
 

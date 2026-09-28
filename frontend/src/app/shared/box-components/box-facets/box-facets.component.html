@@ -61,6 +61,7 @@
                     pInputText
                     class="facet__filter"
                     placeholder="Filter values"
+                    [attr.aria-label]="'Filter the values of ' + v.title"
                     [ngModel]="valueFilterOf(f)"
                     (ngModelChange)="setValueFilter(f, $event)"
                 />
