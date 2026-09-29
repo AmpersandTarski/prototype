@@ -17,6 +17,7 @@ use Ampersand\Misc\Settings;
 use Ampersand\Model;
 use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
+use Ampersand\Session;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use Slim\App;
@@ -64,19 +65,6 @@ register_shutdown_function(function () {
 $scriptStartTime = (float) microtime(true);
 
 /**************************************************************************************************
- * PHP SESSION (Start a new, or resume the existing, PHP session)
- *************************************************************************************************/
-// Allow a session ID that is never generated. This is needed because when deploying multiple containers
-// for the same application, the user isn't redirected to the same container for subsequent requests.
-// For more info: see comments in file src/Ampersand/Session.php
-ini_set("session.use_strict_mode", '0');
-ini_set("session.cookie_httponly", '1'); // ensures the cookie won't be accessible by scripting languages, such as JavaScript
-if ($_SERVER['HTTPS'] ?? false) {
-    ini_set("session.cookie_secure", '1'); // specifies whether cookies should only be sent over secure connections
-}
-session_start();
-
-/**************************************************************************************************
  * COMPOSER AUTOLOADER
  *************************************************************************************************/
 $composerAutoloaderFile = __DIR__ . '/../lib/autoload.php';
@@ -106,6 +94,17 @@ $debugMode = $settings->get('global.debugMode');
 
 set_time_limit($settings->get('global.scriptTimeout'));
 date_default_timezone_set($settings->get('global.defaultTimezone'));
+
+/**************************************************************************************************
+ * PHP SESSION (Start a new, or resume the existing, PHP session)
+ *************************************************************************************************/
+// The session starts after the settings are loaded, because they configure the session cookie.
+// Allow a session ID that is never generated. This is needed because when deploying multiple containers
+// for the same application, the user isn't redirected to the same container for subsequent requests.
+// For more info: see comments in file src/Ampersand/Session.php
+ini_set("session.use_strict_mode", '0');
+session_set_cookie_params(Session::cookieParams($settings->get('session.cookieSecure'), $_SERVER));
+session_start();
 
 $ampersandApp = new AmpersandApp(
     $model,
