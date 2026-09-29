@@ -1,10 +1,10 @@
 # Built-in BOX Templates
 
 The prototype framework ships four general-purpose BOX templates — `TABLE`,
-`FORM`, `TABS` and `RAW` — plus the special-purpose `PROPBUTTON`. Each
-general-purpose template accepts a set of **annotations** in its BOX header that
-tune how the box is rendered. This page documents those annotations first, then
-the `PROPBUTTON` template.
+`FORM`, `TABS` and `RAW` — plus special-purpose ones: `PROPBUTTON`,
+`FILTEREDDROPDOWN`, `SELECT`, `FACETS` and `NOVIEW`. Each general-purpose template
+accepts a set of **annotations** in its BOX header that tune how the box is rendered.
+This page documents those annotations first, then the special-purpose templates.
 
 ## BOX-template annotations
 
@@ -38,6 +38,9 @@ and ignores the rest.
 | `order` | ✅ | — | — | — | `asc`/`desc` | Default sort direction. Use with `sortBy` or `sortByAndHide`. |
 | `table` | — | — | — | ✅ | flag | Lays each record's fields out as an HTML table row. |
 | `form` | — | — | — | ✅ | flag | Wraps each record in a non-submitting `<form>` element. |
+
+`FACETS` accepts every TABLE annotation in this matrix, plus its own `facets`,
+`facetOnly` and `facetKind`; see [BOX \<FACETS\>](#box-facets).
 
 > **Not yet available — `noRootTitle`.** Historically a root interface box could
 > suppress its automatic interface heading with `noRootTitle`. That heading is
@@ -372,6 +375,129 @@ expr cRud BOX <SELECT>
 Use `SELECT` when the option list is the same for every record and is part of the
 interface data. Use `FILTEREDDROPDOWN` when the options must be filtered per
 record or when the user should be able to create new atoms.
+
+<a name="box-facets"></a>
+
+## BOX \<FACETS\>
+
+`BOX <FACETS>` is a `BOX <TABLE>` with a facet panel next to it: a faceted search.
+Every facet belongs to one box item and lists the values the rows carry for it, each
+with the number of rows that have it. Choosing values shrinks the table, and the counts
+of the other facets follow. A search field above the table searches every value of a
+row. Use it for an overview that is too long to read whole, where the user wants to
+narrow it down by status, owner, date and the like.
+
+### Usage
+
+```ampersand
+INTERFACE Issues : "_SESSION";V[SESSION*Issue] cRud
+  BOX<FACETS facets="Project, Status, Date, Labels, Author" facetOnly="Author" sortable sortBy="Date" order="desc">
+  [ "Issue"   : I       cRud LINKTO INTERFACE Issue
+  , "Project" : project cRud
+  , "Status"  : status  cRud
+  , "Date"    : date    cRud
+  , "Labels"  : label   cRud
+  , "Author"  : author  cRud
+  ]
+```
+
+The box items are the table columns, exactly as in `TABLE`. Three annotations shape the
+facets:
+
+| Annotation | Value | Effect |
+| --- | --- | --- |
+| `facets` | comma-separated item labels | The items that are facets, in this order. `A.B` names item `B` inside the box of item `A`. Without `facets`, every item is a facet. |
+| `facetOnly` | comma-separated item labels | Items that are facets but no table column. They need not be repeated in `facets`. |
+| `facetKind` | comma-separated `label=kind` | The kind of facet for an item, instead of the one its technical type gives: `list`, `text`, `range` or `date`. See below. |
+
+A name in any of these lists that matches no box item, or that names an item that can
+never be a facet (see below), leaves a warning in the browser console. An item whose label
+contains a comma or a period cannot be named in these lists; it is still a facet when
+`facets` is absent.
+
+Every TABLE annotation (`sortable`, `sortBy`, `sortByAndHide`, `order`, `noHeader`,
+`showNavMenu`, `title`, `hideOnNoRecords`) works as it does on `TABLE`, over all rows of
+the box: `hideOnNoRecords` hides the box when it has no rows, not when the chosen facets
+leave none.
+
+### The kind of facet follows the technical type
+
+The technical type of a concept is the `TYPE` in its `REPRESENT` statement, and
+`OBJECT` for a concept without one. The compiler writes a description of every
+interface (`interfaces.json`) and of every concept (`concepts.json`) next to the
+generated backend, and the build serves both to the browser. From them the facet panel
+reads the target concept of every box item and that concept's technical type, which
+decides how the facet filters:
+
+| Technical type of the item | Facet |
+| --- | --- |
+| `ALPHANUMERIC`, `OBJECT` | Values with counts, most rows first. With more than 40 values that are nearly all different (at least 80% of the rows), a text field instead. |
+| `BIGALPHANUMERIC`, `HUGEALPHANUMERIC` | Text field: rows whose value contains the text. |
+| `BOOLEAN`, and a property relation `[PROP]` | *yes* / *no* with counts. |
+| `INTEGER`, `FLOAT` | Up to 12 distinct values: a value list, sorted by value. More: a range with a from and a to field. |
+| `DATE`, `DATETIME` | Years with counts; choosing a year shows its months, a month its days. A `DATETIME` counts on the calendar day in the time zone of the server. |
+| `PASSWORD`, `BINARY`, `BIGBINARY`, `HUGEBINARY`, and the concept `ONE` | Never a facet. |
+
+The identity item (`"Issue" : I`) is a text field whatever its type: its value is the
+row itself. A value list ends with *(empty)* when some rows have no value.
+
+`facetKind` overrides this choice per item. `facetKind="Date=date"` gives a date tree to
+an ALPHANUMERIC item that holds dates as text; a text that starts with a date, such as
+`2026-08-10, revised 2026-09-17`, counts under that date, and a text without one under
+*(empty)*. `facetKind="Size=range"` makes a range of a number with few values, and
+`list` or `text` choose a value list or a text field. Prefer a `REPRESENT … TYPE DATE`
+in the model where the data allows it; `facetKind` is for data that does not.
+
+### Recursive facets for an OBJECT item
+
+An OBJECT item with a box of its own offers the items of that box as child facets, and
+so on, four levels deep. With `"Project" : project BOX<FORM> [ "Owner" : owner ]`, the
+Project facet has a fold-out *Filter on Project by …* with an Owner facet: choose an
+owner, and the table keeps the rows whose project has that owner. `facets="Project.Owner"`
+shows only that child facet, titled *Project › Owner*; `facets="Project, Project.Owner"`
+shows it once, inside Project. A LINKTO item has no box of its own and therefore no
+child facets.
+
+### Rules for combining
+
+Values chosen within one facet combine with *or*; facets combine with *and*. A
+multi-valued item (a label list) matches when any of its values is chosen. The counts
+of a facet cover the rows that pass the search and every *other* facet, so a facet
+never hides its own alternatives.
+
+### The selection is in the URL
+
+Every choice is written to the query string, so a filtered view can be bookmarked or
+sent: `/issues?f.Status=open&f.Project.Owner=Ann&f.Date=2026-09&q=login`. Each facet has
+one parameter `f.<label path>`, with one value per chosen value: the atom identifier for
+an OBJECT, `true` or `false` for a yes/no facet, `min..max` for a range (either end may
+be empty), `~text` for a text field, and a year, month or day for a date. `q` holds the
+search text. The form of a value decides how it filters, so a bookmark keeps its meaning
+when the data changes and a facet turns from a value list into a text field or a range. A label that
+contains a period appears in the parameter by its item name instead. A FACETS box nested
+in another box prefixes its parameters with its item name and the atom of the enclosing
+row, such as `Tickets.red.f.Status`.
+
+### Create, delete and edit
+
+With `C` or `D` rights the table offers them as `TABLE` does. A row created through the
+table stays visible until the selection changes, even if it does not pass the facets;
+after a reload it follows the facets like every other row. A deleted row leaves the
+table and the counts. After every edit the panel recounts, so a row whose value changed
+moves in or out of the table.
+
+### Limits
+
+The facets filter in the browser, over the rows the interface delivers: the interface
+still loads every row. One filter step over 5 000 rows and 10 facets takes a few
+milliseconds; the test "evaluates 5 000 rows and 10 facets" in `facet-engine.spec.ts`
+measures and logs it (7 ms on 2026-09-28). For far more rows, a server-side filter would
+be needed.
+
+A build of this framework version serves `concepts.json` itself. Should it still be
+missing, the panel infers the kind of facet from the values: dates and numbers are
+recognised, but a `PASSWORD` or binary item is not, and becomes a facet unless
+`facets` leaves it out.
 
 ## BOX \<NOVIEW\>
 

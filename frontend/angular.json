@@ -27,6 +27,11 @@
                 "output": "/assets/"
               },
               {
+                "glob": "concepts.json",
+                "input": "../backend/generics/",
+                "output": "/assets/"
+              },
+              {
                 "glob": "**/*",
                 "input": "node_modules/monaco-editor/min/vs",
                 "output": "/assets/monaco/vs"
