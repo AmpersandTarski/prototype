@@ -13,60 +13,25 @@
  *    "In the browser" of docs/reference-material/cookies-and-browser-storage.md.
  * project.yaml is restored in the finally below.
  */
-import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
+import {
+  assert,
+  baseUrl,
+  buildFrontend,
+  failureCount,
+  loadPuppeteer,
+  repoRoot,
+} from '../../../spec-support/browser-spec.mjs';
 import { documentedStorage } from './helpers/documented-storage.mjs';
 
-// A fresh worktree has no test/node_modules yet (gitignored). The spec does not install
-// them itself: it states the one command that does.
-const require = createRequire(import.meta.url);
-try {
-  require.resolve('puppeteer');
-} catch {
-  console.error('❌ Puppeteer is missing: run `npm install` in test/ first.');
-  process.exit(1);
-}
-const puppeteer = (await import('puppeteer')).default;
+const puppeteer = await loadPuppeteer();
 
-const specDir = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(specDir, '../../../..');
-const baseUrl = process.env.PROTOTYPE_URL ?? 'http://localhost';
-// test/run-regression.sh runs this spec against its own stack; without it, the dev stack.
-const container = process.env.PROTOTYPE_CONTAINER ?? 'prototype';
 const projectYaml = resolve(repoRoot, 'backend/config/project.yaml');
 const originalYaml = readFileSync(projectYaml, 'utf8');
 const privacyUrl = 'https://example.org/privacy-statement';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-let failures = 0;
-function assert(cond, msg) {
-  if (cond) {
-    console.log(`  ✅ ${msg}`);
-  } else {
-    console.error(`  ❌ ${msg}`);
-    failures++;
-  }
-}
-
-function run(cmd, opts = {}) {
-  execSync(cmd, { stdio: 'inherit', cwd: repoRoot, ...opts });
-}
-
-function buildFrontend() {
-  console.log('▶ Building the frontend (compiler sources + npm build) ...');
-  run(
-    `docker exec ${container} sh -c "ampersand proto --frontend-version Angular --no-backend ` +
-      `/var/www/test/projects/privacy-and-cookies/model/main.adl ` +
-      `--proto-dir /var/www/frontend/src/app/generated --crud-defaults cRud"`,
-  );
-  run('npm install --no-audit --no-fund', { cwd: resolve(repoRoot, 'frontend') });
-  run('npm run build:dev', { cwd: resolve(repoRoot, 'frontend') });
-  run('cp -r frontend/dist/prototype-frontend/. html/');
-}
 
 // The Set-Cookie headers of the first response to a visitor without a cookie.
 async function freshSetCookies(headers = {}) {
@@ -80,13 +45,14 @@ async function navbarPrivacyUrl() {
 }
 
 // The macOS bind mount can serve Apache a stale project.yaml for a short while after the host
-// wrote it, so wait until the backend shows the setting instead of trusting the write.
-async function writeSettings(lines) {
+// wrote it, so the callers wait until the backend shows the setting instead of trusting the write.
+function writeSettings(lines) {
+  const settings = lines.map((line) => '  ' + line).join('\n');
   writeFileSync(
     projectYaml,
     lines.length === 0
       ? originalYaml
-      : `# TEMPORARY test config, written by test/projects/privacy-and-cookies/e2e/test.mjs\nsettings:\n${lines.map((l) => `  ${l}`).join('\n')}\n`,
+      : `# TEMPORARY test config, written by test/projects/privacy-and-cookies/e2e/test.mjs\nsettings:\n${settings}\n`,
   );
 }
 
@@ -111,7 +77,7 @@ async function openHome(page) {
   await page.waitForFunction(() => document.querySelector('.layout-menu li') !== null, { timeout: 20000 });
 }
 
-buildFrontend();
+buildFrontend('privacy-and-cookies');
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 const page = await browser.newPage();
@@ -122,18 +88,18 @@ try {
   console.log('\n▶ The session cookie of a fresh visitor');
   const setCookies = await freshSetCookies();
   assert(setCookies.length === 1, `one Set-Cookie header (got ${setCookies.length}: ${setCookies.join(' | ')})`);
-  assert(/^PHPSESSID=/.test(setCookies[0] ?? ''), 'it is the session cookie PHPSESSID');
+  assert((setCookies[0] ?? '').startsWith('PHPSESSID='), 'it is the session cookie PHPSESSID');
   assert(/;\s*HttpOnly/i.test(setCookies[0] ?? ''), 'it is HttpOnly');
 
   console.log('\n▶ Without frontend.privacyStatementUrl');
-  await writeSettings([]);
+  writeSettings([]);
   await waitForPrivacyUrl(null);
   assert(true, 'the navbar returns privacyStatementUrl null');
   await openHome(page);
   assert((await page.$('a.privacy-statement-link')) === null, 'the footer shows no privacy link');
 
   console.log('\n▶ With frontend.privacyStatementUrl');
-  await writeSettings([`frontend.privacyStatementUrl: ${privacyUrl}`]);
+  writeSettings([`frontend.privacyStatementUrl: ${privacyUrl}`]);
   await waitForPrivacyUrl(privacyUrl);
   assert(true, `the navbar returns ${privacyUrl}`);
   await openHome(page);
@@ -163,14 +129,16 @@ try {
   for (const key of left) {
     assert(documented.has(key), `${key} is documented`);
   }
-  assert(errors.length === 0, `no page errors${errors.length ? `: ${errors.join('; ')}` : ''}`);
+  assert(errors.length === 0, 'no page errors' + (errors.length ? ': ' + errors.join('; ') : ''));
+} catch (e) {
+  assert(false, e.message);
 } finally {
   writeFileSync(projectYaml, originalYaml);
   await browser.close();
 }
 
-if (failures > 0) {
-  console.error(`\n${failures} failure(s)`);
+if (failureCount() > 0) {
+  console.error(`\n${failureCount()} failure(s)`);
   process.exit(1);
 }
 console.log('\nAll checks passed.');

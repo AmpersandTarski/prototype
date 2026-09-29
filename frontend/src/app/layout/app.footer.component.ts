@@ -10,7 +10,7 @@ import { MenuService } from './app.menu.service';
 export class AppFooterComponent {
   /* The privacy statement of the deploying organisation (setting frontend.privacyStatementUrl), or null.
    * See docs/reference-material/cookies-and-browser-storage.md */
-  privacyStatementUrl$ = this.menuService.navbar$.pipe(
+  readonly privacyStatementUrl$ = this.menuService.navbar$.pipe(
     map((navbar) => navbar.privacyStatementUrl ?? null),
   );
 
