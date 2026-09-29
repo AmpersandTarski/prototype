@@ -51,7 +51,8 @@
 </div>
 
 <ng-template #facetTpl let-f>
-    <div class="facet" *ngIf="view.get(f.id) as v" [attr.data-facet]="f.labelPath.join('.')">
+    <ng-container *ngIf="view.get(f.id) as v">
+    <div class="facet" *ngIf="showsFacet(f, v)" [attr.data-facet]="f.labelPath.join('.')">
         <div class="facet__title">{{ v.title }}</div>
 
         <ng-container [ngSwitch]="v.kind">
@@ -68,7 +69,7 @@
                 <label class="facet__value" *ngFor="let b of v.values">
                     <input
                         type="checkbox"
-                        [checked]="isSelected(f, b.key)"
+                        [checked]="isSelected(f, b.key) || isImplied(f, b.key)"
                         (change)="toggleValue(f, b.key)"
                     />
                     <span class="facet__label">{{ b.label }}</span>
@@ -158,6 +159,7 @@
             </div>
         </div>
     </div>
+    </ng-container>
 </ng-template>
 
 <ng-template #dateTpl let-nodes let-f="f">
