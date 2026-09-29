@@ -1,13 +1,8 @@
-@media screen and (min-width: 1960px) {
-  .layout-main,
-  .landing-wrapper {
-    width: 1504px;
-    margin-left: auto !important;
-    margin-right: auto !important;
-  }
-}
+/* The content column follows the width of the window. Running text keeps a
+   readable line length inside its own component, so a wide screen gains room
+   for side-by-side panes and groups instead of empty margins. */
 
-@media (min-width: 992px) {
+@media (min-width: 1200px) {
   .layout-wrapper {
     &.layout-overlay {
       .layout-main-container {
@@ -55,7 +50,7 @@
   }
 }
 
-@media (max-width: 991px) {
+@media (max-width: 1199px) {
   .blocked-scroll {
     overflow: hidden;
   }
