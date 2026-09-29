@@ -30,6 +30,12 @@ Additional labels for pre-release and build metadata are available as extensions
   `Secure`. The PHP session now starts after the settings are loaded
   (AmpersandTarski/Ampersand#1698).
 
+* **A project that stores more than the framework knows how to ask consent.** The guide
+  `docs/guides/asking-for-cookie-consent.md` tells when consent is needed, recommends the
+  MIT-licensed library CookieConsent v3, and shows the files and Dockerfile lines that add a
+  consent banner, a "Cookie settings" button and scripts that wait for consent, without
+  changes to the framework (AmpersandTarski/Ampersand#1699).
+
 ## v2.11.0 (29 September 2026)
 
 * **The violation cache can be kept up to date from the pairs a transaction touched

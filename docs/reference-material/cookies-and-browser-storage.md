@@ -31,7 +31,7 @@ Article 5(3) of the ePrivacy Directive (2002/58/EC) requires consent before anyt
 
 The session cookie meets that exception. Every interface query takes the session from the cookie, and the roles and the login of the user hang off that session (see the [architecture of an Ampersand application](https://ampersandtarski.github.io/ampersand/reference-material/architecture-of-an-ampersand-application)). Without the cookie no interface opens. The two items in session storage hold state of the user interface and disappear with the tab.
 
-A project that stores more, such as analytics or an embedded video, does need consent. That is up to the project, not the framework.
+A project that stores more, such as analytics or an embedded video, does need consent. The guide [Asking for cookie consent](../guides/asking-for-cookie-consent.md) shows how a project adds a consent banner from its own Dockerfile.
 
 This is a reading of the rules, not legal advice. The privacy officer of the deploying organisation confirms it.
 
