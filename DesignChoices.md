@@ -500,7 +500,7 @@ Overwegingen:
 
 1. The purpose is that a reader sees the formatting an author wrote. The Artefactenkaart showed
    `**Why:**` where the author meant **Why:**: of its 3 306 texts, 772 contain backticks, 163
-   `**bold**` and 63 a Markdown link (measured in its database on 2026-09-29).
+   a double asterisk (160 a closed `**bold**` pair) and 63 a Markdown link (measured in its database on 2026-09-29).
 
 2. Stef proposed `<MARKUP MARKDOWN>` on the text itself. Ampersand v5.9.7 does not allow that
    without a compiler change, measured on the test model: a box item takes a view name and no
@@ -524,8 +524,8 @@ Overwegingen:
 5. The static format is a bare word in the header (`MARKDOWN`, `GFM`, `HTML`, `TEXT`): a name with
    a hyphen, such as `GITHUB-MARKDOWN`, is no single word for the parser and no attribute name for
    StringTemplate. The runtime accepts it as an alias of `GFM` in a format item, next to `MD`,
-   `COMMONMARK`, `PLAIN` and `ASCII`. `EBCDIC` is an encoding, not a markup, and reStructuredText
-   has no small renderer for the browser; both give plain text, with the warning for the latter.
+   `COMMONMARK`, `GITHUB_MARKDOWN`, `PLAIN` and `ASCII`. `EBCDIC` is an encoding, not a markup, and reStructuredText
+   has no small renderer for the browser; both give plain text and one console warning.
 
 6. Safety comes from Angular's sanitiser on `[innerHTML]`: it removes `<script>` and event
    handlers and makes a `javascript:` URL inert (`unsafe:javascript:`), measured in the spec.

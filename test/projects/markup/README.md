@@ -17,3 +17,9 @@ them (AmpersandTarski/Ampersand#1700).
 
 **Green means:** every assertion in `e2e/test.mjs` passes. The spec builds the frontend with the
 concept template in it and removes the template again afterwards.
+
+**Can fail:** on 2026-09-30 the spec went red under two mutations in a copy: with
+`bypassSecurityTrustHtml` in `MarkupPipe` ("HTML is sanitised" and "no script from the text
+ran" failed, and the `onerror` of the test text ran), and with the format item always shown
+("the format item shows nothing" and "the format per row" failed). The full Jest suite runs
+with `CI=true npx ng test` in `frontend/`; a bare `npx jest` lacks the Angular test set-up.

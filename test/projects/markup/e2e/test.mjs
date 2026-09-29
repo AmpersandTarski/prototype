@@ -101,7 +101,7 @@ try {
   assert(gfm.includes('<table') && gfm.includes('<del>struck</del>'), 'GITHUB-MARKDOWN gives a table and strikethrough');
   const html = rows.html?.[0]?.html ?? '';
   assert(html.includes('<b>html</b>'), 'HTML keeps its markup');
-  assert(!html.includes('<script') && !html.includes('onerror') && !/href="javascript:/.test(html), `HTML is sanitised (got: ${html})`);
+  assert(!html.includes('<script') && !html.includes('onerror') && !/href="javascript:/.test(html) && html.includes('href="unsafe:javascript:'), `HTML is sanitised (got: ${html})`);
   assert((await page.evaluate(() => window.markupPwned)) === undefined, 'no script from the text ran');
   const text = rows.text?.[0] ?? {};
   assert(text.html?.includes('&lt;b&gt;') && !text.html?.includes('<b>'), 'TEXT shows a tag as text');
@@ -117,6 +117,7 @@ try {
   await open('/formatontext', '.markup');
   rows = await readRows();
   assert(rows.markdown?.[0]?.format === 'MARKDOWN' && rows.gfm?.[0]?.format === 'GFM', 'the format of a text follows the text');
+  assert(Object.values(rows).every((r) => r.length === 1), 'the format item on the text shows nothing');
   assert(rows.html?.[0]?.format === 'TEXT', `a text without a format and without a default is TEXT (got: ${rows.html?.[0]?.format})`);
 
   console.log('\n▶ LabelledNote: showLabels');

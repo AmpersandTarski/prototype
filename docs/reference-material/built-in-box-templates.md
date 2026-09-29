@@ -514,18 +514,21 @@ The box sits on the object that owns the text, and every item of the box is a te
 "Explanation" : I cRud BOX <MARKUP MARKDOWN> [ "text" : explanation ]
 ```
 
-The box cannot sit on the text itself. A key such as `MARKDOWN` reaches a template only
+The box cannot sit on the text itself. An annotation such as `MARKDOWN` reaches a template only
 through a box header, and a `BOX` or `VIEW` on a text concept makes that concept an
 `OBJECT`, which the type checker refuses next to its `REPRESENT` (Ampersand v5.9.7).
 
 | Annotation | Value | Effect |
 | --- | --- | --- |
-| `MARKDOWN` | flag | Markdown (CommonMark). |
-| `GFM` | flag | GitHub-flavoured Markdown: Markdown plus tables, strikethrough and task lists. |
+| `MARKDOWN` | flag | Markdown, close to CommonMark. |
+| `GFM` | flag | GitHub-flavoured Markdown: Markdown plus tables and strikethrough. A task list shows as a plain list: the sanitiser removes its check boxes. |
 | `HTML` | flag | HTML. |
 | `TEXT` | flag | Plain text with its line breaks kept. This is also the default. |
 | `formatFrom` | item label | The format per row: the value of the named item, such as `MARKDOWN`. That item shows nothing. |
 | `showLabels` | flag | Shows the label of every item above its text. Without it, the texts stand without labels, because the enclosing box usually labels the box already. |
+
+Write the format flags in capitals, as in the table: the template reads them by name. With more than one
+flag in the header, the first of `MARKDOWN`, `GFM` and `HTML` counts.
 
 ### A format per row
 
@@ -543,8 +546,8 @@ RELATION textFormat[Body*Format] [UNI]   -- on the text itself
 ```
 
 A row without a format falls back to the flag in the header, and without a flag to `TEXT`.
-The format names are case-insensitive, and some have aliases: `MD` and `COMMONMARK` for
-`MARKDOWN`, `GITHUB-MARKDOWN` for `GFM`, `PLAIN` and `ASCII` for `TEXT`. `Format` may also be
+In a format item the names are case-insensitive, and some have aliases: `MD` and `COMMONMARK` for
+`MARKDOWN`, `GITHUB-MARKDOWN` and `GITHUB_MARKDOWN` for `GFM`, `PLAIN` and `ASCII` for `TEXT`. `Format` may also be
 an `OBJECT` concept; its atom identifier is then the name. A name the framework does not know,
 such as `RST`, gives plain text and one warning in the browser console. `EBCDIC` is a character
 encoding, not a markup language: a text in the database is already decoded, so it is plain
@@ -608,8 +611,8 @@ described in [Frontend components](frontend-components.md).
 Before the atomic template of the technical type, the compiler looks for a template named
 after the target concept: `Concept-<name>.html` in the template folder
 (`frontend/src/app/generated/.templates/`). A project that places such a file there changes how
-every leaf with that target concept looks, in every interface. The Dockerfile of the project
-copies the file in before it compiles the frontend:
+every leaf with that target concept looks, in every interface. Copy the file in from the project's
+Dockerfile, before the frontend is compiled:
 
 ```dockerfile
 COPY project/templates/ /var/www/frontend/src/app/generated/.templates/
