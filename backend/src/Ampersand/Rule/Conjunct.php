@@ -76,7 +76,23 @@ class Conjunct
      * Specifies if conjunct is already evaluated
      */
     protected bool $isEvaluated = false;
-    
+
+    /**
+     * Candidate queries for delta-scoped re-evaluation (issue Ampersand#1684),
+     * keyed by relation signature. Null when the compiler did not emit them
+     * (older compiler, or the violation term falls outside the supported class).
+     *
+     * @var array<string, array{relation: string, deltaTable: string, candidateSQL: string}>|null
+     */
+    protected ?array $deltaQueries = null;
+
+    /**
+     * True when this conjunct's cache rows were maintained by the delta
+     * protocol in the current transaction; commit must then not overwrite
+     * them wholesale from the (unevaluated) in-memory cache item.
+     */
+    protected bool $maintainedByDelta = false;
+
     /**
      * Constructor
      */
@@ -91,11 +107,18 @@ class Conjunct
         $this->logger = $logger;
         $this->app = $app;
         $this->database = $database;
-        
+
         $this->id = $conjDef['id'];
         $this->query = $conjDef['violationsSQL'];
         $this->invRuleNames = (array)$conjDef['invariantRuleNames'];
         $this->sigRuleNames = (array)$conjDef['signalRuleNames'];
+
+        if (isset($conjDef['deltaQueries'])) {
+            $this->deltaQueries = [];
+            foreach ((array)$conjDef['deltaQueries'] as $dq) {
+                $this->deltaQueries[$dq['relation']] = $dq;
+            }
+        }
 
         $this->cachePool = $cachePool;
         $this->cacheItem = $cachePool->getItem($this->id);
@@ -227,7 +250,96 @@ class Conjunct
 
     public function persistCacheItem(): void
     {
+        // Delta-maintained cache rows are already correct in the database
+        // (updated inside the open transaction); a wholesale replace from the
+        // unevaluated in-memory item would be wasted work at best.
+        if ($this->maintainedByDelta) {
+            return;
+        }
         $this->cachePool->save($this->cacheItem);
+    }
+
+    /**
+     * True when the compiler emitted candidate queries for this conjunct
+     * (delta-scoped re-evaluation, issue Ampersand#1684)
+     */
+    public function hasDeltaQueries(): bool
+    {
+        return $this->deltaQueries !== null;
+    }
+
+    /**
+     * True when a candidate query exists for the given relation signature
+     */
+    public function hasDeltaQueryFor(string $relationSignature): bool
+    {
+        return isset($this->deltaQueries[$relationSignature]);
+    }
+
+    /**
+     * Maintain this conjunct's rows in the violation cache table with the
+     * delta protocol (issue Ampersand#1684): per touched relation, delete the
+     * cache rows in the candidate set and re-insert the violation rows
+     * restricted to that candidate set. Runs inside the open DB transaction,
+     * so the rows commit or roll back together with the data. The candidate
+     * queries read the relation's delta table, which holds the pairs this
+     * transaction touched.
+     *
+     * @param string[] $relationSignatures touched relations (each must have a candidate query)
+     */
+    public function deltaMaintain(array $relationSignatures, string $cacheTableName): void
+    {
+        $violSQL = $this->getQuery();
+        foreach ($relationSignatures as $sig) {
+            $dq = $this->deltaQueries[$sig] ?? null;
+            if ($dq === null) {
+                throw new Exception("Conjunct '{$this->id}' has no candidate query for relation '{$sig}'");
+            }
+            $candSQL = str_replace('_SESSION', session_id(), $dq['candidateSQL']);
+            $inCands = fn (string $alias): string =>
+                "({$alias}.\"src\", {$alias}.\"tgt\") IN (SELECT \"src\", \"tgt\" FROM ({$candSQL}) AS cand)";
+
+            $this->database->execute(
+                "DELETE c FROM \"{$cacheTableName}\" AS c"
+                . " WHERE c.\"conjId\" = '{$this->id}' AND " . $inCands('c')
+            );
+            $this->database->execute(
+                "INSERT INTO \"{$cacheTableName}\" (\"conjId\", \"src\", \"tgt\")"
+                . " SELECT '{$this->id}', v.\"src\", v.\"tgt\" FROM ({$violSQL}) AS v"
+                . " WHERE " . $inCands('v')
+            );
+        }
+        $this->maintainedByDelta = true;
+
+        // Refresh the in-memory cache item from the just-maintained table rows,
+        // so the invariant check reads current data even when the item was
+        // already memoized earlier in this request. Deliberately without
+        // saveDeferred: the table rows are the source of truth here.
+        $this->cacheItem->set($this->getViolationsFromDbCache($cacheTableName));
+
+        $this->logger->debug("Conjunct '{$this->id}' cache maintained by delta protocol for relations: " . implode(', ', $relationSignatures));
+    }
+
+    /**
+     * Read this conjunct's current rows from the violation cache table.
+     * Inside an open transaction this sees the delta-maintained state.
+     *
+     * @return array{conjId: string, src: string, tgt: string}[]
+     */
+    public function getViolationsFromDbCache(string $cacheTableName): array
+    {
+        $rows = $this->database->execute(
+            "SELECT \"conjId\", \"src\", \"tgt\" FROM \"{$cacheTableName}\" WHERE \"conjId\" = '{$this->id}'"
+        );
+        return is_array($rows) ? $rows : [];
+    }
+
+    /**
+     * Reset the per-transaction delta administration
+     */
+    public function resetDeltaMaintained(): void
+    {
+        $this->maintainedByDelta = false;
     }
 
     public function showInfo(): array

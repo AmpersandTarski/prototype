@@ -38,6 +38,16 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      */
     protected array $deferred = [];
 
+    public function getTableName(): string
+    {
+        return $this->tableName;
+    }
+
+    public function getDatabase(): MysqlDB
+    {
+        return $this->database;
+    }
+
     /**
      * Constructor
      */

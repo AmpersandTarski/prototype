@@ -20,6 +20,21 @@ Additional labels for pre-release and build metadata are available as extensions
   links to that statement. The regression project `privacy-and-cookies` fails when code
   stores something the page does not list (AmpersandTarski/Ampersand#1697).
 
+## v2.11.0 (29 September 2026)
+
+* **The violation cache can be kept up to date from the pairs a transaction touched
+  (opt-in, default off; DesignChoices OK-19).** The purpose is a transaction close whose cost
+  follows the size of the change instead of the size of the database. The setting
+  `transactions.deltaConjunctMaintenance` takes `'off'` (the default: behaviour as in v2.10.0),
+  `'shadow'` (both routes run, the full evaluation stays authoritative, and any difference is
+  logged as `DELTA SHADOW MISMATCH`) or `'on'`; any other value stops the application at boot
+  with a message that names the setting. The delta route needs candidate queries per conjunct
+  from the compiler ([Ampersand#1684](https://github.com/AmpersandTarski/Ampersand/issues/1684)).
+  No released compiler emits them yet, so for now the setting changes nothing. Measured so far,
+  the delta route does not win yet: a close takes 4.2 ms against 3.1 ms on FC5 and 47.0 ms
+  against 40.4 ms on RAP, with no difference in outcome over 1 142 replayed FC5 transactions
+  (#449).
+
 ## v2.10.0 (29 September 2026)
 
 * **A long overview can be narrowed down with facets.** `BOX<FACETS>` is a `BOX<TABLE>`
