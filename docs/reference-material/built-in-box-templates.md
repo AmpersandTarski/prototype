@@ -111,7 +111,9 @@ default:
 - `hideSubOnNoRecords` hides every empty field row, also one the user may edit.
 
 The FORM reads the CRUD and multiplicity of its fields from `interfaces.json`,
-because the compiler does not pass them to the box template.
+because the compiler does not pass them to the box template. This default belongs to
+FORM only: TABS still shows every tab panel, and hides an empty one only under
+`hideSubOnNoRecords`.
 
 ### `hideSubOnNoRecords`
 
