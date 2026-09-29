@@ -29,6 +29,7 @@ class SessionController extends AbstractController
 
         $content =  ['home' => $this->app->getSettings()->get('frontend.homePage')
                     ,'menuMode' => $settings->get('frontend.menuMode', 'static')
+                    ,'privacyStatementUrl' => $settings->get('frontend.privacyStatementUrl') // shown in the footer when set
                     ,'navs' => $this->frontend->getNavMenuItems()
                     ,'new' => $this->frontend->getMenuItems(MenuType::NEW)
                     ,'ext' => $this->frontend->getMenuItems(MenuType::EXT)

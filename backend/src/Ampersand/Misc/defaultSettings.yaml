@@ -72,6 +72,7 @@ settings:
   frontend.menuGrouping: none # default grouping of the navigation menu on (re)install: 'none' = flat list, 'byType' = group list interfaces (V[SESSION*Concept]) in a submenu; task screens (I[SESSION]) stay top-level
   frontend.menuGroupingLabel: Lists # label of the submenu that groups the list interfaces (only used with menuGrouping 'byType')
   frontend.menuMode: static # default menu orientation: 'static' (vertical sidebar), 'overlay' (collapsible vertical sidebar) or 'horizontal' (menu bar with dropdowns and overflow)
+  frontend.privacyStatementUrl: null # URL of the privacy statement of the organisation that deploys the application. When set, the footer of every screen links to it. See docs/reference-material/cookies-and-browser-storage.md
 
   ### ExecEngine settings
   execengine.execEngineRoleNames: [ExecEngine]
