@@ -47,6 +47,7 @@ import { BoxFacetsComponent } from './box-components/box-facets/box-facets.compo
 import { AtomicUrlComponent } from './atomic-components/atomic-url/atomic-url.component';
 import { AtomicSelectComponent } from './atomic-components/atomic-select/atomic-select.component';
 import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.component';
+import { InterfaceHeadingComponent } from './common/interface-heading/interface-heading.component';
 import { MonacoEditorComponent } from './monaco-editor/monaco-editor.component';
 import { DiagnosticsTextComponent } from './diagnostics-text/diagnostics-text.component';
 
@@ -101,8 +102,10 @@ import { DiagnosticsTextComponent } from './diagnostics-text/diagnostics-text.co
     ButtonModule,
     AutoCompleteModule,
     IfcsDropdownComponent,
+    InterfaceHeadingComponent,
   ],
   exports: [
+    InterfaceHeadingComponent,
     AtomicAlphanumericComponent,
     AtomicBigalphanumericComponent,
     AtomicBooleanComponent,
