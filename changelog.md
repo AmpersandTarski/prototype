@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.11.0 (29 September 2026)
 
 * **The violation cache can be kept up to date from the pairs a transaction touched
   (opt-in, default off; DesignChoices OK-19).** The purpose is a transaction close whose cost
