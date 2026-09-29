@@ -36,6 +36,7 @@ The following environment variables map directly to configuration settings:
 | `AMPERSAND_DBNAME`           | `mysql.dbName`           | string  |
 | `AMPERSAND_DBUSER`           | `mysql.dbUser`           | string  |
 | `AMPERSAND_DBPASS`           | `mysql.dbPass`           | string  |
+| `AMPERSAND_SESSION_COOKIE_SECURE` | `session.cookieSecure` | string: `auto`, `true` or `false` |
 
 Boolean values are parsed with PHP's `FILTER_VALIDATE_BOOLEAN`. The strings `"true"`, `"1"`, `"yes"`, and `"on"` all result in `true`; `"false"`, `"0"`, `"no"`, and `"off"` result in `false`.
 
@@ -52,6 +53,10 @@ The table below lists the settings relevant to environment configuration, with t
 | `global.scriptTimeout`    | `30` (seconds)     | `0` (no limit) | `30` or higher       |
 | `mysql.dbHost`            | `localhost`        | container name | production host      |
 | `mysql.dbPass`            | `ampersand`        | dev password   | strong password      |
+| `session.cookieSecure`    | `auto`             | `auto`         | `true`               |
+| `frontend.privacyStatementUrl` | `null`        | `null`         | URL of the privacy statement |
+
+`session.cookieSecure` sets the `Secure` flag of the session cookie, which keeps the browser from sending it over plain HTTP. With `auto` the flag follows the request: set over HTTPS, also behind a reverse proxy that sends `X-Forwarded-Proto: https`. Production uses `true`, so that the flag does not depend on the network in front of the application. `frontend.privacyStatementUrl` puts a link to the privacy statement of the deploying organisation in the footer; [Cookies and browser storage](../reference-material/cookies-and-browser-storage.md) lists what that statement should mention.
 
 ## Setting variables in Docker Compose
 
@@ -75,6 +80,7 @@ services:
       - AMPERSAND_DEBUG_MODE=false
       - AMPERSAND_PRODUCTION_MODE=true
       - AMPERSAND_SERVER_URL=https://your-domain.example.com
+      - AMPERSAND_SESSION_COOKIE_SECURE=true
 ```
 
 Keep database passwords out of version control. Pass them via a `.env` file that is listed in `.gitignore`:

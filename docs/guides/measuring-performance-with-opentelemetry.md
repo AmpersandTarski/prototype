@@ -6,10 +6,10 @@ With tracing enabled, every API request produces one trace that shows where the 
 
 | Span | Source | Attributes |
 | --- | --- | --- |
-| `GET /resource/{resourceType}/{resourceId}[/{ifcPath:.*}]` | root span, one per API request ([OtelRequestSpanMiddleware](../../backend/src/Ampersand/API/Middleware/OtelRequestSpanMiddleware.php)) | `http.request.method`, `http.route`, `url.path`, `http.response.status_code` |
+| `GET /resource/{resourceType}/{resourceId}[/{ifcPath:.*}]` | root span, one per API request ([OtelRequestSpanMiddleware](https://github.com/AmpersandTarski/prototype/blob/main/backend/src/Ampersand/API/Middleware/OtelRequestSpanMiddleware.php)) | `http.request.method`, `http.route`, `url.path`, `http.response.status_code` |
 | `app init` | initialization of the Ampersand application (PHASE-2) | |
 | `session init` | session creation/resume (PHASE-3, includes session conjuncts) | |
-| `conjunct <id>` | one per evaluated conjunct ([Conjunct::evaluate](../../backend/src/Ampersand/Rule/Conjunct.php)) | `ampersand.conjunct`, `ampersand.violations` |
+| `conjunct <id>` | one per evaluated conjunct ([Conjunct::evaluate](https://github.com/AmpersandTarski/prototype/blob/main/backend/src/Ampersand/Rule/Conjunct.php)) | `ampersand.conjunct`, `ampersand.violations` |
 | `execengine run` | full ExecEngine loop of a transaction | |
 | `transaction close` | conjunct re-evaluation, invariant check, commit/rollback | |
 | `mysqli_query` etc. | every database query, via zero-code auto-instrumentation | SQL statement |
@@ -53,6 +53,8 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://<collector-host>:4318
 
 For a quick look without any collector, set only `OTEL_SDK_DISABLED=false`: the default `console` exporter prints each span as JSON in the container log (`docker logs <container>`).
 
+A `mysqli` span holds the exact SQL, and that text contains the session identifier and the data values of the query. A collector therefore receives personal data. Tracing a production deployment into a collector of another organisation belongs in the privacy statement; see [Cookies and browser storage](../reference-material/cookies-and-browser-storage.md).
+
 ## Answering "where does the time go?"
 
 An example of the kind of question this answers. Session creation in a large prototype (the FC5 Landeneisenregister) takes tens of seconds. Enable tracing, open a fresh session, and look at the trace of its first request: the `session init` span carries that time, and the `conjunct <id>` spans under it show which conjuncts are responsible, each backed by a `mysqli` query span holding the exact SQL. That turns "the application is slow" into "these conjunct queries are slow" — a question a database index or a model change can answer.
@@ -75,6 +77,6 @@ The middleware honours incoming [W3C trace context](https://www.w3.org/TR/trace-
 ## Under the hood
 
 - The PECL extension `opentelemetry` (installed in both `Dockerfile` and `dev.Dockerfile`) provides the hook mechanism for zero-code auto-instrumentation; the composer packages `open-telemetry/opentelemetry-auto-{mysqli,curl,io}` use it to trace queries, HTTP calls and file IO without code changes.
-- OpenTelemetry has no auto-instrumentation for Slim 3, which the framework uses for its API. [OtelRequestSpanMiddleware](../../backend/src/Ampersand/API/Middleware/OtelRequestSpanMiddleware.php) therefore opens the root span manually as the outermost Slim middleware.
-- Manual spans elsewhere in the framework use the small wrapper [Ampersand\Misc\Otel](../../backend/src/Ampersand/Misc/Otel.php): `Otel::span('name', fn () => ...)`. Use it when you instrument new framework code.
+- OpenTelemetry has no auto-instrumentation for Slim 3, which the framework uses for its API. [OtelRequestSpanMiddleware](https://github.com/AmpersandTarski/prototype/blob/main/backend/src/Ampersand/API/Middleware/OtelRequestSpanMiddleware.php) therefore opens the root span manually as the outermost Slim middleware.
+- Manual spans elsewhere in the framework use the small wrapper [Ampersand\Misc\Otel](https://github.com/AmpersandTarski/prototype/blob/main/backend/src/Ampersand/Misc/Otel.php): `Otel::span('name', fn () => ...)`. Use it when you instrument new framework code.
 - Metrics and logs are not exported (exporters default to `none`); the current instrumentation covers traces. The Monolog log bridge needs Monolog ≥ 2 and waits for the framework's Monolog upgrade.
