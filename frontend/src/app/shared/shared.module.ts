@@ -45,6 +45,8 @@ import { BoxRawTemplateDirective } from './box-components/box-raw/box-raw-templa
 import { BoxPropButtonComponent } from './box-components/box-prop-button/box-prop-button.component';
 import { BoxFacetsComponent } from './box-components/box-facets/box-facets.component';
 import { AtomicUrlComponent } from './atomic-components/atomic-url/atomic-url.component';
+import { AtomicMarkupComponent } from './atomic-components/atomic-markup/atomic-markup.component';
+import { MarkupPipe } from './atomic-components/atomic-markup/markup.pipe';
 import { AtomicSelectComponent } from './atomic-components/atomic-select/atomic-select.component';
 import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.component';
 import { MonacoEditorComponent } from './monaco-editor/monaco-editor.component';
@@ -64,6 +66,8 @@ import { DiagnosticsTextComponent } from './diagnostics-text/diagnostics-text.co
     AtomicPasswordComponent,
     AtomicSelectComponent,
     AtomicUrlComponent,
+    AtomicMarkupComponent,
+    MarkupPipe,
     BoxTableComponent,
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
@@ -115,6 +119,8 @@ import { DiagnosticsTextComponent } from './diagnostics-text/diagnostics-text.co
     AtomicPasswordComponent,
     AtomicSelectComponent,
     AtomicUrlComponent,
+    AtomicMarkupComponent,
+    MarkupPipe,
     BoxTableComponent,
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
