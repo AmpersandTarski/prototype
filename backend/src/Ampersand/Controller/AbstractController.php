@@ -5,6 +5,8 @@ namespace Ampersand\Controller;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Frontend\FrontendInterface;
+use Ampersand\Log\Logger;
+use Ampersand\Misc\ServiceKey;
 use Psr\Container\ContainerInterface;
 use Slim\Http\Response;
 
@@ -43,9 +45,20 @@ abstract class AbstractController
         }
     }
 
+    /**
+     * Refuse the request when the application runs in production mode.
+     *
+     * A machine that carries the configured service key in the X-Ampersand-Service-Key header
+     * passes this gate; see {@see \Ampersand\Misc\ServiceKey}. Every endpoint that calls this
+     * method is covered, so a deployment pipeline reaches the installer and the exporter while
+     * the application stays closed for everyone else.
+     *
+     * The refusal message names no reason: a caller must not be able to tell a wrong key from a
+     * key that was never configured.
+     */
     protected function preventProductionMode(): void
     {
-        if ($this->app->getSettings()->get('global.productionEnv')) {
+        if (ServiceKey::productionGuardApplies($this->app->getSettings(), $_SERVER, Logger::getLogger('APPLICATION'))) {
             throw new AccessDeniedException("Not allowed in production environment");
         }
     }

@@ -148,7 +148,9 @@ async function main() {
   assert(locked.status === 423, `resource requests answer 423 while locked (got ${locked.status})`);
 
   // --- UI level
-  const browser = await puppeteer.launch({ headless: true });
+  // 'shell' renders without a display; the newer headless mode produces no animation
+  // frames on macOS while the screen is locked, and a click then waits forever.
+  const browser = await puppeteer.launch({ headless: 'shell' });
   try {
     const page = await browser.newPage();
     page.on('pageerror', (err) => console.error('  page error:', err.message));

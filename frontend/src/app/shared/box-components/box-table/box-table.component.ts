@@ -50,10 +50,14 @@ export class BoxTableComponent<
   // undefined in ngOnInit and throw ("Cannot set properties of undefined"). Use a setter query
   // that configures the table whenever it appears — including after the *ngIf flips once data
   // arrives — so an initially-empty BOX<TABLE> renders instead of crashing.
+  // Angular sets this query again whenever the view changes (a new number of rows, for
+  // instance), with the same p-table. Only a new p-table is configured: configuring the same
+  // one again put the sort back on `sortBy` and undid the sort the user had chosen.
   @ViewChild('primengTable')
   set primengTable(table: Table | undefined) {
+    const isNew = table !== this._primengTable;
     this._primengTable = table;
-    if (table) {
+    if (table && isNew) {
       this.configurePrimengTable(table);
       this.table$.next(table);
     }
@@ -70,6 +74,14 @@ export class BoxTableComponent<
 
   @Input()
   sortBy?: string;
+
+  /**
+   * The rows the table shows, when they differ from `data`. BOX<FACETS> passes its
+   * filtered rows here and keeps `data` on all rows, so emptiness (`hideOnNoRecords`,
+   * `canCreate()` on a UNI box) and create/delete keep working on the whole set.
+   */
+  @Input()
+  shownRows?: TItem[];
 
   @Input()
   sortOrder: 'asc' | 'desc' = 'asc';

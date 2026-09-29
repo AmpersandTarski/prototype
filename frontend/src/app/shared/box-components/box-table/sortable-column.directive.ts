@@ -50,7 +50,17 @@ export class SortableColumnDirective implements OnInit, OnDestroy {
         }),
         takeUntil(this.destroy$),
       )
-      .subscribe(() => this.updateSortState());
+      // The p-table applies its initial sort while Angular checks the view that declares
+      // this header, after it checked this host's bindings. Updating aria-sort right then
+      // raised NG0100 in development builds; a microtask moves the update after the check,
+      // and the zone runs change detection once more for it. The p-table sorts again on
+      // every new value array, so only a change of state schedules the update: otherwise
+      // each round of change detection would schedule the next.
+      .subscribe(() => {
+        if (this.sortState() !== this.ariaSort) {
+          queueMicrotask(() => this.updateSortState());
+        }
+      });
   }
 
   ngOnDestroy(): void {
@@ -66,10 +76,13 @@ export class SortableColumnDirective implements OnInit, OnDestroy {
     event.preventDefault();
   }
 
-  private updateSortState(): void {
+  private sortState(): 'ascending' | 'descending' | 'none' {
     const order = this.table?.getSortMeta(this.field)?.order ?? 0;
-    this.sorted = order !== 0;
-    this.ariaSort =
-      order === 0 ? 'none' : order === 1 ? 'ascending' : 'descending';
+    return order === 0 ? 'none' : order === 1 ? 'ascending' : 'descending';
+  }
+
+  private updateSortState(): void {
+    this.ariaSort = this.sortState();
+    this.sorted = this.ariaSort !== 'none';
   }
 }

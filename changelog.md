@@ -10,7 +10,47 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.10.0 (29 September 2026)
+
+* **A long overview can be narrowed down with facets.** `BOX<FACETS>` is a `BOX<TABLE>`
+  with a panel next to it: per column the values the rows carry, each with its number of
+  rows, so the reader chooses *open* and *Project X* instead of scrolling through the whole
+  list. The kind of facet follows the technical type of the column: a date gets years,
+  months and days; a number gets a value list, or a range once it has more than twelve
+  values; long text gets a search field; a yes/no property gets two choices. A column that
+  holds an object with fields of its own offers those fields as facets as well. The choices
+  are kept in the URL, so a filtered view can be bookmarked and sent. See
+  `docs/reference-material/built-in-box-templates.md` and DesignChoices OK-15 to OK-17.
+  With `facetKind` a modeller chooses the kind of facet where the data does not match
+  its type, such as dates kept as text (OK-18).
+
+* **A created row appears once.** After Create in a top-level list, the new row stood twice
+  until the page was reloaded: the refresh after the POST already added it,
+  and the box added it again (#464).
+
+* **A sort the user chose stays.** In a table with `sortBy`, the sort went back to
+  `sortBy` whenever the number of rows changed, after Create, after Delete, and in
+  `BOX<FACETS>` after every choice of a facet (#464).
+
+* **A sorted table raises no error in a development build.** A `BOX<TABLE sortable
+  sortBy="…">` showed an ExpressionChangedAfterItHasBeenChecked error (NG0100) as soon as
+  it opened; production builds were not affected (#464).
+
+## v2.9.0 (10 september 2026)
+
+* **A deployment pipeline can reach the administrative endpoints of an application that
+  runs in production mode.** Set `AMPERSAND_SERVICE_KEY` and a request that carries that
+  key in the `X-Ampersand-Service-Key` header passes the production-mode gate in front of
+  the installer, the population exporter, the reports and the test login. An administrator
+  no longer has to choose between a working migration pipeline and an application that is
+  protected against an accidental reinstall. Without a configured key nothing changes:
+  production mode refuses every such request, as it always did. The key is compared in
+  constant time and never appears in a log line, an error message or a response. See
+  `docs/guides/configuring-environments.md`.
+
+* **The service key and the database password stay out of the debug log.** `Settings`
+  writes every setting it loads to the log at DEBUG level; for these two it now writes
+  `'***'` instead of the value.
 
 * **The violation cache can be maintained incrementally per transaction (feature switch, default off).**
   For conjuncts whose compiler emitted candidate queries (Ampersand `delta-sql`,

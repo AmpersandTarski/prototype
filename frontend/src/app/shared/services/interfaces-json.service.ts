@@ -40,6 +40,32 @@ export class InterfacesJsonService {
     );
   }
 
+  private conceptTypesPromise?: Promise<Map<string, string>>;
+
+  /**
+   * The technical type (TType) of every concept, read from concepts.json, which
+   * the build copies next to interfaces.json. Loaded on first use. Resolves to an
+   * empty map when the file is missing (a build from an older angular.json), so
+   * callers fall back to what the data itself shows.
+   */
+  conceptTypes(): Promise<Map<string, string>> {
+    this.conceptTypesPromise ??= firstValueFrom(
+      this.http
+        .get<Array<{ name: string; type: string }>>('/assets/concepts.json')
+        .pipe(
+          map((concepts) => new Map(concepts.map((c) => [c.name, c.type]))),
+          catchError((error) => {
+            console.warn(
+              'concepts.json not available; technical types are inferred',
+              error,
+            );
+            return [new Map<string, string>()];
+          }),
+        ),
+    );
+    return this.conceptTypesPromise;
+  }
+
   /**
    * Get the loaded interfaces data
    */

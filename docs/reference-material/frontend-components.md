@@ -211,6 +211,10 @@ Renders the contents inside a plain `<div>` with no additional layout. Use `BOX<
 Creates a clickable button that toggles, sets, or clears a boolean property. See [Built-in BOX Templates](built-in-box-templates) for the full reference.
 
 
+### BOX\<FACETS\>
+
+A `BOX<TABLE>` with a facet panel: per box item a list of values with counts, a text field, a range or a date tree, depending on the item's technical type. Choosing values shrinks the table. See [Built-in BOX Templates](built-in-box-templates#box-facets) for the full reference.
+
 ### BOX\<FILTEREDDROPDOWN\>
 
 `FILTEREDDROPDOWN` is a specialised object selector that restricts the list of choices to objects that satisfy a condition. You define the condition with a separate `[PROP]` relation and reference it as `selectFrom` inside the box.
