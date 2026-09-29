@@ -10,6 +10,7 @@ use Ampersand\API\Middleware\JsonRequestParserMiddleware;
 use Ampersand\API\Middleware\LogPerformanceMiddleware;
 use Ampersand\API\Middleware\OtelRequestSpanMiddleware;
 use Ampersand\API\Middleware\PostMaxSizeMiddleware;
+use Ampersand\Exception\FatalException;
 use Ampersand\Frontend\AngularJSApp;
 use Ampersand\Log\Logger;
 use Ampersand\Misc\Settings;
@@ -129,6 +130,12 @@ $mysqlDB = new MysqlDB(
     $settings->get('global.debugMode'),
     $settings->get('global.productionEnv')
 );
+$deltaMode = $settings->get('transactions.deltaConjunctMaintenance', 'off');
+if (!in_array($deltaMode, ['off', 'shadow', 'on'], true)) {
+    // A YAML false or a typo must not switch delta maintenance on
+    throw new FatalException("Setting 'transactions.deltaConjunctMaintenance' must be 'off', 'shadow' or 'on'; found " . var_export($deltaMode, true));
+}
+$mysqlDB->setDeltaTracking($deltaMode !== 'off');
 $ampersandApp->setDefaultStorage($mysqlDB);
 $ampersandApp->setConjunctCache(new MysqlConjunctCache($mysqlDB));
 
