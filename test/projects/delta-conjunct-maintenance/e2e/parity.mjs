@@ -15,7 +15,11 @@
  *      ExecEngine repair, and signals that follow the data;
  *   3. the non-off modes really ran: the close's summary debug line names the
  *      mode and reports "0 delta-maintained"; no conjunct went through the delta
- *      protocol and no shadow mismatch was logged.
+ *      protocol and no shadow mismatch was logged;
+ *   4. mode 'on' together with transactions.skipCleanConjuncts gives the same
+ *      digest, and the summary line counts conjuncts skipped as clean;
+ *   5. a value outside 'off', 'shadow' and 'on' (a YAML false here) stops the
+ *      application at boot: every request answers HTTP 500.
  *
  * When a compiler that emits deltaQueries is bundled, extend this spec so the
  * summary line reports delta-maintained conjuncts and the shadow run logs
@@ -28,7 +32,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import {
   bookingScenario, countIn, debugLoggingPhp, makeClient, reporter, runInstaller,
-  settingsYaml, waitForCanary, waitForDebugLog, writeConfig,
+  settingsYaml, waitForCanary, waitForDebugLog, waitForLogAfterGet, writeConfig,
 } from '../../../shared/conjunct-parity.mjs';
 
 const SPEC = 'test/projects/delta-conjunct-maintenance/e2e/parity.mjs';
@@ -48,6 +52,7 @@ const client = makeClient(baseUrl);
 const SUMMARY = (mode) => `Delta conjunct maintenance ('${mode}'):`;
 const DELTA_MAINTAINED = 'cache maintained by delta protocol for relations';
 const MISMATCH = 'DELTA SHADOW MISMATCH';
+const BOOT_CHECK = "'transactions.deltaConjunctMaintenance' must be 'off', 'shadow' or 'on'";
 
 // Lines of the summary form "Delta conjunct maintenance ('<mode>'): N delta-maintained, ..."
 function summaryLines(mode) {
@@ -66,15 +71,21 @@ try {
   writeConfig(loggingPhp, debugLoggingPhp(`/var/www/${SPEC.replace(/parity\.mjs$/, '.debug.log')}`, SPEC));
   await waitForDebugLog(client, debugLog);
 
-  for (const mode of ['off', 'shadow', 'on']) {
-    console.log(`\n▶ transactions.deltaConjunctMaintenance: '${mode}'`);
+  // 'on+skip' is mode 'on' with transactions.skipCleanConjuncts: both evaluation
+  // shortcuts share Transaction::isSkippableCleanConjunct(), so they are tested together
+  for (const phase of ['off', 'shadow', 'on', 'on+skip']) {
+    const mode = phase === 'on+skip' ? 'on' : phase;
+    console.log(`\n▶ transactions.deltaConjunctMaintenance: '${mode}'${phase === 'on+skip' ? ' with skipCleanConjuncts' : ''}`);
     // The menuMode value is a canary: it proves the backend reads this file
     writeConfig(projectYaml, settingsYaml({
       'transactions.deltaConjunctMaintenance': `'${mode}'`,
-      'frontend.menuMode': `canary-${mode}`,
+      ...(phase === 'on+skip' ? { 'transactions.skipCleanConjuncts': true } : {}),
+      'frontend.menuMode': `canary-${phase.replace('+', '-')}`,
     }, SPEC));
+    // Install only once the backend reads the new file completely: the macOS bind
+    // mount can serve Apache a stale or half-written copy for a moment
+    await waitForCanary(client, `canary-${phase.replace('+', '-')}`);
     await runInstaller(baseUrl);
-    await waitForCanary(client, `canary-${mode}`);
 
     // Baselines: the log also holds lines from before this phase (the runner
     // installs with whatever project.yaml the working copy had)
@@ -86,29 +97,44 @@ try {
       mismatch: countIn(debugLog, MISMATCH),
       summaries: summariesNow(),
     };
-    digests[mode] = await bookingScenario(client, mode, assert);
+    digests[phase] = await bookingScenario(client, phase, assert);
 
     const deltaMaintained = countIn(debugLog, DELTA_MAINTAINED) - before.delta;
     const mismatches = countIn(debugLog, MISMATCH) - before.mismatch;
-    assert(deltaMaintained === 0, `[${mode}] no conjunct went through the delta protocol (saw ${deltaMaintained})`);
-    assert(mismatches === 0, `[${mode}] no shadow mismatch logged (saw ${mismatches})`);
+    assert(deltaMaintained === 0, `[${phase}] no conjunct went through the delta protocol (saw ${deltaMaintained})`);
+    assert(mismatches === 0, `[${phase}] no shadow mismatch logged (saw ${mismatches})`);
     if (mode === 'off') {
       const ran = summariesNow() - before.summaries;
       assert(ran === 0, `[off] the delta path did not run (saw ${ran} summary lines)`);
     } else {
       const lines = summaryLines(mode).slice(before.summaries);
-      assert(lines.length > 0, `[${mode}] the delta path ran (saw ${lines.length} close summaries)`);
+      assert(lines.length > 0, `[${phase}] the delta path ran (saw ${lines.length} close summaries)`);
       assert(lines.every((l) => l.includes(' 0 delta-maintained,')),
-        `[${mode}] every close reports 0 delta-maintained (compiler without deltaQueries)`);
+        `[${phase}] every close reports 0 delta-maintained (compiler without deltaQueries)`);
+      const skipped = lines.reduce((n, l) => n + Number(/(\d+) skipped as clean/.exec(l)?.[1] ?? 0), 0);
+      if (phase === 'on+skip') {
+        assert(skipped > 0, `[on+skip] the delta path skips clean conjuncts (saw ${skipped})`);
+      } else {
+        assert(skipped === 0, `[${phase}] no conjunct skipped as clean without skipCleanConjuncts (saw ${skipped})`);
+      }
     }
   }
+
+  console.log("\n▶ transactions.deltaConjunctMaintenance: false (outside 'off', 'shadow' and 'on')");
+  writeConfig(projectYaml, settingsYaml({ 'transactions.deltaConjunctMaintenance': false }, SPEC));
+  // Any HTTP 500 is not proof: a half-propagated project.yaml gives one too. The
+  // uncaught boot exception is logged with its own message, so wait for that.
+  const rejected = await waitForLogAfterGet(baseUrl, 'api/v1/app/navbar', debugLog, BOOT_CHECK);
+  assert(rejected.status === 500 && rejected.seen,
+    `a value outside the three stops the application at boot (navbar answered ${rejected.status}, message logged: ${rejected.seen})`);
 
   console.log('\n▶ Parity across modes');
   assert(digests.off === digests.shadow, 'digests are identical for off and shadow');
   assert(digests.off === digests.on, 'digests are identical for off and on');
-  for (const mode of ['shadow', 'on']) {
-    if (digests.off !== digests[mode]) {
-      console.error(`--- digest off ---\n${digests.off}\n--- digest ${mode} ---\n${digests[mode]}`);
+  assert(digests.off === digests['on+skip'], 'digests are identical for off and on with skipCleanConjuncts');
+  for (const phase of ['shadow', 'on', 'on+skip']) {
+    if (digests.off !== digests[phase]) {
+      console.error(`--- digest off ---\n${digests.off}\n--- digest ${phase} ---\n${digests[phase]}`);
     }
   }
 } catch (e) {

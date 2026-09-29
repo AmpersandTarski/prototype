@@ -80,8 +80,8 @@ try {
 
   console.log('\n▶ Phase 1: transactions.skipCleanConjuncts off (default)');
   writeConfig(projectYaml, settingsYaml({}, SPEC));
-  await runInstaller(baseUrl);
   await waitForSettingEffective(false);
+  await runInstaller(baseUrl);
   const skipsBeforeOff = skipCount();
   const digestOff = await bookingScenario(client, 'off', assert);
   const skipsDuringOff = skipCount() - skipsBeforeOff;
@@ -89,8 +89,8 @@ try {
 
   console.log('\n▶ Phase 2: transactions.skipCleanConjuncts on');
   writeConfig(projectYaml, settingsYaml({ 'transactions.skipCleanConjuncts': true }, SPEC));
-  await runInstaller(baseUrl);
   await waitForSettingEffective(true);
+  await runInstaller(baseUrl);
   const skipsBeforeOn = skipCount();
   const digestOn = await bookingScenario(client, 'on', assert);
   const skipsDuringOn = skipCount() - skipsBeforeOn;

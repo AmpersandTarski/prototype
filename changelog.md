@@ -12,18 +12,18 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased
 
-* **The violation cache can be maintained incrementally per transaction (feature switch, default off).**
-  For conjuncts whose compiler emitted candidate queries (Ampersand `delta-sql`,
-  [Ampersand#1684](https://github.com/AmpersandTarski/Ampersand/issues/1684)), the framework
-  can maintain `__conj_violation_cache__` by delta-scoped re-evaluation: the touched pairs of
-  each transaction are recorded in the relation's delta table, and only the candidate rows are
-  rechecked at commit. The setting `transactions.deltaConjunctMaintenance` knows three modes:
-  `off` (default — behaviour and performance identical to today, delta recording disabled),
-  `shadow` (both routes run; the full result stays authoritative and any difference is logged
-  as `DELTA SHADOW MISMATCH`) and `on` (the delta path maintains the cache for the supported
-  class; anything touched via a concept, a bulk mutation or a relation without candidate
-  queries keeps full evaluation). With generics from a compiler without `deltaQueries` the
-  setting is a no-op.
+* **The violation cache can be kept up to date from the pairs a transaction touched
+  (opt-in, default off; DesignChoices OK-19).** The purpose is a transaction close whose cost
+  follows the size of the change instead of the size of the database. The setting
+  `transactions.deltaConjunctMaintenance` takes `'off'` (the default: behaviour as in v2.10.0),
+  `'shadow'` (both routes run, the full evaluation stays authoritative, and any difference is
+  logged as `DELTA SHADOW MISMATCH`) or `'on'`; any other value stops the application at boot
+  with a message that names the setting. The delta route needs candidate queries per conjunct
+  from the compiler ([Ampersand#1684](https://github.com/AmpersandTarski/Ampersand/issues/1684)).
+  No released compiler emits them yet, so for now the setting changes nothing. Measured so far,
+  the delta route does not win yet: a close takes 4.2 ms against 3.1 ms on FC5 and 47.0 ms
+  against 40.4 ms on RAP, with no difference in outcome over 1 142 replayed FC5 transactions
+  (#449).
 
 ## v2.10.0 (29 September 2026)
 

@@ -179,6 +179,23 @@ export async function waitForDebugLog(client, debugLog, timeoutMs = 20000) {
   }
 }
 
+/**
+ * Make GET <baseUrl>/<path> requests until `needle` appears in the debug log,
+ * and return the last status and whether the needle was seen. A config change
+ * on the macOS bind mount can take a moment to reach Apache.
+ */
+export async function waitForLogAfterGet(baseUrl, path, debugLog, needle, timeoutMs = 20000) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const status = (await fetch(`${baseUrl}/${path}`)).status;
+    const seen = countIn(debugLog, needle) > 0;
+    if (seen || Date.now() > deadline) {
+      return { status, seen };
+    }
+    await sleep(500);
+  }
+}
+
 // ── the scenario ────────────────────────────────────────────────────────────────
 
 // Reduce a notifications object to the messages that matter for parity

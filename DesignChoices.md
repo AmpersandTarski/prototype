@@ -81,12 +81,67 @@ Technisch: `?defer=true` on the resource-POST (read in `ResourceController`) →
 (unevaluated) cache; the caller runs `evaluate/all` once at the end.
 
 **Incremental invariant maintenance (C1) — separate epic on the backlog**
-OK-08 · geldig (backlog) · 2026-07-22 · herkomst: performance-analyse, Ampersand #1675
+OK-08 · vervangen door OK-19 · 2026-07-22 · herkomst: performance-analyse, Ampersand #1675
 
 The principled root-cause fix — evaluate each conjunct incrementally over the delta, not the
 full population (DBSP-style IVM) — is scoped as a separate compiler+runtime epic
 (AmpersandTarski/Ampersand #1675, subsumes #535). Out of scope for the import work; B2 is the
 pragmatic interim.
+
+**The runtime keeps the violation cache up to date from the touched pairs when a setting asks for it, and evaluates in full otherwise**
+OK-19 · geldig · 2026-09-29 · herkomst: Ampersand #1684 (phase 4), PR #449; measurements in Ampersand DC-12 and DC-14
+
+The setting `transactions.deltaConjunctMaintenance` has three values, `off`, `shadow` and `on`,
+and `off` is the default. Under `on`, a conjunct for which the compiler emitted candidate queries
+has its rows in the violation cache recomputed only for the candidates that the pairs touched in
+the transaction yield; every other conjunct is evaluated in full. Under `shadow` both routes run
+and the full evaluation is authoritative. A value outside the three stops the application at boot
+with a message that names the setting.
+
+Overwegingen:
+
+1. The purpose is a transaction close whose cost follows the size of the change instead of the
+   size of the database. The compiler side of this lives in Ampersand #1684 and the epic of
+   OK-08 (#1675); this choice is the runtime side.
+
+2. The default is `off` because the delta route does not win yet at today's population sizes.
+   A close on FC5 takes 4.2 ms (median) with the delta route and 3.1 ms without; on RAP it takes
+   47.0 ms against 40.4 ms (Ampersand DC-12 and DC-14). The gain has to come from database growth,
+   and the cost gate of Ampersand #1692 is meant to choose per conjunct.
+
+3. Correctness never depends on the delta route. A conjunct touched via a concept, a relation
+   that underwent a bulk mutation, and a relation without a candidate query keep full evaluation.
+   In the FC5 shadow run of 1 142 replayed transactions the two routes gave the same result every
+   time.
+
+4. The touched pairs reach the delta tables only inside an open database transaction. A write in
+   autocommit mode, such as the session's `lastAccess`, is committed at once, and its row would
+   outlive the request.
+
+5. The clean-conjunct check of `transactions.skipCleanConjuncts` (#443) and the delta route share
+   one helper: a conjunct evaluated in this transaction with no mutation afterwards needs neither
+   evaluation nor delta maintenance.
+
+6. Rejected: a boolean setting. The shadow mode is how a production run shows that both routes
+   agree before anyone relies on the delta route, and a boolean leaves no room for it. Rejected:
+   treating every value other than `off` as switched on; a YAML `false` or a typo would then
+   switch the feature on without anyone noticing.
+
+Impact op de specificatie: none. A model gains and loses nothing. The candidate queries come from
+the compiler, and with a compiler that emits none (every release up to and including v5.9.7) the
+setting is a no-op.
+
+Impact in productie: with the default a prototype behaves as in v2.10.0: nothing is recorded in
+delta tables and the evaluation loop is unchanged. Under `on` or `shadow` the database needs the
+delta tables that a delta-capable compiler writes into `database.sql`. A production database
+installed before such a compiler lacks them, so switching the setting on there requires a
+migration of those tables.
+
+Technisch: the routes are in `Transaction::evaluateAffectedConjunctsWithDelta()` and
+`Transaction::isSkippableCleanConjunct()`, the maintenance itself in `Conjunct::deltaMaintain()`,
+the recording of touched pairs in `MysqlDB`, and the check on the value in
+`backend/bootstrap/framework.php`. The regression projects `delta-conjunct-maintenance` and
+`skip-clean-conjuncts` guard the three values.
 
 **Import-bootstrap mode: a locked import screen with a one-time check**
 OK-09 · geldig · 2026-08-14 · herkomst: gebruikerswens, voortbouwend op B2 (OK-07)

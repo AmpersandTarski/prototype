@@ -38,9 +38,6 @@ class MysqlConjunctCache implements CacheItemPoolInterface
      */
     protected array $deferred = [];
 
-    /**
-     * Constructor
-     */
     public function getTableName(): string
     {
         return $this->tableName;
@@ -51,6 +48,9 @@ class MysqlConjunctCache implements CacheItemPoolInterface
         return $this->database;
     }
 
+    /**
+     * Constructor
+     */
     public function __construct(MysqlDB $database, string $tableName = '__conj_violation_cache__')
     {
         $this->database = $database;
