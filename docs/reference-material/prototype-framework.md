@@ -65,6 +65,10 @@ These are loaded last and overwrite previous set settings.
 
   The default orientation of the navigation menu in the frontend: a vertical sidebar (`static`), a collapsible vertical sidebar (`overlay`), or a horizontal menu bar with dropdown submenus (`horizontal`). In horizontal mode, items that do not fit the viewport width move into a "More" dropdown at the end of the bar, so every item stays reachable. Below the desktop breakpoint (992px) the horizontal bar falls back to the mobile drawer.
 
+* frontend.privacyStatementUrl (default `null`)
+
+  The URL of the privacy statement of the organisation that deploys the application. When set, the footer of every screen links to it. See [Cookies and browser storage](./cookies-and-browser-storage.md) for what the prototype stores and why the statement should mention it.
+
 ## Navigation menu
 
 The navigation menu is *population*, not code: `NavMenuItem` atoms in the `PrototypeContext` metamodel, with `label`, `ifc`, `seqNr`, `isVisible` and `isSubItemOf` (submenu trees of arbitrary depth). Role visibility is derived (`navItemRoles` via the `isSubItemOf` closure): a (sub)menu item shows exactly when the active role can reach one of the interfaces below it.

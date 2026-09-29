@@ -112,5 +112,10 @@ module.exports = {
       type: "doc",
       id: "prototype/reference-material/transactional-interfaces",
     },
+    {
+      label: "Cookies and Browser Storage",
+      type: "doc",
+      id: "prototype/reference-material/cookies-and-browser-storage",
+    },
   ],
 };

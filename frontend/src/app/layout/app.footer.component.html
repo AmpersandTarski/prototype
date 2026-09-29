@@ -1,3 +1,6 @@
 <div class="layout-footer">
     Generated with <a href="https://ampersandtarski.github.io/" target="_blank">Ampersand</a>
+    <ng-container *ngIf="privacyStatementUrl$ | async as privacyStatementUrl">
+        &nbsp;·&nbsp;<a class="privacy-statement-link" [href]="privacyStatementUrl" target="_blank" rel="noopener">Privacy and cookies</a>
+    </ng-container>
 </div>

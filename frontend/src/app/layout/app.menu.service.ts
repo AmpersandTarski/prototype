@@ -1,5 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Subject, map, Observable, BehaviorSubject } from 'rxjs';
+import {
+  Subject,
+  map,
+  Observable,
+  BehaviorSubject,
+  ReplaySubject,
+  tap,
+} from 'rxjs';
 import { Navbar, Navs } from '../shared/interfacing/navbar.interface';
 import { MenuChangeEvent } from './api/menuchangeevent';
 import { HttpClient } from '@angular/common/http';
@@ -19,11 +26,13 @@ export class MenuService {
   private resetSource = new Subject();
   private refreshSource = new Subject();
   private adminModeSource = new BehaviorSubject<boolean>(false);
+  private navbarSource = new ReplaySubject<Navbar>(1);
 
   menuSource$ = this.menuSource.asObservable();
   resetSource$ = this.resetSource.asObservable();
   refreshSource$ = this.refreshSource.asObservable();
   adminMode$ = this.adminModeSource.asObservable();
+  navbar$ = this.navbarSource.asObservable();
 
   get adminMode(): boolean {
     return this.adminModeSource.value;
@@ -56,8 +65,12 @@ export class MenuService {
     return this.http.get<Navbar>('app/navbar').pipe(map((x) => x.new));
   }
 
+  /* Every navbar response is also published on navbar$, so that other layout parts (the footer)
+   * read it without a request of their own: the navbar endpoint checks the process rules. */
   getNavbar(): Observable<Navbar> {
-    return this.http.get<Navbar>('app/navbar');
+    return this.http
+      .get<Navbar>('app/navbar')
+      .pipe(tap((navbar) => this.navbarSource.next(navbar)));
   }
 
   public setSessionStorageItem(name: string, data: string) {

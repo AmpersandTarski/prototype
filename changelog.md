@@ -10,6 +10,16 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **The organisation that deploys a prototype can tell its users what the prototype stores.**
+  A new reference page, `docs/reference-material/cookies-and-browser-storage.md`, lists the
+  one cookie, the two session-storage items, the session record on the server and the IP
+  address in the logs, each with its lifetime and purpose, ready for a privacy statement
+  (article 13 GDPR). With `frontend.privacyStatementUrl` set, the footer of every screen
+  links to that statement. The regression project `privacy-and-cookies` fails when code
+  stores something the page does not list (AmpersandTarski/Ampersand#1697).
+
 ## v2.11.0 (29 September 2026)
 
 * **The violation cache can be kept up to date from the pairs a transaction touched

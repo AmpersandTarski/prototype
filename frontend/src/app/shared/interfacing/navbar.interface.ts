@@ -4,6 +4,7 @@ export type Navbar = {
   defaultSetting: DefaultSettings;
   home: string;
   menuMode?: string; // default menu orientation from backend setting frontend.menuMode: 'static' | 'overlay' | 'horizontal'
+  privacyStatementUrl?: string | null; // backend setting frontend.privacyStatementUrl; the footer links to it when set
   session: Session;
   sessionRoles: Array<SessionRole>;
   sessionVars: false | { [key: string]: unknown };
