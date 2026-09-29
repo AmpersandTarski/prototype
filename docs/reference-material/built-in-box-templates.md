@@ -28,7 +28,9 @@ and ignores the rest.
 | --- | :---: | :---: | :---: | :---: | --- | --- |
 | `title` | ✅ | ✅ | ✅ | — | string | Renders a title/description line above the box content. |
 | `hideOnNoRecords` | ✅ | ✅ | ✅ | — | flag | Hides the whole box (including add-controls) when it has no records. |
-| `hideSubOnNoRecords` | — | ✅ | ✅ | — | flag | Hides an individual field row (FORM) or tab panel (TABS) when that sub-field has no records. |
+| `hideSubOnNoRecords` | — | ✅ | ✅ | — | flag | Hides an individual field row (FORM) or tab panel (TABS) when that sub-field has no records, also a field the user may edit. |
+| `showSubOnNoRecords` | — | ✅ | — | — | flag | Shows every field row of a FORM, also an empty one the user cannot edit. |
+| `showOnNoRecords` | — | ✅ | — | — | flag | On a group (a FORM box on `I`): shows the group while all of its fields are empty. |
 | `noHeader` | ✅ | — | — | — | flag | Suppresses the column-header row. |
 | `hideLabels` | — | ✅ | — | — | flag | Renders fields full-width without their labels. |
 | `showNavMenu` | ✅ | ✅ | — | — | flag | Adds a navigation menu (links to other interfaces) per record. |
@@ -76,11 +78,46 @@ including its title and add-controls.
 > where records are created elsewhere, or where an empty box is genuinely
 > irrelevant to the user.
 
+### Empty fields in a FORM
+
+A FORM shows what a record has. Without annotation it leaves out a field that is
+empty and that the user cannot fill (no `C` or `U` in its CRUD), so a detail screen
+does not list labels without values. A field the user may fill stays visible while
+empty, so the value can be entered.
+
+A *group* is a FORM box on `I` inside a FORM: the modeler's way to put fields that
+belong together in one block. A group whose fields are all empty is left out as well.
+
+```ampersand
+INTERFACE Requirement : I[Requirement] cRud BOX<FORM>
+  [ "Properties" : I cRud BOX<FORM>
+      [ "Status"   : status   cRud
+      , "Priority" : priority cRud
+      ]
+  , "Trace in the design" : I cRud BOX<FORM showOnNoRecords>
+      [ "Rules"      : mentions~;I[Rule]      cRud
+      , "Interfaces" : mentions~;I[Interface] cRud
+      ]
+  ]
+```
+
+Groups sit side by side as long as the width allows. Three annotations change the
+default:
+
+- `showOnNoRecords` on a group shows it while all of its fields are empty, with a
+  dash; use it where the emptiness itself tells the user something, such as a
+  requirement that no rule or interface mentions yet.
+- `showSubOnNoRecords` on a FORM shows every field row, as FORMs did before.
+- `hideSubOnNoRecords` hides every empty field row, also one the user may edit.
+
+The FORM reads the CRUD and multiplicity of its fields from `interfaces.json`,
+because the compiler does not pass them to the box template.
+
 ### `hideSubOnNoRecords`
 
 Hides the parts *inside* a box that have no data, keeping the box itself visible:
 
-- In a **FORM**, an empty field row is hidden.
+- In a **FORM**, an empty field row is hidden, also one the user may edit.
 - In **TABS**, an empty tab panel is hidden (so the tab disappears from the bar).
 
 ```ampersand
@@ -447,6 +484,19 @@ an ALPHANUMERIC item that holds dates as text; a text that starts with a date, s
 *(empty)*. `facetKind="Size=range"` makes a range of a number with few values, and
 `list` or `text` choose a value list or a text field. Prefer a `REPRESENT … TYPE DATE`
 in the model where the data allows it; `facetKind` is for data that does not.
+
+### One search field, and no column the panel already tells
+
+The search field above the table searches every value of a row, the identity item
+included. A text facet on an item of the box itself would repeat it, so the panel does
+not show one; a text facet on a child item (see below) stays.
+
+A column leaves the table while the panel already tells its value: at least two rows
+pass, the item has a value-list or date facet, every passing row has the same value (or
+none), and the user cannot edit the item (no `C` or `U`). The facet then shows that
+value checked, also when the user did not choose it. Choosing *Project = Patents* thus
+removes the column Project, and a column in which every row is empty disappears as well.
+An editable column stays, so an empty value can still be filled in.
 
 ### Recursive facets for an OBJECT item
 
