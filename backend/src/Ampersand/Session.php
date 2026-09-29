@@ -16,6 +16,7 @@ use Ampersand\Interfacing\ResourceList;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\AtomNotFoundException;
 use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\InvalidConfigurationException;
 use Ampersand\Exception\MetaModelException;
 use Ampersand\Exception\NotDefined\RelationNotDefined;
 use Ampersand\Exception\SessionExpiredException;
@@ -339,7 +340,7 @@ class Session
             true, 'true', '1' => true,
             false, 'false', '0' => false,
             null, 'auto' => self::requestIsHttps($server),
-            default => throw new Exception("Setting session.cookieSecure must be 'auto', true or false"),
+            default => throw new InvalidConfigurationException("Setting session.cookieSecure must be 'auto', true or false"),
         };
         return ['lifetime' => 0, 'path' => '/', 'secure' => $secure, 'httponly' => true, 'samesite' => 'Lax'];
     }

@@ -47,12 +47,11 @@ const isSecure = (setCookie) => /;\s*Secure(;|$)/i.test(setCookie ?? '');
 // predicate, for at most 20 s. Returns the last Set-Cookie seen, so the caller asserts on it.
 async function waitForCookie(headers, predicate) {
   const deadline = Date.now() + 20000;
-  let last;
-  do {
+  let [last] = await freshSetCookies(headers);
+  while (!predicate(last) && Date.now() < deadline) {
+    await sleep(500); // polling is sequential by nature
     [last] = await freshSetCookies(headers);
-    if (predicate(last)) return last;
-    await sleep(500);
-  } while (Date.now() < deadline);
+  }
   return last;
 }
 
@@ -120,13 +119,13 @@ try {
   assert(!isSecure(viaHttp[0]), 'X-Forwarded-Proto: http leaves it not Secure');
 
   console.log('\n▶ session.cookieSecure: true');
-  await writeSettings(['session.cookieSecure: true']);
+  writeSettings(['session.cookieSecure: true']);
   const alwaysSecure = await waitForCookie({}, isSecure);
   assert(isSecure(alwaysSecure), `over plain HTTP the cookie is Secure (got: ${alwaysSecure})`);
   assert(/;\s*SameSite=Lax/i.test(alwaysSecure ?? '') && /;\s*HttpOnly/i.test(alwaysSecure ?? ''), 'and still HttpOnly and SameSite=Lax');
 
   console.log('\n▶ session.cookieSecure: false');
-  await writeSettings(['session.cookieSecure: false']);
+  writeSettings(['session.cookieSecure: false']);
   const neverSecure = await waitForCookie({ 'X-Forwarded-Proto': 'https' }, (c) => !isSecure(c));
   assert(!isSecure(neverSecure), `with X-Forwarded-Proto: https the cookie is not Secure (got: ${neverSecure})`);
 

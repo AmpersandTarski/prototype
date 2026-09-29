@@ -103,7 +103,9 @@ date_default_timezone_set($settings->get('global.defaultTimezone'));
 // for the same application, the user isn't redirected to the same container for subsequent requests.
 // For more info: see comments in file src/Ampersand/Session.php
 ini_set("session.use_strict_mode", '0');
-session_set_cookie_params(Session::cookieParams($settings->get('session.cookieSecure'), $_SERVER));
+// Secure is deliberately left to the setting session.cookieSecure: 'auto' (the default) omits it over
+// plain HTTP, so development stacks keep working; production sets true. See AmpersandTarski/Ampersand#1698.
+session_set_cookie_params(Session::cookieParams($settings->get('session.cookieSecure'), $_SERVER)); // NOSONAR
 session_start();
 
 $ampersandApp = new AmpersandApp(
