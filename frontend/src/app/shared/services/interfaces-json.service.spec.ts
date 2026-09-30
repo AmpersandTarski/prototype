@@ -76,6 +76,49 @@ describe('InterfacesJsonService', () => {
     });
   });
 
+  describe('fieldMetas', () => {
+    it('follows an INTERFACE reference (not LINKTO) to the fields of the referenced interface', async () => {
+      const obj = (name: string, crud: any, sub: any = null) => ({
+        name,
+        label: name,
+        crud,
+        expr: { isUni: true, isIdent: false, tgtConceptName: 'X' },
+        subinterfaces: sub,
+      });
+      mockHttp.get.mockReturnValue(
+        of([
+          {
+            name: 'Menu',
+            ifcObject: {
+              subinterfaces: {
+                ifcObjects: [
+                  obj(
+                    'MainMenu',
+                    { read: true },
+                    { refSubInterfaceName: 'Item', refIsLinkTo: false },
+                  ),
+                ],
+              },
+            },
+          },
+          {
+            name: 'Item',
+            ifcObject: {
+              subinterfaces: {
+                ifcObjects: [obj('Url', { read: true, update: true })],
+              },
+            },
+          },
+        ]),
+      );
+      const metas = await service.fieldMetas(
+        'resource/SESSION/1/Menu/MainMenu/m1',
+      );
+      expect([...metas.keys()]).toEqual(['Url']);
+      expect(metas.get('Url')!.crud.update).toBe(true);
+    });
+  });
+
   describe('getInterfaces', () => {
     it('should throw error when interfaces not loaded', () => {
       expect(() => service.getInterfaces()).toThrow(

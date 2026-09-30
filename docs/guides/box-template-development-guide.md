@@ -266,7 +266,8 @@ There are two kinds:
 **1. Layout-only annotations** live entirely in the StringTemplate
 (`frontend/src/app/generated/.templates/Box-*.html`). They change the generated
 HTML and need no component code. Examples: `hideLabels`, `noHeader`, RAW
-`table`/`form`, and the per-field `hideSubOnNoRecords` condition on FORM.
+`table`/`form`. (`hideSubOnNoRecords` on FORM started this way; since v2.13.0 it is an
+`@Input` on `BoxFormComponent`, which decides per field together with the field's CRUD.)
 
 ```html
 <!-- Box-FORM.html: omit the label when hideLabels is set -->

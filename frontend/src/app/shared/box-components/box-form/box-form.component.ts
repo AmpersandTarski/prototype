@@ -75,14 +75,17 @@ export class BoxFormComponent<
    * An empty field appears when the user may fill it (C or U), when this box
    * says showSubOnNoRecords, or when the field is a group whose own box says
    * showOnNoRecords. Any other empty field stays out of sight, so a record
-   * shows what it has.
+   * shows what it has. While the metadata of a field is unknown (still loading,
+   * or not found in interfaces.json), an empty field appears: hiding it could
+   * hide a field the user has to fill.
    */
   showField(item: any, name: string): boolean {
     if (this.showSubOnNoRecords) return true;
     const meta = this.metaOf(item, name);
     if (!this.isEmptyValue(item?.[name], meta)) return true;
     if (this.hideSubOnNoRecords) return false;
-    if (meta?.crud.create || meta?.crud.update) return true;
+    if (meta === undefined) return true;
+    if (meta.crud.create || meta.crud.update) return true;
     return meta?.boxAnnotations.includes('showOnNoRecords') ?? false;
   }
 
@@ -128,7 +131,8 @@ export class BoxFormComponent<
 
   /**
    * A value is empty when it is absent, an empty string or an empty list. A
-   * group (a nested box on I) is empty when all of its own fields are.
+   * group (a nested box on I) is empty when all of its own fields are empty and
+   * none of them is one the user may fill.
    */
   isEmptyValue(value: any, meta?: FieldMeta): boolean {
     if (value == null || value === '') return true;
@@ -145,6 +149,10 @@ export class BoxFormComponent<
     if (group == null) return true;
     return Object.keys(group)
       .filter((k) => !k.startsWith('_'))
-      .every((k) => this.isEmptyValue(group[k], this.metaOf(group, k)));
+      .every((k) => {
+        const meta = this.metaOf(group, k);
+        const fillable = meta?.crud.create || meta?.crud.update;
+        return this.isEmptyValue(group[k], meta) && !fillable;
+      });
   }
 }

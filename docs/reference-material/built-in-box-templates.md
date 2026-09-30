@@ -470,21 +470,23 @@ decides how the facet filters:
 
 | Technical type of the item | Facet |
 | --- | --- |
-| `ALPHANUMERIC`, `OBJECT` | Values with counts, most rows first. With more than 40 values that are nearly all different (at least 80% of the rows), a text field instead. |
-| `BIGALPHANUMERIC`, `HUGEALPHANUMERIC` | Text field: rows whose value contains the text. |
+| `ALPHANUMERIC`, `OBJECT` | Values with counts, most rows first. With more than 40 values that are nearly all different (at least 80% of the rows), a text field instead (on a child item only; see below). |
+| `BIGALPHANUMERIC`, `HUGEALPHANUMERIC` | Text field: rows whose value contains the text (on a child item only; see below). |
 | `BOOLEAN`, and a property relation `[PROP]` | *yes* / *no* with counts. |
 | `INTEGER`, `FLOAT` | Up to 12 distinct values: a value list, sorted by value. More: a range with a from and a to field. |
 | `DATE`, `DATETIME` | Years with counts; choosing a year shows its months, a month its days. A `DATETIME` counts on the calendar day in the time zone of the server. |
 | `PASSWORD`, `BINARY`, `BIGBINARY`, `HUGEBINARY`, and the concept `ONE` | Never a facet. |
 
 The identity item (`"Issue" : I`) is a text field whatever its type: its value is the
-row itself. A value list ends with *(empty)* when some rows have no value.
+row itself. A text field on an item of the box itself does not appear, because the search
+field above the table covers it; see "One search field" below. A value list ends with *(empty)* when some rows have no value.
 
 `facetKind` overrides this choice per item. `facetKind="Date=date"` gives a date tree to
 an ALPHANUMERIC item that holds dates as text; a text that starts with a date, such as
 `2026-08-10, revised 2026-09-17`, counts under that date, and a text without one under
 *(empty)*. `facetKind="Size=range"` makes a range of a number with few values, and
-`list` or `text` choose a value list or a text field. Prefer a `REPRESENT … TYPE DATE`
+`list` or `text` choose a value list or a text field; `text` on an item of the box itself
+leaves that item to the search field. Prefer a `REPRESENT … TYPE DATE`
 in the model where the data allows it; `facetKind` is for data that does not.
 
 ### One search field, and no column the panel already tells

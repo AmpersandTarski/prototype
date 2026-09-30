@@ -13,7 +13,12 @@ export interface SubObjectMeta {
 
 // What a FORM needs to know about one of its fields
 export interface FieldMeta {
-  crud: { create?: boolean; read?: boolean; update?: boolean; delete?: boolean };
+  crud: {
+    create?: boolean;
+    read?: boolean;
+    update?: boolean;
+    delete?: boolean;
+  };
   isUni: boolean;
   /** The field's expression is I: it shows the record's own atom. */
   isIdent: boolean;
@@ -184,10 +189,22 @@ export class InterfacesJsonService {
     if (!cached) {
       cached = this.getInterfacesWithLoading()
         .then((interfaces) => {
+          // An `INTERFACE <name>` reference (not LINKTO) has no ifcObjects of its
+          // own: the compiler inlines the referenced interface, so its fields are
+          // those of that interface's root object.
+          const deref = (node: any, depth = 0): any => {
+            const sub = node?.subinterfaces;
+            if (depth > 8 || !sub?.refSubInterfaceName || sub.refIsLinkTo)
+              return node;
+            const ref = interfaces.find(
+              (i: any) => i.name === sub.refSubInterfaceName,
+            );
+            return ref ? deref(ref.ifcObject, depth + 1) : node;
+          };
           const top = interfaces.find((i: any) => i.name === segments[3]);
-          let node = top?.ifcObject;
+          let node = deref(top?.ifcObject);
           for (const segment of segments.slice(4)) {
-            node = this.findInterfaceByName(node, segment) ?? node;
+            node = deref(this.findInterfaceByName(node, segment) ?? node);
           }
           const result = new Map<string, FieldMeta>();
           for (const obj of node?.subinterfaces?.ifcObjects ?? []) {

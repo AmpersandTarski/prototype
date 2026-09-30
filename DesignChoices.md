@@ -490,7 +490,8 @@ Technisch: `chosenKinds()` in `facet-engine.ts`, the `facetKind` input of `BoxFa
 OK-20 · voorstel · 2026-09-29 · herkomst: interview met Stef over de Artefactenkaart (29 september 2026), tak ux-intenties
 
 A FORM leaves out a field that is empty and that the user cannot fill (no `C` or `U` in its
-CRUD). A group, a FORM box on `I` inside a FORM, is left out when all of its fields are empty.
+CRUD). A group, a FORM box on `I` inside a FORM, is left out when all of its fields are empty
+and none of them may be filled. While the CRUD of a field is unknown, an empty field appears.
 The annotation `showOnNoRecords` on a group shows it while empty, `showSubOnNoRecords` on a
 FORM shows every field, and `hideSubOnNoRecords` also hides an empty field the user may edit.
 Groups sit side by side while the width allows.

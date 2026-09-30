@@ -221,7 +221,7 @@ Creates a clickable button that toggles, sets, or clears a boolean property. See
 
 ### BOX\<FACETS\>
 
-A `BOX<TABLE>` with a facet panel: per box item a list of values with counts, a text field, a range or a date tree, depending on the item's technical type. Choosing values shrinks the table. See [Built-in BOX Templates](built-in-box-templates#box-facets) for the full reference.
+A `BOX<TABLE>` with a facet panel: per box item a list of values with counts, a range or a date tree, depending on the item's technical type, and one search field over every value of a row. Choosing values shrinks the table. See [Built-in BOX Templates](built-in-box-templates#box-facets) for the full reference.
 
 ### BOX\<MARKUP\>
 

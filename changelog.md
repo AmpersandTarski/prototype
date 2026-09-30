@@ -12,18 +12,22 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## v2.13.0 (30 September 2026)
 
-* **A detail screen shows what a record has (DesignChoices OK-20).** A FORM leaves out a field
-  that is empty and that the user cannot fill, and a group whose fields are all empty; groups
-  sit side by side while the width allows. On a requirement screen that listed 27 labels, 18
-  of them without a value, the reader now sees the 9 that say something. `showOnNoRecords`
-  shows an empty group that tells something, and `showSubOnNoRecords` restores every field.
+* **A detail screen shows what a record has (DesignChoices OK-20).** Every FORM, without a
+  change to the model, leaves out a field that is empty and that the user cannot fill. A
+  group (a FORM box on `I` inside a FORM) disappears when all of its fields are empty and
+  none of them may be filled; groups sit side by side while the width allows. On a
+  requirement screen of the Artefactenkaart that listed 27 read-only labels, 18 of them
+  without a value, the reader now sees the 9 that say something. `showOnNoRecords` on a
+  group shows it while empty, and `showSubOnNoRecords` on a FORM restores every field.
 
 * **A screen on one item carries that item as its title (OK-21).** The heading is the label of
-  the item, such as "R01 Leerbaarheid", with the name of the interface small above it.
+  the item (from its VIEW, else its identifier), with the name of the interface small above
+  it.
 
-* **A facet table drops a column that says the same in every row (OK-22).** After choosing a
-  project, the column Project no longer repeats it in every row; the facet shows the value
-  checked. The panel has one search field instead of a text facet beside it.
+* **A facet table drops a column that says the same in every row (OK-22).** While at least
+  two rows pass and every row has the same value in a column the user cannot edit, that
+  column leaves the table and its facet shows the value checked: after choosing a project,
+  the column Project no longer repeats it. The panel has one search field instead of a text facet beside it.
 
 * **The screen follows the width of the window (OK-23).** The content uses a wide screen, and
   below 1200 pixels the menu folds into a drawer behind the menu button. The New menu no longer

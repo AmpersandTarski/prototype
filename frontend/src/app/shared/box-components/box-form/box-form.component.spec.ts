@@ -38,12 +38,17 @@ const metas: Record<string, Map<string, FieldMeta>> = {
         boxAnnotations: ['showOnNoRecords'],
       }),
     ],
+    ['Invul', meta({ isIdent: true, isBox: true, tgtConcept: 'Eis' })],
   ]),
   // the fields of the group Spoor
   'Eis/Spoor': new Map([
     ['Regels', meta({ isUni: false, tgtConcept: 'Regel' })],
   ]),
   'Eis/Leeg': new Map([['Regels', meta({ isUni: false })]]),
+  // a group whose only field is empty but may be filled
+  'Eis/Invul': new Map([
+    ['Opmerking', meta({ crud: { read: true, update: true } })],
+  ]),
 };
 
 const record = {
@@ -52,23 +57,38 @@ const record = {
   _path_: 'resource/Eis/R1/Eis',
   _ifcs_: [],
   Status: 'geldig',
-  Tekst: 'Een nieuwe coördinator schrijft na één uitleg van twee minuten zelfstandig een notitie.',
+  Tekst:
+    'Een nieuwe coördinator schrijft na één uitleg van twee minuten zelfstandig een notitie.',
   Issues: [{ _id_: '#1' }, { _id_: '#2' }],
   Toetsen: [],
   Noot: null,
   Spoor: { _id_: 'R1', _path_: 'resource/Eis/R1/Eis/Spoor/R1', Regels: [] },
   Leeg: { _id_: 'R1', _path_: 'resource/Eis/R1/Eis/Leeg/R1', Regels: [] },
+  Invul: {
+    _id_: 'R1',
+    _path_: 'resource/Eis/R1/Eis/Invul/R1',
+    Opmerking: null,
+  },
+  // a field interfaces.json does not describe (as when a lookup fails)
+  Onbekend: null,
 };
 
 async function setup(): Promise<BoxFormComponent<any, any>> {
   TestBed.configureTestingModule({
     providers: [
-      { provide: ElementRef, useValue: new ElementRef(document.createElement('div')) },
+      {
+        provide: ElementRef,
+        useValue: new ElementRef(document.createElement('div')),
+      },
       {
         provide: InterfacesJsonService,
         useValue: {
           fieldMetas: (path: string) => {
-            const key = path.split('/').slice(3).filter((s) => !s.startsWith('R')).join('/');
+            const key = path
+              .split('/')
+              .slice(3)
+              .filter((s) => !s.startsWith('R'))
+              .join('/');
             return Promise.resolve(metas[key] ?? new Map());
           },
           conceptTypes: () =>
@@ -84,6 +104,7 @@ async function setup(): Promise<BoxFormComponent<any, any>> {
   for (const name of Object.keys(record)) c.showField(record, name);
   c.showField(record.Spoor, 'Regels');
   c.showField(record.Leeg, 'Regels');
+  c.showField(record.Invul, 'Opmerking');
   await new Promise((r) => setTimeout(r));
   return c;
 }
@@ -108,6 +129,16 @@ describe('BoxFormComponent', () => {
   it('leaves out a group whose fields are all empty', async () => {
     const c = await setup();
     expect(c.showField(record, 'Spoor')).toBe(false);
+  });
+
+  it('shows an empty group that holds a field the user may fill', async () => {
+    const c = await setup();
+    expect(c.showField(record, 'Invul')).toBe(true);
+  });
+
+  it('shows an empty field whose metadata is unknown, so it never hides a field to fill', async () => {
+    const c = await setup();
+    expect(c.showField(record, 'Onbekend')).toBe(true);
   });
 
   it('shows an empty group whose box says showOnNoRecords', async () => {
