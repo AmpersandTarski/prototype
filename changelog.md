@@ -12,7 +12,8 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## v2.13.0 (30 September 2026)
 
-* **A detail screen shows what a record has (DesignChoices OK-20).** Every FORM, without a
+* **A detail screen shows what a record has (DesignChoices OK-20, a proposal that ships as the
+  default).** Every FORM, without a
   change to the model, leaves out a field that is empty and that the user cannot fill. A
   group (a FORM box on `I` inside a FORM) disappears when all of its fields are empty and
   none of them may be filled; groups sit side by side while the width allows. On a

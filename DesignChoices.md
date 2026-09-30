@@ -541,7 +541,7 @@ Technisch: `BoxFormComponent.showField()`, `fieldKind()` and `showsNothing()`,
 ---
 
 **A screen on one item carries that item as its title**
-OK-21 · voorstel · 2026-09-29 · herkomst: UX-verkenning van de Artefactenkaart (29 september 2026), tak ux-intenties
+OK-21 · geldig · 2026-09-29 · herkomst: UX-verkenning van de Artefactenkaart (29 september 2026), tak ux-intenties, besluit Stef, 30 september 2026
 
 The heading of an interface on `I[Concept]` is the label of the item it shows, with the label of
 the interface small above it. A session interface and a list keep the interface label as heading.
@@ -566,7 +566,7 @@ Technisch: `InterfaceHeadingComponent` and `component.html`.
 ---
 
 **BOX<FACETS> drops a column whose value the panel already tells, and has one search field**
-OK-22 · voorstel · 2026-09-29 · herkomst: interview met Stef over de Artefactenkaart (29 september 2026), tak ux-intenties
+OK-22 · geldig · 2026-09-29 · herkomst: interview met Stef over de Artefactenkaart (29 september 2026), tak ux-intenties, besluit Stef, 30 september 2026
 
 A column leaves the table while at least two rows pass, the item has a value-list or date facet,
 every passing row has the same value (or none), and the user cannot edit the item. The facet
@@ -605,7 +605,7 @@ Technisch: `BoxFacetsComponent.findConstantColumns()`, `showColumn()`, `isImplie
 ---
 
 **The content follows the width of the window, and the menu folds below 1200 pixels**
-OK-23 · voorstel · 2026-09-29 · herkomst: snapshots van de Artefactenkaart op 2560×1440 en 1080×1920 (29 september 2026), tak ux-intenties
+OK-23 · geldig · 2026-09-29 · herkomst: snapshots van de Artefactenkaart op 2560×1440 en 1080×1920 (29 september 2026), tak ux-intenties, besluit Stef, 30 september 2026
 
 The content column has no fixed width. Below 1200 pixels the menu is a drawer that the
 hamburger opens. The New menu lists no API interface.
@@ -629,6 +629,8 @@ Impact in productie: on screens between 992 and 1199 pixels wide the menu is now
 
 Technisch: `_responsive.scss`, `_menu.scss`, `_topbar.scss`, `LayoutService.isDesktop()` and
 `AngularJSApp::getMenuItems()`.
+
+---
 
 **BOX<MARKUP> and app-atomic-markup show a text formatted in its markup language**
 OK-24 · geldig · 2026-09-29 · herkomst: gebruikerswens (Stef, bij het lezen van de Artefactenkaart), AmpersandTarski/Ampersand#1700
