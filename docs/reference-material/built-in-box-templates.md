@@ -334,7 +334,7 @@ raises an error at runtime.
 ### CRUD on `setRelation`
 
 The CRUD letters on `setRelation` decide which actions the widget offers (see the
-[CRUD reference](interfaces.md#CRUD) for the general meaning):
+[CRUD reference](https://ampersandtarski.github.io/ampersand/reference-material/interfaces#CRUD) for the general meaning):
 
 - **R** (read) is required for the box to display the current value.
 - **U** (update) lets the user replace/extend the value by selecting an option.

@@ -14,7 +14,7 @@ The page describes the framework. A model can add relations on `SESSION`, such a
 
 The cookie is `HttpOnly`, so scripts in the page cannot read it. It is `SameSite=Lax`, so the browser leaves it out of requests that another site starts, except when the user follows a link. It is `Secure`, which keeps it off plain HTTP, as the setting `session.cookieSecure` says: `auto` (the default) sets it when the request arrives over HTTPS, also behind a reverse proxy that sends `X-Forwarded-Proto: https`, and `true` sets it always, which is what a production deployment should use. Its value is the identifier of the user's session on the server.
 
-No third party receives a request from a generated prototype. The font (Inter) and the icons are served from the application's own origin, and there is no content delivery network and no web analytics.
+The screens of a generated prototype send no request to a third party. The font (Inter) and the icons are served from the application's own origin, and there is no web analytics. One page is the exception: the Swagger UI at `/api/v1/docs`, which a development build publishes and a production build does not (see [OpenAPI publication](./openapi-publication.md)), loads its script and stylesheet from `cdn.jsdelivr.net`. A browser that opens it sends that content delivery network its IP address.
 
 ## On the server
 
@@ -31,7 +31,7 @@ Article 5(3) of the ePrivacy Directive (2002/58/EC) requires consent before anyt
 
 The session cookie meets that exception. Every interface query takes the session from the cookie, and the roles and the login of the user hang off that session (see the [architecture of an Ampersand application](https://ampersandtarski.github.io/ampersand/reference-material/architecture-of-an-ampersand-application)). Without the cookie no interface opens. The two items in session storage hold state of the user interface and disappear with the tab.
 
-A project that stores more, such as analytics or an embedded video, does need consent. That is up to the project, not the framework.
+A project that stores more, such as analytics or an embedded video, does need consent. The guide [Asking for cookie consent](../guides/asking-for-cookie-consent.md) shows how a project adds a consent banner from its own Dockerfile.
 
 This is a reading of the rules, not legal advice. The privacy officer of the deploying organisation confirms it.
 

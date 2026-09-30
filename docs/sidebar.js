@@ -56,6 +56,11 @@ module.exports = {
       id: "prototype/guides/measuring-performance-with-opentelemetry",
     },
     {
+      label: "Asking for Cookie Consent",
+      type: "doc",
+      id: "prototype/guides/asking-for-cookie-consent",
+    },
+    {
       label: "Updating and Releasing the Prototype Framework",
       type: "doc",
       id: "prototype/guides/updating-and-releasing",
