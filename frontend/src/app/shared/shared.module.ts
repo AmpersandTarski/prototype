@@ -49,6 +49,7 @@ import { AtomicMarkupComponent } from './atomic-components/atomic-markup/atomic-
 import { MarkupPipe } from './atomic-components/atomic-markup/markup.pipe';
 import { AtomicSelectComponent } from './atomic-components/atomic-select/atomic-select.component';
 import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.component';
+import { InterfaceHeadingComponent } from './common/interface-heading/interface-heading.component';
 import { MonacoEditorComponent } from './monaco-editor/monaco-editor.component';
 import { DiagnosticsTextComponent } from './diagnostics-text/diagnostics-text.component';
 
@@ -105,8 +106,10 @@ import { DiagnosticsTextComponent } from './diagnostics-text/diagnostics-text.co
     ButtonModule,
     AutoCompleteModule,
     IfcsDropdownComponent,
+    InterfaceHeadingComponent,
   ],
   exports: [
+    InterfaceHeadingComponent,
     AtomicAlphanumericComponent,
     AtomicBigalphanumericComponent,
     AtomicBooleanComponent,

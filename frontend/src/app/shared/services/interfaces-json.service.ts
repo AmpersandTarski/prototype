@@ -11,6 +11,24 @@ export interface SubObjectMeta {
   isUni: boolean;
 }
 
+// What a FORM needs to know about one of its fields
+export interface FieldMeta {
+  crud: {
+    create?: boolean;
+    read?: boolean;
+    update?: boolean;
+    delete?: boolean;
+  };
+  isUni: boolean;
+  /** The field's expression is I: it shows the record's own atom. */
+  isIdent: boolean;
+  tgtConcept: string;
+  /** The field has a box of its own (a nested BOX). */
+  isBox: boolean;
+  /** The annotations in the header of that box, such as showOnNoRecords. */
+  boxAnnotations: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -146,6 +164,67 @@ export class InterfacesJsonService {
       await this.loadInterfaces();
     }
     return this.getInterfaces();
+  }
+
+  private fieldMetasCache = new Map<string, Promise<Map<string, FieldMeta>>>();
+
+  /**
+   * The fields of the box that renders the record at `resourcePath`, keyed by
+   * property name (the encoded `name` in interfaces.json).
+   *
+   * The compiler gives a box template the name, label and contents of each
+   * field, but not its CRUD or multiplicity. A FORM needs both to decide on its
+   * own which empty fields to leave out and how to lay a field out, so it reads
+   * them here, the way BOX<FACETS> reads its facets.
+   *
+   * The path is navigated as in findSubObject: segments that name a
+   * sub-interface are followed, the others are atom ids and are skipped.
+   * Resolves to an empty map when the interface is not found.
+   */
+  fieldMetas(resourcePath: string): Promise<Map<string, FieldMeta>> {
+    const segments = resourcePath.split('/');
+    // resource / {Concept} / {atom} / {Interface} / {sub or atom}*
+    const key = segments.slice(3).join('/');
+    let cached = this.fieldMetasCache.get(key);
+    if (!cached) {
+      cached = this.getInterfacesWithLoading()
+        .then((interfaces) => {
+          // An `INTERFACE <name>` reference (not LINKTO) has no ifcObjects of its
+          // own: the compiler inlines the referenced interface, so its fields are
+          // those of that interface's root object.
+          const deref = (node: any, depth = 0): any => {
+            const sub = node?.subinterfaces;
+            if (depth > 8 || !sub?.refSubInterfaceName || sub.refIsLinkTo)
+              return node;
+            const ref = interfaces.find(
+              (i: any) => i.name === sub.refSubInterfaceName,
+            );
+            return ref ? deref(ref.ifcObject, depth + 1) : node;
+          };
+          const top = interfaces.find((i: any) => i.name === segments[3]);
+          let node = deref(top?.ifcObject);
+          for (const segment of segments.slice(4)) {
+            node = deref(this.findInterfaceByName(node, segment) ?? node);
+          }
+          const result = new Map<string, FieldMeta>();
+          for (const obj of node?.subinterfaces?.ifcObjects ?? []) {
+            result.set(obj.name, {
+              crud: obj.crud ?? {},
+              isUni: obj.expr?.isUni === true,
+              isIdent: obj.expr?.isIdent === true,
+              tgtConcept: obj.expr?.tgtConceptName ?? '',
+              isBox: Array.isArray(obj.subinterfaces?.ifcObjects),
+              boxAnnotations: (obj.subinterfaces?.boxHeader?.keyVals ?? []).map(
+                (kv: { key: string }) => kv.key,
+              ),
+            });
+          }
+          return result;
+        })
+        .catch(() => new Map<string, FieldMeta>());
+      this.fieldMetasCache.set(key, cached);
+    }
+    return cached;
   }
 
   /**

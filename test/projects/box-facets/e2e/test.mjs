@@ -101,14 +101,16 @@ try {
   await open(page, '/tickets');
   assert((await countText(page)) === '14 of 14', `count 14 of 14 (got: ${await countText(page)})`);
   const facets = Object.fromEntries((await readFacets(page)).map((f) => [f.id, f]));
-  assert(facets.Ticket?.inputs.includes('search'), 'identity item Ticket is a text field');
+  // A text facet on an item of the box repeats the search field, which searches every value
+  // of a row; the panel leaves it out (DesignChoices OK-22). The search checks below cover it.
+  assert(!facets.Ticket, 'identity item Ticket has no text facet beside the search field');
   assert(
     JSON.stringify(facets.Status?.values) === JSON.stringify({ open: 7, closed: 4, '(empty)': 3 }),
     `ALPHANUMERIC Status lists values with counts (got: ${JSON.stringify(facets.Status?.values)})`,
   );
   assert(facets.Tags?.values.bug === 5, 'multi-valued Tags counts rows per value (bug: 5)');
-  assert(facets.Summary?.inputs.includes('search'), 'BIGALPHANUMERIC Summary is a text field');
-  assert(facets.Notes?.inputs.includes('search'), 'HUGEALPHANUMERIC Notes is a text field');
+  assert(!facets.Summary, 'BIGALPHANUMERIC Summary has no text facet beside the search field');
+  assert(!facets.Notes, 'HUGEALPHANUMERIC Notes has no text facet beside the search field');
   assert(
     facets.Due?.values['2026'] === 8 && facets.Due?.values['2025'] === 2,
     `DATE Due groups by year (got: ${JSON.stringify(facets.Due?.values)})`,
@@ -148,6 +150,13 @@ try {
   await sleep(400);
   assert((await countText(page)) === '1 of 14', 'search "memory" → 1 of 14');
   assert(queryOf(page).get('q') === 'memory', 'the search is in the URL as q=memory');
+  await page.click('.facets__panel-head .facets__link');
+  await sleep(300);
+
+  // The search field also covers the HUGEALPHANUMERIC Notes, which has no text facet.
+  await page.type('.facets__search input', 'Safari');
+  await sleep(400);
+  assert((await countText(page)) === '1 of 14', 'search "Safari" (in Notes) → 1 of 14');
   await page.click('.facets__panel-head .facets__link');
   await sleep(300);
 

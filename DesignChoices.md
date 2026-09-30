@@ -484,6 +484,154 @@ whole date or a JSON number makes such an item a date tree or a number facet.
 Technisch: `chosenKinds()` in `facet-engine.ts`, the `facetKind` input of `BoxFacetsComponent`,
 `Box-FACETS.html`, and the interface `TicketsReported` in `test/projects/box-facets`.
 
+---
+
+**A FORM shows the fields a record has, and the fields the user may fill**
+OK-20 · voorstel · 2026-09-29 · herkomst: interview met Stef over de Artefactenkaart (29 september 2026), tak ux-intenties
+
+A FORM leaves out a field that is empty and that the user cannot fill (no `C` or `U` in its
+CRUD). A group, a FORM box on `I` inside a FORM, is left out when all of its fields are empty
+and none of them may be filled. While the CRUD of a field is unknown, an empty field appears.
+The annotation `showOnNoRecords` on a group shows it while empty, `showSubOnNoRecords` on a
+FORM shows every field, and `hideSubOnNoRecords` also hides an empty field the user may edit.
+Groups sit side by side while the width allows.
+
+Overwegingen:
+
+1. The purpose is a detail screen that shows what a record has. On the Artefactenkaart, the
+   screen of requirement R01 listed 27 labels, 18 of them without a value.
+
+2. Stef put it this way in the interview: "Ik denk dat een lege groep by default er niet staat.
+   Maar misschien heeft het zin een lege groep te tekenen. Dat vereist dan een annotatie in de
+   interface." An empty group can carry information, such as a requirement that no rule or
+   interface mentions yet; `showOnNoRecords` is for that case.
+
+3. A field the user may fill stays visible while empty, because otherwise the value cannot be
+   entered through that screen. Editability decides, and the data alone does not.
+
+4. The compiler gives a box template the name, label and contents of each field, but not its
+   CRUD or multiplicity. The FORM reads them from `interfaces.json` in the browser, as BOX<FACETS>
+   does (OK-15). Rejected: a compiler change that passes CRUD and UNI per field into the
+   template; it needs a compiler release for something the browser already has.
+
+5. Rejected: keeping every field by default and asking the modeler for `hideSubOnNoRecords` on
+   every box. That is an obligation on every interface, and the Ampersand design considerations
+   accept an obligation only when it is a necessity.
+
+6. Rejected: hiding empty fields with CSS (`:has()` on an empty value). CSS does not know
+   whether the user may edit a field, so it would also hide a field the user must fill.
+
+7. Each field has a kind that a subtle style follows: group, meta (a UNI field with a short
+   value), content (a UNI field with a long value) and related (a field with several values).
+   The kinds come from the model without annotation. Stef named three kinds of blocks in the
+   interview (meta-information, content, related information); that the kind of a field follows
+   from its multiplicity and length is a hypothesis that awaits his verdict.
+
+Impact op de specificatie: a modeler groups fields that belong together in a FORM box on `I`
+and adds `showOnNoRecords` where an empty group tells the user something. Existing interfaces
+need no change.
+
+Impact in productie: every FORM without annotation shows fewer rows than before, namely only
+those with a value or with edit rights. An interface that relied on seeing an empty read-only
+field gets `showSubOnNoRecords`. The regression projects measure the new default.
+
+Technisch: `BoxFormComponent.showField()`, `fieldKind()` and `showsNothing()`,
+`InterfacesJsonService.fieldMetas()`, `Box-FORM.html`, and `box-form.component.spec.ts`.
+
+---
+
+**A screen on one item carries that item as its title**
+OK-21 · geldig · 2026-09-29 · herkomst: UX-verkenning van de Artefactenkaart (29 september 2026), tak ux-intenties, besluit Stef, 30 september 2026
+
+The heading of an interface on `I[Concept]` is the label of the item it shows, with the label of
+the interface small above it. A session interface and a list keep the interface label as heading.
+
+Overwegingen:
+
+1. The purpose is a page that names what the user looks at: "R01 Leerbaarheid" rather than "Eis".
+
+2. The label comes from the VIEW of the concept, which the modeler already defines for links and
+   dropdowns, so the title costs no annotation.
+
+3. The identity field (`"Eis" : I`) repeats the title; a modeler may leave it out of a detail
+   interface.
+
+Impact op de specificatie: none required.
+
+Impact in productie: `component.html` renders `app-interface-heading`, which keeps an `h3` with
+the interface label, so a test that looks for the interface label still finds it.
+
+Technisch: `InterfaceHeadingComponent` and `component.html`.
+
+---
+
+**BOX<FACETS> drops a column whose value the panel already tells, and has one search field**
+OK-22 · geldig · 2026-09-29 · herkomst: interview met Stef over de Artefactenkaart (29 september 2026), tak ux-intenties, besluit Stef, 30 september 2026
+
+A column leaves the table while at least two rows pass, the item has a value-list or date facet,
+every passing row has the same value (or none), and the user cannot edit the item. The facet
+shows that value checked. The panel shows no text facet on an item of the box itself, because
+the search field searches every value of a row.
+
+Overwegingen:
+
+1. The purpose is room for the columns that differ. Stef: "Ik zou wel willen dat een kolom
+   waarin voorspelbaar 0 of 1 waarden in voorkomen, niet wordt getoond om ruimte te besparen."
+   After choosing Patents, the column Project repeats "Patents" in every row.
+
+2. Stef also asked for the value to stay visible: "wel een vinkje in open". The facet shows it
+   checked, also when no one chose it.
+
+3. Searching for gaps with the facet *(empty)* seemed to conflict with the rule. It does not:
+   the facet still shows *(empty)*, and a column the user must fill is editable and stays.
+   Rejected: a setting per box, which Stef suggested as a fallback; the two conditions make it
+   unnecessary.
+
+4. With one passing row every column is constant; the rule then keeps all columns, since a
+   single row is read as a record.
+
+5. Stef found two search fields confusing. The search field searches every value of a row,
+   the identity item included (`rowText()` in `facet-engine.ts`), so a text facet on an item
+   of the box adds nothing. A text facet on a child item filters a different thing and stays.
+
+Impact op de specificatie: none.
+
+Impact in productie: the table of a faceted list shows fewer columns while a selection fixes
+their value; the URL and the counts do not change.
+
+Technisch: `BoxFacetsComponent.findConstantColumns()`, `showColumn()`, `isImplied()` and
+`showsFacet()`, and six cases in `box-facets.component.spec.ts`.
+
+---
+
+**The content follows the width of the window, and the menu folds below 1200 pixels**
+OK-23 · geldig · 2026-09-29 · herkomst: snapshots van de Artefactenkaart op 2560×1440 en 1080×1920 (29 september 2026), tak ux-intenties, besluit Stef, 30 september 2026
+
+The content column has no fixed width. Below 1200 pixels the menu is a drawer that the
+hamburger opens. The New menu lists no API interface.
+
+Overwegingen:
+
+1. The purpose is a prototype that uses a wide screen and fits a portrait screen. At 2560 pixels
+   the content stood at 1504 pixels with about 365 pixels empty on each side; at 1080 pixels
+   wide the menu kept 300 pixels, and a table of 774 pixels got about 430.
+
+2. Rejected: a media query on orientation. A narrow window on a landscape screen has the same
+   problem as a portrait screen; the width decides.
+
+3. An API such as `API NieuwEis : I[Eis] CRuD` serves programs. On the Artefactenkaart, such APIs
+   put 24 "New …" items above the 37 lists a person uses.
+
+Impact op de specificatie: none.
+
+Impact in productie: on screens between 992 and 1199 pixels wide the menu is now a drawer; above
+1960 pixels the content is wider than before.
+
+Technisch: `_responsive.scss`, `_menu.scss`, `_topbar.scss`, `LayoutService.isDesktop()` and
+`AngularJSApp::getMenuItems()`.
+
+---
+
 **BOX<MARKUP> and app-atomic-markup show a text formatted in its markup language**
 OK-24 · geldig · 2026-09-29 · herkomst: gebruikerswens (Stef, bij het lezen van de Artefactenkaart), AmpersandTarski/Ampersand#1700
 

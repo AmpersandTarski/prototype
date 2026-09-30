@@ -27,6 +27,7 @@ import {
   evaluate,
   fieldsOf,
   findField,
+  itemsOf,
   isEmptySelection,
   chosenKinds,
   kindOf,
@@ -116,6 +117,12 @@ export class BoxFacetsComponent
   private chosen = new Map<string, FacetKind>();
   private labels = new Map<string, Map<string, string>>();
   private hiddenColumns = new Set<string>();
+  /** Columns the user may edit; they stay, so an empty value can be filled in. */
+  private editableColumns = new Set<string>();
+  /** Columns that show one value (or none) in every row that passes; see refreshView. */
+  private constantColumns = new Set<string>();
+  /** Per facet, the value every passing row has, shown as checked in the panel. */
+  private implied = new Map<string, string>();
   private expanded = new Set<string>();
   private childrenShown = new Set<string>();
   private valueFilters = new Map<string, string>();
@@ -188,9 +195,26 @@ export class BoxFacetsComponent
 
   // --- the table ------------------------------------------------------------
 
-  /** Whether the table shows the column of this item (false for `facetOnly` items). */
+  /**
+   * Whether the table shows the column of this item: false for `facetOnly` items, and
+   * false for a column whose value the panel already tells (see refreshView).
+   */
   showColumn(name: string): boolean {
-    return !this.hiddenColumns.has(name);
+    return !this.hiddenColumns.has(name) && !this.constantColumns.has(name);
+  }
+
+  /** Whether every passing row has this value, so the panel shows it checked. */
+  isImplied(f: FacetField, key: string): boolean {
+    return this.implied.get(f.id) === key;
+  }
+
+  /**
+   * Whether the panel shows this facet. A text facet on a column of the box itself
+   * repeats the search field, which already searches every value of a row, so the
+   * panel leaves it out; a text facet deeper in an OBJECT item stays.
+   */
+  showsFacet(f: FacetField, v: FacetView): boolean {
+    return !(v.kind === 'text' && this.topIds.has(f.id));
   }
 
   // --- panel actions ----------------------------------------------------------
@@ -362,6 +386,11 @@ export class BoxFacetsComponent
         .filter((f): f is FacetField => f !== undefined && f.path.length === 1)
         .map((f) => f.path[0]),
     );
+    this.editableColumns = new Set(
+      itemsOf(box, interfaces)
+        .filter((item: any) => item.crud?.create || item.crud?.update)
+        .map((item: any) => item.name),
+    );
   }
 
   private recomputeKinds(): void {
@@ -452,6 +481,40 @@ export class BoxFacetsComponent
       if (kind === 'date') v.dates = this.dateTree(f, buckets);
       this.view.set(f.id, v);
       this.addChips(f, title);
+    }
+    this.findConstantColumns();
+  }
+
+  /**
+   * A column leaves the table when the panel already tells its value: at least two rows
+   * pass, the column has a value or date facet, every passing row has the same value (or
+   * none), and the user cannot edit the column. The facet then shows that value checked.
+   * With the column Project gone after choosing Patents, the table keeps its width for
+   * the columns that still differ.
+   */
+  private findConstantColumns(): void {
+    this.constantColumns = new Set();
+    this.implied = new Map();
+    const rows = this.filtered.filter((r) => r !== null && r !== undefined);
+    if (rows.length < 2) return;
+    for (const f of this.tree) {
+      const column = f.path[0];
+      const kind = this.kinds.get(f.id);
+      if (f.path.length !== 1 || f.isIdent) continue;
+      if (kind !== 'values' && kind !== 'date') continue;
+      if (this.editableColumns.has(column)) continue;
+      const keysOf = (r: ObjectBase) =>
+        valuesAt(r, f.path, f.ttype)
+          .map((v) => v.key)
+          .sort((a, b) => a.localeCompare(b));
+      const first = keysOf(rows[0]);
+      const same = rows.every((r) => {
+        const keys = keysOf(r);
+        return keys.length === first.length && keys.every((k, i) => k === first[i]);
+      });
+      if (!same) continue;
+      this.constantColumns.add(column);
+      if (first.length === 1) this.implied.set(f.id, first[0]);
     }
   }
 

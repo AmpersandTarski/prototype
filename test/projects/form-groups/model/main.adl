@@ -1,0 +1,62 @@
+CONTEXT FormGroups IN ENGLISH
+PURPOSE CONTEXT FormGroups
+{+ Test project for what a FORM shows (DesignChoices OK-20, OK-21, OK-23): a detail
+   interface whose fields are grouped in FORM boxes on I, with filled, empty read-only
+   and empty editable fields, an empty group, and an empty group that says
+   showOnNoRecords. An API with create rights guards the New menu. The population is
+   synthetic. +}
+
+REPRESENT Status TYPE ALPHANUMERIC
+REPRESENT Text   TYPE BIGALPHANUMERIC
+REPRESENT Note   TYPE ALPHANUMERIC
+REPRESENT Name   TYPE ALPHANUMERIC
+
+RELATION status   [Requirement*Status] [UNI]
+RELATION text     [Requirement*Text]   [UNI]
+RELATION note     [Requirement*Note]   [UNI]
+RELATION owner    [Requirement*Name]   [UNI]
+RELATION reviewer [Requirement*Name]
+RELATION mentions [Rule*Requirement]
+RELATION tests    [Test*Requirement]
+RELATION earlier  [Requirement*Version]
+
+POPULATION status   CONTAINS [ ("R1", "valid"), ("R2", "open") ]
+POPULATION text     CONTAINS [ ("R1", "A new coordinator writes a note after one explanation of two minutes.") ]
+POPULATION owner    CONTAINS [ ("R1", "Alice") ]
+POPULATION mentions CONTAINS [ ("RuleA", "R1"), ("RuleB", "R1") ]
+
+INTERFACE Requirements : "_SESSION";V[SESSION*Requirement] cRud BOX <TABLE>
+    [ "Requirement" : I      cRud LINKTO INTERFACE Requirement
+    , "Status"      : status cRud
+    ]
+
+INTERFACE Requirement : I[Requirement] cRud BOX <FORM>
+    [ "Properties"   : I cRud BOX <FORM>
+        [ "Status"    : status   cRud
+        , "Owner"     : owner    cRud
+        , "Reviewers" : reviewer cRud
+        ]
+    , "Content"      : I cRud BOX <FORM>
+        [ "Text"      : text     cRud
+        ]
+    , "Note"         : note     cRUd
+    , "Mentioned by" : I cRud BOX <FORM>
+        [ "Rules"     : mentions~ cRud
+        ]
+    , "Trace"        : I cRud BOX <FORM showOnNoRecords>
+        [ "Tests"     : tests~   cRud
+        ]
+    , "History"      : I cRud BOX <FORM>
+        [ "Earlier versions" : earlier cRud
+        ]
+    ]
+
+INTERFACE RequirementAll : I[Requirement] cRud BOX <FORM showSubOnNoRecords>
+    [ "Status"    : status   cRud
+    , "Reviewers" : reviewer cRud
+    ]
+
+API NewRequirement : I[Requirement] CRuD BOX
+    [ "status" : status cRUd ]
+
+ENDCONTEXT

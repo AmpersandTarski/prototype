@@ -68,7 +68,7 @@ These are loaded last and overwrite previous set settings.
 
 * frontend.menuMode (`static` | `overlay` | `horizontal`, default `static`)
 
-  The default orientation of the navigation menu in the frontend: a vertical sidebar (`static`), a collapsible vertical sidebar (`overlay`), or a horizontal menu bar with dropdown submenus (`horizontal`). In horizontal mode, items that do not fit the viewport width move into a "More" dropdown at the end of the bar, so every item stays reachable. Below the desktop breakpoint (992px) the horizontal bar falls back to the mobile drawer.
+  The default orientation of the navigation menu in the frontend: a vertical sidebar (`static`), a collapsible vertical sidebar (`overlay`), or a horizontal menu bar with dropdown submenus (`horizontal`). In horizontal mode, items that do not fit the viewport width move into a "More" dropdown at the end of the bar, so every item stays reachable. Below the desktop breakpoint (1200px, DesignChoices OK-23) the horizontal bar falls back to the mobile drawer.
 
 * frontend.privacyStatementUrl (default `null`)
 

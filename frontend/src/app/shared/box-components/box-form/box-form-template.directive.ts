@@ -1,7 +1,15 @@
 import { Directive, Input } from '@angular/core';
 
+/** What the FORM tells the template about each field (see BoxFormComponent). */
+export interface BoxFormFields {
+  showField(item: object, name: string): boolean;
+  fieldClass(item: object, name: string): string;
+  count(item: object, name: string): number | null;
+}
+
 interface BoxFormTemplateContext<TItem extends object> {
   $implicit: TItem;
+  form: BoxFormFields;
 }
 
 @Directive({

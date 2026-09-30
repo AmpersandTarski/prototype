@@ -145,6 +145,49 @@ describe('BoxFacetsComponent', () => {
     expect(params['Tickets.red.f.Status']).toEqual(['open']);
   });
 
+  it('hides a column whose value the selection fixes, and checks that value in the panel', async () => {
+    const { c } = await setup({ 'f.Status': 'open' });
+    expect(ids(c.filtered)).toEqual(['A', 'C']);
+    expect(c.showColumn('Status')).toBe(false);
+    expect(c.isImplied(c.tree[0], 'open')).toBe(true);
+  });
+
+  it('hides a column that happens to hold one value in every passing row', async () => {
+    const { c, data, patched } = await setup();
+    data[1].Status = 'open'; // no selection, yet every row is open
+    patched.emit();
+    expect(c.showColumn('Status')).toBe(false);
+  });
+
+  it('shows a column whose values differ', async () => {
+    const { c } = await setup();
+    expect(c.showColumn('Status')).toBe(true);
+    expect(c.isImplied(c.tree[0], 'open')).toBe(false);
+  });
+
+  it('keeps every column when a single row passes', async () => {
+    const { c } = await setup({ 'f.Status': 'closed' });
+    expect(c.showColumn('Status')).toBe(true);
+  });
+
+  it('keeps a constant column the user may edit, so a value can be filled in', async () => {
+    const item = interfaces[0].ifcObject.subinterfaces.ifcObjects[0] as any;
+    item.crud = { create: false, read: true, update: true, delete: false };
+    try {
+      const { c } = await setup({ 'f.Status': 'open' });
+      expect(c.showColumn('Status')).toBe(true);
+    } finally {
+      delete item.crud;
+    }
+  });
+
+  it('leaves a text facet on a column of the box out of the panel, as the search field covers it', async () => {
+    const { c } = await setup();
+    const f = c.tree[0];
+    expect(c.showsFacet(f, { ...c.view.get(f.id)!, kind: 'text' })).toBe(false);
+    expect(c.showsFacet(f, c.view.get(f.id)!)).toBe(true);
+  });
+
   it('does not recount on every check when the rows contain empty entries', async () => {
     const { c, data } = await setup();
     data.push(null as any, null as any);
