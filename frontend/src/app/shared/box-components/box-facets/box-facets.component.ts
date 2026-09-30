@@ -506,7 +506,7 @@ export class BoxFacetsComponent
       const keysOf = (r: ObjectBase) =>
         valuesAt(r, f.path, f.ttype)
           .map((v) => v.key)
-          .sort();
+          .sort((a, b) => a.localeCompare(b));
       const first = keysOf(rows[0]);
       const same = rows.every((r) => {
         const keys = keysOf(r);
