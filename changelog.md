@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.12.0 (30 September 2026)
 
 * **A prototype can show text formatted in its markup language (DesignChoices OK-24).** The
   purpose is that a reader sees the formatting an author wrote, instead of `**bold**` and
@@ -22,7 +22,7 @@ Additional labels for pre-release and build metadata are available as extensions
   describes that route. HTML passes Angular's sanitiser, so a text cannot run code in the
   browser. The frontend gains the dependency `marked`. The regression project `markup` guards
   the formats, the fallback for an unknown format and the sanitising
-  (AmpersandTarski/Ampersand#1700).
+  (AmpersandTarski/Ampersand#1700, PR #472).
 
 * **The organisation that deploys a prototype can tell its users what the prototype stores.**
   A new reference page, `docs/reference-material/cookies-and-browser-storage.md`, lists the
