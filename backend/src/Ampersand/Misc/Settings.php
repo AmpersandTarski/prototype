@@ -72,6 +72,11 @@ class Settings
         'AMPERSAND_IMPORT_MODE' => [
             'key' => 'global.importMode',
             'bool' => true
+        ],
+        // 'auto', 'true' or 'false', so it stays a string; Session::cookieParams() interprets it
+        'AMPERSAND_SESSION_COOKIE_SECURE' => [
+            'key' => 'session.cookieSecure',
+            'bool' => false
         ]
     ];
 

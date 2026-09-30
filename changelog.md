@@ -32,6 +32,16 @@ Additional labels for pre-release and build metadata are available as extensions
   links to that statement. The regression project `privacy-and-cookies` fails when code
   stores something the page does not list (AmpersandTarski/Ampersand#1697).
 
+* **The session cookie no longer depends on the network in front of the application.** It
+  is now `SameSite=Lax`, so the browser leaves it out of requests that another site starts,
+  which blocks cross-site request forgery. Its `Secure` flag follows the new setting
+  `session.cookieSecure` (env `AMPERSAND_SESSION_COOKIE_SECURE`): `auto`, the default, sets
+  it when the request arrives over HTTPS, now also behind a reverse proxy that terminates
+  TLS and sends `X-Forwarded-Proto: https`; `true` sets it always and is meant for
+  production. Before, a prototype behind such a proxy sent its session cookie without
+  `Secure`. The PHP session now starts after the settings are loaded
+  (AmpersandTarski/Ampersand#1698).
+
 ## v2.11.0 (29 September 2026)
 
 * **The violation cache can be kept up to date from the pairs a transaction touched

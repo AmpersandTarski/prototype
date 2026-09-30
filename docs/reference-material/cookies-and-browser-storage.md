@@ -12,7 +12,7 @@ The page describes the framework. A model can add relations on `SESSION`, such a
 | `menuItems` | sessionStorage | `frontend/src/app/layout/app.menu.component.ts` | until the tab closes | Caches the navigation menu, so that it is not rebuilt on every page. |
 | `adminMode` | sessionStorage | `frontend/src/app/layout/app.menu.service.ts` | until the tab closes | Remembers whether the user switched on the admin menu. |
 
-The cookie is `HttpOnly`, so scripts in the page cannot read it, and `Secure` when PHP sees the request arrive over HTTPS. Its value is the identifier of the user's session on the server.
+The cookie is `HttpOnly`, so scripts in the page cannot read it. It is `SameSite=Lax`, so the browser leaves it out of requests that another site starts, except when the user follows a link. It is `Secure`, which keeps it off plain HTTP, as the setting `session.cookieSecure` says: `auto` (the default) sets it when the request arrives over HTTPS, also behind a reverse proxy that sends `X-Forwarded-Proto: https`, and `true` sets it always, which is what a production deployment should use. Its value is the identifier of the user's session on the server.
 
 No third party receives a request from a generated prototype. The font (Inter) and the icons are served from the application's own origin, and there is no content delivery network and no web analytics.
 
