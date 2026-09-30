@@ -1,0 +1,13 @@
+CONTEXT PrivacyAndCookies IN ENGLISH
+PURPOSE CONTEXT PrivacyAndCookies
+{+A minimal application to observe what a generated prototype stores in the browser.
+See test/projects/privacy-and-cookies/README.md.+}
+
+REPRESENT Note TYPE ALPHANUMERIC
+RELATION sessionNote[SESSION*Note] [UNI]
+
+INTERFACE Notes: "_SESSION"[SESSION] cRud BOX<FORM>
+   [ "Note" : sessionNote cRUd
+   ]
+
+ENDCONTEXT

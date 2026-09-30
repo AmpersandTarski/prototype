@@ -1,0 +1,95 @@
+/* Scoped under .markup, because this component has no view encapsulation (see the component). */
+
+.markup {
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.markup--text {
+  white-space: pre-wrap;
+}
+
+.markup > :first-child {
+  margin-top: 0;
+}
+
+.markup > :last-child {
+  margin-bottom: 0;
+}
+
+.markup h1,
+.markup h2,
+.markup h3,
+.markup h4,
+.markup h5,
+.markup h6 {
+  margin: 1em 0 0.5em;
+  line-height: 1.25;
+}
+
+.markup h1 {
+  font-size: 1.4em;
+}
+
+.markup h2 {
+  font-size: 1.25em;
+}
+
+.markup h3 {
+  font-size: 1.1em;
+}
+
+.markup p,
+.markup ul,
+.markup ol,
+.markup pre,
+.markup blockquote,
+.markup table {
+  margin: 0 0 0.75em;
+}
+
+.markup code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  background: rgba(127, 127, 127, 0.15);
+}
+
+.markup pre {
+  overflow-x: auto;
+  padding: 0.75em;
+  border-radius: 4px;
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.markup pre code {
+  padding: 0;
+  background: none;
+}
+
+.markup blockquote {
+  padding-left: 0.75em;
+  border-left: 3px solid rgba(127, 127, 127, 0.4);
+  color: inherit;
+  opacity: 0.85;
+}
+
+.markup table {
+  border-collapse: collapse;
+}
+
+.markup th,
+.markup td {
+  padding: 0.25em 0.5em;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+}
+
+.markup img {
+  max-width: 100%;
+}
+
+.markup__label {
+  font-weight: 600;
+  margin-bottom: 0.25em;
+}

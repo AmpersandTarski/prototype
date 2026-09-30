@@ -1,0 +1,30 @@
+<ng-container *ngIf="!isFormatItem">
+    <div *ngIf="showLabel && label" class="markup__label">{{ label }}</div>
+
+    <app-atomic-bigalphanumeric
+        *ngIf="canRead() && canUpdate(); else reading"
+        [resource]="resource"
+        [interfaceComponent]="interfaceComponent"
+        [property]="property"
+        [propertyName]="propertyName"
+        [crud]="crud"
+        [isUni]="isUni"
+        [isTot]="isTot"
+    ></app-atomic-bigalphanumeric>
+
+    <ng-template #reading>
+        <ng-container *ngIf="canRead(); else notReadable">
+            <div
+                *ngFor="let text of data"
+                class="markup"
+                [class.markup--text]="effectiveFormat === 'TEXT'"
+                [attr.data-format]="effectiveFormat"
+                [innerHTML]="text | markup: effectiveFormat"
+            ></div>
+        </ng-container>
+    </ng-template>
+
+    <ng-template #notReadable>
+        <span><i>Text is not readable</i></span>
+    </ng-template>
+</ng-container>

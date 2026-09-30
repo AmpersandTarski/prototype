@@ -21,54 +21,9 @@
  * Every error toast fails the spec. Step 8 adds a row, so a second run on the
  * same stack needs a fresh install first.
  */
-import { execSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
-import { createRequire } from 'node:module';
+import { assert, baseUrl, buildFrontend, failureCount, loadPuppeteer } from '../../../spec-support/browser-spec.mjs';
 
-// A fresh worktree has no test/node_modules yet (gitignored). The spec does not install
-// them itself: it states the one command that does.
-const require = createRequire(import.meta.url);
-try {
-  require.resolve('puppeteer');
-} catch {
-  console.error('❌ Puppeteer is missing: run `npm install` in test/ first.');
-  process.exit(1);
-}
-const puppeteer = (await import('puppeteer')).default;
-
-const specDir = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(specDir, '../../../..');
-const baseUrl = process.env.PROTOTYPE_URL ?? 'http://localhost';
-// test/run-regression.sh runs this spec against its own stack; without it, the dev stack.
-const container = process.env.PROTOTYPE_CONTAINER ?? 'prototype';
-
-
-let failures = 0;
-function assert(cond, msg) {
-  if (cond) {
-    console.log(`  ✅ ${msg}`);
-  } else {
-    console.error(`  ❌ ${msg}`);
-    failures++;
-  }
-}
-
-function run(cmd, opts = {}) {
-  execSync(cmd, { stdio: 'inherit', cwd: repoRoot, ...opts });
-}
-
-function buildFrontend() {
-  console.log('▶ Building the frontend (compiler sources + npm build) ...');
-  run(
-    `docker exec ${container} sh -c "ampersand proto --frontend-version Angular --no-backend ` +
-      `/var/www/test/projects/box-facets/model/main.adl ` +
-      `--proto-dir /var/www/frontend/src/app/generated --crud-defaults cRud"`,
-  );
-  run('npm install --no-audit --no-fund', { cwd: resolve(repoRoot, 'frontend') });
-  run('npm run build:dev', { cwd: resolve(repoRoot, 'frontend') });
-  run('cp -r frontend/dist/prototype-frontend/. html/');
-}
+const puppeteer = await loadPuppeteer();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -125,7 +80,7 @@ async function clickValue(page, facetId, label) {
 
 const queryOf = (page) => new URL(page.url()).searchParams;
 
-buildFrontend();
+buildFrontend('box-facets');
 
 // 'shell' is the headless Chrome that renders without a display. The newer headless mode
 // stops producing animation frames on macOS while the screen is locked (measured on
@@ -302,11 +257,11 @@ try {
   const unexpected = [...errors, ...toasts];
   assert(unexpected.length === 0, `no errors (got: ${unexpected.join(' | ') || 'none'})`);
 } catch (e) {
-  console.error(`  ❌ ${e.message}`);
-  failures++;
+  assert(false, e.message);
 } finally {
   await browser.close();
 }
 
+const failures = failureCount();
 console.log(failures === 0 ? '\n✅ box-facets: all assertions passed' : `\n❌ box-facets: ${failures} failed`);
 process.exit(failures === 0 ? 0 : 1);

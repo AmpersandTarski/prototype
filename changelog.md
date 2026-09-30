@@ -10,6 +10,63 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.13.0 (30 September 2026)
+
+* **A detail screen shows what a record has (DesignChoices OK-20).** A FORM leaves out a field
+  that is empty and that the user cannot fill, and a group whose fields are all empty; groups
+  sit side by side while the width allows. On a requirement screen that listed 27 labels, 18
+  of them without a value, the reader now sees the 9 that say something. `showOnNoRecords`
+  shows an empty group that tells something, and `showSubOnNoRecords` restores every field.
+
+* **A screen on one item carries that item as its title (OK-21).** The heading is the label of
+  the item, such as "R01 Leerbaarheid", with the name of the interface small above it.
+
+* **A facet table drops a column that says the same in every row (OK-22).** After choosing a
+  project, the column Project no longer repeats it in every row; the facet shows the value
+  checked. The panel has one search field instead of a text facet beside it.
+
+* **The screen follows the width of the window (OK-23).** The content uses a wide screen, and
+  below 1200 pixels the menu folds into a drawer behind the menu button. The New menu no longer
+  lists interfaces that serve programs (API).
+
+## v2.12.0 (30 September 2026)
+
+* **A prototype can show text formatted in its markup language (DesignChoices OK-24).** The
+  purpose is that a reader sees the formatting an author wrote, instead of `**bold**` and
+  backticks. `BOX <MARKUP MARKDOWN>` on the object that owns a text formats every item of the
+  box as Markdown; `GFM` (GitHub-flavoured Markdown), `HTML` and `TEXT` work the same way, and
+  `formatFrom="<item>"` takes the format per row from a relation to a format concept. A project
+  that wants every text of one concept formatted, in every interface, writes a
+  `Concept-<name>.html` that uses the new component `app-atomic-markup`; the documentation now
+  describes that route. HTML passes Angular's sanitiser, so a text cannot run code in the
+  browser. The frontend gains the dependency `marked`. The regression project `markup` guards
+  the formats, the fallback for an unknown format and the sanitising
+  (AmpersandTarski/Ampersand#1700, PR #472).
+
+* **The organisation that deploys a prototype can tell its users what the prototype stores.**
+  A new reference page, `docs/reference-material/cookies-and-browser-storage.md`, lists the
+  one cookie, the two session-storage items, the session record on the server and the IP
+  address in the logs, each with its lifetime and purpose, ready for a privacy statement
+  (article 13 GDPR). With `frontend.privacyStatementUrl` set, the footer of every screen
+  links to that statement. The regression project `privacy-and-cookies` fails when code
+  stores something the page does not list (AmpersandTarski/Ampersand#1697).
+
+* **The session cookie no longer depends on the network in front of the application.** It
+  is now `SameSite=Lax`, so the browser leaves it out of requests that another site starts,
+  which blocks cross-site request forgery. Its `Secure` flag follows the new setting
+  `session.cookieSecure` (env `AMPERSAND_SESSION_COOKIE_SECURE`): `auto`, the default, sets
+  it when the request arrives over HTTPS, now also behind a reverse proxy that terminates
+  TLS and sends `X-Forwarded-Proto: https`; `true` sets it always and is meant for
+  production. Before, a prototype behind such a proxy sent its session cookie without
+  `Secure`. The PHP session now starts after the settings are loaded
+  (AmpersandTarski/Ampersand#1698).
+
+* **A project that stores more than the framework knows how to ask consent.** The guide
+  `docs/guides/asking-for-cookie-consent.md` tells when consent is needed, recommends the
+  MIT-licensed library CookieConsent v3, and shows the files and Dockerfile lines that add a
+  consent banner, a "Cookie settings" button and scripts that wait for consent, without
+  changes to the framework (AmpersandTarski/Ampersand#1699).
+
 ## v2.11.0 (29 September 2026)
 
 * **The violation cache can be kept up to date from the pairs a transaction touched

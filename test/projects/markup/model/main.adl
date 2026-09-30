@@ -1,0 +1,76 @@
+CONTEXT Markup IN ENGLISH
+PURPOSE CONTEXT Markup
+{+ Test project for BOX<MARKUP> and app-atomic-markup (DesignChoices OK-24): texts in
+   Markdown, GitHub-flavoured Markdown, HTML and plain text, a format fixed in the box
+   header, a format per row from a relation on the note and from a relation on the text
+   itself, an unknown format, HTML that must be sanitised, and a concept whose texts a
+   Concept-<name>.html template formats in every interface. The population is synthetic. +}
+
+REPRESENT Body, Explanation TYPE BIGALPHANUMERIC
+REPRESENT Title, Format TYPE ALPHANUMERIC
+
+RELATION title[Note*Title] [UNI]
+RELATION body[Note*Body] [UNI]
+RELATION bodyFormat[Note*Format] [UNI]
+MEANING "The markup language in which the body of the note is written."
+RELATION textFormat[Body*Format] [UNI]
+MEANING "The markup language in which a text is written."
+RELATION explanation[Note*Explanation] [UNI]
+
+POPULATION title CONTAINS
+  [ ("n1", "markdown"), ("n2", "html"), ("n3", "gfm"), ("n4", "text"), ("n5", "rst"), ("n6", "none") ]
+
+POPULATION body CONTAINS
+  [ ("n1", "# Heading\n\nSome **bold** text with `code` and a [link](https://ampersandtarski.github.io).\n\n- one\n- two")
+  , ("n2", "<p>Hello <b>html</b></p><script>window.markupPwned = 1</script><img src=\"x\" onerror=\"window.markupPwned = 2\"><a href=\"javascript:window.markupPwned = 3\">click</a>")
+  , ("n3", "| a | b |\n|---|---|\n| 1 | 2 |\n\n~~struck~~")
+  , ("n4", "Line one with <b>no tag</b>\nline two")
+  , ("n5", "Title\n=====\n\n*emphasis* stays literal")
+  , ("n6", "No format, so **the default** applies")
+  ]
+
+POPULATION bodyFormat CONTAINS
+  [ ("n1", "MARKDOWN"), ("n2", "html"), ("n3", "GITHUB-MARKDOWN"), ("n4", "TEXT"), ("n5", "RST") ]
+
+POPULATION textFormat CONTAINS
+  [ ("# Heading\n\nSome **bold** text with `code` and a [link](https://ampersandtarski.github.io).\n\n- one\n- two", "MARKDOWN")
+  , ("| a | b |\n|---|---|\n| 1 | 2 |\n\n~~struck~~", "GFM")
+  ]
+
+POPULATION explanation CONTAINS
+  [ ("n1", "An *explanation* in **Markdown**") ]
+
+-- The format in the box header, the same for every row.
+INTERFACE StaticNotes : "_SESSION";V[SESSION*Note] cRud BOX <TABLE>
+  [ "title" : title
+  , "body"  : I BOX <MARKUP MARKDOWN> [ "body" : body ]
+  ]
+
+-- The format per row, from a relation on the note; MARKDOWN when the note has none.
+INTERFACE DynamicNotes : "_SESSION";V[SESSION*Note] cRud BOX <TABLE>
+  [ "title" : title
+  , "body"  : I BOX <MARKUP MARKDOWN formatFrom="fmt"> [ "body" : body, "fmt" : bodyFormat ]
+  ]
+
+-- The format per row, from a relation on the text itself; TEXT when the text has none.
+INTERFACE FormatOnText : "_SESSION";V[SESSION*Note] cRud BOX <TABLE>
+  [ "title" : title
+  , "body"  : I BOX <MARKUP formatFrom="fmt"> [ "body" : body, "fmt" : body;textFormat ]
+  ]
+
+-- Labels above the texts, in a FORM.
+INTERFACE LabelledNote : I[Note] cRud BOX <FORM>
+  [ "texts" : I BOX <MARKUP MARKDOWN showLabels> [ "Body" : body, "Explanation" : explanation ]
+  ]
+
+-- The route per concept: Concept-Explanation.html (copied in by the spec) formats every
+-- Explanation, for reading; with update rights the field is the text area.
+INTERFACE Explanations : "_SESSION";V[SESSION*Note] cRud BOX <TABLE>
+  [ "title"       : title
+  , "explanation" : explanation
+  ]
+
+INTERFACE EditExplanation : I[Note] cRud BOX <FORM>
+  [ "explanation" : explanation cRUd
+  ]
+ENDCONTEXT

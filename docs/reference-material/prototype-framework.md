@@ -36,6 +36,7 @@ These are loaded last and overwrite previous set settings.
 * AMPERSAND_DBNAME -> mysql.dbName
 * AMPERSAND_DBUSER -> mysql.dbUser
 * AMPERSAND_DBPASS -> mysql.dbPass
+* AMPERSAND_SESSION_COOKIE_SECURE -> session.cookieSecure
 
 #### Explanation of settings
 
@@ -53,6 +54,10 @@ These are loaded last and overwrite previous set settings.
 
   The Ampersand compiler sets this value in `generics/settings.json` from its `--[no-]production` flag (a production build sets it to `true`, a development build to `false`). So the build target you pass to the compiler drives the framework's behaviour, including [OpenAPI publication](#openapi-publication). As always, `config/project.yaml` and the environment variable can still override it.
 
+* session.cookieSecure (`auto` | `true` | `false`, default `auto`; env AMPERSAND_SESSION_COOKIE_SECURE)
+
+  Whether the session cookie carries the `Secure` flag, which keeps the browser from sending it over plain HTTP. With `auto` the cookie is `Secure` when the request arrives over HTTPS: either PHP sees HTTPS itself, or a reverse proxy that terminates TLS sends `X-Forwarded-Proto: https`. Set `true` in production, so that the flag does not depend on the network in front of the application. The session cookie is always `HttpOnly` and `SameSite=Lax`. See [Cookies and browser storage](./cookies-and-browser-storage.md).
+
 * frontend.menuGrouping (`none` | `byType`, default `none`)
 
   Controls the default navigation menu population that the installer writes (see [Navigation menu](#navigation-menu)). With `byType`, interfaces whose expression targets a domain concept (lists, expression ⊆ `V[SESSION*Concept]`) are grouped in one submenu; interfaces targeting `SESSION` (task screens, expression ⊆ `I[SESSION]`) stay top-level.
@@ -64,6 +69,10 @@ These are loaded last and overwrite previous set settings.
 * frontend.menuMode (`static` | `overlay` | `horizontal`, default `static`)
 
   The default orientation of the navigation menu in the frontend: a vertical sidebar (`static`), a collapsible vertical sidebar (`overlay`), or a horizontal menu bar with dropdown submenus (`horizontal`). In horizontal mode, items that do not fit the viewport width move into a "More" dropdown at the end of the bar, so every item stays reachable. Below the desktop breakpoint (992px) the horizontal bar falls back to the mobile drawer.
+
+* frontend.privacyStatementUrl (default `null`)
+
+  The URL of the privacy statement of the organisation that deploys the application. When set, the footer of every screen links to it. See [Cookies and browser storage](./cookies-and-browser-storage.md) for what the prototype stores and why the statement should mention it.
 
 ## Navigation menu
 

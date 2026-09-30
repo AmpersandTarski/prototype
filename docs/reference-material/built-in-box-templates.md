@@ -2,7 +2,7 @@
 
 The prototype framework ships four general-purpose BOX templates — `TABLE`,
 `FORM`, `TABS` and `RAW` — plus special-purpose ones: `PROPBUTTON`,
-`FILTEREDDROPDOWN`, `SELECT`, `FACETS` and `NOVIEW`. Each general-purpose template
+`FILTEREDDROPDOWN`, `SELECT`, `FACETS`, `MARKUP` and `NOVIEW`. Each general-purpose template
 accepts a set of **annotations** in its BOX header that tune how the box is rendered.
 This page documents those annotations first, then the special-purpose templates.
 
@@ -373,7 +373,7 @@ raises an error at runtime.
 ### CRUD on `setRelation`
 
 The CRUD letters on `setRelation` decide which actions the widget offers (see the
-[CRUD reference](interfaces.md#CRUD) for the general meaning):
+[CRUD reference](https://ampersandtarski.github.io/ampersand/reference-material/interfaces#CRUD) for the general meaning):
 
 - **R** (read) is required for the box to display the current value.
 - **U** (update) lets the user replace/extend the value by selecting an option.
@@ -551,6 +551,79 @@ missing, the panel infers the kind of facet from the values: dates and numbers a
 recognised, but a `PASSWORD` or binary item is not, and becomes a facet unless
 `facets` leaves it out.
 
+## BOX \<MARKUP\>
+
+`BOX <MARKUP>` shows text formatted in its markup language: Markdown, GitHub-flavoured
+Markdown, HTML or plain text. Use it for a text that its author wrote with markup, such as
+a design choice or a document stored in a `BIGALPHANUMERIC` or `HUGEALPHANUMERIC` concept.
+Without it, the prototype shows the markup characters: `**Why:**` instead of **Why:**.
+
+### Usage
+
+The box sits on the object that owns the text, and every item of the box is a text:
+
+```ampersand
+"Explanation" : I cRud BOX <MARKUP MARKDOWN> [ "text" : explanation ]
+```
+
+The box cannot sit on the text itself. An annotation such as `MARKDOWN` reaches a template only
+through a box header, and a `BOX` or `VIEW` on a text concept makes that concept an
+`OBJECT`, which the type checker refuses next to its `REPRESENT` (Ampersand v5.9.7).
+
+| Annotation | Value | Effect |
+| --- | --- | --- |
+| `MARKDOWN` | flag | Markdown, close to CommonMark. |
+| `GFM` | flag | GitHub-flavoured Markdown: Markdown plus tables and strikethrough. A task list shows as a plain list: the sanitiser removes its check boxes. |
+| `HTML` | flag | HTML. |
+| `TEXT` | flag | Plain text with its line breaks kept. This is also the default. |
+| `formatFrom` | item label | The format per row: the value of the named item, such as `MARKDOWN`. That item shows nothing. |
+| `showLabels` | flag | Shows the label of every item above its text. Without it, the texts stand without labels, because the enclosing box usually labels the box already. |
+
+Write the format flags in capitals, as in the table: the template reads them by name. With more than one
+flag in the header, the first of `MARKDOWN`, `GFM` and `HTML` counts.
+
+### A format per row
+
+When the format differs from text to text, a relation to a format concept carries it,
+and `formatFrom` names the item that reads it. The expression may start at the owner or at
+the text itself:
+
+```ampersand
+REPRESENT Format TYPE ALPHANUMERIC
+RELATION bodyFormat[Note*Format] [UNI]   -- on the owner
+RELATION textFormat[Body*Format] [UNI]   -- on the text itself
+
+"Body" : I BOX <MARKUP MARKDOWN formatFrom="fmt"> [ "body" : body, "fmt" : bodyFormat ]
+"Body" : I BOX <MARKUP formatFrom="fmt">          [ "body" : body, "fmt" : body;textFormat ]
+```
+
+A row without a format falls back to the flag in the header, and without a flag to `TEXT`.
+In a format item the names are case-insensitive, and some have aliases: `MD` and `COMMONMARK` for
+`MARKDOWN`, `GITHUB-MARKDOWN` and `GITHUB_MARKDOWN` for `GFM`, `PLAIN` and `ASCII` for `TEXT`. `Format` may also be
+an `OBJECT` concept; its atom identifier is then the name. A name the framework does not know,
+such as `RST`, gives plain text and one warning in the browser console. `EBCDIC` is a character
+encoding, not a markup language: a text in the database is already decoded, so it is plain
+text as well.
+
+Name the format item with a plain word. The template looks the item up in the row by its
+label, and a label with spaces or punctuation reaches the row under another name.
+
+### Safety
+
+HTML, also the HTML that Markdown produces, passes the sanitiser of Angular before it
+reaches the page. That removes scripts, event handlers such as `onerror`, and makes a
+`javascript:` link inert. A text therefore cannot run code in the browser of its reader.
+
+### Reading, not editing
+
+`BOX <MARKUP>` is for reading. To edit a text, give it a `FORM` or a table column of its own,
+where the text area of `BIGALPHANUMERIC` does the work.
+
+### Every text of one concept
+
+To format every text of a concept in every interface, without an annotation per interface,
+use a template per concept; see [A template per concept](#a-template-per-concept).
+
 ## BOX \<NOVIEW\>
 
 `BOX <NOVIEW>` renders nothing. Use it to keep a sub-interface in the interface
@@ -583,3 +656,39 @@ target concept's `REPRESENT` type. The framework ships one per TType:
 
 The Angular components behind these templates, and how the type mapping works, are
 described in [Frontend components](frontend-components.md).
+
+
+### A template per concept
+
+Before the atomic template of the technical type, the compiler looks for a template named
+after the target concept: `Concept-<name>.html` in the template folder
+(`frontend/src/app/generated/.templates/`). A project that places such a file there changes how
+every leaf with that target concept looks, in every interface. Copy the file in from the project's
+Dockerfile, before the frontend is compiled:
+
+```dockerfile
+COPY project/templates/ /var/www/frontend/src/app/generated/.templates/
+```
+
+Two framework components suit this route. `app-atomic-url` shows a text as a link.
+`app-atomic-markup` shows a text formatted, in the format its `format` attribute names (see
+[BOX \<MARKUP\>](#box-markup) for the formats); with update rights it shows the text area of
+`BIGALPHANUMERIC`, so the text stays editable. A file `Concept-Explanation.html` that formats
+every `Explanation` as Markdown reads:
+
+```html
+<app-atomic-markup
+    format="MARKDOWN"
+    [resource]="resource"
+    [interfaceComponent]="this"
+    [property]="resource.$name$"
+    propertyName="$name$"
+    label="$label$"
+    crud="$crud$"
+    $if(exprIsUni)$isUni$endif$
+    $if(exprIsTot)$isTot$endif$
+></app-atomic-markup>
+```
+
+A template per concept fixes one format for the whole concept. A format per text needs
+`BOX <MARKUP formatFrom="...">`, because only a box sees the other items of its row.

@@ -1,0 +1,34 @@
+<!-- Box-MARKUP.html -->
+<!-- BOX<MARKUP> shows every item of the box as formatted text (DesignChoices OK-24), one
+     app-atomic-markup per item and per row. The format comes from the box header:
+     MARKDOWN, GFM (GitHub-flavoured Markdown), HTML or TEXT as a bare word, or, per row,
+     from the item that `formatFrom` names; that item shows nothing, and a row whose format
+     item is empty falls back to the bare word, or to TEXT. `showLabels` shows the label of
+     every item above its text. The box is for reading: editing stays in a FORM.
+     A key/value pair reaches only a box header, never a box item, and a BOX or VIEW on a text
+     concept makes it an OBJECT (Ampersand v5.9.7); that is why the box sits on the object
+     that owns the text: "Explanation" : I BOX <MARKUP MARKDOWN> [ "text" : explanation ]. -->
+<div $if(isRoot)$*ngIf="resource?.data; else loading" $endif$class="box-markup">
+    <ng-container *ngFor="let markupRow of $if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$">
+        <div *ngIf="markupRow" class="box-markup__row">$subObjects:{subObj|
+            <app-atomic-markup
+                [resource]="markupRow"
+                [interfaceComponent]="this"
+                [property]="markupRow.$subObj.subObjName$"
+                propertyName="$subObj.subObjName$"
+                label="$subObj.subObjLabel$"
+                crud="cRud"
+                format="$if(MARKDOWN)$MARKDOWN$else$$if(GFM)$GFM$else$$if(HTML)$HTML$else$TEXT$endif$$endif$$endif$"
+                $if(formatFrom)$[formatValue]="markupRow['$formatFrom$']"
+                formatItem="$formatFrom$"
+                $endif$$if(showLabels)$showLabel
+                $endif$$if(subObj.subObjExprIsUni)$isUni$endif$
+            ></app-atomic-markup>}$
+        </div>
+    </ng-container>
+</div>
+$if(isRoot)$
+
+<ng-template #loading>
+    <app-box-form-loading></app-box-form-loading> </ng-template
+>$endif$

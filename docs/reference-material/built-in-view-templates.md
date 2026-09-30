@@ -4,7 +4,7 @@ A `VIEW` binds an HTML template to the leaves of an interface so that a value is
 rendered by a dedicated widget instead of the default atomic template. The VIEW
 syntax itself (`VIEW … HTML TEMPLATE "View-X.html" ENDVIEW`, and the `LINKTO`
 form) is part of the Ampersand language; see
-[interfaces.md](interfaces.md) and
+[Interfaces](https://ampersandtarski.github.io/ampersand/reference-material/interfaces) and
 [Creating Custom VIEW Templates](../guides/creating-custom-view-templates.md) for
 how to build your own.
 

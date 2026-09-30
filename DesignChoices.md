@@ -628,3 +628,76 @@ Impact in productie: on screens between 992 and 1199 pixels wide the menu is now
 
 Technisch: `_responsive.scss`, `_menu.scss`, `_topbar.scss`, `LayoutService.isDesktop()` and
 `AngularJSApp::getMenuItems()`.
+
+**BOX<MARKUP> and app-atomic-markup show a text formatted in its markup language**
+OK-24 · geldig · 2026-09-29 · herkomst: gebruikerswens (Stef, bij het lezen van de Artefactenkaart), AmpersandTarski/Ampersand#1700
+
+`app-atomic-markup` shows a text in one of four formats: `MARKDOWN`, `GFM` (GitHub-flavoured
+Markdown), `HTML` or `TEXT`; an unknown format name gives `TEXT` and one console warning. Two
+templates use it. `BOX <MARKUP MARKDOWN> [ "text" : explanation ]` sits on the object that owns
+the texts and formats every item of the box; `formatFrom="fmt"` takes the format per row from the
+item `fmt`, which itself shows nothing. A project's own `Concept-<name>.html` formats every text
+of one concept, in every interface, and keeps the text area where the field may be updated.
+Markdown is rendered in the browser by `marked`; all HTML reaches the page through Angular's
+sanitiser.
+
+Overwegingen:
+
+1. The purpose is that a reader sees the formatting an author wrote. The Artefactenkaart showed
+   `**Why:**` where the author meant **Why:**: of its 3 306 texts, 772 contain backticks, 163
+   a double asterisk (160 a closed `**bold**` pair) and 63 a Markdown link (measured in its database on 2026-09-29).
+
+2. Stef proposed `<MARKUP MARKDOWN>` on the text itself. Ampersand v5.9.7 does not allow that
+   without a compiler change, measured on the test model: a box item takes a view name and no
+   keys, and both a `BOX` and a `VIEW` on a text concept make it an `OBJECT`, which the type
+   checker refuses next to its `REPRESENT` ("multiple representation types: OBJECT,
+   BIGALPHANUMERIC"). The box therefore sits one level up, on the owner, where a box header
+   carries keys, as `facets` does for FACETS (OK-16).
+
+3. Rejected for now: a compiler change that allows a `VIEW` or `BOX` on a text concept, or keys on
+   a box item. It gives the literal syntax, but puts a compiler release, a compiler image and a
+   framework release between the change and any project, and the two routes here cover the need.
+
+4. The dynamic format is an item of the box, named by `formatFrom`. Its expression is free, so the
+   format can hang on the owner (`bodyFormat[Note*Format]`) or on the text itself
+   (`body;textFormat` with `textFormat[Body*Format]`); a relation that starts at a text concept is
+   accepted. Rejected: a reserved item label such as `format`, which would silently take a
+   modeller's item of that name. Rejected: calling the key `format`, because its value names an
+   item, not a format. StringTemplate cannot compare strings, so the component hides the format
+   item at runtime, as FACETS hides its `facetOnly` columns.
+
+5. The static format is a bare word in the header (`MARKDOWN`, `GFM`, `HTML`, `TEXT`): a name with
+   a hyphen, such as `GITHUB-MARKDOWN`, is no single word for the parser and no attribute name for
+   StringTemplate. The runtime accepts it as an alias of `GFM` in a format item, next to `MD`,
+   `COMMONMARK`, `GITHUB_MARKDOWN`, `PLAIN` and `ASCII`. `EBCDIC` is an encoding, not a markup, and reStructuredText
+   has no small renderer for the browser; both give plain text and one console warning.
+
+6. Safety comes from Angular's sanitiser on `[innerHTML]`: it removes `<script>` and event
+   handlers and makes a `javascript:` URL inert (`unsafe:javascript:`), measured in the spec.
+   Rejected: `bypassSecurityTrustHtml`, which would let a text run code in its reader's browser.
+   Rejected: DOMPurify as a second layer, one dependency more for what Angular already does.
+
+7. `marked` 15 is the renderer: it has no dependencies of its own, and 15 is the last series that
+   runs on Node 18, the Node of the framework images (16 and later require Node 20). The pure pipe
+   `markup` formats a text again only when its text or format changes.
+
+8. The box is for reading: the compiler hands a box template no CRUD per item, so every text in
+   it is read-only, and editing stays in a FORM. The route per concept knows the CRUD of its field
+   and shows the text area of BIGALPHANUMERIC when the field may be updated.
+
+9. `showLabels` is off by default. A MARKUP box usually holds one text, whose label the enclosing
+   FORM or TABLE already shows; FORM's opposite default, `hideLabels`, would make the common case
+   the one that needs an annotation.
+
+Impact op de specificatie: none for the model. An interface that shows formatted text gains a
+`BOX <MARKUP ...>` on the owner of the text, or the project adds a `Concept-<name>.html`. A format
+per text needs a relation to a format concept.
+
+Impact in productie: a project picks MARKUP up with the next framework release and a rebuild.
+The frontend bundle grows by `marked`, a package without dependencies of its own. A text that was shown with its markup
+characters is shown formatted only where the modeller asks for it; nothing changes elsewhere.
+
+Technisch: `frontend/src/app/shared/atomic-components/atomic-markup/` (component, `markup.ts`
+with its unit tests, `MarkupPipe`), `frontend/src/app/generated/.templates/Box-MARKUP.html`,
+`marked` in `frontend/package.json`, documentation in
+`docs/reference-material/built-in-box-templates.md`, regression in `test/projects/markup`.
