@@ -1,10 +1,12 @@
 /**
  * Regression test for AmpersandTarski/Ampersand#1697: what a browser visit leaves behind, and
- * the link to the privacy statement in the footer.
+ * the link to the privacy statement in the footer; and for #1698: the attributes of the
+ * session cookie.
  *
  * Run via `test/run-regression.sh privacy-and-cookies` (the runner prepares the backend API;
  * this spec builds the Angular frontend into html/ itself). The spec
- * 1. checks the session cookie in the first response of a fresh visitor;
+ * 1. checks the session cookie in the first response of a fresh visitor: HttpOnly,
+ *    SameSite=Lax, and Secure as session.cookieSecure (auto, true, false) says;
  * 2. builds the frontend and opens it in a headless browser;
  * 3. without frontend.privacyStatementUrl: the footer shows no privacy link;
  * 4. with the setting written to backend/config/project.yaml: the navbar returns it and the
@@ -37,6 +39,20 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function freshSetCookies(headers = {}) {
   const res = await fetch(`${baseUrl}/api/v1/app/navbar`, { headers });
   return res.headers.getSetCookie();
+}
+
+const isSecure = (setCookie) => /;\s*Secure(;|$)/i.test(setCookie ?? '');
+
+// After a settings write, poll until the session cookie of a fresh visitor satisfies the
+// predicate, for at most 20 s. Returns the last Set-Cookie seen, so the caller asserts on it.
+async function waitForCookie(headers, predicate) {
+  const deadline = Date.now() + 20000;
+  let [last] = await freshSetCookies(headers);
+  while (!predicate(last) && Date.now() < deadline) {
+    await sleep(500); // polling is sequential by nature
+    [last] = await freshSetCookies(headers);
+  }
+  return last;
 }
 
 async function navbarPrivacyUrl() {
@@ -90,6 +106,28 @@ try {
   assert(setCookies.length === 1, `one Set-Cookie header (got ${setCookies.length}: ${setCookies.join(' | ')})`);
   assert((setCookies[0] ?? '').startsWith('PHPSESSID='), 'it is the session cookie PHPSESSID');
   assert(/;\s*HttpOnly/i.test(setCookies[0] ?? ''), 'it is HttpOnly');
+  assert(/;\s*SameSite=Lax/i.test(setCookies[0] ?? ''), 'it is SameSite=Lax');
+
+  // AmpersandTarski/Ampersand#1698: the Secure flag follows session.cookieSecure.
+  console.log('\n▶ session.cookieSecure: auto (default)');
+  assert(!isSecure(setCookies[0]), 'over plain HTTP the cookie is not Secure');
+  const viaProxy = await freshSetCookies({ 'X-Forwarded-Proto': 'https' });
+  assert(isSecure(viaProxy[0]), 'behind a proxy that sends X-Forwarded-Proto: https it is Secure');
+  const viaChain = await freshSetCookies({ 'X-Forwarded-Proto': 'https, http' });
+  assert(isSecure(viaChain[0]), 'a chain of proxies counts the protocol of the first hop (https, http)');
+  const viaHttp = await freshSetCookies({ 'X-Forwarded-Proto': 'http' });
+  assert(!isSecure(viaHttp[0]), 'X-Forwarded-Proto: http leaves it not Secure');
+
+  console.log('\n▶ session.cookieSecure: true');
+  writeSettings(['session.cookieSecure: true']);
+  const alwaysSecure = await waitForCookie({}, isSecure);
+  assert(isSecure(alwaysSecure), `over plain HTTP the cookie is Secure (got: ${alwaysSecure})`);
+  assert(/;\s*SameSite=Lax/i.test(alwaysSecure ?? '') && /;\s*HttpOnly/i.test(alwaysSecure ?? ''), 'and still HttpOnly and SameSite=Lax');
+
+  console.log('\n▶ session.cookieSecure: false');
+  writeSettings(['session.cookieSecure: false']);
+  const neverSecure = await waitForCookie({ 'X-Forwarded-Proto': 'https' }, (c) => !isSecure(c));
+  assert(!isSecure(neverSecure), `with X-Forwarded-Proto: https the cookie is not Secure (got: ${neverSecure})`);
 
   console.log('\n▶ Without frontend.privacyStatementUrl');
   writeSettings([]);

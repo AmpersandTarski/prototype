@@ -36,6 +36,7 @@ These are loaded last and overwrite previous set settings.
 * AMPERSAND_DBNAME -> mysql.dbName
 * AMPERSAND_DBUSER -> mysql.dbUser
 * AMPERSAND_DBPASS -> mysql.dbPass
+* AMPERSAND_SESSION_COOKIE_SECURE -> session.cookieSecure
 
 #### Explanation of settings
 
@@ -52,6 +53,10 @@ These are loaded last and overwrite previous set settings.
   This means that when you start the application in production mode `true`, and the database doesn't exist or is outdated (new tables/columns are needed), an exception is thrown. And you are stuck.
 
   The Ampersand compiler sets this value in `generics/settings.json` from its `--[no-]production` flag (a production build sets it to `true`, a development build to `false`). So the build target you pass to the compiler drives the framework's behaviour, including [OpenAPI publication](#openapi-publication). As always, `config/project.yaml` and the environment variable can still override it.
+
+* session.cookieSecure (`auto` | `true` | `false`, default `auto`; env AMPERSAND_SESSION_COOKIE_SECURE)
+
+  Whether the session cookie carries the `Secure` flag, which keeps the browser from sending it over plain HTTP. With `auto` the cookie is `Secure` when the request arrives over HTTPS: either PHP sees HTTPS itself, or a reverse proxy that terminates TLS sends `X-Forwarded-Proto: https`. Set `true` in production, so that the flag does not depend on the network in front of the application. The session cookie is always `HttpOnly` and `SameSite=Lax`. See [Cookies and browser storage](./cookies-and-browser-storage.md).
 
 * frontend.menuGrouping (`none` | `byType`, default `none`)
 
