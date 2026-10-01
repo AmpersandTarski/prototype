@@ -556,7 +556,7 @@ recognised, but a `PASSWORD` or binary item is not, and becomes a facet unless
 ## BOX \<MARKUP\>
 
 `BOX <MARKUP>` shows text formatted in its markup language: Markdown, GitHub-flavoured
-Markdown, HTML or plain text. Use it for a text that its author wrote with markup, such as
+Markdown, HTML, LaTeX or plain text. Use it for a text that its author wrote with markup, such as
 a design choice or a document stored in a `BIGALPHANUMERIC` or `HUGEALPHANUMERIC` concept.
 Without it, the prototype shows the markup characters: `**Why:**` instead of **Why:**.
 
@@ -577,12 +577,13 @@ through a box header, and a `BOX` or `VIEW` on a text concept makes that concept
 | `MARKDOWN` | flag | Markdown, close to CommonMark. |
 | `GFM` | flag | GitHub-flavoured Markdown: Markdown plus tables and strikethrough. A task list shows as a plain list: the sanitiser removes its check boxes. |
 | `HTML` | flag | HTML. |
+| `LATEX` | flag | A LaTeX fragment: mathematics, headings, quotes, theorem-like environments, lists and emphasis. See [LaTeX](#latex). |
 | `TEXT` | flag | Plain text with its line breaks kept. This is also the default. |
 | `formatFrom` | item label | The format per row: the value of the named item, such as `MARKDOWN`. That item shows nothing. |
 | `showLabels` | flag | Shows the label of every item above its text. Without it, the texts stand without labels, because the enclosing box usually labels the box already. |
 
 Write the format flags in capitals, as in the table: the template reads them by name. With more than one
-flag in the header, the first of `MARKDOWN`, `GFM` and `HTML` counts.
+flag in the header, the first of `MARKDOWN`, `GFM`, `HTML` and `LATEX` counts.
 
 ### A format per row
 
@@ -601,7 +602,7 @@ RELATION textFormat[Body*Format] [UNI]   -- on the text itself
 
 A row without a format falls back to the flag in the header, and without a flag to `TEXT`.
 In a format item the names are case-insensitive, and some have aliases: `MD` and `COMMONMARK` for
-`MARKDOWN`, `GITHUB-MARKDOWN` and `GITHUB_MARKDOWN` for `GFM`, `PLAIN` and `ASCII` for `TEXT`. `Format` may also be
+`MARKDOWN`, `GITHUB-MARKDOWN` and `GITHUB_MARKDOWN` for `GFM`, `TEX` for `LATEX`, `PLAIN` and `ASCII` for `TEXT`. `Format` may also be
 an `OBJECT` concept; its atom identifier is then the name. A name the framework does not know,
 such as `RST`, gives plain text and one warning in the browser console. `EBCDIC` is a character
 encoding, not a markup language: a text in the database is already decoded, so it is plain
@@ -609,6 +610,29 @@ text as well.
 
 Name the format item with a plain word. The template looks the item up in the row by its
 label, and a label with spaces or punctuation reaches the row under another name.
+
+### LaTeX
+
+A text in a database is a fragment, not a document: a claim with a quote, a definition, some
+formulas and the author's own macros. `LATEX` formats such a fragment and leaves what it does
+not know readable, so no text disappears.
+
+| In the text | On the screen |
+| --- | --- |
+| `$…$`, `\(…\)`, `$$…$$`, `\[…\]`, `equation`, `align`, `gather` | Mathematics, rendered by KaTeX as MathML, which the browser draws itself. |
+| `\section`, `\subsection`, `\subsubsection`, `\paragraph` | Headings. |
+| `\emph`, `\textit`, `\textbf`, `\texttt`, `\underline` | Emphasis, bold, code, underline. |
+| `quote`, `itemize`, `enumerate` | A block quote and lists. |
+| `theorem`, `lemma`, `corollary`, `proposition`, `definition`, `example`, `remark`, `proof` | A block that starts with its name, and with the optional title. |
+| `\cite`, `\citep`, `\citet`, `\ref`, `\eqref` | The key between brackets, or the label after an arrow. `\label` shows nothing. |
+| `verbatim`, `tabular` | The source, as preformatted text. |
+| An unknown command, such as the macro `\lean{Stack.pile}` | Its argument, in a `span` with `data-cmd="lean"` that a project may style; without an argument, the name of the command. |
+| An unknown macro in a formula | With an argument, the argument as text (a hint such as `\why{multiply by $c > 0$}`); without one, an operator name (`\softmax`). |
+
+A formula that KaTeX cannot parse shows its source. The HTML from LaTeX holds MathML, which
+Angular's sanitiser removes, so this one format skips the sanitiser: the converter escapes every
+piece of source text itself, KaTeX runs with `trust: false`, and `\href` and `\url` give text
+and no link (DesignChoices OK-25).
 
 ### Safety
 

@@ -704,3 +704,54 @@ Technisch: `frontend/src/app/shared/atomic-components/atomic-markup/` (component
 with its unit tests, `MarkupPipe`), `frontend/src/app/generated/.templates/Box-MARKUP.html`,
 `marked` in `frontend/package.json`, documentation in
 `docs/reference-material/built-in-box-templates.md`, regression in `test/projects/markup`.
+
+---
+
+**The format LATEX shows a LaTeX fragment with its mathematics, and leaves what it does not know readable**
+OK-25 · geldig · 2026-10-01 · herkomst: interview met Stef over de Artefactenkaart (1 oktober 2026: "Voor LaTeX, doe de eerste route, zoals je aanbeveelt"), bouwt voort op OK-24
+
+`app-atomic-markup` has a fifth format, `LATEX` (alias `TEX`), as a flag in `BOX <MARKUP LATEX>`
+and as a value of the format item that `formatFrom` names. KaTeX renders the mathematics as
+MathML. A converter in the framework formats headings, emphasis, quotes, lists and theorem-like
+environments. An unknown command shows its argument, and an unknown macro in a formula shows as
+text or as an operator name. The HTML from this format skips Angular's sanitiser.
+
+Overwegingen:
+
+1. The purpose is that a system which knows that a text is LaTeX shares that knowledge with the
+   screen. The Artefactenkaart holds 28 claim texts in LaTeX with 516 formulas; shown as plain
+   text they read as source code.
+
+2. The format travels as data, through `formatFrom` (OK-24), so the knowledge "this is LaTeX"
+   stays with the text. Rejected: converting LaTeX to Markdown in the importer of the project.
+   The database then holds a converted text in place of the source, and the format is lost.
+
+3. A text in a database is a fragment with the author's own macros. Measured on those 28 texts:
+   `\lean` 64 times, `\mref` 40, `\claimquestion` 28, and `\why{...}` inside the calculational
+   proofs. Rejected: latex.js (MIT), a LaTeX-to-HTML compiler. It stops at an unknown macro, and
+   every claim has one.
+
+4. KaTeX (MIT, active) does the mathematics, with MathML as output. The browser draws MathML
+   itself, so the framework ships no KaTeX fonts or stylesheet. Rejected: KaTeX's HTML output,
+   which needs both and whose inline styles the sanitiser removes.
+
+5. An unknown macro in a formula would make KaTeX reject the whole formula. The converter
+   defines such a macro on the spot: with an argument in braces as text, without one as an
+   operator name. On the 28 texts all 516 formulas render; before this rule five did not.
+
+6. Angular's sanitiser removes MathML, so the pipe marks the HTML of this one format as
+   trusted. The converter therefore escapes every piece of source text, takes command and
+   environment names into attributes only escaped, runs KaTeX with `trust: false`, and gives
+   text and no link for `\href` and `\url`. Unit tests and the browser spec feed it a script
+   tag and an event handler.
+
+Impact op de specificatie: none for the model of a project that has no LaTeX. A project with
+LaTeX texts fills its format relation with `LATEX` and shows the text in `BOX <MARKUP ...>`.
+
+Impact in productie: the frontend bundle grows by `katex`. A text is formatted as LaTeX only
+where its format says so; nothing changes elsewhere. A macro of a project shows its argument in
+a `span` with `data-cmd`, which the project may style in its own stylesheet.
+
+Technisch: `latex.ts` with `latex.spec.ts` (18 cases), `markup.ts`, `MarkupPipe`, the stylesheet of
+`atomic-markup`, `Box-MARKUP.html`, `katex` in `frontend/package.json`, the documentation in
+`docs/reference-material/built-in-box-templates.md`, and note `n7` in `test/projects/markup`.

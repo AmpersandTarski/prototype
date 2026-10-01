@@ -1,7 +1,7 @@
 CONTEXT Markup IN ENGLISH
 PURPOSE CONTEXT Markup
 {+ Test project for BOX<MARKUP> and app-atomic-markup (DesignChoices OK-24): texts in
-   Markdown, GitHub-flavoured Markdown, HTML and plain text, a format fixed in the box
+   Markdown, GitHub-flavoured Markdown, HTML, LaTeX and plain text, a format fixed in the box
    header, a format per row from a relation on the note and from a relation on the text
    itself, an unknown format, HTML that must be sanitised, and a concept whose texts a
    Concept-<name>.html template formats in every interface. The population is synthetic. +}
@@ -18,7 +18,7 @@ MEANING "The markup language in which a text is written."
 RELATION explanation[Note*Explanation] [UNI]
 
 POPULATION title CONTAINS
-  [ ("n1", "markdown"), ("n2", "html"), ("n3", "gfm"), ("n4", "text"), ("n5", "rst"), ("n6", "none") ]
+  [ ("n1", "markdown"), ("n2", "html"), ("n3", "gfm"), ("n4", "text"), ("n5", "rst"), ("n6", "none"), ("n7", "latex") ]
 
 POPULATION body CONTAINS
   [ ("n1", "# Heading\n\nSome **bold** text with `code` and a [link](https://ampersandtarski.github.io).\n\n- one\n- two")
@@ -27,10 +27,11 @@ POPULATION body CONTAINS
   , ("n4", "Line one with <b>no tag</b>\nline two")
   , ("n5", "Title\n=====\n\n*emphasis* stays literal")
   , ("n6", "No format, so **the default** applies")
+  , ("n7", "A \\emph{claim} with $x^2 + \\frac{1}{2}$ and \\lean{Stack.pile}.<script>window.markupPwned = 4</script>\\begin{quote}Quoted.\\end{quote}")
   ]
 
 POPULATION bodyFormat CONTAINS
-  [ ("n1", "MARKDOWN"), ("n2", "html"), ("n3", "GITHUB-MARKDOWN"), ("n4", "TEXT"), ("n5", "RST") ]
+  [ ("n1", "MARKDOWN"), ("n2", "html"), ("n3", "GITHUB-MARKDOWN"), ("n4", "TEXT"), ("n5", "RST"), ("n7", "LATEX") ]
 
 POPULATION textFormat CONTAINS
   [ ("# Heading\n\nSome **bold** text with `code` and a [link](https://ampersandtarski.github.io).\n\n- one\n- two", "MARKDOWN")

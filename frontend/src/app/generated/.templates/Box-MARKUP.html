@@ -1,7 +1,7 @@
 <!-- Box-MARKUP.html -->
 <!-- BOX<MARKUP> shows every item of the box as formatted text (DesignChoices OK-24), one
      app-atomic-markup per item and per row. The format comes from the box header:
-     MARKDOWN, GFM (GitHub-flavoured Markdown), HTML or TEXT as a bare word, or, per row,
+     MARKDOWN, GFM (GitHub-flavoured Markdown), HTML, LATEX or TEXT as a bare word, or, per row,
      from the item that `formatFrom` names; that item shows nothing, and a row whose format
      item is empty falls back to the bare word, or to TEXT. `showLabels` shows the label of
      every item above its text. The box is for reading: editing stays in a FORM.
@@ -18,7 +18,7 @@
                 propertyName="$subObj.subObjName$"
                 label="$subObj.subObjLabel$"
                 crud="cRud"
-                format="$if(MARKDOWN)$MARKDOWN$else$$if(GFM)$GFM$else$$if(HTML)$HTML$else$TEXT$endif$$endif$$endif$"
+                format="$if(MARKDOWN)$MARKDOWN$else$$if(GFM)$GFM$else$$if(HTML)$HTML$else$$if(LATEX)$LATEX$else$TEXT$endif$$endif$$endif$$endif$"
                 $if(formatFrom)$[formatValue]="markupRow['$formatFrom$']"
                 formatItem="$formatFrom$"
                 $endif$$if(showLabels)$showLabel

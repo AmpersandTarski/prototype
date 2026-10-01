@@ -1,9 +1,9 @@
 # markup — regression vehicle
 
-**Guards:** BOX<MARKUP> and app-atomic-markup: a text in MARKDOWN, GFM, HTML or TEXT is shown
+**Guards:** BOX<MARKUP> and app-atomic-markup: a text in MARKDOWN, GFM, HTML, LATEX or TEXT is shown
 formatted; the format comes from the box header or, per row, from the item that `formatFrom`
 names (a relation on the owner or on the text itself), and that item shows nothing; an unknown
-format falls back to plain text with a console warning; HTML is sanitised; `showLabels` shows
+format falls back to plain text with a console warning; HTML is sanitised; LATEX shows a formula as MathML, keeps an unknown macro readable and lets no HTML from the source through; `showLabels` shows
 the labels; a `Concept-<name>.html` formats one concept in every interface and keeps the text
 area when the field may be updated.
 

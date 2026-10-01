@@ -93,3 +93,40 @@
   font-weight: 600;
   margin-bottom: 0.25em;
 }
+
+/* LaTeX (DesignChoices OK-25): what latex.ts makes of environments, references and macros. */
+
+.markup .markup__env {
+  margin: 0.75em 0;
+  padding-left: 0.9em;
+  border-left: 3px solid var(--surface-300);
+}
+
+.markup .markup__env--proof {
+  border-left-style: dashed;
+}
+
+.markup .markup__cite,
+.markup .markup__ref {
+  color: var(--text-color-secondary);
+  font-size: 0.9em;
+}
+
+.markup .markup__ref::before {
+  content: '→ ';
+}
+
+.markup .markup__smallcaps {
+  font-variant: small-caps;
+}
+
+.markup .markup__raw,
+.markup .markup__math-source {
+  font-size: 0.9em;
+  overflow-x: auto;
+}
+
+.markup math[display='block'] {
+  margin: 0.75em 0;
+  overflow-x: auto;
+}
