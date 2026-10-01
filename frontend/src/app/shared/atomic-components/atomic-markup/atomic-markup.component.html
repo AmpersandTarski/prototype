@@ -19,6 +19,7 @@
                 class="markup"
                 [class.markup--text]="effectiveFormat === 'TEXT'"
                 [attr.data-format]="effectiveFormat"
+                [appMarkupMath]="effectiveFormat === 'LATEX'"
                 [innerHTML]="text | markup: effectiveFormat"
             ></div>
         </ng-container>

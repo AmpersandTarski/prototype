@@ -97,7 +97,7 @@ export class BoxTableComponent<
   dense = false;
 
   /** The rows the user opened in the dense stand, to read their full text. */
-  private opened = new WeakSet<object>();
+  private readonly opened = new WeakSet<object>();
 
   override ngOnInit(): void {
     super.ngOnInit();
@@ -125,11 +125,17 @@ export class BoxTableComponent<
   }
 
   /**
-   * In the dense stand a click on a row shows its full text, and a second click folds it
-   * again. A click on a link, a button or a field inside the row keeps its own meaning.
+   * In the dense stand a click on a row, or Enter or Space on the focused row, shows its full
+   * text, and a second one folds it again. A click on a link, a button or a field inside the row keeps its own meaning.
    */
   toggleRow(row: object, event: Event): void {
     if (!this.dense) return;
+    if (event instanceof KeyboardEvent) {
+      // Enter and Space do what a click does; every other key keeps its meaning.
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      if (event.target !== event.currentTarget) return;
+      event.preventDefault();
+    }
     const target = event.target as HTMLElement | null;
     if (target?.closest('a, button, input, select, textarea, .p-dropdown, app-ifcs-dropdown, .pi')) return;
     if (this.opened.has(row)) this.opened.delete(row);

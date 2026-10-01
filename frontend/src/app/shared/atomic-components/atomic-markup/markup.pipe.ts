@@ -1,5 +1,4 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MarkupFormat, renderMarkup } from './markup';
 
 /**
@@ -8,12 +7,7 @@ import { MarkupFormat, renderMarkup } from './markup';
  */
 @Pipe({ name: 'markup' })
 export class MarkupPipe implements PipeTransform {
-  constructor(private sanitizer: DomSanitizer) {}
-
-  transform(text: unknown, format: MarkupFormat): string | SafeHtml {
-    const html = renderMarkup(text, format);
-    // The sanitiser removes MathML. latex.ts escapes its source and KaTeX runs untrusted, so
-    // the LaTeX result needs no sanitising; every other format still goes through it.
-    return format === 'LATEX' ? this.sanitizer.bypassSecurityTrustHtml(html) : html;
+  transform(text: unknown, format: MarkupFormat): string {
+    return renderMarkup(text, format);
   }
 }

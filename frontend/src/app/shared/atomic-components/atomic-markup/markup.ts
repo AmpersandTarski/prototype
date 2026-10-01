@@ -7,9 +7,8 @@ import { renderLatex } from './latex';
  * The result is an HTML string that Angular binds with [innerHTML]; Angular's sanitiser
  * then removes scripts, event handlers and javascript: links, also from the HTML that
  * Markdown produces. Plain text is escaped here and keeps its line breaks through the
- * CSS class `markup--text` (white-space: pre-wrap). LaTeX is the exception: its HTML holds
- * MathML, which the sanitiser would strip, so the pipe marks it as trusted and latex.ts
- * escapes every piece of source text itself (DesignChoices OK-25).
+ * CSS class `markup--text` (white-space: pre-wrap). The HTML of LaTeX holds its formulas as
+ * source text; MarkupMathDirective turns them into MathML in the page (DesignChoices OK-25).
  */
 
 export type MarkupFormat = 'MARKDOWN' | 'GFM' | 'HTML' | 'LATEX' | 'TEXT';

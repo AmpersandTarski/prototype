@@ -48,7 +48,14 @@ but can also be done with data.slice()
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-data>
-            <tr style="vertical-align: top" [class.box-table__row--open]="isOpened(data)" (click)="toggleRow(data, $event)">
+            <tr
+                style="vertical-align: top"
+                [class.box-table__row--open]="isOpened(data)"
+                [attr.tabindex]="dense ? 0 : null"
+                [attr.aria-expanded]="dense ? isOpened(data) : null"
+                (click)="toggleRow(data, $event)"
+                (keydown)="toggleRow(data, $event)"
+            >
                 <ng-container
                     *ngTemplateOutlet="rows || defaultRowTemplate; context: { $implicit: data }"
                 ></ng-container>

@@ -649,13 +649,13 @@ not know readable, so no text disappears.
 | `theorem`, `lemma`, `corollary`, `proposition`, `definition`, `example`, `remark`, `proof` | A block that starts with its name, and with the optional title. |
 | `\cite`, `\citep`, `\citet`, `\ref`, `\eqref` | The key between brackets, or the label after an arrow. `\label` shows nothing. |
 | `verbatim`, `tabular` | The source, as preformatted text. |
-| An unknown command, such as the macro `\lean{Stack.pile}` | Its argument, in a `span` with `data-cmd="lean"` that a project may style; without an argument, the name of the command. |
+| An unknown command, such as the macro `\lean{Stack.pile}` | Its argument, in a `span` with the class `markup__cmd--lean` that a project may style; without an argument, the name of the command. |
 | An unknown macro in a formula | With an argument, the argument as text (a hint such as `\why{multiply by $c > 0$}`); without one, an operator name (`\softmax`). |
 
-A formula that KaTeX cannot parse shows its source. The HTML from LaTeX holds MathML, which
-Angular's sanitiser removes, so this one format skips the sanitiser: the converter escapes every
-piece of source text itself, KaTeX runs with `trust: false`, and `\href` and `\url` give text
-and no link (DesignChoices OK-25).
+A formula that KaTeX cannot parse shows its source. Like every other format, the HTML of a
+LaTeX text passes Angular's sanitiser. The formulas are in it as source text; KaTeX builds their
+MathML in the page, as DOM nodes and with `trust: false`. `\href` and `\url` give text and no
+link (DesignChoices OK-25).
 
 ### Safety
 

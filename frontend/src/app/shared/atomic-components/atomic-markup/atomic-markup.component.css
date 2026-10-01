@@ -120,13 +120,21 @@
   font-variant: small-caps;
 }
 
-.markup .markup__raw,
-.markup .markup__math-source {
+.markup .markup__raw {
   font-size: 0.9em;
   overflow-x: auto;
 }
 
-.markup math[display='block'] {
+/* A formula before KaTeX rendered it, and one that does not parse: its source, as code. */
+.markup .markup__math:not(.markup__math--done),
+.markup .markup__math-source {
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+.markup .markup__math--display {
+  display: block;
   margin: 0.75em 0;
   overflow-x: auto;
 }
+

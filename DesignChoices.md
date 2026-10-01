@@ -714,7 +714,8 @@ OK-25 · geldig · 2026-10-01 · herkomst: interview met Stef over de Artefacten
 and as a value of the format item that `formatFrom` names. KaTeX renders the mathematics as
 MathML. A converter in the framework formats headings, emphasis, quotes, lists and theorem-like
 environments. An unknown command shows its argument, and an unknown macro in a formula shows as
-text or as an operator name. The HTML from this format skips Angular's sanitiser.
+text or as an operator name. The HTML of this format passes Angular's sanitiser, like that of
+every other format; KaTeX builds the MathML afterwards, in the page.
 
 Overwegingen:
 
@@ -739,20 +740,23 @@ Overwegingen:
    defines such a macro on the spot: with an argument in braces as text, without one as an
    operator name. On the 28 texts all 516 formulas render; before this rule five did not.
 
-6. Angular's sanitiser removes MathML, so the pipe marks the HTML of this one format as
-   trusted. The converter therefore escapes every piece of source text, takes command and
-   environment names into attributes only escaped, runs KaTeX with `trust: false`, and gives
-   text and no link for `\href` and `\url`. Unit tests and the browser spec feed it a script
-   tag and an event handler.
+6. Angular's sanitiser removes MathML from an HTML string. Rejected: marking the HTML of this
+   format as trusted (`bypassSecurityTrustHtml`), which the first version did. Every escape in
+   the converter would then be a security boundary, and the static analysis of the repository
+   flags the bypass as a blocker. In the chosen design `renderLatex` gives HTML in which a
+   formula is a `span` with its TeX source as text; that HTML is sanitised like any other. A
+   directive then lets KaTeX build the MathML of each span as DOM nodes, with `trust: false`.
+   No HTML string from the source passes the sanitiser by. Unit tests and the browser spec
+   feed it a script tag and an event handler.
 
 Impact op de specificatie: none for the model of a project that has no LaTeX. A project with
 LaTeX texts fills its format relation with `LATEX` and shows the text in `BOX <MARKUP ...>`.
 
 Impact in productie: the frontend bundle grows by `katex`. A text is formatted as LaTeX only
 where its format says so; nothing changes elsewhere. A macro of a project shows its argument in
-a `span` with `data-cmd`, which the project may style in its own stylesheet.
+a `span` with the class `markup__cmd--<name>`, which the project may style in its own stylesheet.
 
-Technisch: `latex.ts` with `latex.spec.ts` (18 cases), `markup.ts`, `MarkupPipe`, the stylesheet of
+Technisch: `latex.ts` with `latex.spec.ts`, `MarkupMathDirective`, `markup.ts`, the stylesheet of
 `atomic-markup`, `Box-MARKUP.html`, `katex` in `frontend/package.json`, the documentation in
 `docs/reference-material/built-in-box-templates.md`, and note `n7` in `test/projects/markup`.
 
