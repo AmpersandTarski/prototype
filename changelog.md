@@ -10,6 +10,21 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.14.0 (1 October 2026)
+
+* **A LaTeX text is shown formatted (DesignChoices OK-25).** `app-atomic-markup` has a fifth
+  format, `LATEX`: as the flag in `BOX <MARKUP LATEX>`, or per row through the item that
+  `formatFrom` names. Formulas appear as mathematics (KaTeX, as MathML that the browser draws
+  itself), and headings, emphasis, quotes, lists and theorem-like environments are formatted. A
+  command the framework does not know shows its argument, so a text with the author's own
+  macros stays readable. On the 28 claim texts of the Artefactenkaart all 516 formulas render.
+
+* **A table can show many rows on a screen (OK-26, a proposal).** `compact` on a `BOX<TABLE>` or
+  `BOX<FACETS>` starts the table in the dense stand: every row one line, the table scrolling
+  under its own header. Every table header has a button that switches between the roomy and
+  the dense stand, and the browser remembers the choice per table until the tab closes. A click on a dense row shows
+  its full text. A table without `compact` starts roomy, as before.
+
 ## v2.13.0 (30 September 2026)
 
 * **A detail screen shows what a record has (DesignChoices OK-20, a proposal that ships as the

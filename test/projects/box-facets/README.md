@@ -7,7 +7,8 @@ other facets, the selection round-trips through the URL, `facets`/`facetOnly` ch
 hide, `facetKind` chooses the kind, a FACETS box nested in a FORM finds its own box, and
 TABLE annotations still reach the table. For every TABLE: a created row appears once, a
 sort the user chose survives a change in the number of rows, and a sorted table raises no
-NG0100 in a development build.
+NG0100 in a development build. `compact` starts a table in the dense stand (one line per row, a
+header that stays), and the switch in the header lets the user change it, remembered per table.
 
 **Origin:** DesignChoices OK-15 (types and recursion), OK-16 (`facets`, `facetOnly`),
 OK-17 (the table keeps all rows) and OK-18 (`facetKind`). The request came from a user who follows a large

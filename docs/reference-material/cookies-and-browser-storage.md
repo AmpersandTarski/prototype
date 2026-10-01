@@ -11,6 +11,7 @@ The page describes the framework. A model can add relations on `SESSION`, such a
 | `PHPSESSID` | cookie | `backend/bootstrap/framework.php` (`session_start()`) | until the browser closes | Identifies the session of the user. |
 | `menuItems` | sessionStorage | `frontend/src/app/layout/app.menu.component.ts` | until the tab closes | Caches the navigation menu, so that it is not rebuilt on every page. |
 | `adminMode` | sessionStorage | `frontend/src/app/layout/app.menu.service.ts` | until the tab closes | Remembers whether the user switched on the admin menu. |
+| `tableDensity` | sessionStorage | `frontend/src/app/shared/box-components/box-table/box-table.component.ts` | until the tab closes | Remembers per table whether the user chose roomy or compact rows. It holds names of interfaces, no data from the application. |
 
 The cookie is `HttpOnly`, so scripts in the page cannot read it. It is `SameSite=Lax`, so the browser leaves it out of requests that another site starts, except when the user follows a link. It is `Secure`, which keeps it off plain HTTP, as the setting `session.cookieSecure` says: `auto` (the default) sets it when the request arrives over HTTPS, also behind a reverse proxy that sends `X-Forwarded-Proto: https`, and `true` sets it always, which is what a production deployment should use. Its value is the identifier of the user's session on the server.
 
@@ -29,7 +30,7 @@ The screens of a generated prototype send no request to a third party. The font 
 
 Article 5(3) of the ePrivacy Directive (2002/58/EC) requires consent before anything is stored in the user's browser, except for storage that is strictly necessary to provide the service the user asked for. The Netherlands implements this in article 11.7a of the Telecommunicatiewet.
 
-The session cookie meets that exception. Every interface query takes the session from the cookie, and the roles and the login of the user hang off that session (see the [architecture of an Ampersand application](https://ampersandtarski.github.io/ampersand/reference-material/architecture-of-an-ampersand-application)). Without the cookie no interface opens. The two items in session storage hold state of the user interface and disappear with the tab.
+The session cookie meets that exception. Every interface query takes the session from the cookie, and the roles and the login of the user hang off that session (see the [architecture of an Ampersand application](https://ampersandtarski.github.io/ampersand/reference-material/architecture-of-an-ampersand-application)). Without the cookie no interface opens. The three items in session storage hold state of the user interface and disappear with the tab.
 
 A project that stores more, such as analytics or an embedded video, does need consent. The guide [Asking for cookie consent](../guides/asking-for-cookie-consent.md) shows how a project adds a consent banner from its own Dockerfile.
 

@@ -93,7 +93,7 @@ try {
   );
   assert(
     JSON.stringify(formats) ===
-      JSON.stringify({ gfm: 'GFM', html: 'HTML', markdown: 'MARKDOWN', none: 'MARKDOWN', rst: 'TEXT', text: 'TEXT' }),
+      JSON.stringify({ gfm: 'GFM', html: 'HTML', latex: 'LATEX', markdown: 'MARKDOWN', none: 'MARKDOWN', rst: 'TEXT', text: 'TEXT' }),
     `the format per row, with MARKDOWN as the default and TEXT for RST (got: ${JSON.stringify(formats)})`,
   );
   assert(Object.values(rows).every((r) => r.length === 1), 'the format item shows nothing');
@@ -112,6 +112,14 @@ try {
     `an unknown format leaves a warning (got: ${warnings.filter((w) => w.includes('MARKUP')).join(' | ') || 'none'})`,
   );
   assert((rows.none?.[0]?.html ?? '').includes('<strong>the default</strong>'), 'a note without a format gets MARKDOWN');
+  // LATEX (DesignChoices OK-25): the mathematics as MathML, the structure formatted, an unknown
+  // macro kept readable, and no HTML from the source.
+  const latex = rows.latex?.[0]?.html ?? '';
+  assert(latex.includes('<math') && latex.includes('<mfrac>'), `LATEX shows a formula as MathML (got: ${latex.slice(0, 200)})`);
+  assert(latex.includes('<em>claim</em>') && latex.includes('<blockquote>'), 'LATEX formats emphasis and a quote');
+  assert(latex.includes('markup__cmd--lean') && latex.includes('Stack.pile'), 'LATEX keeps the argument of an unknown macro');
+  assert(!latex.includes('<script') && latex.includes('&lt;script&gt;'), 'LATEX shows HTML in the source as text');
+  assert((await page.evaluate(() => window.markupPwned)) === undefined, 'no script from the LaTeX text ran');
 
   console.log('\n▶ FormatOnText: formatFrom on the text itself');
   await open('/formatontext', '.markup');

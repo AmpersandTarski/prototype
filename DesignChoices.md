@@ -704,3 +704,110 @@ Technisch: `frontend/src/app/shared/atomic-components/atomic-markup/` (component
 with its unit tests, `MarkupPipe`), `frontend/src/app/generated/.templates/Box-MARKUP.html`,
 `marked` in `frontend/package.json`, documentation in
 `docs/reference-material/built-in-box-templates.md`, regression in `test/projects/markup`.
+
+---
+
+**The format LATEX shows a LaTeX fragment with its mathematics, and leaves what it does not know readable**
+OK-25 · geldig · 2026-10-01 · herkomst: interview met Stef over de Artefactenkaart (1 oktober 2026: "Voor LaTeX, doe de eerste route, zoals je aanbeveelt"), bouwt voort op OK-24
+
+`app-atomic-markup` has a fifth format, `LATEX` (alias `TEX`), as a flag in `BOX <MARKUP LATEX>`
+and as a value of the format item that `formatFrom` names. KaTeX renders the mathematics as
+MathML. A converter in the framework formats headings, emphasis, quotes, lists and theorem-like
+environments. An unknown command shows its argument, and an unknown macro in a formula shows as
+text or as an operator name. The HTML of this format passes Angular's sanitiser, like that of
+every other format; KaTeX builds the MathML afterwards, in the page.
+
+Overwegingen:
+
+1. The purpose is that a system which knows that a text is LaTeX shares that knowledge with the
+   screen. The Artefactenkaart holds 28 claim texts in LaTeX with 516 formulas; shown as plain
+   text they read as source code.
+
+2. The format travels as data, through `formatFrom` (OK-24), so the knowledge "this is LaTeX"
+   stays with the text. Rejected: converting LaTeX to Markdown in the importer of the project.
+   The database then holds a converted text in place of the source, and the format is lost.
+
+3. A text in a database is a fragment with the author's own macros. Measured on those 28 texts:
+   `\lean` 64 times, `\mref` 40, `\claimquestion` 28, and `\why{...}` inside the calculational
+   proofs. Rejected: latex.js (MIT), a LaTeX-to-HTML compiler. It stops at an unknown macro, and
+   every claim has one.
+
+4. KaTeX (MIT, active) does the mathematics, with MathML as output. The browser draws MathML
+   itself, so the framework ships no KaTeX fonts or stylesheet. Rejected: KaTeX's HTML output,
+   which needs both and whose inline styles the sanitiser removes.
+
+5. An unknown macro in a formula would make KaTeX reject the whole formula. The converter
+   defines such a macro on the spot: with an argument in braces as text, without one as an
+   operator name. On the 28 texts all 516 formulas render; before this rule five did not.
+
+6. Angular's sanitiser removes MathML from an HTML string. Rejected: marking the HTML of this
+   format as trusted (`bypassSecurityTrustHtml`), which the first version did. Every escape in
+   the converter would then be a security boundary, and the static analysis of the repository
+   flags the bypass as a blocker. In the chosen design `renderLatex` gives HTML in which a
+   formula is a `span` with its TeX source as text; that HTML is sanitised like any other. A
+   directive then lets KaTeX build the MathML of each span as DOM nodes, with `trust: false`.
+   No HTML string from the source passes the sanitiser by. Unit tests and the browser spec
+   feed it a script tag and an event handler.
+
+Impact op de specificatie: none for the model of a project that has no LaTeX. A project with
+LaTeX texts fills its format relation with `LATEX` and shows the text in `BOX <MARKUP ...>`.
+
+Impact in productie: the frontend bundle grows by `katex`. A text is formatted as LaTeX only
+where its format says so; nothing changes elsewhere. A macro of a project shows its argument in
+a `span` with the class `markup__cmd--<name>`, which the project may style in its own stylesheet.
+
+Technisch: `latex.ts` with `latex.spec.ts`, `MarkupMathDirective`, `markup.ts`, the stylesheet of
+`atomic-markup`, `Box-MARKUP.html`, `katex` in `frontend/package.json`, the documentation in
+`docs/reference-material/built-in-box-templates.md`, and note `n7` in `test/projects/markup`.
+
+---
+
+**A table has a roomy and a dense stand; the modeler chooses where it starts, the user may switch**
+OK-26 · voorstel · 2026-10-01 · herkomst: interview met Stef over de Artefactenkaart (1 oktober 2026: "Is er een instelling om van de ruime opmaak naar de dichte opmaak te gaan? Want niet alles vraagt om een dichte opmaak. En wie stelt dat in? De gebruiker of de programmeur?"), AmpersandTarski/Ampersand#1166
+
+`BOX<TABLE compact>` and `BOX<FACETS compact>` start a table in the dense stand: every row is
+one line, a long text ends in an ellipsis, and the table scrolls under its own header. Without
+the annotation a table starts roomy, as before. A button at the right of the header row switches
+between the two, and the browser remembers the choice per table until the tab closes. A click on
+a dense row shows its full text.
+
+Overwegingen:
+
+1. The purpose is many rows on a screen where the data asks for it. Stef named this as what
+   Excel gives him and a TABLE does not: "In Excel is het fijn dat ik veel data op m'n scherm
+   krijg". On the Artefactenkaart a list of 181 requirements showed about twenty rows per screen.
+
+2. Both the modeler and the user have a say, each with a different knowledge. The modeler knows
+   whether a table is data or reading matter, so he sets the stand it starts in. The user knows
+   what he is doing at this moment, so he may switch. Rejected: a setting of the user alone,
+   which makes every table start roomy whatever its nature; and an annotation alone, which
+   leaves a reader no way out of a dense table.
+
+3. The choice of the user is kept per table, keyed on the interface and the box. One global
+   switch would turn a reading list dense because a data list was. It lives in session storage
+   and ends with the tab. Rejected: local storage, which keeps it across visits. The page on
+   cookies and browser storage argues that a prototype needs no consent because what it stores
+   in the browser disappears with the tab; a lasting preference would stretch that argument,
+   and the stand a table starts in is already the modeler's to set.
+
+4. The dense stand uses the table that is already there (`p-table` with its small size and its
+   scrolling), so it adds no library. A spreadsheet library for selecting ranges and filling
+   down is a separate question, in Ampersand#1166.
+
+5. A row of one line hides the end of a long text. A click on the row shows it; a tooltip was
+   rejected, because the cells hold components and a long text does not read in a tooltip.
+
+6. Stef asked how this works before deciding ("Laten we eerst maar eens kijken hoe dit werkt"),
+   so this choice is a proposal until he has seen it.
+
+Impact op de specificatie: an interface gains `compact` where its table is data. Nothing changes
+for an interface without it.
+
+Impact in productie: every table header shows the density button. The stand of a user is stored
+in the session storage of his browser under `tableDensity`, as one entry per table; it holds
+names of interfaces and no data from the application, and the page on cookies and browser
+storage lists it.
+
+Technisch: `BoxTableComponent` (`compact`, `dense`, `toggleDense()`, `toggleRow()`), its template
+and stylesheet, `Box-TABLE.html` and `Box-FACETS.html`, the interface `TicketsCompact` and eight
+assertions in `test/projects/box-facets`.

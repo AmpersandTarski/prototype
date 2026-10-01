@@ -1,4 +1,5 @@
 import { Marked } from 'marked';
+import { renderLatex } from './latex';
 
 /**
  * Formats a text in a markup language, for app-atomic-markup (DesignChoices OK-24).
@@ -6,10 +7,11 @@ import { Marked } from 'marked';
  * The result is an HTML string that Angular binds with [innerHTML]; Angular's sanitiser
  * then removes scripts, event handlers and javascript: links, also from the HTML that
  * Markdown produces. Plain text is escaped here and keeps its line breaks through the
- * CSS class `markup--text` (white-space: pre-wrap).
+ * CSS class `markup--text` (white-space: pre-wrap). The HTML of LaTeX holds its formulas as
+ * source text; MarkupMathDirective turns them into MathML in the page (DesignChoices OK-25).
  */
 
-export type MarkupFormat = 'MARKDOWN' | 'GFM' | 'HTML' | 'TEXT';
+export type MarkupFormat = 'MARKDOWN' | 'GFM' | 'HTML' | 'LATEX' | 'TEXT';
 
 /** Names a modeller may use for each format, in upper case. */
 const ALIASES: Record<string, MarkupFormat> = {
@@ -20,6 +22,8 @@ const ALIASES: Record<string, MarkupFormat> = {
   'GITHUB-MARKDOWN': 'GFM',
   GITHUB_MARKDOWN: 'GFM',
   HTML: 'HTML',
+  LATEX: 'LATEX',
+  TEX: 'LATEX',
   TEXT: 'TEXT',
   PLAIN: 'TEXT',
   ASCII: 'TEXT',
@@ -72,6 +76,8 @@ export function renderMarkup(text: unknown, format: MarkupFormat): string {
       return githubMarkdown.parse(source, { async: false }) as string;
     case 'HTML':
       return source;
+    case 'LATEX':
+      return renderLatex(source);
     case 'TEXT':
       return escapeHtml(source);
   }
