@@ -86,8 +86,62 @@ export class BoxTableComponent<
   @Input()
   sortOrder: 'asc' | 'desc' = 'asc';
 
+  /**
+   * The `compact` annotation: the modeller's choice that this table starts in the dense
+   * stand (DesignChoices OK-26). The user may switch; `dense` is what the table shows.
+   */
+  @Input({ transform: booleanAttribute })
+  compact = false;
+
+  /** Whether the table shows the dense stand: one line per row, under a header that stays. */
+  dense = false;
+
+  /** The rows the user opened in the dense stand, to read their full text. */
+  private opened = new WeakSet<object>();
+
   override ngOnInit(): void {
     super.ngOnInit();
+    this.dense = this.storedDensity() ?? this.compact;
+  }
+
+  /** Switches between the roomy and the dense stand, and remembers it for this table. */
+  toggleDense(): void {
+    this.dense = !this.dense;
+    try {
+      localStorage.setItem(this.densityKey(), this.dense ? 'dense' : 'roomy');
+    } catch {
+      // without storage (a private window) the choice lasts as long as the page
+    }
+  }
+
+  isOpened(row: object): boolean {
+    return this.opened.has(row);
+  }
+
+  /**
+   * In the dense stand a click on a row shows its full text, and a second click folds it
+   * again. A click on a link, a button or a field inside the row keeps its own meaning.
+   */
+  toggleRow(row: object, event: Event): void {
+    if (!this.dense) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('a, button, input, select, textarea, .p-dropdown, app-ifcs-dropdown, .pi')) return;
+    if (this.opened.has(row)) this.opened.delete(row);
+    else this.opened.add(row);
+  }
+
+  /** One key per table: the interface and the box in it. */
+  private densityKey(): string {
+    return `ampersand.table.density.${this.interfaceComponent?.interfaceName ?? ''}.${this.propertyName ?? ''}`;
+  }
+
+  private storedDensity(): boolean | null {
+    try {
+      const stored = localStorage.getItem(this.densityKey());
+      return stored === null ? null : stored === 'dense';
+    } catch {
+      return null;
+    }
   }
 
   private configurePrimengTable(table: Table): void {

@@ -241,6 +241,41 @@ try {
   await clickValue(page, 'Reported', 'Aug');
   assert((await countText(page)) === '2 of 14', `Reported in Aug 2026 → 2 of 14, a text that starts with a date included (got: ${await countText(page)})`);
 
+  console.log('\n▶ The dense stand: compact as the modeller chose it, and the switch of the user');
+  const stand = () =>
+    page.evaluate(() => {
+      const table = document.querySelector('p-table');
+      const rows = [...document.querySelectorAll('p-table tbody tr')];
+      return {
+        dense: !!table?.querySelector('.box-table--dense'),
+        rowHeight: Math.max(...rows.map((r) => r.getBoundingClientRect().height)),
+        scrolls: !!table?.querySelector('.p-datatable-wrapper')?.style.maxHeight,
+      };
+    });
+  await open(page, '/tickets');
+  await page.evaluate(() => localStorage.clear());
+  const roomy = await stand();
+  assert(!roomy.dense, 'a table without the annotation starts roomy');
+  await open(page, '/ticketscompact');
+  const compact = await stand();
+  assert(compact.dense, 'a table with `compact` starts dense');
+  assert(compact.rowHeight < 40, `every dense row is one line high (highest: ${Math.round(compact.rowHeight)}px)`);
+  assert(compact.scrolls, 'the dense table scrolls under its own header');
+  await page.click('p-table tbody tr:first-child td:nth-child(3)');
+  await sleep(200);
+  assert(
+    (await page.$$eval('p-table tbody tr.box-table__row--open', (r) => r.length)) === 1,
+    'a click on a dense row opens it, to read the full text',
+  );
+  await page.click('.box-table__density');
+  await sleep(300);
+  assert(!(await stand()).dense, 'the switch in the header makes the table roomy');
+  await open(page, '/ticketscompact');
+  assert(!(await stand()).dense, 'the choice of the user survives a reload');
+  await open(page, '/tickets');
+  assert(!(await stand()).dense, 'and it holds for that table only');
+  await page.evaluate(() => localStorage.clear());
+
   // Last, because it adds a row that the counts above do not expect.
   console.log('\n▶ A plain TABLE creates a row once');
   await collectToasts(page);

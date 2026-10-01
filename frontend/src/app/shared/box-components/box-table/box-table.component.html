@@ -5,7 +5,15 @@ but can also be done with data.slice()
  -->
 <ng-container *ngIf="!hideBecauseEmpty()">
     <div class="box-title" *ngIf="title">{{ title }}</div>
-    <p-table [value]="filterNullish(shownRows ?? data)" #primengTable>
+    <!-- The dense stand (DesignChoices OK-26): small rows of one line, in a table that scrolls
+         under its own header. The roomy stand is the table as it always was. -->
+    <p-table
+        [value]="filterNullish(shownRows ?? data)"
+        [styleClass]="dense ? 'p-datatable-sm box-table--dense' : ''"
+        [scrollable]="dense"
+        [scrollHeight]="dense ? 'calc(100vh - 12rem)' : ''"
+        #primengTable
+    >
         <ng-template pTemplate="header">
             <!-- The `noHeader` annotation suppresses the column-header row. -->
             <tr *ngIf="!noHeader">
@@ -16,7 +24,18 @@ but can also be done with data.slice()
                     "
                 ></ng-container>
                 <th *ngIf="showNavMenu"></th>
-                <th>
+                <th class="box-table__controls">
+                    <button
+                        type="button"
+                        class="box-table__density"
+                        (click)="toggleDense()"
+                        [attr.aria-pressed]="dense"
+                        [attr.aria-label]="dense ? 'Show roomy rows' : 'Show compact rows'"
+                        [pTooltip]="dense ? 'Roomy rows' : 'Compact rows'"
+                        tooltipPosition="left"
+                    >
+                        <i class="pi" [class.pi-bars]="!dense" [class.pi-align-justify]="dense"></i>
+                    </button>
                     <span
                         *ngIf="canCreate()"
                         class="pi pi-fw pi-plus"
@@ -29,7 +48,7 @@ but can also be done with data.slice()
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-data>
-            <tr style="vertical-align: top">
+            <tr style="vertical-align: top" [class.box-table__row--open]="isOpened(data)" (click)="toggleRow(data, $event)">
                 <ng-container
                     *ngTemplateOutlet="rows || defaultRowTemplate; context: { $implicit: data }"
                 ></ng-container>

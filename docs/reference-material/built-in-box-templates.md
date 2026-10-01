@@ -32,6 +32,7 @@ and ignores the rest.
 | `showSubOnNoRecords` | — | ✅ | — | — | flag | Shows every field row of a FORM, also an empty one the user cannot edit. |
 | `showOnNoRecords` | — | ✅ | — | — | flag | On a group (a FORM box on `I`): shows the group while all of its fields are empty. |
 | `noHeader` | ✅ | — | — | — | flag | Suppresses the column-header row. |
+| `compact` | ✅ | — | — | — | flag | Starts the table in the dense stand: one line per row, under a header that stays. The user can switch. See [`compact`](#compact-table). |
 | `hideLabels` | — | ✅ | — | — | flag | Renders fields full-width without their labels. |
 | `showNavMenu` | ✅ | ✅ | — | — | flag | Adds a navigation menu (links to other interfaces) per record. |
 | `sortable` | ✅ | — | — | — | flag | Makes column headers clickable to sort. Combine with `sortBy` / `order`. |
@@ -135,6 +136,27 @@ PrimeNG tab-index problems that a structural `*ngIf` on a tab panel would cause.
 
 > **Warning.** A hidden field/tab cannot be edited through this box. Make sure the
 > underlying data is reachable through another interface when it matters.
+
+### `compact` (TABLE)
+
+A table has two stands. In the roomy stand a row is as high as its longest text. In the dense
+stand every row is one line, a long text ends in an ellipsis, and the table scrolls under its
+own header, so many rows fit on a screen. A click on a dense row shows its full text; a second
+click folds it again.
+
+```ampersand
+INTERFACE Requirements : "_SESSION";V[SESSION*Requirement] cRud BOX<FACETS compact sortable>
+  [ "Requirement" : I      cRud LINKTO INTERFACE Requirement
+  , "Status"      : status cRud
+  , "Text"        : text   cRud
+  ]
+```
+
+The modeler chooses the stand a table starts in: `compact` for a table of data, nothing for a
+table that is read. The user switches with the button at the right of the header row, and the
+browser remembers that choice per table (in its local storage), so it survives a reload and
+does not carry over to another table. A table with `noHeader` has no button and keeps the
+stand of the modeler.
 
 ### `noHeader` (TABLE)
 

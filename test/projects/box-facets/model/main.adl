@@ -141,6 +141,15 @@ INTERFACE TicketsReported : "_SESSION";V[SESSION*Ticket] cRud BOX<FACETS facets=
   , "Priority" : priority cRud
   ]
 
+-- The dense stand as the modeller's choice (DesignChoices OK-26): one line per row, under a
+-- header that stays, with a switch for the user.
+INTERFACE TicketsCompact : "_SESSION";V[SESSION*Ticket] cRud BOX<FACETS compact facets="Status" sortable sortBy="Ticket" order="asc">
+  [ "Ticket"   : I        cRud LINKTO INTERFACE TicketDetail
+  , "Status"   : status   cRud
+  , "Summary"  : summary  cRud
+  , "Notes"    : notes    cRud
+  ]
+
 -- A plain TABLE that creates rows: a created row stands once in the list (the sync
 -- after the POST already appends it).
 INTERFACE NewTickets : "_SESSION";V[SESSION*Ticket] CRud BOX<TABLE>

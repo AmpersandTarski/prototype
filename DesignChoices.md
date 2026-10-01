@@ -755,3 +755,50 @@ a `span` with `data-cmd`, which the project may style in its own stylesheet.
 Technisch: `latex.ts` with `latex.spec.ts` (18 cases), `markup.ts`, `MarkupPipe`, the stylesheet of
 `atomic-markup`, `Box-MARKUP.html`, `katex` in `frontend/package.json`, the documentation in
 `docs/reference-material/built-in-box-templates.md`, and note `n7` in `test/projects/markup`.
+
+---
+
+**A table has a roomy and a dense stand; the modeler chooses where it starts, the user may switch**
+OK-26 · voorstel · 2026-10-01 · herkomst: interview met Stef over de Artefactenkaart (1 oktober 2026: "Is er een instelling om van de ruime opmaak naar de dichte opmaak te gaan? Want niet alles vraagt om een dichte opmaak. En wie stelt dat in? De gebruiker of de programmeur?"), AmpersandTarski/Ampersand#1166
+
+`BOX<TABLE compact>` and `BOX<FACETS compact>` start a table in the dense stand: every row is
+one line, a long text ends in an ellipsis, and the table scrolls under its own header. Without
+the annotation a table starts roomy, as before. A button at the right of the header row switches
+between the two, and the browser remembers the choice per table. A click on a dense row shows
+its full text.
+
+Overwegingen:
+
+1. The purpose is many rows on a screen where the data asks for it. Stef named this as what
+   Excel gives him and a TABLE does not: "In Excel is het fijn dat ik veel data op m'n scherm
+   krijg". On the Artefactenkaart a list of 181 requirements showed about twenty rows per screen.
+
+2. Both the modeler and the user have a say, each with a different knowledge. The modeler knows
+   whether a table is data or reading matter, so he sets the stand it starts in. The user knows
+   what he is doing at this moment, so he may switch. Rejected: a setting of the user alone,
+   which makes every table start roomy whatever its nature; and an annotation alone, which
+   leaves a reader no way out of a dense table.
+
+3. The choice of the user is kept per table, keyed on the interface and the box. One global
+   switch would turn a reading list dense because a data list was.
+
+4. The dense stand uses the table that is already there (`p-table` with its small size and its
+   scrolling), so it adds no library. A spreadsheet library for selecting ranges and filling
+   down is a separate question, in Ampersand#1166.
+
+5. A row of one line hides the end of a long text. A click on the row shows it; a tooltip was
+   rejected, because the cells hold components and a long text does not read in a tooltip.
+
+6. Stef asked how this works before deciding ("Laten we eerst maar eens kijken hoe dit werkt"),
+   so this choice is a proposal until he has seen it.
+
+Impact op de specificatie: an interface gains `compact` where its table is data. Nothing changes
+for an interface without it.
+
+Impact in productie: every table header shows the density button. The stand of a user is stored
+in the local storage of his browser under `ampersand.table.density.<interface>.<box>`; it holds
+no data from the application.
+
+Technisch: `BoxTableComponent` (`compact`, `dense`, `toggleDense()`, `toggleRow()`), its template
+and stylesheet, `Box-TABLE.html` and `Box-FACETS.html`, the interface `TicketsCompact` and eight
+assertions in `test/projects/box-facets`.
