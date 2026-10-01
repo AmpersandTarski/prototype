@@ -764,8 +764,8 @@ OK-26 · voorstel · 2026-10-01 · herkomst: interview met Stef over de Artefact
 `BOX<TABLE compact>` and `BOX<FACETS compact>` start a table in the dense stand: every row is
 one line, a long text ends in an ellipsis, and the table scrolls under its own header. Without
 the annotation a table starts roomy, as before. A button at the right of the header row switches
-between the two, and the browser remembers the choice per table. A click on a dense row shows
-its full text.
+between the two, and the browser remembers the choice per table until the tab closes. A click on
+a dense row shows its full text.
 
 Overwegingen:
 
@@ -780,7 +780,11 @@ Overwegingen:
    leaves a reader no way out of a dense table.
 
 3. The choice of the user is kept per table, keyed on the interface and the box. One global
-   switch would turn a reading list dense because a data list was.
+   switch would turn a reading list dense because a data list was. It lives in session storage
+   and ends with the tab. Rejected: local storage, which keeps it across visits. The page on
+   cookies and browser storage argues that a prototype needs no consent because what it stores
+   in the browser disappears with the tab; a lasting preference would stretch that argument,
+   and the stand a table starts in is already the modeler's to set.
 
 4. The dense stand uses the table that is already there (`p-table` with its small size and its
    scrolling), so it adds no library. A spreadsheet library for selecting ranges and filling
@@ -796,8 +800,9 @@ Impact op de specificatie: an interface gains `compact` where its table is data.
 for an interface without it.
 
 Impact in productie: every table header shows the density button. The stand of a user is stored
-in the local storage of his browser under `ampersand.table.density.<interface>.<box>`; it holds
-no data from the application.
+in the session storage of his browser under `tableDensity`, as one entry per table; it holds
+names of interfaces and no data from the application, and the page on cookies and browser
+storage lists it.
 
 Technisch: `BoxTableComponent` (`compact`, `dense`, `toggleDense()`, `toggleRow()`), its template
 and stylesheet, `Box-TABLE.html` and `Box-FACETS.html`, the interface `TicketsCompact` and eight

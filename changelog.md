@@ -22,7 +22,7 @@ Additional labels for pre-release and build metadata are available as extensions
 * **A table can show many rows on a screen (OK-26, a proposal).** `compact` on a `BOX<TABLE>` or
   `BOX<FACETS>` starts the table in the dense stand: every row one line, the table scrolling
   under its own header. Every table header has a button that switches between the roomy and
-  the dense stand, and the browser remembers the choice per table. A click on a dense row shows
+  the dense stand, and the browser remembers the choice per table until the tab closes. A click on a dense row shows
   its full text. A table without `compact` starts roomy, as before.
 
 ## v2.13.0 (30 September 2026)

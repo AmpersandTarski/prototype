@@ -104,13 +104,19 @@ export class BoxTableComponent<
     this.dense = this.storedDensity() ?? this.compact;
   }
 
-  /** Switches between the roomy and the dense stand, and remembers it for this table. */
+  /**
+   * Switches between the roomy and the dense stand, and remembers it for this table until
+   * the tab closes. All tables share one item in session storage, `tableDensity`, so the page
+   * on cookies and browser storage can name it.
+   */
   toggleDense(): void {
     this.dense = !this.dense;
+    const stands = this.storedStands();
+    stands[this.densityKey()] = this.dense ? 'dense' : 'roomy';
     try {
-      localStorage.setItem(this.densityKey(), this.dense ? 'dense' : 'roomy');
+      sessionStorage.setItem('tableDensity', JSON.stringify(stands));
     } catch {
-      // without storage (a private window) the choice lasts as long as the page
+      // without storage the choice lasts as long as the page
     }
   }
 
@@ -130,18 +136,23 @@ export class BoxTableComponent<
     else this.opened.add(row);
   }
 
-  /** One key per table: the interface and the box in it. */
+  /** One entry per table: the interface and the box in it. */
   private densityKey(): string {
-    return `ampersand.table.density.${this.interfaceComponent?.interfaceName ?? ''}.${this.propertyName ?? ''}`;
+    return `${this.interfaceComponent?.interfaceName ?? ''}.${this.propertyName ?? ''}`;
+  }
+
+  private storedStands(): Record<string, string> {
+    try {
+      const stands = JSON.parse(sessionStorage.getItem('tableDensity') ?? '{}');
+      return stands !== null && typeof stands === 'object' ? stands : {};
+    } catch {
+      return {};
+    }
   }
 
   private storedDensity(): boolean | null {
-    try {
-      const stored = localStorage.getItem(this.densityKey());
-      return stored === null ? null : stored === 'dense';
-    } catch {
-      return null;
-    }
+    const stored = this.storedStands()[this.densityKey()];
+    return stored === undefined ? null : stored === 'dense';
   }
 
   private configurePrimengTable(table: Table): void {

@@ -154,8 +154,9 @@ INTERFACE Requirements : "_SESSION";V[SESSION*Requirement] cRud BOX<FACETS compa
 
 The modeler chooses the stand a table starts in: `compact` for a table of data, nothing for a
 table that is read. The user switches with the button at the right of the header row, and the
-browser remembers that choice per table (in its local storage), so it survives a reload and
-does not carry over to another table. A table with `noHeader` has no button and keeps the
+browser remembers that choice per table until the tab closes (in its session storage, see
+[cookies and browser storage](cookies-and-browser-storage.md)), so it survives a reload and does
+not carry over to another table. A table with `noHeader` has no button and keeps the
 stand of the modeler.
 
 ### `noHeader` (TABLE)

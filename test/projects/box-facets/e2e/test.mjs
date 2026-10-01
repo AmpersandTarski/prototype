@@ -253,7 +253,7 @@ try {
       };
     });
   await open(page, '/tickets');
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => sessionStorage.removeItem('tableDensity'));
   const roomy = await stand();
   assert(!roomy.dense, 'a table without the annotation starts roomy');
   await open(page, '/ticketscompact');
@@ -274,7 +274,7 @@ try {
   assert(!(await stand()).dense, 'the choice of the user survives a reload');
   await open(page, '/tickets');
   assert(!(await stand()).dense, 'and it holds for that table only');
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => sessionStorage.removeItem('tableDensity'));
 
   // Last, because it adds a row that the counts above do not expect.
   console.log('\n▶ A plain TABLE creates a row once');
