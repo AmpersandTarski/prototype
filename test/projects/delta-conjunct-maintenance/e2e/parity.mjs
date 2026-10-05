@@ -4,26 +4,23 @@
  * The setting selects how the transaction close maintains the violation cache:
  * `off` (full re-evaluation), `shadow` (delta protocol plus full evaluation,
  * full result authoritative, differences logged) or `on` (delta protocol for
- * the supported class). The delta protocol needs candidate queries that only a
- * compiler with delta-sql emits; with the compiler bundled in this repository
- * every conjunct lacks them, so all three modes must behave identically and the
- * non-off modes must route every conjunct to full evaluation.
+ * the supported class). The delta protocol needs the candidate queries that the
+ * bundled compiler emits since v5.9.8 (deltaQueries in conjuncts.json), so the
+ * non-off modes maintain part of the cache through the protocol, and all three
+ * modes must still behave identically.
  *
  * This spec runs one API-level scenario under each mode and requires:
  *   1. byte-identical digests across off, shadow and on;
  *   2. inside each run: rollback on a violating edit, commit on valid edits, the
  *      ExecEngine repair, and signals that follow the data;
- *   3. the non-off modes really ran: the close's summary debug line names the
- *      mode and reports "0 delta-maintained"; no conjunct went through the delta
- *      protocol and no shadow mismatch was logged;
+ *   3. under 'off' no conjunct goes through the delta protocol; under the non-off
+ *      modes the protocol fires: the conjunct debug lines and the close's summary
+ *      line both count delta-maintained conjuncts, the shadow run logs its
+ *      comparisons of delta and full results, and none of them is a mismatch;
  *   4. mode 'on' together with transactions.skipCleanConjuncts gives the same
  *      digest, and the summary line counts conjuncts skipped as clean;
  *   5. a value outside 'off', 'shadow' and 'on' (a YAML false here) stops the
  *      application at boot: every request answers HTTP 500.
- *
- * When a compiler that emits deltaQueries is bundled, extend this spec so the
- * summary line reports delta-maintained conjuncts and the shadow run logs
- * "identical" checks — that is the guard of the delta path itself.
  *
  * Run via `test/run-regression.sh delta-conjunct-maintenance`.
  */
@@ -52,6 +49,7 @@ const client = makeClient(baseUrl);
 const SUMMARY = (mode) => `Delta conjunct maintenance ('${mode}'):`;
 const DELTA_MAINTAINED = 'cache maintained by delta protocol for relations';
 const MISMATCH = 'DELTA SHADOW MISMATCH';
+const IDENTICAL = 'Delta shadow check for conjunct';
 const BOOT_CHECK = "'transactions.deltaConjunctMaintenance' must be 'off', 'shadow' or 'on'";
 
 // Lines of the summary form "Delta conjunct maintenance ('<mode>'): N delta-maintained, ..."
@@ -95,22 +93,29 @@ try {
     const before = {
       delta: countIn(debugLog, DELTA_MAINTAINED),
       mismatch: countIn(debugLog, MISMATCH),
+      identical: countIn(debugLog, IDENTICAL),
       summaries: summariesNow(),
     };
     digests[phase] = await bookingScenario(client, phase, assert);
 
     const deltaMaintained = countIn(debugLog, DELTA_MAINTAINED) - before.delta;
     const mismatches = countIn(debugLog, MISMATCH) - before.mismatch;
-    assert(deltaMaintained === 0, `[${phase}] no conjunct went through the delta protocol (saw ${deltaMaintained})`);
+    const identical = countIn(debugLog, IDENTICAL) - before.identical;
     assert(mismatches === 0, `[${phase}] no shadow mismatch logged (saw ${mismatches})`);
     if (mode === 'off') {
       const ran = summariesNow() - before.summaries;
+      assert(deltaMaintained === 0, `[off] no conjunct went through the delta protocol (saw ${deltaMaintained})`);
       assert(ran === 0, `[off] the delta path did not run (saw ${ran} summary lines)`);
     } else {
       const lines = summaryLines(mode).slice(before.summaries);
       assert(lines.length > 0, `[${phase}] the delta path ran (saw ${lines.length} close summaries)`);
-      assert(lines.every((l) => l.includes(' 0 delta-maintained,')),
-        `[${phase}] every close reports 0 delta-maintained (compiler without deltaQueries)`);
+      // The bundled compiler emits deltaQueries, so the protocol itself must fire
+      const counted = lines.reduce((n, l) => n + Number(/(\d+) delta-maintained,/.exec(l)?.[1] ?? 0), 0);
+      assert(deltaMaintained > 0, `[${phase}] conjuncts went through the delta protocol (saw ${deltaMaintained})`);
+      assert(counted > 0, `[${phase}] the close summaries count delta-maintained conjuncts (saw ${counted})`);
+      if (mode === 'shadow') {
+        assert(identical > 0, `[shadow] the shadow check compared delta and full results (saw ${identical} identical)`);
+      }
       const skipped = lines.reduce((n, l) => n + Number(/(\d+) skipped as clean/.exec(l)?.[1] ?? 0), 0);
       if (phase === 'on+skip') {
         assert(skipped > 0, `[on+skip] the delta path skips clean conjuncts (saw ${skipped})`);
