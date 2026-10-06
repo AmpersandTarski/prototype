@@ -32,6 +32,7 @@ settings:
   ### Mysql settings
   mysql.dbHost: localhost
   mysql.dbName: null # when not configured, the 'global.contextName' config is used
+  mysql.contextDatabases: '' # the databases of the other contexts that this context reaches: <label>=<database name>;...
   mysql.dbUser: ampersand
   mysql.dbPass: ampersand
 

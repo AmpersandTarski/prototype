@@ -131,6 +131,7 @@ $mysqlDB = new MysqlDB(
     $settings->get('global.debugMode'),
     $settings->get('global.productionEnv')
 );
+$mysqlDB->setContextDatabases((string) $settings->get('mysql.contextDatabases', ''));
 $deltaMode = $settings->get('transactions.deltaConjunctMaintenance', 'off');
 if (!in_array($deltaMode, ['off', 'shadow', 'on'], true)) {
     // A YAML false or a typo must not switch delta maintenance on
