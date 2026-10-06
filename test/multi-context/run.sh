@@ -69,6 +69,13 @@ run_scenario() {
     if [ "$2" = "$3" ]; then log "  ok    $1"
     else log "  FAIL  $1"; log "        expected: $2"; log "        actual:   $3"; failures=$((failures + 1)); fi
   }
+  # recompile <service> <script> [options]: give the application of a context the model of another script,
+  # as a new release of that application would
+  recompile() {
+    local service="$1" script="$2"; shift 2
+    "$AMPERSAND" proto "$dir/$script" --all-concept-tables --no-frontend --crud-defaults cRud --proto-dir "$work/$service" "$@" >"$work/$service.txt" 2>&1 \
+      || { log "  context $service did not compile:"; sed 's/^/    /' "$work/$service.txt" | tail -20; failures=$((failures + 1)); }
+  }
   # install <service> [options]: install the application of a context; prints the answer of the installer
   install() {
     local deadline=$((SECONDS + 90))

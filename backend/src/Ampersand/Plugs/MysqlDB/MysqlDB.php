@@ -692,6 +692,40 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     }
 
     /**
+     * Store the atoms of a concept in the table of a generalization that has a table of its own
+     *
+     * A classification that relates concepts of two contexts is a rule that this context restores:
+     * every atom of the specific concept has to be an atom of the generic concept, and the generic
+     * concept is stored in the database of its owner. Another application can add an atom to the
+     * specific concept without knowing of this classification.
+     *
+     * @return int the number of atoms that were added to the generalization
+     */
+    public function copyAtomsToGeneralization(Concept $specific, Concept $generic): int
+    {
+        if (!$specific->hasConceptTable() || !$generic->hasConceptTable()) {
+            return 0;
+        }
+        $from = $specific->getConceptTableInfo();
+        $to = $generic->getConceptTableInfo();
+        if ($from->getName() === $to->getName()) {
+            return 0; // one table holds both concepts
+        }
+        $fromCol = $from->getFirstCol()->getName();
+        $toCol = $to->getFirstCol()->getName();
+        $toCols = '"' . implode('", "', $to->getColNames()) . '"';
+        $values = implode(', ', array_fill(0, count($to->getCols()), "s.\"{$fromCol}\""));
+
+        $this->execute(
+            "INSERT INTO \"{$to->getName()}\" ($toCols)"
+            . " SELECT $values FROM \"{$from->getName()}\" AS s"
+            . " WHERE s.\"{$fromCol}\" IS NOT NULL"
+            . " AND s.\"{$fromCol}\" NOT IN (SELECT g.\"{$toCol}\" FROM \"{$to->getName()}\" AS g WHERE g.\"{$toCol}\" IS NOT NULL)"
+        );
+        return max(0, (int) $this->dbLink->affected_rows);
+    }
+
+    /**
      * The concept tables of the given concepts, apart from the given table
      *
      * @param \Ampersand\Core\Concept[] $concepts
