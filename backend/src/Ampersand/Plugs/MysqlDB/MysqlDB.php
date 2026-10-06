@@ -798,9 +798,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             $this->logger->info("Atom '{$atom}' already deleted by concurrent transaction: {$this->lastQuery}");
         }
 
-        // Generalizations and specializations that have a table of their own (see addAtom)
-        $related = array_merge($atom->concept->getGeneralizations(), $atom->concept->getSpecializations());
-        foreach ($this->tablesOfOtherConcepts($related, $conceptTable) as $table) {
+        // Generalizations that have a table of their own (see addAtom): the atom leaves them too.
+        // A specialization with a table of its own belongs to another context, which keeps its atom:
+        // a context writes the database of a generic concept of a classification, and never that of the specific one.
+        foreach ($this->tablesOfOtherConcepts($atom->concept->getGeneralizations(), $conceptTable) as $table) {
             $firstCol = $table->getFirstCol()->getName();
             $this->execute("DELETE FROM \"{$table->getName()}\" WHERE \"{$firstCol}\" = '{$atomId}' LIMIT 1");
         }

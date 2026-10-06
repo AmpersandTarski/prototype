@@ -36,6 +36,7 @@ A scenario is a directory under `scenarios/` with the scripts of a system, of wh
 - `install_all`: installs every application, a context after every context it includes;
 - `install <service>`: installs one application;
 - `api <service> <path>`: a GET on the API of an application;
+- `api_delete <service> <path>`: a DELETE on the API of an application, as a user in a session;
 - `sql <service> <query>`: a query on the database of a context;
 - `recompile <service> <script>`: gives an application the model of another script, as a new release would;
 - `expect <what> <expected> <actual>`: one check.

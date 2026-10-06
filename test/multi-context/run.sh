@@ -61,6 +61,12 @@ run_scenario() {
   db_of() { jq -r --arg s "$1" '.contexts[] | select(.service == $s) | .defaultDatabase' "$system"; }
   # api <service> <path>: a GET on the API of the application of a context
   api() { curl -sS "http://localhost:$(port_of "$1")/api/v1/$2"; }
+  # api_delete <service> <path>: a DELETE on the API of the application of a context, as a user in a session
+  api_delete() {
+    local jar="$work/$1.cookies" base="http://localhost:$(port_of "$1")/api/v1"
+    [ -f "$jar" ] || curl -sS -c "$jar" -o /dev/null "$base/app/navbar"
+    curl -sS -b "$jar" -c "$jar" -X DELETE "$base/$2"
+  }
   # sql <service> <query>: a query on the database of a context, as tab-separated rows
   sql() { docker exec "$stack-db" mysql -uroot -pampersand -N -B --default-character-set=utf8mb4 "$(db_of "$1")" -e "SET sql_mode='ANSI,TRADITIONAL'; $2" 2>&1; }
   failures=0

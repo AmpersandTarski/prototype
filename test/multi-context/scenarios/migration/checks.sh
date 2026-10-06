@@ -23,6 +23,13 @@ expect "the existing system is untouched" "a1-b1" "$(pairs old)"
 expect "the migration context signals what users have to repair" \
   "Pair a2 with an (any) atom from B.; Pair a3 with an (any) atom from B." "$(signals migration)"
 
+# A user of the migration system removes an atom from the desired system that the existing system still has.
+# The migration context writes the desired system, and never the existing one.
+expect "the user's transaction is committed" "true" \
+  "$(api_delete migration resource/SESSION/1/Desired/a2 | jq -r '.isCommitted')"
+expect "the existing system keeps the atom" "a1,a2,a3" "$(atoms old a)"
+expect "the classification brings the atom back to the desired system" "a1,a2,a3" "$(atoms new a)"
+
 # Traffic in the existing system goes on during the migration: a new atom and a new pair.
 sql old "INSERT INTO \"a\" (\"A\", \"r\") VALUES ('a4', 'b3')" >/dev/null
 api migration admin/execengine/run >/dev/null

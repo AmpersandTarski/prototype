@@ -49,4 +49,10 @@ INTERFACE Migration FOR User : "_SESSION";V[SESSION*old.A] cRud BOX
   , "fixed" : fixedTotalR cRud
   ]
 
+-- A user of the migration system removes an atom from the desired system.
+INTERFACE Desired FOR User : "_SESSION";V[SESSION*new.A] CRuD BOX
+  [ "A" : I cRud
+  , "r" : new.r cRud
+  ]
+
 ENDCONTEXT
