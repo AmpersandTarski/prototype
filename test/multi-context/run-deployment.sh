@@ -39,6 +39,16 @@ rm -rf "$out"
 "$AMPERSAND" deploy "$dir/main.adl" --output-dir "$out" >/dev/null 2>&1 || { log "ampersand deploy failed"; exit 1; }
 compose() { docker compose -f "$out/compose.yaml" -p "$stack" "$@"; }
 
+# Ports of its own, so that the stack does not collide with another stack on this machine.
+# The generated compose file and install.sh take them from the environment.
+base_port="${MC_DEPLOY_BASE_PORT:-9600}"
+i=0
+while read -r variable; do
+  export "${variable%_DBNAME}_PORT=$((base_port + i))"
+  i=$((i + 1))
+done < <(jq -r '.contexts[].databaseVariable' "$out/system.json")
+port_of() { jq -r --arg s "$1" --argjson base "$base_port" '.contexts | map(.service) | index($s) + $base' "$out/system.json"; }
+
 log "== $name: build the images of $(jq -r '[.contexts[].service] | join(", ")' "$out/system.json")"
 if ! compose build >"$out/build.txt" 2>&1; then
   log "  the images did not build:"; tail -30 "$out/build.txt" | sed 's/^/    /'; exit 1
@@ -51,14 +61,15 @@ else
   log "  ok    install.sh installed: $(grep -c '^Installing' "$out/install.txt") applications"
 fi
 
-while IFS=$'\t' read -r service database port; do
+while IFS=$'\t' read -r service database; do
+  port="$(port_of "$service")"
   answer="$(curl -sS "http://localhost:$port/api/v1/admin/ruleengine/evaluate/all" | jq -r 'if .invariants == [] then "no invariant violated" else "invariants violated" end' 2>&1)"
   expect "the application of $service answers" "no invariant violated" "$answer"
-  tables="$(compose exec -T db mysql -uroot -pampersand -N -B -e "SELECT COUNT(*) > 0 FROM information_schema.TABLES WHERE TABLE_SCHEMA = '$database'" 2>/dev/null)"
+  tables="$(compose exec -T db mysql -uroot -pampersand -N -B -e "SELECT COUNT(*) > 0 FROM information_schema.TABLES WHERE TABLE_SCHEMA = '$database'" 2>/dev/null </dev/null)"
   expect "$service has the database $database" "1" "$tables"
   page="$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$port/")"
   expect "the frontend of $service is served" "200" "$page"
-done < <(jq -r '.contexts[] | [.service, .defaultDatabase, .port] | @tsv' "$out/system.json")
+done < <(jq -r '.contexts[] | [.service, .defaultDatabase] | @tsv' "$out/system.json")
 
 if [ "${KEEP:-}" = "1" ]; then
   log "  stack $stack keeps running; files in $out"
