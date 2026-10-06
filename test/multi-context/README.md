@@ -1,0 +1,43 @@
+# Systems of contexts
+
+An Ampersand script can describe a system of several contexts with the statement `CONTEXT A INCLUDES B`.
+Every context then has an application of its own and a database of its own, on one database server.
+The scenarios in this directory run such a system and check what it does.
+
+**Guards:** an application reads and writes the tables of the contexts it reaches in the databases of their owners; a classification that relates concepts of two contexts is restored.
+
+## Running
+
+```bash
+AMPERSAND=/path/to/ampersand test/multi-context/run.sh diamond
+AMPERSAND=/path/to/ampersand test/multi-context/run.sh all
+```
+
+The runner asks the compiler which contexts the system has (`ampersand deploy`),
+compiles each of them (`ampersand proto --context`),
+starts one application per context on the framework in this working copy,
+and runs the file `checks.sh` of the scenario.
+The compiler runs on your machine, so that a compiler under development can be tried without building an image of it.
+It has to know the command `deploy`.
+`KEEP=1` leaves the stack running after the checks.
+
+## Scenarios
+
+| Scenario | The system | What it checks |
+| --- | --- | --- |
+| `diamond` | City includes Registry and Shops, and both include Towns. | Towns is one context with one database. A rule of City composes relations of Shops and Registry over the towns of Towns. A change in one database is seen by every context that reaches it. |
+| `migration` | The migration of *Data Migration under a Changing Schema in Ampersand* (RAMiCS 2024): a migration context includes two versions of the context Kurk. | The two versions get two databases. The classification brings the atoms of the existing system to the database of the desired system, and an enforced rule copies the pairs. Traffic in the existing system keeps arriving. At the moment of completion the desired system starts with its blocking invariant on the database as it is. |
+
+## Writing a scenario
+
+A scenario is a directory under `scenarios/` with the scripts of a system, of which `main.adl` is the root, and a file `checks.sh`.
+`checks.sh` is a shell fragment that the runner reads after the stack has started. It can use:
+
+- `install_all`: installs every application, a context after every context it includes;
+- `install <service>`: installs one application;
+- `api <service> <path>`: a GET on the API of an application;
+- `sql <service> <query>`: a query on the database of a context;
+- `recompile <service> <script>`: gives an application the model of another script, as a new release would;
+- `expect <what> <expected> <actual>`: one check.
+
+The service of a context is its name in lower case, or its alias if the root file gives it one.

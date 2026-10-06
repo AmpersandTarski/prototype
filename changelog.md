@@ -10,6 +10,20 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **An application can run on a database of its own next to the databases of the contexts it
+  reaches (DesignChoices OK-27).** An Ampersand script can describe a system of several contexts
+  with the statement `CONTEXT A INCLUDES B`; every context then has an application and a database
+  of its own. The compiler gives an application a view for every table of another context, and
+  the framework fills in the name of that database at installation, from the new setting
+  `mysql.contextDatabases` (`AMPERSAND_CONTEXT_DBNAMES`, a list of `<label>=<database name>`
+  separated by `;`). A classification that relates concepts of two contexts is restored by the
+  application that states it. An application without the setting behaves as before. The runner
+  `test/multi-context/run.sh` starts one application per context; its scenarios are a diamond of
+  four contexts and the migration case of the RAMiCS 2024 paper on three databases. This needs a
+  compiler with the command `ampersand deploy`
+  ([Ampersand#1509](https://github.com/AmpersandTarski/Ampersand/issues/1509)).
 ## v2.14.0 (1 October 2026)
 
 * **A LaTeX text is shown formatted (DesignChoices OK-25).** `app-atomic-markup` has a fifth
