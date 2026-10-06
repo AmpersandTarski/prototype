@@ -110,7 +110,8 @@ try {
       const lines = summaryLines(mode).slice(before.summaries);
       assert(lines.length > 0, `[${phase}] the delta path ran (saw ${lines.length} close summaries)`);
       // The bundled compiler emits deltaQueries, so the protocol itself must fire
-      const counted = lines.reduce((n, l) => n + Number(/(\d+) delta-maintained,/.exec(l)?.[1] ?? 0), 0);
+      // The count follows the mode in the summary line: "...('on'): 14 delta-maintained, ..."
+      const counted = lines.reduce((n, l) => n + (Number.parseInt(l.split("'): ")[1] ?? '', 10) || 0), 0);
       assert(deltaMaintained > 0, `[${phase}] conjuncts went through the delta protocol (saw ${deltaMaintained})`);
       assert(counted > 0, `[${phase}] the close summaries count delta-maintained conjuncts (saw ${counted})`);
       if (mode === 'shadow') {
