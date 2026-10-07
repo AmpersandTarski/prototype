@@ -12,6 +12,24 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased
 
+* **A cost gate routes each rule query at the close of a transaction (opt-in, DesignChoices OK-27).**
+  A model compiled with Ampersand v5.9.8 or later carries, per conjunct, the shape class of its
+  violation query and the tables that query reads in full. With
+  `transactions.costGate.enabled: true` the close turns that profile into a route per conjunct,
+  holding the scanned tables against the live table sizes. A query stays integral while the tables
+  it reads are small. Once the largest passes `transactions.costGate.scanThreshold` (default
+  30 000 rows), the conjunct takes the incremental route: under
+  `transactions.deltaConjunctMaintenance: 'on'` the delta protocol then maintains only the
+  conjuncts on that route and evaluates the others in full, which is cheaper for a query an index
+  answers. A shadow run is not narrowed. With the gate off, the default, nothing changes.
+* **A rule the table layout already enforces can run no query at all** (opt-in, off by default).
+  `transactions.costGate.skipStructural: true` lets the close skip the violation query of a
+  conjunct whose property the schema makes unbreakable: a univalent relation stored on a unique
+  key column cannot hold two values for one key. This rests on Ampersand proof-track claim PRF-8,
+  whose status is *stated*: it is formulated and not yet proved, which is why the switch is
+  separate. A sampled self-check (`transactions.costGate.selfCheckRate`, default 1%) runs the
+  query after all for a fraction of the skipped conjuncts; if it finds violations, the real result
+  is kept and the discrepancy is logged as an error.
 * **The bundled Ampersand compiler moves to v5.9.8.** This is the first compiler release that
   generates the candidate queries (`deltaQueries` in `conjuncts.json`, `deltaTable` in
   `relations.json`, the delta tables in `database.sql`) and a cost profile per conjunct

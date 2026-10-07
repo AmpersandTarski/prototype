@@ -811,3 +811,75 @@ storage lists it.
 Technisch: `BoxTableComponent` (`compact`, `dense`, `toggleDense()`, `toggleRow()`), its template
 and stylesheet, `Box-TABLE.html` and `Box-FACETS.html`, the interface `TicketsCompact` and eight
 assertions in `test/projects/box-facets`.
+
+**A cost gate routes each conjunct at the close: no query, the full query, or the delta protocol**
+OK-27 · voorstel · 2026-10-07 · herkomst: Ampersand #1692 (contract in Ampersand DC-16 and DC-17), corpus study Ampersand #1690; built on 16 August 2026, united with OK-19 on 7 October 2026
+
+With `transactions.costGate.enabled: true` the close of a transaction gives every affected conjunct
+one of three routes, from the cost profile the compiler generated for it and the live sizes of the
+tables its query reads in full.
+A conjunct of class `structural` runs no query, when `transactions.costGate.skipStructural` is on.
+A conjunct of class `recursive`, or of class `scan` with a scanned table of at least
+`transactions.costGate.scanThreshold` rows, takes the incremental route.
+Every other conjunct gets its full query.
+The incremental route is the delta protocol of OK-19: under `deltaConjunctMaintenance: 'on'` only a
+conjunct on the incremental route goes through the protocol, under `'shadow'` the gate narrows
+nothing, and under `'off'` the conjunct is evaluated in full.
+With the gate off, which is the default, every route is as it was.
+
+Overwegingen:
+
+1. The purpose is that the delta protocol engages only where it pays. Measured without a gate,
+   the protocol is slower than full evaluation: 4.2 ms against 3.1 ms per close on FC5, 47.0 ms
+   against 40.4 ms on RAP (OK-19, consideration 2), and 5 to 30 percent slower on the model of the
+   Artefactenkaart at three sizes (Ampersand, `memorybank/incremental-evaluation/kaartproef`). Most
+   violation queries are answered from an index in milliseconds, and the protocol's fixed machinery
+   costs more than such a query.
+
+2. The route is decided per conjunct and not per application. The corpus study over seven models
+   and 1 384 conjuncts found that the shape of a query fixes how its cost grows, and the size of
+   the tables fixes when that growth passes the cost of the protocol. A profile from the compiler
+   held against the table sizes of the running database reached 100 percent recall at 98.6 percent
+   specificity on that corpus.
+
+3. Under `'on'` the gate narrows the protocol, and under `'shadow'` it does not. A shadow run
+   exists to gather comparisons between the two routes before anyone relies on the delta route, so
+   it compares every conjunct the protocol can take. Rejected: narrowing the shadow run as well,
+   which would leave the conjuncts the gate keeps integral without evidence on the day the
+   threshold moves.
+
+4. A clean conjunct (OK-19, consideration 5) is recognised before the gate is asked. Its result
+   in memory is a real evaluation of this transaction, which is stronger than a claim about the
+   table layout.
+
+5. The route without a query rests on a claim that is stated and not yet proved: a univalent
+   relation stored on a unique key column cannot hold two values for one key (Ampersand proof track,
+   PRF-8). So it has its own switch, off by default, and a sampled self-check
+   (`transactions.costGate.selfCheckRate`, default 1 percent) runs the query after all. If that
+   finds violations the real result is kept and the discrepancy is logged as an error.
+
+6. The table sizes are the estimates of `information_schema`, read once per request. An exact
+   count costs a scan per table, which is what the gate exists to avoid, and the question is only
+   whether a table has hundreds of rows or a hundred thousand.
+
+7. The gate does not reach the ExecEngine, which evaluates its rules in full whatever the setting.
+   On the model of the Artefactenkaart that is where two thirds of a write is spent, in a closure
+   under `ENFORCE` that has no candidate queries. For such a model this choice changes little; the
+   gain there is in the query shape (Ampersand #1708) and in `skipCleanConjuncts`.
+
+8. Rejected: a threshold per conjunct in the model. The modeller does not know the table sizes of
+   a deployment, and the framework does. Rejected: routing on the class alone, which reached 62.5
+   percent recall in the corpus study.
+
+Impact op de specificatie: none. A model gains and loses nothing; the profile comes from the
+compiler (v5.9.8 or later), and a conjunct without a profile keeps its full query.
+
+Impact in productie: with the defaults a prototype behaves as before. With the gate on, the
+commit decisions, the data and the violation cache are the same as with it off, and each request
+that closes a transaction reads the table sizes once. The close's debug summary gains a fourth
+count, "skipped as structurally enforced".
+
+Technisch: `CostGate`, `CostClass` and `ConjunctRoute` in `backend/src/Ampersand/Rule`;
+`Transaction::evaluateAffectedConjunctsInFull()`, `takesStructuralSkip()` and the narrowing in
+`evaluateAffectedConjunctsWithDelta()`; `Conjunct::markHolds()`; four settings under
+`transactions.costGate`; `test/projects/cost-gate` with five scenarios.

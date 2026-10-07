@@ -64,6 +64,10 @@ settings:
   # by a compiler that emits deltaQueries; without those the setting is a no-op.
   transactions.deltaConjunctMaintenance: 'off'
   transactions.skipCleanConjuncts: false # skip the close's re-evaluation of conjuncts that were evaluated in this transaction with no mutations registered afterwards (issue #443)
+  transactions.costGate.enabled: false # route each conjunct by the cost profile the compiler generated, instead of running every violation query in full (Ampersand issue #1692)
+  transactions.costGate.skipStructural: false # let a conjunct whose property the table layout already enforces run no query at all; rests on Ampersand proof-track claim PRF-8 (status: stated)
+  transactions.costGate.scanThreshold: 30000 # row count above which a fully scanned table makes its query worth maintaining incrementally
+  transactions.costGate.selfCheckRate: 0.01 # fraction of skipped conjuncts that is verified by running the query after all
   transactions.interfaceAutoSaveChanges: true # specifies whether changes in interface are directly communicated (saved) to server
 
   ### Notification settings

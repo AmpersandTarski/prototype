@@ -1,0 +1,48 @@
+CONTEXT CostGate IN ENGLISH
+
+-- Model for the cost-gate regression (Ampersand issue #1692).
+--
+-- It is deliberately small and carries one conjunct of each kind the gate must
+-- treat differently:
+--   guestName  a UNI relation stored on the Booking key column — the layout
+--              enforces univalence, so its UNI conjunct is the structural case
+--   note       a second UNI relation, so the spec can assert that skipping one
+--              conjunct leaves its neighbours untouched
+--   follows    a plain relation carrying an ordinary rule — no table layout
+--              enforces it, which makes it the counterexample of scenario 3
+--
+-- The interface is rooted in SESSION, the shape the framework's resource API
+-- navigates; it also gives Booking the Object representation and hence a
+-- primary key, without which no conjunct qualifies as structural.
+
+CONCEPT Booking "A booking"
+REPRESENT Name TYPE ALPHANUMERIC
+
+RELATION guestName[Booking*Name] [UNI]
+MEANING "The name of the guest for a booking."
+RELATION note[Booking*Name] [UNI]
+MEANING "A free-text note on a booking."
+RELATION follows[Booking*Booking]
+MEANING "A booking that follows another one."
+
+RULE NoSelfFollow LABEL "A booking does not follow itself":
+  follows |- -I[Booking]
+MEANING "A booking cannot follow itself."
+VIOLATION (TXT "Booking ", SRC I, TXT " follows itself.")
+
+RELATION allBookings[SESSION*Booking]
+ROLE ExecEngine MAINTAINS ShowAllBookings
+RULE ShowAllBookings: V[SESSION*Booking] |- allBookings
+VIOLATION (TXT "{EX} InsPair;allBookings;SESSION;", SRC I, TXT ";Booking;", TGT I)
+
+INTERFACE Bookings : "_SESSION"[SESSION] cRud BOX<TABLE>
+  [ "Bookings" : allBookings cRud BOX<FORM>
+      [ "Guest name" : guestName cRUd
+      , "Note" : note cRUd
+      , "Follows" : follows cRUd
+      ]
+  ]
+
+POPULATION Booking CONTAINS [ "booking1", "booking2" ]
+
+ENDCONTEXT

@@ -12,6 +12,7 @@ use Ampersand\Session;
 use Ampersand\Core\Atom;
 use Exception;
 use Ampersand\Core\Concept;
+use Ampersand\Rule\CostGate;
 use Ampersand\Rule\RuleEngine;
 use Psr\Log\LoggerInterface;
 use Ampersand\Log\Logger;
@@ -77,6 +78,11 @@ class AmpersandApp
      * Default storage plug
      */
     protected ?MysqlDB $defaultStorage = null;
+
+    /**
+     * Decides per conjunct how its violations are obtained (Ampersand issue #1692)
+     */
+    protected ?CostGate $costGate = null;
 
     /**
      * Cache implementation for conjunct violation cache
@@ -334,6 +340,17 @@ class AmpersandApp
         }
 
         return $this->defaultStorage;
+    }
+
+    /**
+     * The cost gate that assigns each conjunct its evaluation route
+     *
+     * Built on first use, because it needs the default storage, which is set after
+     * construction. It keeps the table sizes it reads for the rest of the request.
+     */
+    public function getCostGate(): CostGate
+    {
+        return $this->costGate ??= new CostGate($this->settings, $this->getDefaultStorage(), $this->logger);
     }
 
     /**

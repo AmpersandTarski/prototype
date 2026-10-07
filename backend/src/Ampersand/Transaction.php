@@ -13,6 +13,8 @@ use Ampersand\Core\Relation;
 use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Plugs\StorageInterface;
 use Ampersand\Rule\Conjunct;
+use Ampersand\Rule\ConjunctRoute;
+use Ampersand\Rule\CostGate;
 use Ampersand\Rule\RuleEngine;
 use Ampersand\Rule\ExecEngine;
 use Ampersand\Rule\Rule;
@@ -363,12 +365,7 @@ class Transaction
         // (Re)evaluate affected conjuncts
         $deltaMode = $this->app->getSettings()->get('transactions.deltaConjunctMaintenance', 'off');
         if ($deltaMode === 'off') {
-            foreach ($this->getAffectedConjuncts() as $conj) {
-                if ($this->isSkippableCleanConjunct($conj)) {
-                    continue;
-                }
-                $conj->evaluate(); // violations are persisted below, only when transaction is committed
-            }
+            $this->evaluateAffectedConjunctsInFull();
         } else {
             $this->evaluateAffectedConjunctsWithDelta($deltaMode === 'shadow');
         }
@@ -404,6 +401,68 @@ class Transaction
         $this->deltaMaintainedConjuncts = [];
 
         return $this;
+    }
+
+    /**
+     * Evaluate the affected conjuncts without the delta protocol
+     *
+     * Each conjunct gets its full violation query, except a clean one (see
+     * isSkippableCleanConjunct) and one the cost gate routes as structurally enforced.
+     * With the gate off every conjunct takes the integral route, which is the query this
+     * loop has always run.
+     */
+    protected function evaluateAffectedConjunctsInFull(): void
+    {
+        $gate = $this->app->getCostGate();
+        foreach ($this->getAffectedConjuncts() as $conj) {
+            if ($this->isSkippableCleanConjunct($conj) || $this->takesStructuralSkip($gate, $conj)) {
+                continue;
+            }
+            if ($gate->route($conj) === ConjunctRoute::Incremental) {
+                // The gate would maintain this conjunct incrementally, but the delta protocol
+                // is off. Logging the route makes the classification visible in the model that runs.
+                $this->logger->debug("Conjunct '{$conj}' qualifies for incremental maintenance; transactions.deltaConjunctMaintenance is 'off', so it is evaluated in full");
+            }
+            $conj->evaluate(); // violations are persisted at commit
+        }
+    }
+
+    /**
+     * True when the cost gate routes this conjunct as structurally enforced; the conjunct
+     * is then recorded as holding (or verified by the sampled self-check) and needs no
+     * further evaluation in this close
+     */
+    protected function takesStructuralSkip(CostGate $gate, Conjunct $conj): bool
+    {
+        if ($gate->route($conj) !== ConjunctRoute::Skip) {
+            return false;
+        }
+        $this->skipStructuralConjunct($gate, $conj);
+        return true;
+    }
+
+    /**
+     * Record that a structurally enforced conjunct holds, and now and then verify that it does
+     *
+     * The skip route rests on claim PRF-8: a relation stored on a unique key column cannot
+     * violate the multiplicity that layout enforces. The sampled check runs the query after
+     * all for a fraction of these conjuncts and compares. Finding violations means the claim
+     * does not hold for this model, so the real result is kept — correctness first — and the
+     * discrepancy is reported.
+     */
+    protected function skipStructuralConjunct(CostGate $gate, Conjunct $conj): void
+    {
+        if (!$gate->selfCheckDue()) {
+            $this->logger->debug("Skip evaluation of conjunct '{$conj}': structurally enforced by the table layout");
+            $conj->markHolds();
+            return;
+        }
+
+        $conj->evaluate();
+        $violations = $conj->getViolations();
+        if ($violations !== []) {
+            $gate->reportSelfCheckFailure($conj, $violations);
+        }
     }
 
     /**
@@ -444,12 +503,7 @@ class Transaction
         $pool = $this->app->getConjunctCache();
         if (!$pool instanceof MysqlConjunctCache) {
             $this->logger->warning("Delta conjunct maintenance requested, but no MySQL-backed conjunct cache is available; keeping full evaluation");
-            foreach ($this->getAffectedConjuncts() as $conj) {
-                if ($this->isSkippableCleanConjunct($conj)) {
-                    continue;
-                }
-                $conj->evaluate();
-            }
+            $this->evaluateAffectedConjunctsInFull();
             return;
         }
         $db = $pool->getDatabase();
@@ -467,6 +521,8 @@ class Transaction
         $countDelta = 0;
         $countFull = 0;
         $countSkipped = 0;
+        $countStructural = 0;
+        $gate = $this->app->getCostGate();
         foreach ($this->getAffectedConjuncts() as $conj) {
             // A clean conjunct (see isSkippableCleanConjunct) keeps its in-memory result,
             // which commit persists wholesale; neither evaluation nor delta maintenance needed.
@@ -474,8 +530,19 @@ class Transaction
                 $countSkipped++;
                 continue;
             }
+            // A conjunct the table layout enforces needs neither route (cost gate, claim PRF-8)
+            if ($this->takesStructuralSkip($gate, $conj)) {
+                $countStructural++;
+                continue;
+            }
             $sigs = [];
             $eligible = $conj->hasDeltaQueries() && !isset($conceptConjunctIds[$conj->getId()]);
+            // Under 'on' the cost gate narrows the protocol to the conjuncts whose full query
+            // has outgrown the protocol's fixed fee; the others are cheaper evaluated in full.
+            // A shadow run exists to compare as much as it can, so the gate does not narrow it.
+            if ($eligible && !$shadow && $gate->isEnabled() && $gate->route($conj) !== ConjunctRoute::Incremental) {
+                $eligible = false;
+            }
             if ($eligible) {
                 foreach ($this->affectedRelations as $relation) {
                     if (!in_array($conj, $relation->getRelatedConjuncts())) {
@@ -534,7 +601,7 @@ class Transaction
             }
         }
         $mode = $shadow ? 'shadow' : 'on';
-        $this->logger->debug("Delta conjunct maintenance ('{$mode}'): {$countDelta} delta-maintained, {$countFull} evaluated in full, {$countSkipped} skipped as clean");
+        $this->logger->debug("Delta conjunct maintenance ('{$mode}'): {$countDelta} delta-maintained, {$countFull} evaluated in full, {$countSkipped} skipped as clean, {$countStructural} skipped as structurally enforced");
     }
 
     /**
