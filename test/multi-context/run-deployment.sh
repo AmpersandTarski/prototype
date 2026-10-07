@@ -64,7 +64,10 @@ fi
 while IFS=$'\t' read -r service database; do
   port="$(port_of "$service")"
   answer="$(curl -sS "http://localhost:$port/api/v1/admin/ruleengine/evaluate/all" | jq -r 'if .invariants == [] then "no invariant violated" else "invariants violated" end' 2>&1)"
-  expect "the application of $service answers" "no invariant violated" "$answer"
+  # A scenario can say that an application starts with violated invariants (deployment-expectations.tsv).
+  # That is the case for the desired system of a migration, until the moment of completion.
+  expected="$(awk -F'\t' -v s="$service" '$1 == s { print $2 }' "$dir/deployment-expectations.tsv" 2>/dev/null)"
+  expect "the application of $service answers" "${expected:-no invariant violated}" "$answer"
   tables="$(compose exec -T db mysql -uroot -pampersand -N -B -e "SELECT COUNT(*) > 0 FROM information_schema.TABLES WHERE TABLE_SCHEMA = '$database'" 2>/dev/null </dev/null)"
   expect "$service has the database $database" "1" "$tables"
   page="$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$port/")"

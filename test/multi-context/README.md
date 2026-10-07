@@ -48,3 +48,8 @@ A scenario with a file `grants.sql` gives every application a database user of i
 The runner executes `grants.sql` as the administrator of the database server before it installs the applications.
 Without that file, all applications share one user with all rights.
 The scenario `migration` has one: its users have the rights that follow from what each context reads and writes.
+
+`run-deployment.sh` expects every application to start without a violated invariant.
+A scenario with a file `deployment-expectations.tsv` names the applications for which that differs, one per line: the service, a tab, and `invariants violated`.
+The scenario `migration` has one, for the desired system: the migration brings the data of the existing system into its database,
+and that data violates its new invariant until users have repaired it. Until then the desired system is deployed and not in use.
