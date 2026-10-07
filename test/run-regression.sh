@@ -13,6 +13,10 @@
 # A project without a spec is reported as "no spec" and does not count as verified:
 # bringing a stack up only shows that the model compiles and installs.
 #
+# A project whose failure is understood and tracked states that in regression.conf
+# (known_fail="#415: ..."). It is then reported as "known red" instead of FAIL and does not
+# fail the run, so a new red stands out; the report keeps showing the known one.
+#
 set -uo pipefail
 
 REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -39,12 +43,20 @@ acquire_lock() {
 }
 
 # The entry model of a project. Defaults to model/main.adl; a project whose entry file has
-# another name states it in regression.conf (e.g. ENTRY=model/app.adl).
+# another name states it in regression.conf (e.g. entry=model/app.adl).
 entry_model() {
   local project="$1" entry="model/main.adl"
   local conf="$PROJECTS_DIR/$project/regression.conf"
   [ -f "$conf" ] && . "$conf"
   printf '%s' "$entry"
+}
+
+# The reason a project is expected to fail (known_fail=... in regression.conf), or empty.
+known_fail_of() {
+  local project="$1" known_fail=""
+  local conf="$PROJECTS_DIR/$project/regression.conf"
+  [ -f "$conf" ] && . "$conf"
+  printf '%s' "$known_fail"
 }
 
 # What a project guards, taken from the "Guards:" line of its README (phase 0 format).
@@ -82,14 +94,31 @@ wait_for_web() {
   return 1
 }
 
-# Verify one project. Prints its own progress; returns 0 = pass, 1 = fail, 2 = no spec.
+# Verify one project. Prints its own progress; returns 0 = pass, 1 = fail, 2 = no spec,
+# 3 = known red (a failure the project declares in regression.conf).
 run_project() {
   local project="$1"
   local dir="$PROJECTS_DIR/$project"
   local model; model=$(entry_model "$project")
+  local known; known=$(known_fail_of "$project")
 
   [ -d "$dir" ] || { log "unknown project: $project"; return 1; }
   [ -f "$dir/$model" ] || { log "no entry model $model in $project (see regression.conf)"; return 1; }
+
+  run_project_verify "$project" "$dir" "$model"; local rc=$?
+  if [ -n "$known" ]; then
+    if [ "$rc" = "1" ]; then
+      log "  known red: $known"
+      rc=3
+    else
+      log "  no longer failing — drop known_fail from $project/regression.conf"
+    fi
+  fi
+  return $rc
+}
+
+run_project_verify() {
+  local project="$1" dir="$2" model="$3"
 
   step "stack up (port $REG_PORT)"
   stack_up "$project" || { log "  stack failed to start"; stack_down "$project"; return 1; }
@@ -154,6 +183,7 @@ verdict_text() {
   case "$1" in
     0) printf 'PASS' ;;
     2) printf 'no spec' ;;
+    3) printf 'known red' ;;
     *) printf 'FAIL' ;;
   esac
 }
@@ -182,16 +212,17 @@ case "${1:-}" in
     # Contribution report: what did this run guard, and what did it cost?
     log ""
     log "================ regression report ================"
-    printf '%-24s %-8s %6s  %s\n' "project" "verdict" "sec" "guards"
-    fails=0; nospec=0
+    printf '%-24s %-9s %6s  %s\n' "project" "verdict" "sec" "guards"
+    fails=0; nospec=0; known=0
     for i in "${!names[@]}"; do
-      printf '%-24s %-8s %6s  %s\n' \
+      printf '%-24s %-9s %6s  %s\n' \
         "${names[$i]}" "$(verdict_text "${verdicts[$i]}")" "${times[$i]}" "$(guards_of "${names[$i]}")"
       [ "${verdicts[$i]}" = "1" ] && fails=$((fails + 1))
       [ "${verdicts[$i]}" = "2" ] && nospec=$((nospec + 1))
+      [ "${verdicts[$i]}" = "3" ] && known=$((known + 1))
     done
     log "---------------------------------------------------"
-    log "${#names[@]} projects, $fails failed, $nospec without a spec (not verified)"
+    log "${#names[@]} projects, $fails failed, $known known red, $nospec without a spec (not verified)"
     [ "$fails" -eq 0 ] || exit 1
     ;;
 

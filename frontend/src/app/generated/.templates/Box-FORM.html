@@ -12,17 +12,20 @@
         $if(exprIsUni)$isUni
         $endif$$if(exprIsTot)$isTot
         $endif$$if(hideOnNoRecords)$hideOnNoRecords
+        $endif$$if(hideSubOnNoRecords)$hideSubOnNoRecords
+        $endif$$if(showSubOnNoRecords)$showSubOnNoRecords
         $endif$$if(showNavMenu)$showNavMenu
         $endif$$if(title)$title="$title$"$endif$
     >
         <ng-template
             [boxFormTemplate]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
             let-resource
+            let-form="form"
         >
             <div class="formgrid grid">
                 $subObjects:{subObj|
-                <div class="field col-12 box-form-field"$if(hideSubOnNoRecords)$ *ngIf="resource['$subObj.subObjName$'] != null && (resource['$subObj.subObjName$'].length === undefined || resource['$subObj.subObjName$'].length > 0)"$endif$>
-                    $if(hideLabels)$<div class="box-form-value box-form-value--nolabel">$subObj.subObjContents$</div>$else$<label class="box-form-label">$subObj.subObjLabel$</label>
+                <div class="field col-12 box-form-field" *ngIf="form.showField(resource, '$subObj.subObjName$')" [ngClass]="form.fieldClass(resource, '$subObj.subObjName$')">
+                    $if(hideLabels)$<div class="box-form-value box-form-value--nolabel">$subObj.subObjContents$</div>$else$<label class="box-form-label">$subObj.subObjLabel$<span class="box-form-count" *ngIf="form.count(resource, '$subObj.subObjName$') as n" [textContent]="n"></span></label>
                     <div class="box-form-value">$subObj.subObjContents$</div>$endif$
                 </div>
                 }$

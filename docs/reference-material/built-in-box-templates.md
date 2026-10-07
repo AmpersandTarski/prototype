@@ -1,10 +1,10 @@
 # Built-in BOX Templates
 
 The prototype framework ships four general-purpose BOX templates — `TABLE`,
-`FORM`, `TABS` and `RAW` — plus the special-purpose `PROPBUTTON`. Each
-general-purpose template accepts a set of **annotations** in its BOX header that
-tune how the box is rendered. This page documents those annotations first, then
-the `PROPBUTTON` template.
+`FORM`, `TABS` and `RAW` — plus special-purpose ones: `PROPBUTTON`,
+`FILTEREDDROPDOWN`, `SELECT`, `FACETS`, `MARKUP` and `NOVIEW`. Each general-purpose template
+accepts a set of **annotations** in its BOX header that tune how the box is rendered.
+This page documents those annotations first, then the special-purpose templates.
 
 ## BOX-template annotations
 
@@ -28,15 +28,22 @@ and ignores the rest.
 | --- | :---: | :---: | :---: | :---: | --- | --- |
 | `title` | ✅ | ✅ | ✅ | — | string | Renders a title/description line above the box content. |
 | `hideOnNoRecords` | ✅ | ✅ | ✅ | — | flag | Hides the whole box (including add-controls) when it has no records. |
-| `hideSubOnNoRecords` | — | ✅ | ✅ | — | flag | Hides an individual field row (FORM) or tab panel (TABS) when that sub-field has no records. |
+| `hideSubOnNoRecords` | — | ✅ | ✅ | — | flag | Hides an individual field row (FORM) or tab panel (TABS) when that sub-field has no records, also a field the user may edit. |
+| `showSubOnNoRecords` | — | ✅ | — | — | flag | Shows every field row of a FORM, also an empty one the user cannot edit. |
+| `showOnNoRecords` | — | ✅ | — | — | flag | On a group (a FORM box on `I`): shows the group while all of its fields are empty. |
 | `noHeader` | ✅ | — | — | — | flag | Suppresses the column-header row. |
+| `compact` | ✅ | — | — | — | flag | Starts the table in the dense stand: one line per row, under a header that stays. The user can switch. See [`compact`](#compact-table). |
 | `hideLabels` | — | ✅ | — | — | flag | Renders fields full-width without their labels. |
 | `showNavMenu` | ✅ | ✅ | — | — | flag | Adds a navigation menu (links to other interfaces) per record. |
 | `sortable` | ✅ | — | — | — | flag | Makes column headers clickable to sort. Combine with `sortBy` / `order`. |
 | `sortBy` | ✅ | — | — | — | string | Default sort column (a sub-interface label). Use with `sortable`. |
-| `order` | ✅ | — | — | — | `asc`/`desc` | Default sort direction. Use with `sortBy`. |
+| `sortByAndHide` | ✅ | — | — | — | string | Sorts the rows on the named column and hides that column. Works without `sortable`; overrides `sortBy`. |
+| `order` | ✅ | — | — | — | `asc`/`desc` | Default sort direction. Use with `sortBy` or `sortByAndHide`. |
 | `table` | — | — | — | ✅ | flag | Lays each record's fields out as an HTML table row. |
 | `form` | — | — | — | ✅ | flag | Wraps each record in a non-submitting `<form>` element. |
+
+`FACETS` accepts every TABLE annotation in this matrix, plus its own `facets`,
+`facetOnly` and `facetKind`; see [BOX \<FACETS\>](#box-facets).
 
 > **Not yet available — `noRootTitle`.** Historically a root interface box could
 > suppress its automatic interface heading with `noRootTitle`. That heading is
@@ -72,11 +79,48 @@ including its title and add-controls.
 > where records are created elsewhere, or where an empty box is genuinely
 > irrelevant to the user.
 
+### Empty fields in a FORM
+
+A FORM shows what a record has. Without annotation it leaves out a field that is
+empty and that the user cannot fill (no `C` or `U` in its CRUD), so a detail screen
+does not list labels without values. A field the user may fill stays visible while
+empty, so the value can be entered.
+
+A *group* is a FORM box on `I` inside a FORM: the modeler's way to put fields that
+belong together in one block. A group whose fields are all empty is left out as well.
+
+```ampersand
+INTERFACE Requirement : I[Requirement] cRud BOX<FORM>
+  [ "Properties" : I cRud BOX<FORM>
+      [ "Status"   : status   cRud
+      , "Priority" : priority cRud
+      ]
+  , "Trace in the design" : I cRud BOX<FORM showOnNoRecords>
+      [ "Rules"      : mentions~;I[Rule]      cRud
+      , "Interfaces" : mentions~;I[Interface] cRud
+      ]
+  ]
+```
+
+Groups sit side by side as long as the width allows. Three annotations change the
+default:
+
+- `showOnNoRecords` on a group shows it while all of its fields are empty, with a
+  dash; use it where the emptiness itself tells the user something, such as a
+  requirement that no rule or interface mentions yet.
+- `showSubOnNoRecords` on a FORM shows every field row, as FORMs did before.
+- `hideSubOnNoRecords` hides every empty field row, also one the user may edit.
+
+The FORM reads the CRUD and multiplicity of its fields from `interfaces.json`,
+because the compiler does not pass them to the box template. This default belongs to
+FORM only: TABS still shows every tab panel, and hides an empty one only under
+`hideSubOnNoRecords`.
+
 ### `hideSubOnNoRecords`
 
 Hides the parts *inside* a box that have no data, keeping the box itself visible:
 
-- In a **FORM**, an empty field row is hidden.
+- In a **FORM**, an empty field row is hidden, also one the user may edit.
 - In **TABS**, an empty tab panel is hidden (so the tab disappears from the bar).
 
 ```ampersand
@@ -92,6 +136,28 @@ PrimeNG tab-index problems that a structural `*ngIf` on a tab panel would cause.
 
 > **Warning.** A hidden field/tab cannot be edited through this box. Make sure the
 > underlying data is reachable through another interface when it matters.
+
+### `compact` (TABLE)
+
+A table has two stands. In the roomy stand a row is as high as its longest text. In the dense
+stand every row is one line, a long text ends in an ellipsis, and the table scrolls under its
+own header, so many rows fit on a screen. A click on a dense row shows its full text; a second
+click folds it again.
+
+```ampersand
+INTERFACE Requirements : "_SESSION";V[SESSION*Requirement] cRud BOX<FACETS compact sortable>
+  [ "Requirement" : I      cRud LINKTO INTERFACE Requirement
+  , "Status"      : status cRud
+  , "Text"        : text   cRud
+  ]
+```
+
+The modeler chooses the stand a table starts in: `compact` for a table of data, nothing for a
+table that is read. The user switches with the button at the right of the header row, and the
+browser remembers that choice per table until the tab closes (in its session storage, see
+[cookies and browser storage](cookies-and-browser-storage.md)), so it survives a reload and does
+not carry over to another table. A table with `noHeader` has no button and keeps the
+stand of the modeler.
 
 ### `noHeader` (TABLE)
 
@@ -127,6 +193,35 @@ included in interface reads by default, so no extra configuration is needed.
 "Categories" : V[SESSION*Category] cRud BOX<TABLE showNavMenu>
   [ "Name" : catName cRud ]
 ```
+
+### `sortable`, `sortBy`, `sortByAndHide` and `order` (TABLE)
+
+`sortable` makes the column headers clickable to sort. `sortBy="<column>"` picks
+the column the table is sorted on when it opens, and `order="asc"`/`order="desc"`
+picks the direction. The column name is the sub-interface label, written as it
+appears in the interface definition.
+
+`sortByAndHide="<column>"` sorts the rows on the named column and hides that
+column from the table. Use it when the sort key is bookkeeping the user should
+not see — a rank, a sequence number, a normalized date:
+
+```ampersand
+"Steps" : procedureStep cRud BOX<TABLE sortByAndHide="Seq">
+  [ "Step" : stepText cRud
+  , "Seq"  : stepSeq  cRud
+  ]
+```
+
+- It works on its own: `sortable` is not required. Combined with `sortable`, the
+  user can still re-sort on the visible columns; `sortByAndHide` then overrides
+  `sortBy` as the initial sort.
+- `order` sets the direction, as with `sortBy`.
+- The named column must be a univalent (`UNI`) sub-interface; sorting needs one
+  value per row.
+- The column is hidden from view only. Its values still travel to the browser in
+  the interface data, so `sortByAndHide` is presentation, not access control —
+  restrict the CRUD rights where the user may not read the values at all (but
+  note that without read rights there is nothing to sort on either).
 
 ### `table` and `form` (RAW)
 
@@ -301,7 +396,7 @@ raises an error at runtime.
 ### CRUD on `setRelation`
 
 The CRUD letters on `setRelation` decide which actions the widget offers (see the
-[CRUD reference](interfaces.md#CRUD) for the general meaning):
+[CRUD reference](https://ampersandtarski.github.io/ampersand/reference-material/interfaces#CRUD) for the general meaning):
 
 - **R** (read) is required for the box to display the current value.
 - **U** (update) lets the user replace/extend the value by selecting an option.
@@ -343,6 +438,241 @@ Use `SELECT` when the option list is the same for every record and is part of th
 interface data. Use `FILTEREDDROPDOWN` when the options must be filtered per
 record or when the user should be able to create new atoms.
 
+<a name="box-facets"></a>
+
+## BOX \<FACETS\>
+
+`BOX <FACETS>` is a `BOX <TABLE>` with a facet panel next to it: a faceted search.
+Every facet belongs to one box item and lists the values the rows carry for it, each
+with the number of rows that have it. Choosing values shrinks the table, and the counts
+of the other facets follow. A search field above the table searches every value of a
+row. Use it for an overview that is too long to read whole, where the user wants to
+narrow it down by status, owner, date and the like.
+
+### Usage
+
+```ampersand
+INTERFACE Issues : "_SESSION";V[SESSION*Issue] cRud
+  BOX<FACETS facets="Project, Status, Date, Labels, Author" facetOnly="Author" sortable sortBy="Date" order="desc">
+  [ "Issue"   : I       cRud LINKTO INTERFACE Issue
+  , "Project" : project cRud
+  , "Status"  : status  cRud
+  , "Date"    : date    cRud
+  , "Labels"  : label   cRud
+  , "Author"  : author  cRud
+  ]
+```
+
+The box items are the table columns, exactly as in `TABLE`. Three annotations shape the
+facets:
+
+| Annotation | Value | Effect |
+| --- | --- | --- |
+| `facets` | comma-separated item labels | The items that are facets, in this order. `A.B` names item `B` inside the box of item `A`. Without `facets`, every item is a facet. |
+| `facetOnly` | comma-separated item labels | Items that are facets but no table column. They need not be repeated in `facets`. |
+| `facetKind` | comma-separated `label=kind` | The kind of facet for an item, instead of the one its technical type gives: `list`, `text`, `range` or `date`. See below. |
+
+A name in any of these lists that matches no box item, or that names an item that can
+never be a facet (see below), leaves a warning in the browser console. An item whose label
+contains a comma or a period cannot be named in these lists; it is still a facet when
+`facets` is absent.
+
+Every TABLE annotation (`sortable`, `sortBy`, `sortByAndHide`, `order`, `noHeader`,
+`showNavMenu`, `title`, `hideOnNoRecords`) works as it does on `TABLE`, over all rows of
+the box: `hideOnNoRecords` hides the box when it has no rows, not when the chosen facets
+leave none.
+
+### The kind of facet follows the technical type
+
+The technical type of a concept is the `TYPE` in its `REPRESENT` statement, and
+`OBJECT` for a concept without one. The compiler writes a description of every
+interface (`interfaces.json`) and of every concept (`concepts.json`) next to the
+generated backend, and the build serves both to the browser. From them the facet panel
+reads the target concept of every box item and that concept's technical type, which
+decides how the facet filters:
+
+| Technical type of the item | Facet |
+| --- | --- |
+| `ALPHANUMERIC`, `OBJECT` | Values with counts, most rows first. With more than 40 values that are nearly all different (at least 80% of the rows), a text field instead (on a child item only; see below). |
+| `BIGALPHANUMERIC`, `HUGEALPHANUMERIC` | Text field: rows whose value contains the text (on a child item only; see below). |
+| `BOOLEAN`, and a property relation `[PROP]` | *yes* / *no* with counts. |
+| `INTEGER`, `FLOAT` | Up to 12 distinct values: a value list, sorted by value. More: a range with a from and a to field. |
+| `DATE`, `DATETIME` | Years with counts; choosing a year shows its months, a month its days. A `DATETIME` counts on the calendar day in the time zone of the server. |
+| `PASSWORD`, `BINARY`, `BIGBINARY`, `HUGEBINARY`, and the concept `ONE` | Never a facet. |
+
+The identity item (`"Issue" : I`) is a text field whatever its type: its value is the
+row itself. A text field on an item of the box itself does not appear, because the search
+field above the table covers it; see "One search field" below. A value list ends with *(empty)* when some rows have no value.
+
+`facetKind` overrides this choice per item. `facetKind="Date=date"` gives a date tree to
+an ALPHANUMERIC item that holds dates as text; a text that starts with a date, such as
+`2026-08-10, revised 2026-09-17`, counts under that date, and a text without one under
+*(empty)*. `facetKind="Size=range"` makes a range of a number with few values, and
+`list` or `text` choose a value list or a text field; `text` on an item of the box itself
+leaves that item to the search field. Prefer a `REPRESENT … TYPE DATE`
+in the model where the data allows it; `facetKind` is for data that does not.
+
+### One search field, and no column the panel already tells
+
+The search field above the table searches every value of a row, the identity item
+included. A text facet on an item of the box itself would repeat it, so the panel does
+not show one; a text facet on a child item (see below) stays.
+
+A column leaves the table while the panel already tells its value: at least two rows
+pass, the item has a value-list or date facet, every passing row has the same value (or
+none), and the user cannot edit the item (no `C` or `U`). The facet then shows that
+value checked, also when the user did not choose it. Choosing *Project = Patents* thus
+removes the column Project, and a column in which every row is empty disappears as well.
+An editable column stays, so an empty value can still be filled in.
+
+### Recursive facets for an OBJECT item
+
+An OBJECT item with a box of its own offers the items of that box as child facets, and
+so on, four levels deep. With `"Project" : project BOX<FORM> [ "Owner" : owner ]`, the
+Project facet has a fold-out *Filter on Project by …* with an Owner facet: choose an
+owner, and the table keeps the rows whose project has that owner. `facets="Project.Owner"`
+shows only that child facet, titled *Project › Owner*; `facets="Project, Project.Owner"`
+shows it once, inside Project. A LINKTO item has no box of its own and therefore no
+child facets.
+
+### Rules for combining
+
+Values chosen within one facet combine with *or*; facets combine with *and*. A
+multi-valued item (a label list) matches when any of its values is chosen. The counts
+of a facet cover the rows that pass the search and every *other* facet, so a facet
+never hides its own alternatives.
+
+### The selection is in the URL
+
+Every choice is written to the query string, so a filtered view can be bookmarked or
+sent: `/issues?f.Status=open&f.Project.Owner=Ann&f.Date=2026-09&q=login`. Each facet has
+one parameter `f.<label path>`, with one value per chosen value: the atom identifier for
+an OBJECT, `true` or `false` for a yes/no facet, `min..max` for a range (either end may
+be empty), `~text` for a text field, and a year, month or day for a date. `q` holds the
+search text. The form of a value decides how it filters, so a bookmark keeps its meaning
+when the data changes and a facet turns from a value list into a text field or a range. A label that
+contains a period appears in the parameter by its item name instead. A FACETS box nested
+in another box prefixes its parameters with its item name and the atom of the enclosing
+row, such as `Tickets.red.f.Status`.
+
+### Create, delete and edit
+
+With `C` or `D` rights the table offers them as `TABLE` does. A row created through the
+table stays visible until the selection changes, even if it does not pass the facets;
+after a reload it follows the facets like every other row. A deleted row leaves the
+table and the counts. After every edit the panel recounts, so a row whose value changed
+moves in or out of the table.
+
+### Limits
+
+The facets filter in the browser, over the rows the interface delivers: the interface
+still loads every row. One filter step over 5 000 rows and 10 facets takes a few
+milliseconds; the test "evaluates 5 000 rows and 10 facets" in `facet-engine.spec.ts`
+measures and logs it (7 ms on 2026-09-28). For far more rows, a server-side filter would
+be needed.
+
+A build of this framework version serves `concepts.json` itself. Should it still be
+missing, the panel infers the kind of facet from the values: dates and numbers are
+recognised, but a `PASSWORD` or binary item is not, and becomes a facet unless
+`facets` leaves it out.
+
+## BOX \<MARKUP\>
+
+`BOX <MARKUP>` shows text formatted in its markup language: Markdown, GitHub-flavoured
+Markdown, HTML, LaTeX or plain text. Use it for a text that its author wrote with markup, such as
+a design choice or a document stored in a `BIGALPHANUMERIC` or `HUGEALPHANUMERIC` concept.
+Without it, the prototype shows the markup characters: `**Why:**` instead of **Why:**.
+
+### Usage
+
+The box sits on the object that owns the text, and every item of the box is a text:
+
+```ampersand
+"Explanation" : I cRud BOX <MARKUP MARKDOWN> [ "text" : explanation ]
+```
+
+The box cannot sit on the text itself. An annotation such as `MARKDOWN` reaches a template only
+through a box header, and a `BOX` or `VIEW` on a text concept makes that concept an
+`OBJECT`, which the type checker refuses next to its `REPRESENT` (Ampersand v5.9.7).
+
+| Annotation | Value | Effect |
+| --- | --- | --- |
+| `MARKDOWN` | flag | Markdown, close to CommonMark. |
+| `GFM` | flag | GitHub-flavoured Markdown: Markdown plus tables and strikethrough. A task list shows as a plain list: the sanitiser removes its check boxes. |
+| `HTML` | flag | HTML. |
+| `LATEX` | flag | A LaTeX fragment: mathematics, headings, quotes, theorem-like environments, lists and emphasis. See [LaTeX](#latex). |
+| `TEXT` | flag | Plain text with its line breaks kept. This is also the default. |
+| `formatFrom` | item label | The format per row: the value of the named item, such as `MARKDOWN`. That item shows nothing. |
+| `showLabels` | flag | Shows the label of every item above its text. Without it, the texts stand without labels, because the enclosing box usually labels the box already. |
+
+Write the format flags in capitals, as in the table: the template reads them by name. With more than one
+flag in the header, the first of `MARKDOWN`, `GFM`, `HTML` and `LATEX` counts.
+
+### A format per row
+
+When the format differs from text to text, a relation to a format concept carries it,
+and `formatFrom` names the item that reads it. The expression may start at the owner or at
+the text itself:
+
+```ampersand
+REPRESENT Format TYPE ALPHANUMERIC
+RELATION bodyFormat[Note*Format] [UNI]   -- on the owner
+RELATION textFormat[Body*Format] [UNI]   -- on the text itself
+
+"Body" : I BOX <MARKUP MARKDOWN formatFrom="fmt"> [ "body" : body, "fmt" : bodyFormat ]
+"Body" : I BOX <MARKUP formatFrom="fmt">          [ "body" : body, "fmt" : body;textFormat ]
+```
+
+A row without a format falls back to the flag in the header, and without a flag to `TEXT`.
+In a format item the names are case-insensitive, and some have aliases: `MD` and `COMMONMARK` for
+`MARKDOWN`, `GITHUB-MARKDOWN` and `GITHUB_MARKDOWN` for `GFM`, `TEX` for `LATEX`, `PLAIN` and `ASCII` for `TEXT`. `Format` may also be
+an `OBJECT` concept; its atom identifier is then the name. A name the framework does not know,
+such as `RST`, gives plain text and one warning in the browser console. `EBCDIC` is a character
+encoding, not a markup language: a text in the database is already decoded, so it is plain
+text as well.
+
+Name the format item with a plain word. The template looks the item up in the row by its
+label, and a label with spaces or punctuation reaches the row under another name.
+
+### LaTeX
+
+A text in a database is a fragment, not a document: a claim with a quote, a definition, some
+formulas and the author's own macros. `LATEX` formats such a fragment and leaves what it does
+not know readable, so no text disappears.
+
+| In the text | On the screen |
+| --- | --- |
+| `$…$`, `\(…\)`, `$$…$$`, `\[…\]`, `equation`, `align`, `gather` | Mathematics, rendered by KaTeX as MathML, which the browser draws itself. |
+| `\section`, `\subsection`, `\subsubsection`, `\paragraph` | Headings. |
+| `\emph`, `\textit`, `\textbf`, `\texttt`, `\underline` | Emphasis, bold, code, underline. |
+| `quote`, `itemize`, `enumerate` | A block quote and lists. |
+| `theorem`, `lemma`, `corollary`, `proposition`, `definition`, `example`, `remark`, `proof` | A block that starts with its name, and with the optional title. |
+| `\cite`, `\citep`, `\citet`, `\ref`, `\eqref` | The key between brackets, or the label after an arrow. `\label` shows nothing. |
+| `verbatim`, `tabular` | The source, as preformatted text. |
+| An unknown command, such as the macro `\lean{Stack.pile}` | Its argument, in a `span` with the class `markup__cmd--lean` that a project may style; without an argument, the name of the command. |
+| An unknown macro in a formula | With an argument, the argument as text (a hint such as `\why{multiply by $c > 0$}`); without one, an operator name (`\softmax`). |
+
+A formula that KaTeX cannot parse shows its source. Like every other format, the HTML of a
+LaTeX text passes Angular's sanitiser. The formulas are in it as source text; KaTeX builds their
+MathML in the page, as DOM nodes and with `trust: false`. `\href` and `\url` give text and no
+link (DesignChoices OK-25).
+
+### Safety
+
+HTML, also the HTML that Markdown produces, passes the sanitiser of Angular before it
+reaches the page. That removes scripts, event handlers such as `onerror`, and makes a
+`javascript:` link inert. A text therefore cannot run code in the browser of its reader.
+
+### Reading, not editing
+
+`BOX <MARKUP>` is for reading. To edit a text, give it a `FORM` or a table column of its own,
+where the text area of `BIGALPHANUMERIC` does the work.
+
+### Every text of one concept
+
+To format every text of a concept in every interface, without an annotation per interface,
+use a template per concept; see [A template per concept](#a-template-per-concept).
+
 ## BOX \<NOVIEW\>
 
 `BOX <NOVIEW>` renders nothing. Use it to keep a sub-interface in the interface
@@ -375,3 +705,39 @@ target concept's `REPRESENT` type. The framework ships one per TType:
 
 The Angular components behind these templates, and how the type mapping works, are
 described in [Frontend components](frontend-components.md).
+
+
+### A template per concept
+
+Before the atomic template of the technical type, the compiler looks for a template named
+after the target concept: `Concept-<name>.html` in the template folder
+(`frontend/src/app/generated/.templates/`). A project that places such a file there changes how
+every leaf with that target concept looks, in every interface. Copy the file in from the project's
+Dockerfile, before the frontend is compiled:
+
+```dockerfile
+COPY project/templates/ /var/www/frontend/src/app/generated/.templates/
+```
+
+Two framework components suit this route. `app-atomic-url` shows a text as a link.
+`app-atomic-markup` shows a text formatted, in the format its `format` attribute names (see
+[BOX \<MARKUP\>](#box-markup) for the formats); with update rights it shows the text area of
+`BIGALPHANUMERIC`, so the text stays editable. A file `Concept-Explanation.html` that formats
+every `Explanation` as Markdown reads:
+
+```html
+<app-atomic-markup
+    format="MARKDOWN"
+    [resource]="resource"
+    [interfaceComponent]="this"
+    [property]="resource.$name$"
+    propertyName="$name$"
+    label="$label$"
+    crud="$crud$"
+    $if(exprIsUni)$isUni$endif$
+    $if(exprIsTot)$isTot$endif$
+></app-atomic-markup>
+```
+
+A template per concept fixes one format for the whole concept. A format per text needs
+`BOX <MARKUP formatFrom="...">`, because only a box sees the other items of its row.

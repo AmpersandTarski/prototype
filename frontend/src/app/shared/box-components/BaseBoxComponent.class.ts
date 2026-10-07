@@ -139,7 +139,14 @@ export abstract class BaseBoxComponent<
           if (!this.resource[propertyField]) {
             this.resource[propertyField] = [];
           }
-          this.resource[propertyField].unshift(x.content as TItem);
+          // post() syncs with the server before this callback runs, and that sync already
+          // appends the new item to a list it can refresh. Take that copy out, so the new
+          // item stands once, at the front.
+          const list = this.resource[propertyField] as TItem[];
+          const created = x.content as TItem;
+          const i = list.findIndex((item) => item?._path_ === created?._path_);
+          if (i >= 0) list.splice(i, 1);
+          list.unshift(created);
         }
       });
   }

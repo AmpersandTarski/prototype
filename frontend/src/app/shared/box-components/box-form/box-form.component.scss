@@ -12,3 +12,55 @@
 .box-form-value--nolabel {
   width: 100%;
 }
+
+/*
+ * Field kinds (see FieldKind in box-form.component.ts). The fields render in the
+ * template of the generated interface component, hence ::ng-deep. The kinds
+ * differ subtly, so a record reads as one harmonious page:
+ *  - meta fields line up in a row of short label/value pairs;
+ *  - content gets a reading size and a readable line length;
+ *  - groups sit side by side as long as the width allows, and stack otherwise.
+ */
+:host ::ng-deep .box-form-field--meta {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 9rem;
+  padding-right: 2rem;
+}
+:host ::ng-deep .box-form-field--meta > .box-form-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+:host ::ng-deep .box-form-field--content > .box-form-value {
+  font-size: 1.1rem;
+  line-height: 1.55;
+  max-width: 75ch;
+}
+:host ::ng-deep .box-form-field--group {
+  flex: 1 1 28rem;
+  width: auto;
+  min-width: 0;
+}
+:host ::ng-deep .box-form-field--group > .box-form-label {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+:host ::ng-deep .box-form-field--group > .box-form-value > div > app-box-form > .card,
+:host ::ng-deep .box-form-field--group .card {
+  margin-bottom: 0;
+}
+:host ::ng-deep .box-form-count {
+  margin-left: 0.4rem;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: var(--surface-200);
+  color: var(--text-color);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.box-form-none {
+  color: var(--text-color-secondary);
+}

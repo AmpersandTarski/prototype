@@ -9,6 +9,7 @@
 // Exit 0 = all assertions pass, 1 = failure.
 
 import { execFileSync } from 'node:child_process';
+import { debugLoggingPhp } from '../../../shared/conjunct-parity.mjs';
 
 const BASE = process.env.PROTOTYPE_URL || 'http://localhost:9400';
 const PROTO = process.env.PROTOTYPE_CONTAINER || 'reg-cost-gate-prototype';
@@ -16,6 +17,8 @@ const DB = PROTO.replace(/-prototype$/, '-db');
 
 const CONJUNCTS = '/var/www/backend/generics/conjuncts.json';
 const PROJECT_YAML = '/var/www/backend/config/project.yaml';
+const LOGGING_PHP = '/var/www/backend/config/logging.php';
+const DEBUG_LOG = '/tmp/cost-gate-debug.log';
 
 let failed = false;
 const pass = (m) => console.log(`  PASS  ${m}`);
@@ -55,9 +58,10 @@ function findDbName() {
 // ---------------------------------------------------------------- the scenarios
 
 // Give every conjunct a cost profile. Those whose rules are named by `structural`
-// get that class; the rest are scans over a table that does not exist, which keeps
-// them on the integral route whatever the live table sizes are.
-function setCostProfiles(structuralRuleNames) {
+// get that class. The rest are scans over a table that does not exist, which keeps
+// them on the integral route whatever the live table sizes are; or, with
+// `rest = 'recursive'`, the class the gate always routes to incremental maintenance.
+function setCostProfiles(structuralRuleNames, rest = 'scan') {
   const conjuncts = JSON.parse(readInContainer(CONJUNCTS));
   let marked = 0;
   for (const conj of conjuncts) {
@@ -66,7 +70,9 @@ function setCostProfiles(structuralRuleNames) {
     if (isStructural) marked++;
     conj.costProfile = isStructural
       ? { class: 'structural', scanTables: [] }
-      : { class: 'scan', scanTables: ['__no_such_table__'] };
+      : (rest === 'recursive'
+        ? { class: 'recursive', scanTables: [] }
+        : { class: 'scan', scanTables: ['__no_such_table__'] });
   }
   writeInContainer(CONJUNCTS, JSON.stringify(conjuncts, null, 2));
   return marked;
@@ -132,11 +138,35 @@ function logsSince(mark) {
 }
 const now = () => Math.floor(Date.now() / 1000).toString();
 
+// Wait until the backend really logs to the debug file: the bind mount can serve Apache a
+// stale logging.php for a moment, and a run that started before then would log nowhere.
+function waitForDebugLog() {
+  for (let i = 0; i < 60; i++) {
+    execFileSync('curl', ['-sS', '-o', '/dev/null', `${BASE}/api/v1/app/navbar`]);
+    let size = '0';
+    try { size = docker(PROTO, 'sh', '-c', `wc -c < ${DEBUG_LOG} 2>/dev/null || echo 0`).trim(); } catch { /* not there yet */ }
+    if (Number(size) > 0) return true;
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500);
+  }
+  return false;
+}
+
+// The number of conjuncts the delta protocol maintained, summed over the close summaries
+// in the debug log ("Delta conjunct maintenance ('on'): N delta-maintained, ...").
+function deltaMaintained() {
+  let log = '';
+  try { log = readInContainer(DEBUG_LOG); } catch { return { closes: 0, maintained: 0 }; }
+  const lines = log.split('\n').filter((l) => l.includes("Delta conjunct maintenance ('on'): "));
+  const maintained = lines.reduce((n, l) => n + (Number.parseInt(l.split("'): ")[1] ?? '', 10) || 0), 0);
+  return { closes: lines.length, maintained };
+}
+
 // ---------------------------------------------------------------- run
 
 const dbName = findDbName();
 const originalYaml = readInContainer(PROJECT_YAML);
 const originalConjuncts = readInContainer(CONJUNCTS);
+const originalLogging = readInContainer(LOGGING_PHP);
 
 try {
   // 1. Baseline: the gate off, which is how every release so far behaves.
@@ -211,9 +241,55 @@ try {
   } else {
     fail('the self-check found the violation but reported nothing');
   }
+
+  // 4 and 5. The gate together with the delta protocol. Under 'on' the gate decides which
+  //    conjuncts the protocol maintains: only those it routes as incremental. The summary
+  //    line of the close is logged at DEBUG, so these two runs log to a file.
+  writeInContainer(LOGGING_PHP, debugLoggingPhp(DEBUG_LOG, 'test/projects/cost-gate/e2e/cost-gate.mjs'));
+  if (waitForDebugLog()) {
+    pass('the backend logs at DEBUG to a file for the next two runs');
+  } else {
+    fail('the temporary logging.php did not become effective');
+  }
+  const unitedSettings = [
+    'transactions.costGate.enabled: true',
+    'transactions.costGate.skipStructural: true',
+    'transactions.costGate.selfCheckRate: 0.0',
+    "transactions.deltaConjunctMaintenance: 'on'",
+  ];
+  for (const [rest, expectation] of [['scan', 'none'], ['recursive', 'some']]) {
+    setCostProfiles(['UNI'], rest);
+    setSettings(unitedSettings);
+    docker(PROTO, 'sh', '-c', `: > ${DEBUG_LOG}`);
+    const united = runScenario();
+    const { closes, maintained } = deltaMaintained();
+    const label = `gate on with the delta protocol, other conjuncts '${rest}'`;
+    if (closes > 0) {
+      pass(`${label}: the delta path ran (${closes} close summaries)`);
+    } else {
+      fail(`${label}: no close summary in the debug log, so the delta path did not run`);
+    }
+    if (expectation === 'none' ? maintained === 0 : maintained > 0) {
+      pass(`${label}: ${maintained} conjunct evaluation(s) went through the protocol, as the routes say`);
+    } else {
+      fail(`${label}: expected ${expectation} through the protocol, saw ${maintained}`);
+    }
+    for (const [what, a, b] of [
+      ['commit decisions', baseline.decisions, united.decisions],
+      ['data', baseline.data, united.data],
+      ['violation cache', baseline.cache, united.cache],
+    ]) {
+      if (a === b) {
+        pass(`${label}: ${what} identical to the baseline`);
+      } else {
+        fail(`${label} changed the ${what}:\n--- off ---\n${a}\n--- united ---\n${b}`);
+      }
+    }
+  }
 } finally {
   writeInContainer(PROJECT_YAML, originalYaml);
   writeInContainer(CONJUNCTS, originalConjuncts);
+  writeInContainer(LOGGING_PHP, originalLogging);
 }
 
 if (failed) {

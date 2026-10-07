@@ -1,0 +1,89 @@
+<!-- Box-FACETS.html -->
+<!-- BOX<FACETS> is BOX<TABLE> with a facet panel (DesignChoices OK-15, OK-16, OK-17):
+     app-box-facets receives the rows, and the projected app-box-table keeps all rows as
+     its data but shows the rows that pass the chosen facets (`shownRows`). Every TABLE
+     annotation is forwarded unchanged. The three
+     FACETS annotations are `facets` (which items are facets, in which order),
+     `facetOnly` (facets that are no table column) and `facetKind` (the kind of facet
+     chosen by the modeller, DesignChoices OK-18). The component hides the facetOnly
+     columns at runtime, because StringTemplate cannot compare strings.
+     The *ngIf on the outer div gives each box its own template scope, so the
+     reference #facets never collides with that of a sibling FACETS box. -->
+
+<div *ngIf="$if(isRoot)$resource?.data; else loading$else$resource$endif$">
+    <app-box-facets
+        #facets
+        $if(isRoot)$isRootBox
+        $endif$[interfaceComponent]="this"
+        [resource]="resource"
+        propertyName="$name$"
+        [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
+        $if(facets)$facets="$facets$"
+        $endif$$if(facetOnly)$facetOnly="$facetOnly$"
+        $endif$$if(facetKind)$facetKind="$facetKind$"
+        $endif$
+    >
+        <app-box-table
+            $if(isRoot)$isRootBox$endif$
+            crud="$crud$"
+            [interfaceComponent]="this"
+            [resource]="resource"
+            propertyName="$name$"
+            [data]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
+            [shownRows]="facets.filtered"
+            tgtResourceType="$target$"
+            placeholder="Add existing $targetLabel$"
+            $if(sortable)$sortable
+            $endif$
+            $if(sortByAndHide)$
+            sortBy="_sortValues_.$sortByAndHide$"
+            $if(order)$
+            sortOrder="$order$"
+            $endif$
+            $else$
+            $if(sortable)$
+            $if(sortBy)$
+            sortBy="_sortValues_.$sortBy$"
+            $endif$
+            $if(order)$
+            sortOrder="$order$"
+            $endif$
+            $endif$
+            $endif$
+            $if(exprIsUni)$isUni
+            $endif$$if(exprIsTot)$isTot
+            $endif$$if(noHeader)$noHeader
+            $endif$$if(compact)$compact
+            $endif$$if(hideOnNoRecords)$hideOnNoRecords
+            $endif$$if(showNavMenu)$showNavMenu
+            $endif$$if(title)$title="$title$"$endif$
+        >
+            <ng-template boxTableHeader
+                >$subObjects:{subObj|
+                <ng-container *ngIf="facets.showColumn('$subObj.subObjName$')">$if(subObj.subObjExprIsUni)$$if(sortable)$
+                <th$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$ appSortableColumn="_sortValues_.$subObj.subObjName$">
+                    <span>$subObj.subObjLabel$</span>
+                    <app-sort-icon field="_sortValues_.$subObj.subObjName$"></app-sort-icon>
+                </th>
+                $else$
+                <th$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$>$subObj.subObjLabel$</th>
+                $endif$$else$
+                <th$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$>$subObj.subObjLabel$</th>
+                $endif$</ng-container>}$
+            </ng-template>
+            <!-- [boxTableRow] only types the row (a template context guard); it gets the
+                 typed source expression so `resource.<item>` type-checks. -->
+            <ng-template
+                [boxTableRow]="$if(isRoot)$$if(exprIsUni)$[resource.data]$else$resource.data$endif$$else$$if(exprIsUni)$[resource.$name$]$else$resource.$name$$endif$$endif$"
+                let-resource
+                >$subObjects:{subObj|
+                <ng-container *ngIf="facets.showColumn('$subObj.subObjName$')"><td$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$>$subObj.subObjContents$</td></ng-container>
+                }$
+            </ng-template>
+        </app-box-table>
+    </app-box-facets>
+</div>
+$if(isRoot)$
+
+<ng-template #loading> <app-box-table-loading [nrOfRows]="10"></app-box-table-loading> </ng-template
+>$endif$

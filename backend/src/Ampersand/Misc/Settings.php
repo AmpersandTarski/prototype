@@ -37,6 +37,12 @@ class Settings
             'key' => 'global.productionEnv',
             'bool' => true
         ],
+        // Key with which a machine (e.g. a deployment pipeline) reaches the administrative
+        // endpoints while the application runs in production mode. See Ampersand\Misc\ServiceKey.
+        'AMPERSAND_SERVICE_KEY' => [
+            'key' => ServiceKey::SETTING,
+            'bool' => false
+        ],
         'AMPERSAND_DBHOST' => [
             'key' => 'mysql.dbHost',
             'bool' => false
@@ -66,7 +72,22 @@ class Settings
         'AMPERSAND_IMPORT_MODE' => [
             'key' => 'global.importMode',
             'bool' => true
+        ],
+        // 'auto', 'true' or 'false', so it stays a string; Session::cookieParams() interprets it
+        'AMPERSAND_SESSION_COOKIE_SECURE' => [
+            'key' => 'session.cookieSecure',
+            'bool' => false
         ]
+    ];
+
+    /**
+     * Settings whose value is a secret. The value of such a setting is masked in the log,
+     * so that a debug log of a deployment does not hand out the credentials it was configured with.
+     * Names are lowercase, because setting keys are lowercased before they are stored.
+     */
+    const SECRET_SETTINGS = [
+        'global.servicekey',
+        'mysql.dbpass'
     ];
 
     const COMPILER_VAR_CONFIG_MAP = [
@@ -254,7 +275,8 @@ class Settings
 
         $this->settings[$setting] = $value;
 
-        $this->logger->debug("Setting '{$setting}' to " . var_export($value, true));
+        $loggedValue = in_array($setting, self::SECRET_SETTINGS) ? "'***' (secret)" : var_export($value, true);
+        $this->logger->debug("Setting '{$setting}' to " . $loggedValue);
     }
 
     /**

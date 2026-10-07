@@ -16,6 +16,7 @@ use Ampersand\Interfacing\ResourceList;
 use Ampersand\AmpersandApp;
 use Ampersand\Exception\AtomNotFoundException;
 use Ampersand\Exception\BadRequestException;
+use Ampersand\Exception\InvalidConfigurationException;
 use Ampersand\Exception\MetaModelException;
 use Ampersand\Exception\NotDefined\RelationNotDefined;
 use Ampersand\Exception\SessionExpiredException;
@@ -315,6 +316,49 @@ class Session
     /**********************************************************************************************
      * Static functions
      *********************************************************************************************/
+
+    /**
+     * Parameters of the session cookie, for session_set_cookie_params()
+     *
+     * HttpOnly keeps the cookie from scripts in the page, SameSite=Lax keeps it out of requests that
+     * another site starts (except following a link), and Secure keeps it off plain HTTP. Lax, because
+     * Strict drops the cookie on the first request after following a link from e-mail, so a
+     * logged-in user would appear logged out.
+     *
+     * Secure follows the setting session.cookieSecure: true, false, or 'auto'. With 'auto' the cookie
+     * is Secure when PHP sees HTTPS, or when a reverse proxy that terminates TLS says so in
+     * X-Forwarded-Proto. A client that forges that header only makes its own browser withhold
+     * its own cookie over HTTP. See docs/reference-material/cookies-and-browser-storage.md
+     *
+     * @param mixed $secureSetting value of session.cookieSecure
+     * @param array<string,mixed> $server the $_SERVER array of the request
+     * @return array{lifetime:int,path:string,secure:bool,httponly:bool,samesite:string}
+     */
+    public static function cookieParams(mixed $secureSetting, array $server): array
+    {
+        $secure = match (is_string($secureSetting) ? strtolower($secureSetting) : $secureSetting) {
+            true, 'true', '1' => true,
+            false, 'false', '0' => false,
+            null, 'auto' => self::requestIsHttps($server),
+            default => throw new InvalidConfigurationException("Setting session.cookieSecure must be 'auto', true or false"),
+        };
+        return ['lifetime' => 0, 'path' => '/', 'secure' => $secure, 'httponly' => true, 'samesite' => 'Lax'];
+    }
+
+    /**
+     * @param array<string,mixed> $server the $_SERVER array of the request
+     */
+    private static function requestIsHttps(array $server): bool
+    {
+        $https = (string) ($server['HTTPS'] ?? '');
+        if ($https !== '' && strtolower($https) !== 'off') {
+            return true;
+        }
+        // A chain of proxies lists one protocol per hop; the first is the one the client used
+        $forwardedProto = explode(',', (string) ($server['HTTP_X_FORWARDED_PROTO'] ?? ''))[0];
+        return strtolower(trim($forwardedProto)) === 'https';
+    }
+
     public static function resetPhpSessionId(): void
     {
         session_regenerate_id(true);

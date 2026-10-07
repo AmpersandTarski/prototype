@@ -1,0 +1,181 @@
+CONTEXT BoxFacets IN ENGLISH
+PURPOSE CONTEXT BoxFacets
+{+ Test project for BOX<FACETS>: a table with a facet panel. One box item per
+   technical type (TType), single- and multi-valued items, an OBJECT item with a
+   sub-box of its own (recursive facets), a LINKTO item, and a FACETS box nested
+   inside a FORM. The population is synthetic. +}
+
+REPRESENT Title      TYPE ALPHANUMERIC
+REPRESENT Status     TYPE ALPHANUMERIC
+REPRESENT Tag        TYPE ALPHANUMERIC
+REPRESENT PersonName TYPE ALPHANUMERIC
+REPRESENT Summary    TYPE BIGALPHANUMERIC
+REPRESENT Notes      TYPE HUGEALPHANUMERIC
+REPRESENT Day        TYPE DATE
+REPRESENT Moment     TYPE DATETIME
+REPRESENT Hours      TYPE FLOAT
+REPRESENT Priority   TYPE INTEGER
+REPRESENT Flag       TYPE BOOLEAN
+REPRESENT Secret     TYPE PASSWORD
+REPRESENT Reported   TYPE ALPHANUMERIC
+
+RELATION title     [Ticket*Title]    [UNI]
+RELATION status    [Ticket*Status]   [UNI]
+RELATION tag       [Ticket*Tag]
+RELATION summary   [Ticket*Summary]  [UNI]
+RELATION notes     [Ticket*Notes]    [UNI]
+RELATION due       [Ticket*Day]      [UNI]
+RELATION created   [Ticket*Moment]   [UNI]
+RELATION hours     [Ticket*Hours]    [UNI]
+RELATION priority  [Ticket*Priority] [UNI]
+RELATION urgent    [Ticket*Flag]     [UNI]
+RELATION blocked   [Ticket]          [PROP]
+RELATION secret    [Ticket*Secret]   [UNI]
+RELATION team      [Ticket*Team]     [UNI]
+RELATION reported  [Ticket*Reported] [UNI]
+RELATION teamName  [Team*PersonName] [UNI]
+RELATION lead      [Team*PersonName] [UNI]
+RELATION teamSize  [Team*Priority]   [UNI]
+
+POPULATION teamName CONTAINS [ ("red", "Red team"), ("blue", "Blue team"), ("green", "Green team") ]
+POPULATION lead     CONTAINS [ ("red", "Ann"), ("blue", "Bob"), ("green", "Ann") ]
+POPULATION teamSize CONTAINS [ ("red", 3), ("blue", 5), ("green", 8) ]
+
+POPULATION title CONTAINS
+  [ ("T01", "Login fails"), ("T02", "Slow search"), ("T03", "Typo on home page")
+  , ("T04", "Export to Excel"), ("T05", "Dark mode"), ("T06", "Crash on save")
+  , ("T07", "Broken link"), ("T08", "Add tooltip"), ("T09", "Timeout on import")
+  , ("T10", "Wrong date format"), ("T11", "Missing icon"), ("T12", "Memory leak")
+  ]
+POPULATION status CONTAINS
+  [ ("T01", "open"), ("T02", "open"), ("T03", "closed"), ("T04", "open")
+  , ("T05", "closed"), ("T06", "open"), ("T07", "closed"), ("T08", "open")
+  , ("T09", "open"), ("T10", "closed"), ("T11", "open")
+  ]
+POPULATION tag CONTAINS
+  [ ("T01", "bug"), ("T01", "security"), ("T02", "performance"), ("T03", "bug")
+  , ("T04", "feature"), ("T05", "feature"), ("T05", "ui"), ("T06", "bug")
+  , ("T07", "bug"), ("T08", "ui"), ("T09", "performance"), ("T10", "bug"), ("T12", "performance")
+  ]
+POPULATION summary CONTAINS
+  [ ("T01", "Users with a long password cannot log in"), ("T06", "Saving a large form crashes the page")
+  , ("T12", "The import leaks memory after a thousand rows")
+  ]
+POPULATION notes CONTAINS [ ("T01", "Reproduced on Firefox and Safari; not on Chrome") ]
+POPULATION due CONTAINS
+  [ ("T01", 2026-09-01), ("T02", 2026-09-15), ("T03", 2026-08-20), ("T04", 2026-10-01)
+  , ("T05", 2025-12-31), ("T06", 2026-09-15), ("T07", 2026-08-02), ("T08", 2026-10-10)
+  , ("T09", 2026-09-30), ("T10", 2025-11-11)
+  ]
+POPULATION created CONTAINS
+  [ ("T01", 2026-08-01T09:30:00Z), ("T02", 2026-08-03T14:00:00Z), ("T03", 2026-07-20T08:15:00Z)
+  , ("T04", 2026-09-01T10:00:00Z), ("T05", 2025-11-02T16:45:00Z), ("T06", 2026-09-02T11:11:00Z)
+  ]
+POPULATION hours CONTAINS
+  [ ("T01", 1.5), ("T02", 2.25), ("T03", 0.5), ("T04", 13.0), ("T05", 8.75), ("T06", 3.5)
+  , ("T07", 0.25), ("T08", 1.0), ("T09", 5.5), ("T10", 0.75), ("T11", 2.0), ("T12", 21.5)
+  , ("T13", 4.0), ("T14", 6.25)
+  ]
+POPULATION priority CONTAINS
+  [ ("T01", 1), ("T02", 2), ("T03", 3), ("T04", 2), ("T05", 3), ("T06", 1)
+  , ("T07", 3), ("T08", 3), ("T09", 2), ("T10", 3), ("T11", 3), ("T12", 1)
+  ]
+POPULATION urgent CONTAINS [ ("T01", TRUE), ("T02", FALSE), ("T06", TRUE), ("T12", TRUE), ("T03", FALSE) ]
+POPULATION blocked CONTAINS [ ("T09", "T09"), ("T12", "T12") ]
+POPULATION secret CONTAINS [ ("T01", "hunter2") ]
+POPULATION team CONTAINS
+  [ ("T01", "red"), ("T02", "blue"), ("T03", "red"), ("T04", "green"), ("T05", "blue")
+  , ("T06", "red"), ("T07", "green"), ("T08", "blue"), ("T09", "red"), ("T10", "green")
+  , ("T11", "blue"), ("T12", "red"), ("T13", "green"), ("T14", "blue")
+  ]
+
+-- Dates kept as text, as an extractor may deliver them: facetKind makes them a date tree.
+POPULATION reported CONTAINS
+  [ ("T01", "2026-08-10, revised 2026-09-17"), ("T02", "2026-08-12"), ("T03", "2026-09-01")
+  , ("T04", "unknown")
+  ]
+
+VIEW Ticket : Ticket(title)
+VIEW Team   : Team(teamName)
+
+-- Every box item is a facet: the kind of filter follows the item's TType.
+-- The Team item has a sub-box, so its Lead and Size are facets too (recursion).
+-- Secret (PASSWORD) is never a facet.
+INTERFACE Tickets : "_SESSION";V[SESSION*Ticket] cRud BOX<FACETS sortable sortBy="Due" order="asc">
+  [ "Ticket"   : I                  cRud LINKTO INTERFACE TicketDetail
+  , "Status"   : status             cRud
+  , "Tags"     : tag                cRud
+  , "Summary"  : summary            cRud
+  , "Notes"    : notes              cRud
+  , "Due"      : due                cRud
+  , "Created"  : created            cRud
+  , "Hours"    : hours              cRud
+  , "Priority" : priority           cRud
+  , "Urgent"   : urgent             cRud
+  , "Blocked"  : blocked            cRud
+  , "Secret"   : secret             cRud
+  , "Team"     : team               cRud BOX<FORM>
+      [ "Lead" : lead               cRud
+      , "Size" : teamSize           cRud
+      ]
+  ]
+
+-- Named facets in a chosen order, a facet on a sub-item (Team.Lead), and a
+-- facet that is no table column (facetOnly="Tags"). hideOnNoRecords looks at all rows
+-- of the box, not at the rows the facets leave.
+INTERFACE TicketsByTeam : "_SESSION";V[SESSION*Ticket] cRud BOX<FACETS facets="Status, Team.Lead, Priority" facetOnly="Tags" hideOnNoRecords sortable sortBy="Ticket" order="asc">
+  [ "Ticket"   : I                  cRud LINKTO INTERFACE TicketDetail
+  , "Status"   : status             cRud
+  , "Tags"     : tag                cRud
+  , "Priority" : priority           cRud
+  , "Team"     : team               cRud BOX<FORM>
+      [ "Lead" : lead               cRud
+      ]
+  ]
+
+-- facetKind: an ALPHANUMERIC item with dates as text becomes a date tree, and an
+-- INTEGER with few values a range.
+INTERFACE TicketsReported : "_SESSION";V[SESSION*Ticket] cRud BOX<FACETS facets="Reported, Priority" facetKind="Reported=date, Priority=range">
+  [ "Ticket"   : I        cRud LINKTO INTERFACE TicketDetail
+  , "Reported" : reported cRud
+  , "Priority" : priority cRud
+  ]
+
+-- The dense stand as the modeller's choice (DesignChoices OK-26): one line per row, under a
+-- header that stays, with a switch for the user.
+INTERFACE TicketsCompact : "_SESSION";V[SESSION*Ticket] cRud BOX<FACETS compact facets="Status" sortable sortBy="Ticket" order="asc">
+  [ "Ticket"   : I        cRud LINKTO INTERFACE TicketDetail
+  , "Status"   : status   cRud
+  , "Summary"  : summary  cRud
+  , "Notes"    : notes    cRud
+  ]
+
+-- A plain TABLE that creates rows: a created row stands once in the list (the sync
+-- after the POST already appends it).
+INTERFACE NewTickets : "_SESSION";V[SESSION*Ticket] CRud BOX<TABLE>
+  [ "Title" : title cRUd
+  ]
+
+-- The way to the teams.
+INTERFACE Teams : "_SESSION";V[SESSION*Team] cRud BOX<TABLE>
+  [ "Team" : I cRud LINKTO INTERFACE TeamDetail
+  , "Lead" : lead cRud
+  ]
+
+-- A FACETS box inside a FORM: the component locates its box below the root.
+INTERFACE TeamDetail : I[Team] cRud BOX<FORM>
+  [ "Name"    : teamName cRud
+  , "Tickets" : team~    cRud BOX<FACETS>
+      [ "Ticket"   : I        cRud LINKTO INTERFACE TicketDetail
+      , "Status"   : status   cRud
+      , "Priority" : priority cRud
+      ]
+  ]
+
+INTERFACE TicketDetail : I[Ticket] cRud BOX<FORM>
+  [ "Title"  : title  cRud
+  , "Status" : status cRud
+  , "Team"   : team   cRud
+  ]
+
+ENDCONTEXT

@@ -15,3 +15,39 @@
 .box-table-add {
   margin: 0.5rem 0;
 }
+
+/* The density switch in the header (DesignChoices OK-26). */
+.box-table__controls {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.box-table__density {
+  border: 0;
+  background: none;
+  padding: 0 0.25rem;
+  color: var(--text-color-secondary);
+  cursor: pointer;
+}
+
+.box-table__density:hover,
+.box-table__density:focus-visible {
+  color: var(--primary-color);
+}
+
+/* The dense stand: one line per row, the full text after a click on the row. The cells come
+   from the template of the generated interface component, hence ::ng-deep. An atomic component
+   may set its own white-space inline (pre-wrap for a long text), hence !important; a row the
+   user opened is left alone, so it keeps its line breaks. */
+:host ::ng-deep .box-table--dense .p-datatable-tbody > tr:not(.box-table__row--open) > td {
+  max-width: 36rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:host ::ng-deep .box-table--dense .p-datatable-tbody > tr:not(.box-table__row--open) > td * {
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

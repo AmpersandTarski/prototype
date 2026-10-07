@@ -116,6 +116,14 @@ A text field that masks the typed characters. The value is never pre-filled on s
 REPRESENT Password TYPE PASSWORD
 ```
 
+### Formatted text
+
+A text written in Markdown, GitHub-flavoured Markdown or HTML can be shown formatted, by
+`app-atomic-markup`. Two routes lead there: `BOX<MARKUP>` for the texts of one box, and a
+template `Concept-<name>.html` for every text of one concept. With update rights the second
+route shows the text area of BIGALPHANUMERIC. See
+[Built-in BOX Templates](built-in-box-templates#box-markup).
+
 ### Object relations
 
 When a relation points to a concept that is not a primitive type (not ALPHANUMERIC, DATE, etc.), Ampersand renders an object selector. The user sees the label of the related object and can navigate to its interface. With `C` rights, the user can create a new object. With `D` rights, the user can delete the object from the database entirely — not just remove the link.
@@ -210,6 +218,14 @@ Renders the contents inside a plain `<div>` with no additional layout. Use `BOX<
 
 Creates a clickable button that toggles, sets, or clears a boolean property. See [Built-in BOX Templates](built-in-box-templates) for the full reference.
 
+
+### BOX\<FACETS\>
+
+A `BOX<TABLE>` with a facet panel: per box item a list of values with counts, a range or a date tree, depending on the item's technical type, and one search field over every value of a row. Choosing values shrinks the table. See [Built-in BOX Templates](built-in-box-templates#box-facets) for the full reference.
+
+### BOX\<MARKUP\>
+
+Shows every item of the box as formatted text: Markdown, GitHub-flavoured Markdown, HTML or plain text, fixed in the box header or per row from a format item (`formatFrom`). See [Built-in BOX Templates](built-in-box-templates#box-markup) for the full reference.
 
 ### BOX\<FILTEREDDROPDOWN\>
 

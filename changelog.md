@@ -12,27 +12,192 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased
 
-* **Route each rule query by the cost profile the compiler generated** (opt-in). A model
-  compiled with Ampersand ≥ v5.9.8 carries, per conjunct, the shape class of its violation
-  query and the tables that query reads in full. With `transactions.costGate.enabled: true`
-  the transaction close turns that profile into a route per conjunct, comparing the scan
-  tables against the live table sizes: a query stays integral while the tables it reads are
-  small, and is marked for incremental maintenance once the largest passes
-  `transactions.costGate.scanThreshold` (default 30 000 rows). Delta maintenance itself is
-  not part of this release, so a conjunct marked for it still gets its full query; the route
-  is logged, which makes the classification visible in the model that runs.
-* **A rule the table layout already enforces can run no query at all** (opt-in, off by
-  default). `transactions.costGate.skipStructural: true` lets the close skip the violation
-  query of a conjunct whose property the schema makes unbreakable — a univalent relation
-  stored on a unique key column cannot hold two values for one key. This rests on Ampersand
-  proof-track claim PRF-8, whose status is *stated*: it is precisely formulated but not yet
-  proved, which is why the switch is separate and off. A sampled self-check
-  (`transactions.costGate.selfCheckRate`, default 1%) runs the query after all for a fraction
-  of skipped conjuncts; if it finds violations, the real result is kept and the discrepancy
-  is logged as an error, so a defect in the claim surfaces as an alarm rather than as a rule
-  that silently stops holding.
-* A model compiled without cost profiles, or a deployment that leaves the gate off, keeps
-  running every violation query in full — the behaviour of every release so far.
+* **A cost gate routes each rule query at the close of a transaction (opt-in, DesignChoices OK-27).**
+  A model compiled with Ampersand v5.9.8 or later carries, per conjunct, the shape class of its
+  violation query and the tables that query reads in full. With
+  `transactions.costGate.enabled: true` the close turns that profile into a route per conjunct,
+  holding the scanned tables against the live table sizes. A query stays integral while the tables
+  it reads are small. Once the largest passes `transactions.costGate.scanThreshold` (default
+  30 000 rows), the conjunct takes the incremental route: under
+  `transactions.deltaConjunctMaintenance: 'on'` the delta protocol then maintains only the
+  conjuncts on that route and evaluates the others in full, which is cheaper for a query an index
+  answers. A shadow run is not narrowed. With the gate off, the default, nothing changes.
+* **A rule the table layout already enforces can run no query at all** (opt-in, off by default).
+  `transactions.costGate.skipStructural: true` lets the close skip the violation query of a
+  conjunct whose property the schema makes unbreakable: a univalent relation stored on a unique
+  key column cannot hold two values for one key. This rests on Ampersand proof-track claim PRF-8,
+  whose status is *stated*: it is formulated and not yet proved, which is why the switch is
+  separate. A sampled self-check (`transactions.costGate.selfCheckRate`, default 1%) runs the
+  query after all for a fraction of the skipped conjuncts; if it finds violations, the real result
+  is kept and the discrepancy is logged as an error.
+* **The bundled Ampersand compiler moves to v5.9.8.** This is the first compiler release that
+  generates the candidate queries (`deltaQueries` in `conjuncts.json`, `deltaTable` in
+  `relations.json`, the delta tables in `database.sql`) and a cost profile per conjunct
+  (`costProfile`). Until now the setting `transactions.deltaConjunctMaintenance`, which has
+  been in the framework since v2.11.0, had nothing to work with in a published image. Its
+  default stays `off`, so a prototype behaves as before; the new fields and tables are
+  additive. The compiler also brings `PURPOSE` for
+  `ENFORCE` and `ROLE` (see the
+  [Ampersand release notes](https://github.com/AmpersandTarski/Ampersand/blob/main/ReleaseNotes.md)).
+  The framework's compiler constraint (`>=5.9.2 <6.0.0`) is unchanged.
+
+## v2.14.0 (1 October 2026)
+
+* **A LaTeX text is shown formatted (DesignChoices OK-25).** `app-atomic-markup` has a fifth
+  format, `LATEX`: as the flag in `BOX <MARKUP LATEX>`, or per row through the item that
+  `formatFrom` names. Formulas appear as mathematics (KaTeX, as MathML that the browser draws
+  itself), and headings, emphasis, quotes, lists and theorem-like environments are formatted. A
+  command the framework does not know shows its argument, so a text with the author's own
+  macros stays readable. On the 28 claim texts of the Artefactenkaart all 516 formulas render.
+
+* **A table can show many rows on a screen (OK-26, a proposal).** `compact` on a `BOX<TABLE>` or
+  `BOX<FACETS>` starts the table in the dense stand: every row one line, the table scrolling
+  under its own header. Every table header has a button that switches between the roomy and
+  the dense stand, and the browser remembers the choice per table until the tab closes. A click on a dense row shows
+  its full text. A table without `compact` starts roomy, as before.
+
+## v2.13.0 (30 September 2026)
+
+* **A detail screen shows what a record has (DesignChoices OK-20, a proposal that ships as the
+  default).** Every FORM, without a
+  change to the model, leaves out a field that is empty and that the user cannot fill. A
+  group (a FORM box on `I` inside a FORM) disappears when all of its fields are empty and
+  none of them may be filled; groups sit side by side while the width allows. On a
+  requirement screen of the Artefactenkaart that listed 27 read-only labels, 18 of them
+  without a value, the reader now sees the 9 that say something. `showOnNoRecords` on a
+  group shows it while empty, and `showSubOnNoRecords` on a FORM restores every field.
+
+* **A screen on one item carries that item as its title (OK-21).** The heading is the label of
+  the item (from its VIEW, else its identifier), with the name of the interface small above
+  it.
+
+* **A facet table drops a column that says the same in every row (OK-22).** While at least
+  two rows pass and every row has the same value in a column the user cannot edit, that
+  column leaves the table and its facet shows the value checked: after choosing a project,
+  the column Project no longer repeats it. The panel has one search field instead of a text facet beside it.
+
+* **The screen follows the width of the window (OK-23).** The content uses a wide screen, and
+  below 1200 pixels the menu folds into a drawer behind the menu button. The New menu no longer
+  lists interfaces that serve programs (API).
+
+## v2.12.0 (30 September 2026)
+
+* **A prototype can show text formatted in its markup language (DesignChoices OK-24).** The
+  purpose is that a reader sees the formatting an author wrote, instead of `**bold**` and
+  backticks. `BOX <MARKUP MARKDOWN>` on the object that owns a text formats every item of the
+  box as Markdown; `GFM` (GitHub-flavoured Markdown), `HTML` and `TEXT` work the same way, and
+  `formatFrom="<item>"` takes the format per row from a relation to a format concept. A project
+  that wants every text of one concept formatted, in every interface, writes a
+  `Concept-<name>.html` that uses the new component `app-atomic-markup`; the documentation now
+  describes that route. HTML passes Angular's sanitiser, so a text cannot run code in the
+  browser. The frontend gains the dependency `marked`. The regression project `markup` guards
+  the formats, the fallback for an unknown format and the sanitising
+  (AmpersandTarski/Ampersand#1700, PR #472).
+
+* **The organisation that deploys a prototype can tell its users what the prototype stores.**
+  A new reference page, `docs/reference-material/cookies-and-browser-storage.md`, lists the
+  one cookie, the two session-storage items, the session record on the server and the IP
+  address in the logs, each with its lifetime and purpose, ready for a privacy statement
+  (article 13 GDPR). With `frontend.privacyStatementUrl` set, the footer of every screen
+  links to that statement. The regression project `privacy-and-cookies` fails when code
+  stores something the page does not list (AmpersandTarski/Ampersand#1697).
+
+* **The session cookie no longer depends on the network in front of the application.** It
+  is now `SameSite=Lax`, so the browser leaves it out of requests that another site starts,
+  which blocks cross-site request forgery. Its `Secure` flag follows the new setting
+  `session.cookieSecure` (env `AMPERSAND_SESSION_COOKIE_SECURE`): `auto`, the default, sets
+  it when the request arrives over HTTPS, now also behind a reverse proxy that terminates
+  TLS and sends `X-Forwarded-Proto: https`; `true` sets it always and is meant for
+  production. Before, a prototype behind such a proxy sent its session cookie without
+  `Secure`. The PHP session now starts after the settings are loaded
+  (AmpersandTarski/Ampersand#1698).
+
+* **A project that stores more than the framework knows how to ask consent.** The guide
+  `docs/guides/asking-for-cookie-consent.md` tells when consent is needed, recommends the
+  MIT-licensed library CookieConsent v3, and shows the files and Dockerfile lines that add a
+  consent banner, a "Cookie settings" button and scripts that wait for consent, without
+  changes to the framework (AmpersandTarski/Ampersand#1699).
+
+## v2.11.0 (29 September 2026)
+
+* **The violation cache can be kept up to date from the pairs a transaction touched
+  (opt-in, default off; DesignChoices OK-19).** The purpose is a transaction close whose cost
+  follows the size of the change instead of the size of the database. The setting
+  `transactions.deltaConjunctMaintenance` takes `'off'` (the default: behaviour as in v2.10.0),
+  `'shadow'` (both routes run, the full evaluation stays authoritative, and any difference is
+  logged as `DELTA SHADOW MISMATCH`) or `'on'`; any other value stops the application at boot
+  with a message that names the setting. The delta route needs candidate queries per conjunct
+  from the compiler ([Ampersand#1684](https://github.com/AmpersandTarski/Ampersand/issues/1684)).
+  No released compiler emits them yet, so for now the setting changes nothing. Measured so far,
+  the delta route does not win yet: a close takes 4.2 ms against 3.1 ms on FC5 and 47.0 ms
+  against 40.4 ms on RAP, with no difference in outcome over 1 142 replayed FC5 transactions
+  (#449).
+
+## v2.10.0 (29 September 2026)
+
+* **A long overview can be narrowed down with facets.** `BOX<FACETS>` is a `BOX<TABLE>`
+  with a panel next to it: per column the values the rows carry, each with its number of
+  rows, so the reader chooses *open* and *Project X* instead of scrolling through the whole
+  list. The kind of facet follows the technical type of the column: a date gets years,
+  months and days; a number gets a value list, or a range once it has more than twelve
+  values; long text gets a search field; a yes/no property gets two choices. A column that
+  holds an object with fields of its own offers those fields as facets as well. The choices
+  are kept in the URL, so a filtered view can be bookmarked and sent. See
+  `docs/reference-material/built-in-box-templates.md` and DesignChoices OK-15 to OK-17.
+  With `facetKind` a modeller chooses the kind of facet where the data does not match
+  its type, such as dates kept as text (OK-18).
+
+* **A created row appears once.** After Create in a top-level list, the new row stood twice
+  until the page was reloaded: the refresh after the POST already added it,
+  and the box added it again (#464).
+
+* **A sort the user chose stays.** In a table with `sortBy`, the sort went back to
+  `sortBy` whenever the number of rows changed, after Create, after Delete, and in
+  `BOX<FACETS>` after every choice of a facet (#464).
+
+* **A sorted table raises no error in a development build.** A `BOX<TABLE sortable
+  sortBy="…">` showed an ExpressionChangedAfterItHasBeenChecked error (NG0100) as soon as
+  it opened; production builds were not affected (#464).
+
+## v2.9.0 (10 september 2026)
+
+* **A deployment pipeline can reach the administrative endpoints of an application that
+  runs in production mode.** Set `AMPERSAND_SERVICE_KEY` and a request that carries that
+  key in the `X-Ampersand-Service-Key` header passes the production-mode gate in front of
+  the installer, the population exporter, the reports and the test login. An administrator
+  no longer has to choose between a working migration pipeline and an application that is
+  protected against an accidental reinstall. Without a configured key nothing changes:
+  production mode refuses every such request, as it always did. The key is compared in
+  constant time and never appears in a log line, an error message or a response. See
+  `docs/guides/configuring-environments.md`.
+
+* **The service key and the database password stay out of the debug log.** `Settings`
+  writes every setting it loads to the log at DEBUG level; for these two it now writes
+  `'***'` instead of the value.
+
+* **The regression suite is green again on `main`.** `test/projects/project-administration`
+  compiles once more (its model used the pre-v4 `rel :: A * B` relation syntax), and
+  `test/projects/ifc45` — which cannot install until the compiler lays broad tables out
+  differently (#415: the `IfcRoot` table needs 183 `VARCHAR(255)` columns) — declares that
+  failure as `known_fail` in its `regression.conf`. The runner reports such a project as
+  "known red" instead of FAIL, so `run-regression.sh all` only fails on a new red.
+
+## v2.8.0 (25 August 2026)
+
+* **Sort a table on a column the user does not see.** The new
+  `BOX<TABLE sortByAndHide="<column>">` annotation sorts the rows on the named
+  (univalent) column and hides that column from the table — for sort keys that are
+  bookkeeping, such as a rank or sequence number. It works without `sortable` and
+  overrides `sortBy`; `order` sets the direction. See
+  `docs/reference-material/built-in-box-templates.md`.
+
+* **Skip the close's re-evaluation of rule queries the ExecEngine has just evaluated**
+  (opt-in). With `transactions.skipCleanConjuncts: true` the transaction close keeps the
+  in-memory result of a conjunct that was evaluated in this transaction with no mutation
+  registered afterwards — typically by the ExecEngine's last fixpoint iteration — instead
+  of running the same violation query a second time. Sound because a violation query is a
+  deterministic function of the database state and no other writer can intervene within
+  one SQL transaction on one connection. Default `false` (#443).
 
 ## v2.7.0 (15 August 2026)
 

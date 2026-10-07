@@ -6,6 +6,7 @@ settings:
   ### Application global settings
   global.version: v0.1.0 # version of your application
   global.productionEnv: false # set environment as production deployment (or not = default)
+  global.serviceKey: null # key with which a machine reaches the admin endpoints in production mode (set via env AMPERSAND_SERVICE_KEY). null = no machine reaches them
   global.debugMode: true # set debugMode (or not = default). Impacts the way errors are returned by API
   global.scriptTimeout: 30 # number of seconds for php to run. Use 0 to have no time limit (not advised)
   global.defaultTimezone: Europe/Amsterdam # see http://php.net/manual/en/timezones.php for a list of supported timezones
@@ -47,6 +48,7 @@ settings:
   session.expirationTime: 3600 # expiration time in seconds
   session.loginEnabled: false # enable/disable login functionality (requires SIAM module)
   session.loginPage: null # other example: '/ext/Login'
+  session.cookieSecure: auto # Secure flag of the session cookie: 'auto' (when the request arrives over HTTPS, also behind a proxy that sends X-Forwarded-Proto), true or false. Use true in production (env AMPERSAND_SESSION_COOKIE_SECURE)
 
   ### Config for core classes: Concepts, Atoms, Relations and Links
   core.concept.prefixAtomIdWithConceptName: true
@@ -54,6 +56,14 @@ settings:
   ### Transaction settings
   transactions.ignoreInvariantViolations: false # for debugging can be set to true (transactions will be committed regardless off invariant violations)
   transactions.skipUniInjConjuncts: false # TODO: remove after fix for issue #535
+  # Delta-scoped re-evaluation of conjunct violations (issue Ampersand#1684).
+  # 'off' = full re-evaluation as always; 'shadow' = maintain the cache with the
+  # delta protocol AND evaluate in full, log any difference, full result stays
+  # authoritative; 'on' = delta protocol maintains the cache, full evaluation
+  # only for conjuncts outside the supported class. Requires generics produced
+  # by a compiler that emits deltaQueries; without those the setting is a no-op.
+  transactions.deltaConjunctMaintenance: 'off'
+  transactions.skipCleanConjuncts: false # skip the close's re-evaluation of conjuncts that were evaluated in this transaction with no mutations registered afterwards (issue #443)
   transactions.costGate.enabled: false # route each conjunct by the cost profile the compiler generated, instead of running every violation query in full (Ampersand issue #1692)
   transactions.costGate.skipStructural: false # let a conjunct whose property the table layout already enforces run no query at all; rests on Ampersand proof-track claim PRF-8 (status: stated)
   transactions.costGate.scanThreshold: 30000 # row count above which a fully scanned table makes its query worth maintaining incrementally
@@ -74,6 +84,7 @@ settings:
   frontend.menuGrouping: none # default grouping of the navigation menu on (re)install: 'none' = flat list, 'byType' = group list interfaces (V[SESSION*Concept]) in a submenu; task screens (I[SESSION]) stay top-level
   frontend.menuGroupingLabel: Lists # label of the submenu that groups the list interfaces (only used with menuGrouping 'byType')
   frontend.menuMode: static # default menu orientation: 'static' (vertical sidebar), 'overlay' (collapsible vertical sidebar) or 'horizontal' (menu bar with dropdowns and overflow)
+  frontend.privacyStatementUrl: null # URL of the privacy statement of the organisation that deploys the application. When set, the footer of every screen links to it. See docs/reference-material/cookies-and-browser-storage.md
 
   ### ExecEngine settings
   execengine.execEngineRoleNames: [ExecEngine]

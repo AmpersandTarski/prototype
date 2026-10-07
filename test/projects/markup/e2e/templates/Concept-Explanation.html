@@ -1,0 +1,15 @@
+<!-- Concept-Explanation.html: every Explanation, in every interface, is Markdown.
+     The compiler takes a template Concept-<name>.html before the template of the technical
+     type; the spec copies this file into the template folder before it builds the frontend,
+     as a project's Dockerfile does. -->
+<app-atomic-markup
+    format="MARKDOWN"
+    [resource]="resource"
+    [interfaceComponent]="this"
+    [property]="resource.$name$"
+    propertyName="$name$"
+    label="$label$"
+    crud="$crud$"
+    $if(exprIsUni)$isUni$endif$
+    $if(exprIsTot)$isTot$endif$
+></app-atomic-markup>

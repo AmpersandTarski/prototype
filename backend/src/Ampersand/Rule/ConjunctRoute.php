@@ -25,8 +25,9 @@ enum ConjunctRoute: string
     /**
      * Maintain the violations from the transaction's changes instead of re-reading the
      * whole population. Chosen only where the integral query has outgrown the fixed fee
-     * of that protocol. A build without delta maintenance falls back to Integral, so this
-     * value is a recommendation the runtime may not yet be able to honour.
+     * of that protocol. The protocol itself is transactions.deltaConjunctMaintenance: with
+     * that setting 'off', or for a conjunct without candidate queries, the conjunct is
+     * evaluated in full after all.
      */
     case Incremental = 'incremental';
 }

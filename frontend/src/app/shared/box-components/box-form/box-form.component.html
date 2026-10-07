@@ -41,8 +41,10 @@
             ></span>
         </div>
         <ng-container
-            *ngTemplateOutlet="template || defaultTemplate; context: { $implicit: item }"
+            *ngTemplateOutlet="template || defaultTemplate; context: { $implicit: item, form: this }"
         ></ng-container>
+        <!-- A record without a single field to show, e.g. a group shown by showOnNoRecords -->
+        <div class="box-form-none" *ngIf="showsNothing(item)">—</div>
     </div>
 
     <p-dropdown

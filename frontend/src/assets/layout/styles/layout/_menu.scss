@@ -138,7 +138,7 @@
 
 // Horizontal menu mode (desktop only; below the breakpoint the existing
 // mobile drawer behavior applies to all menu modes, including horizontal)
-@media (min-width: 992px) {
+@media (min-width: 1200px) {
   .layout-wrapper.layout-horizontal {
     .layout-sidebar {
       top: 5rem;

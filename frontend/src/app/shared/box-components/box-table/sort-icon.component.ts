@@ -30,7 +30,14 @@ export class SortIconComponent implements OnInit, OnDestroy {
         ),
         takeUntil(this.destroy$),
       )
-      .subscribe(() => this.updateIcon());
+      // As in SortableColumnDirective: the initial sort lands after this view was checked,
+      // so a changed icon waits for a microtask (NG0100 otherwise), and an unchanged one
+      // schedules nothing.
+      .subscribe(() => {
+        if (this.icon() !== this.iconClass) {
+          queueMicrotask(() => (this.iconClass = this.icon()));
+        }
+      });
   }
 
   ngOnDestroy(): void {
@@ -38,14 +45,13 @@ export class SortIconComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private updateIcon(): void {
+  private icon(): string {
     const order =
       this.boxTable.primengTable?.getSortMeta(this.field)?.order ?? 0;
-    this.iconClass =
-      order === 0
-        ? 'pi-sort-alt'
-        : order === 1
-        ? 'pi-sort-amount-up-alt'
-        : 'pi-sort-amount-down';
+    return order === 0
+      ? 'pi-sort-alt'
+      : order === 1
+      ? 'pi-sort-amount-up-alt'
+      : 'pi-sort-amount-down';
   }
 }

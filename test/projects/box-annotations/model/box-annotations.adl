@@ -2,12 +2,14 @@ CONTEXT BoxAnnotations IN ENGLISH
 PURPOSE CONTEXT BoxAnnotations
 {+ Test project exercising the BOX-template annotations restored to the
    prototype framework: noHeader, hideOnNoRecords, hideSubOnNoRecords,
-   hideLabels, title and showNavMenu (TABLE/FORM/TABS) plus table/form (RAW). +}
+   hideLabels, title and showNavMenu (TABLE/FORM/TABS) plus table/form (RAW),
+   and the sortByAndHide annotation (TABLE). +}
 
 REPRESENT Name TYPE ALPHANUMERIC
 REPRESENT Note TYPE BIGALPHANUMERIC
 
 RELATION catName    [Category*Name] [UNI]
+RELATION catRank    [Category*Name] [UNI]
 RELATION catNote    [Category*Note] [UNI]
 RELATION catProduct [Category*Product]
 RELATION prodCode   [Product*Name] [UNI]
@@ -71,11 +73,24 @@ INTERFACE CategoriesSortable : "_SESSION";V[SESSION*Category] cRud BOX<TABLE sor
    , "Products" : catProduct cRud
    ]
 
+-- sortByAndHide: the rows sort on the "Rank" column, but that column is not
+-- rendered. There is no `sortable` annotation, so the backend must deliver the
+-- sort values on the strength of `sortByAndHide` alone. The ranks order the
+-- categories as Beta, Gamma, Alpha — an order that no sort on the visible
+-- "Name" column (asc or desc) can produce, so a browser check can tell the
+-- hidden sort apart from an accidental one.
+INTERFACE CategoriesSortedHidden : "_SESSION";V[SESSION*Category] cRud BOX<TABLE title="Categories (sorted on hidden Rank)" sortByAndHide="Rank">
+   [ "Name"     : catName cRUd
+   , "Rank"     : catRank cRUd
+   , "Products" : catProduct cRud
+   ]
+
 -- Population so the sortable table has rows to reorder.
 POPULATION catName CONTAINS [ ("cat1", "Beta"), ("cat2", "Alpha"), ("cat3", "Gamma") ]
 POPULATION catNote CONTAINS [ ("cat1", "second"), ("cat2", "first"), ("cat3", "third") ]
 POPULATION prodCode CONTAINS [ ("prod1", "P-001") ]
 POPULATION prodName CONTAINS [ ("prod1", "Widget") ]
 POPULATION catProduct CONTAINS [ ("cat1", "prod1") ]
+POPULATION catRank CONTAINS [ ("cat1", "1"), ("cat2", "3"), ("cat3", "2") ]
 
 ENDCONTEXT

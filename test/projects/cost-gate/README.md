@@ -7,13 +7,12 @@ matters most — the sampled self-check catches a classification that is wrong, 
 unsound skip cannot silently break a rule.
 
 The spec supplies the cost profiles itself, by rewriting `backend/generics/conjuncts.json`
-after the model is compiled. That is on purpose. The profiles come from the Ampersand
-compiler, but the compiler bundled in the framework image is older than the contract, so a
-spec that waited for a released compiler would guard nothing today and would silently stop
-testing the interesting paths whenever the image lags. What this repository owns is the
+after the model is compiled. That is on purpose. The bundled compiler emits profiles since
+v5.9.8, but a spec that took them as they come could not put a conjunct on a chosen route,
+and it could not hand the gate a wrong profile. What this repository owns is the
 framework's *response* to a contract, and that is exactly what the spec pins.
 
-Three scenarios run against the same model and the same mutations:
+Five scenarios run against the same model and the same mutations:
 
 1. **Gate off** — the baseline. Its commit decisions, data and violation cache are what the
    other runs are compared against.
@@ -25,6 +24,19 @@ Three scenarios run against the same model and the same mutations:
    that follows itself is committed: that is what an unsound claim costs. With the
    self-check at 100%, the same mutation is refused and the framework logs the discrepancy.
 
+4. **Gate on with the delta protocol, every other conjunct on the integral route** — the
+   setting `transactions.deltaConjunctMaintenance` is `'on'`, and the profiles keep every
+   conjunct that is not structural integral. No conjunct may go through the protocol, although
+   the bundled compiler gave them candidate queries: under `'on'` the gate decides.
+5. **Gate on with the delta protocol, every other conjunct on the incremental route** — the
+   same, with the class `recursive`, which the gate always routes to incremental maintenance.
+   Now the protocol must maintain at least one conjunct.
+
+In scenarios 4 and 5 the commit decisions, the data and the violation cache must again be
+identical to the baseline. The spec reads the number of conjuncts the protocol maintained from
+the close's summary line, which the framework logs at `DEBUG`; for these two runs it replaces
+`backend/config/logging.php` by one that logs to a file, and waits until the backend uses it.
+
 Scenario 3 also carries the evidence that scenario 2 needs. Parity between gate off and
 gate on would prove nothing if the gate had quietly done the same work either way, and the
 skip is logged at `DEBUG`, which the framework's `FingersCrossedHandler` buffers away
@@ -35,4 +47,5 @@ Scenario 3 is the reason the skip route has its own switch and its own safety ne
 PRF-8 in the Ampersand proof register is `stated`, not proved; the self-check is what keeps
 a defect in it visible.
 
-The spec restores `backend/config/project.yaml` when it finishes, including on failure.
+The spec restores `backend/config/project.yaml`, `backend/config/logging.php` and the generated
+`conjuncts.json` when it finishes, including on failure.

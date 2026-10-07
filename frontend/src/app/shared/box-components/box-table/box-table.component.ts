@@ -50,10 +50,14 @@ export class BoxTableComponent<
   // undefined in ngOnInit and throw ("Cannot set properties of undefined"). Use a setter query
   // that configures the table whenever it appears — including after the *ngIf flips once data
   // arrives — so an initially-empty BOX<TABLE> renders instead of crashing.
+  // Angular sets this query again whenever the view changes (a new number of rows, for
+  // instance), with the same p-table. Only a new p-table is configured: configuring the same
+  // one again put the sort back on `sortBy` and undid the sort the user had chosen.
   @ViewChild('primengTable')
   set primengTable(table: Table | undefined) {
+    const isNew = table !== this._primengTable;
     this._primengTable = table;
-    if (table) {
+    if (table && isNew) {
       this.configurePrimengTable(table);
       this.table$.next(table);
     }
@@ -71,11 +75,90 @@ export class BoxTableComponent<
   @Input()
   sortBy?: string;
 
+  /**
+   * The rows the table shows, when they differ from `data`. BOX<FACETS> passes its
+   * filtered rows here and keeps `data` on all rows, so emptiness (`hideOnNoRecords`,
+   * `canCreate()` on a UNI box) and create/delete keep working on the whole set.
+   */
+  @Input()
+  shownRows?: TItem[];
+
   @Input()
   sortOrder: 'asc' | 'desc' = 'asc';
 
+  /**
+   * The `compact` annotation: the modeller's choice that this table starts in the dense
+   * stand (DesignChoices OK-26). The user may switch; `dense` is what the table shows.
+   */
+  @Input({ transform: booleanAttribute })
+  compact = false;
+
+  /** Whether the table shows the dense stand: one line per row, under a header that stays. */
+  dense = false;
+
+  /** The rows the user opened in the dense stand, to read their full text. */
+  private readonly opened = new WeakSet<object>();
+
   override ngOnInit(): void {
     super.ngOnInit();
+    this.dense = this.storedDensity() ?? this.compact;
+  }
+
+  /**
+   * Switches between the roomy and the dense stand, and remembers it for this table until
+   * the tab closes. All tables share one item in session storage, `tableDensity`, so the page
+   * on cookies and browser storage can name it.
+   */
+  toggleDense(): void {
+    this.dense = !this.dense;
+    const stands = this.storedStands();
+    stands[this.densityKey()] = this.dense ? 'dense' : 'roomy';
+    try {
+      sessionStorage.setItem('tableDensity', JSON.stringify(stands));
+    } catch {
+      // without storage the choice lasts as long as the page
+    }
+  }
+
+  isOpened(row: object): boolean {
+    return this.opened.has(row);
+  }
+
+  /**
+   * In the dense stand a click on a row, or Enter or Space on the focused row, shows its full
+   * text, and a second one folds it again. A click on a link, a button or a field inside the row keeps its own meaning.
+   */
+  toggleRow(row: object, event: Event): void {
+    if (!this.dense) return;
+    if (event instanceof KeyboardEvent) {
+      // Enter and Space do what a click does; every other key keeps its meaning.
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      if (event.target !== event.currentTarget) return;
+      event.preventDefault();
+    }
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('a, button, input, select, textarea, .p-dropdown, app-ifcs-dropdown, .pi')) return;
+    if (this.opened.has(row)) this.opened.delete(row);
+    else this.opened.add(row);
+  }
+
+  /** One entry per table: the interface and the box in it. */
+  private densityKey(): string {
+    return `${this.interfaceComponent?.interfaceName ?? ''}.${this.propertyName ?? ''}`;
+  }
+
+  private storedStands(): Record<string, string> {
+    try {
+      const stands = JSON.parse(sessionStorage.getItem('tableDensity') ?? '{}');
+      return stands !== null && typeof stands === 'object' ? stands : {};
+    } catch {
+      return {};
+    }
+  }
+
+  private storedDensity(): boolean | null {
+    const stored = this.storedStands()[this.densityKey()];
+    return stored === undefined ? null : stored === 'dense';
   }
 
   private configurePrimengTable(table: Table): void {

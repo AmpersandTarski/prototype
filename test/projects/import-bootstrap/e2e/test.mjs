@@ -27,56 +27,23 @@ import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { createRequire } from 'node:module';
+import {
+  assert,
+  baseUrl,
+  buildFrontend,
+  container,
+  failureCount,
+  loadPuppeteer,
+  repoRoot,
+} from '../../../spec-support/browser-spec.mjs';
 
-// A fresh worktree has no test/node_modules yet (gitignored); install on demand
-const require = createRequire(import.meta.url);
-const testDir = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
-try {
-  require.resolve('puppeteer');
-} catch {
-  execSync('npm install --no-audit --no-fund', { cwd: testDir, stdio: 'inherit' });
-}
-const puppeteer = (await import('puppeteer')).default;
+const puppeteer = await loadPuppeteer();
 
 const specDir = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(specDir, '../../../..');
 const projectYaml = resolve(repoRoot, 'backend/config/project.yaml');
 const unlockFlag = resolve(repoRoot, 'data/importmode.unlocked');
-const baseUrl = process.env.PROTOTYPE_URL ?? 'http://localhost';
-// test/run-regression.sh runs this spec against its own stack; without it, the dev stack.
-const container = process.env.PROTOTYPE_CONTAINER ?? 'prototype';
 
 const originalYaml = readFileSync(projectYaml, 'utf8');
-
-let failures = 0;
-function assert(cond, msg) {
-  if (cond) {
-    console.log(`  ✅ ${msg}`);
-  } else {
-    console.error(`  ❌ ${msg}`);
-    failures++;
-  }
-}
-
-function run(cmd, opts = {}) {
-  execSync(cmd, { stdio: 'inherit', cwd: repoRoot, ...opts });
-}
-
-/* Build the Angular frontend into html/ (the regression runner only copies the
- * backend API there). Same recipe as generate.sh: compiler-generated sources,
- * npm build, copy the dist over html/. */
-function buildFrontend() {
-  console.log('Building the frontend (compiler sources + npm build) ...');
-  run(
-    `docker exec ${container} sh -c "ampersand proto --frontend-version Angular --no-backend ` +
-      `/var/www/test/projects/import-bootstrap/model/main.adl ` +
-      `--proto-dir /var/www/frontend/src/app/generated --crud-defaults cRud"`,
-  );
-  run('npm install --no-audit --no-fund', { cwd: resolve(repoRoot, 'frontend') });
-  run('npm run build:dev', { cwd: resolve(repoRoot, 'frontend') });
-  run('cp -r frontend/dist/prototype-frontend/. html/');
-}
 
 function setImportMode(on) {
   const content = on
@@ -131,7 +98,7 @@ async function uploadThroughUi(page, file) {
 }
 
 async function main() {
-  buildFrontend();
+  buildFrontend('import-bootstrap');
 
   console.log('Enabling import mode and (re)installing ...');
   setImportMode(true);
@@ -148,7 +115,9 @@ async function main() {
   assert(locked.status === 423, `resource requests answer 423 while locked (got ${locked.status})`);
 
   // --- UI level
-  const browser = await puppeteer.launch({ headless: true });
+  // 'shell' renders without a display; the newer headless mode produces no animation
+  // frames on macOS while the screen is locked, and a click then waits forever.
+  const browser = await puppeteer.launch({ headless: 'shell' });
   try {
     const page = await browser.newPage();
     page.on('pageerror', (err) => console.error('  page error:', err.message));
@@ -211,8 +180,7 @@ async function main() {
 try {
   await main();
 } catch (err) {
-  console.error(`  ❌ ${err.message}`);
-  failures++;
+  assert(false, err.message);
 } finally {
   // Leave the working copy as found: original settings, no unlock flag
   writeFileSync(projectYaml, originalYaml);
@@ -221,8 +189,8 @@ try {
   }
 }
 
-if (failures > 0) {
-  console.error(`${failures} assertion(s) failed`);
+if (failureCount() > 0) {
+  console.error(`${failureCount()} assertion(s) failed`);
   process.exit(1);
 }
 console.log('import-bootstrap: all assertions passed');

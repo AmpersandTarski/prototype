@@ -66,7 +66,8 @@ class AngularJSApp implements FrontendInterface
                     $ifcObj = $ifc->getIfcObject();
                     // crudC, otherwise the atom cannot be created
                     // isIdent (interface expr = I[Concept]), because otherwise a src atom is necesarry, which we don't have wiht +-menu
-                    if ($ifcObj->crudC() && $ifcObj->isIdent()) {
+                    // not an API: an API serves programs, and its create route is not a screen for a person
+                    if ($ifcObj->crudC() && $ifcObj->isIdent() && !$ifc->isAPI()) {
                         return true;
                     } else {
                         return false;

@@ -10,6 +10,7 @@ namespace Ampersand;
 use Exception;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
+use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Plugs\StorageInterface;
 use Ampersand\Rule\Conjunct;
 use Ampersand\Rule\ConjunctRoute;
@@ -67,6 +68,14 @@ class Transaction
     private array $affectedRelations = [];
     
     /**
+     * Conjuncts whose cache rows were maintained by the delta protocol in
+     * this transaction (issue Ampersand#1684)
+     *
+     * @var \Ampersand\Rule\Conjunct[]
+     */
+    private array $deltaMaintainedConjuncts = [];
+
+    /**
      * Specifies if invariant rules hold
      *
      * Null if no transaction has occurred (yet)
@@ -110,7 +119,34 @@ class Transaction
      * @var string[]
      */
     protected array $requestedServiceIds = [];
-    
+
+    /**
+     * Counts every mutation registered in this transaction (link add/delete, atom add/delete,
+     * set-level deletes). Together with $conjunctEvalStamps this tells whether a conjunct's
+     * in-memory evaluation is still current: a conjunct whose stamp equals the current counter
+     * was evaluated after the last mutation, so re-evaluating it must return the same result
+     * (a violation query is a deterministic function of the database state, and within one
+     * SQL transaction on one connection no other writer can intervene). See issue #443.
+     */
+    protected int $mutationCount = 0;
+
+    /**
+     * Mutation counter value at the time each conjunct was last evaluated in this transaction
+     *
+     * @var array<string, int> conjunct id => mutation counter value
+     */
+    protected array $conjunctEvalStamps = [];
+
+    /**
+     * Return the current open transaction, or null when no transaction is open
+     *
+     * Unlike AmpersandApp::getCurrentTransaction() this never opens a new transaction
+     */
+    public static function getCurrent(): ?Transaction
+    {
+        return self::$currentTransaction;
+    }
+
     /**
      * Constructor
      *
@@ -326,26 +362,12 @@ class Transaction
             return $this;
         }
 
-        // (Re)evaluate affected conjuncts, each by the route the cost gate assigns it.
-        // With the gate off every conjunct takes the integral route, which is the query
-        // this loop has always run.
-        $gate = $this->app->getCostGate();
-        foreach ($this->getAffectedConjuncts() as $conj) {
-            $route = $gate->route($conj);
-
-            if ($route === ConjunctRoute::Skip) {
-                $this->skipStructuralConjunct($gate, $conj);
-                continue;
-            }
-
-            if ($route === ConjunctRoute::Incremental) {
-                // Delta maintenance is not part of this build, so a conjunct the gate
-                // would maintain incrementally still gets its full query. Logging the
-                // route makes the classification visible in the model that runs.
-                $this->logger->debug("Conjunct '{$conj}' qualifies for incremental maintenance; this build evaluates it in full");
-            }
-
-            $conj->evaluate(); // violations are persisted below, only when transaction is committed
+        // (Re)evaluate affected conjuncts
+        $deltaMode = $this->app->getSettings()->get('transactions.deltaConjunctMaintenance', 'off');
+        if ($deltaMode === 'off') {
+            $this->evaluateAffectedConjunctsInFull();
+        } else {
+            $this->evaluateAffectedConjunctsWithDelta($deltaMode === 'shadow');
         }
 
         // Check invariant rules
@@ -369,7 +391,54 @@ class Transaction
         }
         
         self::$currentTransaction = null; // unset currentTransaction
+
+        // Reset the per-transaction delta administration of the conjuncts.
+        // Must happen after commit()/rollback(): commit's persistCacheItem
+        // consults the maintainedByDelta flag.
+        foreach ($this->deltaMaintainedConjuncts as $conj) {
+            $conj->resetDeltaMaintained();
+        }
+        $this->deltaMaintainedConjuncts = [];
+
         return $this;
+    }
+
+    /**
+     * Evaluate the affected conjuncts without the delta protocol
+     *
+     * Each conjunct gets its full violation query, except a clean one (see
+     * isSkippableCleanConjunct) and one the cost gate routes as structurally enforced.
+     * With the gate off every conjunct takes the integral route, which is the query this
+     * loop has always run.
+     */
+    protected function evaluateAffectedConjunctsInFull(): void
+    {
+        $gate = $this->app->getCostGate();
+        foreach ($this->getAffectedConjuncts() as $conj) {
+            if ($this->isSkippableCleanConjunct($conj) || $this->takesStructuralSkip($gate, $conj)) {
+                continue;
+            }
+            if ($gate->route($conj) === ConjunctRoute::Incremental) {
+                // The gate would maintain this conjunct incrementally, but the delta protocol
+                // is off. Logging the route makes the classification visible in the model that runs.
+                $this->logger->debug("Conjunct '{$conj}' qualifies for incremental maintenance; transactions.deltaConjunctMaintenance is 'off', so it is evaluated in full");
+            }
+            $conj->evaluate(); // violations are persisted at commit
+        }
+    }
+
+    /**
+     * True when the cost gate routes this conjunct as structurally enforced; the conjunct
+     * is then recorded as holding (or verified by the sampled self-check) and needs no
+     * further evaluation in this close
+     */
+    protected function takesStructuralSkip(CostGate $gate, Conjunct $conj): bool
+    {
+        if ($gate->route($conj) !== ConjunctRoute::Skip) {
+            return false;
+        }
+        $this->skipStructuralConjunct($gate, $conj);
+        return true;
     }
 
     /**
@@ -394,6 +463,145 @@ class Transaction
         if ($violations !== []) {
             $gate->reportSelfCheckFailure($conj, $violations);
         }
+    }
+
+    /**
+     * True when transactions.skipCleanConjuncts allows keeping the conjunct's in-memory result:
+     * it was evaluated in this transaction (typically by the ExecEngine's last fixpoint
+     * iteration) with no mutation registered afterwards, so it would evaluate to the same
+     * result; the in-memory result already serves the invariant check and the cache persist
+     * at commit. See issue #443.
+     */
+    protected function isSkippableCleanConjunct(Conjunct $conj): bool
+    {
+        if (!$this->app->getSettings()->get('transactions.skipCleanConjuncts', false)
+            || !$this->isCleanSinceEvaluation($conj)) {
+            return false;
+        }
+        $this->logger->debug("Skip evaluation of conjunct '{$conj}': evaluated in this transaction with no mutations afterwards");
+        return true;
+    }
+
+    /**
+     * Evaluate the affected conjuncts with delta-scoped re-evaluation where
+     * possible (issue Ampersand#1684), full evaluation otherwise.
+     *
+     * A conjunct is maintained by the delta protocol only when the compiler
+     * emitted candidate queries for it, it is not affected via a touched
+     * concept (the candidate calculus covers relation changes only), and every
+     * touched relation that affects it has a recorded delta and a candidate
+     * query. Anything else keeps today's full evaluation — correctness never
+     * depends on the delta path.
+     *
+     * In shadow mode the delta protocol runs first, then the conjunct is
+     * evaluated in full as before; a difference between the two results is
+     * logged as an error. The fully evaluated result remains authoritative
+     * (it is persisted at commit, wholesale, exactly as without this feature).
+     */
+    protected function evaluateAffectedConjunctsWithDelta(bool $shadow): void
+    {
+        $pool = $this->app->getConjunctCache();
+        if (!$pool instanceof MysqlConjunctCache) {
+            $this->logger->warning("Delta conjunct maintenance requested, but no MySQL-backed conjunct cache is available; keeping full evaluation");
+            $this->evaluateAffectedConjunctsInFull();
+            return;
+        }
+        $db = $pool->getDatabase();
+        $cacheTable = $pool->getTableName();
+        $touched = $db->getDeltaTouchedRelations(); // relation signature => delta table name
+
+        // Conjuncts affected via a touched concept keep full evaluation
+        $conceptConjunctIds = [];
+        foreach ($this->affectedConcepts as $concept) {
+            foreach ($concept->getRelatedConjuncts() as $conj) {
+                $conceptConjunctIds[$conj->getId()] = true;
+            }
+        }
+
+        $countDelta = 0;
+        $countFull = 0;
+        $countSkipped = 0;
+        $countStructural = 0;
+        $gate = $this->app->getCostGate();
+        foreach ($this->getAffectedConjuncts() as $conj) {
+            // A clean conjunct (see isSkippableCleanConjunct) keeps its in-memory result,
+            // which commit persists wholesale; neither evaluation nor delta maintenance needed.
+            if ($this->isSkippableCleanConjunct($conj)) {
+                $countSkipped++;
+                continue;
+            }
+            // A conjunct the table layout enforces needs neither route (cost gate, claim PRF-8)
+            if ($this->takesStructuralSkip($gate, $conj)) {
+                $countStructural++;
+                continue;
+            }
+            $sigs = [];
+            $eligible = $conj->hasDeltaQueries() && !isset($conceptConjunctIds[$conj->getId()]);
+            // Under 'on' the cost gate narrows the protocol to the conjuncts whose full query
+            // has outgrown the protocol's fixed fee; the others are cheaper evaluated in full.
+            // A shadow run exists to compare as much as it can, so the gate does not narrow it.
+            if ($eligible && !$shadow && $gate->isEnabled() && $gate->route($conj) !== ConjunctRoute::Incremental) {
+                $eligible = false;
+            }
+            if ($eligible) {
+                foreach ($this->affectedRelations as $relation) {
+                    if (!in_array($conj, $relation->getRelatedConjuncts())) {
+                        continue;
+                    }
+                    $sig = $relation->signature;
+                    if (!isset($touched[$sig]) || $db->isDeltaBulkMutated($sig) || !$conj->hasDeltaQueryFor($sig)) {
+                        $eligible = false;
+                        break;
+                    }
+                    $sigs[] = $sig;
+                }
+            }
+
+            if (!$eligible || empty($sigs)) {
+                $conj->evaluate();
+                $countFull++;
+                continue;
+            }
+
+            $conj->deltaMaintain($sigs, $cacheTable);
+            $this->deltaMaintainedConjuncts[] = $conj;
+            $countDelta++;
+
+            if ($shadow) {
+                $deltaRows = array_map(
+                    fn (array $row): string => "{$row['src']}|{$row['tgt']}",
+                    $conj->getViolationsFromDbCache($cacheTable)
+                );
+                sort($deltaRows);
+
+                // Full evaluation stays authoritative: it refreshes the
+                // in-memory item and is persisted at commit as before.
+                $conj->resetDeltaMaintained();
+                array_pop($this->deltaMaintainedConjuncts);
+                $conj->evaluate();
+
+                $fullRows = array_map(
+                    fn (array $row): string => "{$row['src']}|{$row['tgt']}",
+                    $conj->getViolations()
+                );
+                sort($fullRows);
+
+                if ($deltaRows !== $fullRows) {
+                    $this->logger->error(
+                        "DELTA SHADOW MISMATCH in conjunct '{$conj->getId()}': "
+                        . "delta " . count($deltaRows) . " rows, full " . count($fullRows) . " rows. "
+                        . "delta-only: " . implode(', ', array_slice(array_diff($deltaRows, $fullRows), 0, 3)) . "; "
+                        . "full-only: " . implode(', ', array_slice(array_diff($fullRows, $deltaRows), 0, 3))
+                    );
+                } else {
+                    // Notice level: in a shadow run these lines are the evidence
+                    // of the divergence-free period, so they must reach the log.
+                    $this->logger->notice("Delta shadow check for conjunct '{$conj->getId()}': identical (" . count($fullRows) . " rows)");
+                }
+            }
+        }
+        $mode = $shadow ? 'shadow' : 'on';
+        $this->logger->debug("Delta conjunct maintenance ('{$mode}'): {$countDelta} delta-maintained, {$countFull} evaluated in full, {$countSkipped} skipped as clean, {$countStructural} skipped as structurally enforced");
     }
 
     /**
@@ -476,10 +684,43 @@ class Transaction
     }
     
     /**
+     * Register that a mutation (link add/delete, atom add/delete, set-level delete) happened
+     *
+     * Called on every mutation, also when the concept/relation is already marked as affected
+     * and also for mutations that deliberately bypass affected-tracking (trackAffected=false).
+     * Invalidates the clean-since-evaluation status of all conjuncts evaluated so far.
+     */
+    public function registerMutation(): void
+    {
+        $this->mutationCount++;
+    }
+
+    /**
+     * Record that a conjunct was evaluated at the current mutation counter value
+     *
+     * Called by Conjunct::evaluate() whenever a transaction is open
+     */
+    public function recordConjunctEvaluation(Conjunct $conjunct): void
+    {
+        $this->conjunctEvalStamps[$conjunct->getId()] = $this->mutationCount;
+    }
+
+    /**
+     * Return whether a conjunct was evaluated in this transaction with no mutation registered afterwards
+     */
+    protected function isCleanSinceEvaluation(Conjunct $conjunct): bool
+    {
+        return isset($this->conjunctEvalStamps[$conjunct->getId()])
+            && $this->conjunctEvalStamps[$conjunct->getId()] === $this->mutationCount;
+    }
+
+    /**
      * Mark a concept as affected within the open transaction
      */
     public function addAffectedConcept(Concept $concept): void
     {
+        $this->registerMutation();
+
         if (!in_array($concept, $this->affectedConcepts)) {
             $this->logger->debug("Mark concept '{$concept}' as affected concept");
             
@@ -497,6 +738,8 @@ class Transaction
      */
     public function addAffectedRelations(Relation $relation): void
     {
+        $this->registerMutation();
+
         if (!in_array($relation, $this->affectedRelations)) {
             $this->logger->debug("Mark relation '{$relation}' as affected relation");
 
