@@ -24,6 +24,17 @@ Additional labels for pre-release and build metadata are available as extensions
   four contexts and the migration case of the RAMiCS 2024 paper on three databases. This needs a
   compiler with the command `ampersand deploy`
   ([Ampersand#1509](https://github.com/AmpersandTarski/Ampersand/issues/1509)).
+* **The bundled Ampersand compiler moves to v5.9.8.** This is the first compiler release that
+  generates the candidate queries (`deltaQueries` in `conjuncts.json`, `deltaTable` in
+  `relations.json`, the delta tables in `database.sql`) and a cost profile per conjunct
+  (`costProfile`). Until now the setting `transactions.deltaConjunctMaintenance`, which has
+  been in the framework since v2.11.0, had nothing to work with in a published image. Its
+  default stays `off`, so a prototype behaves as before; the new fields and tables are
+  additive. The compiler also brings `PURPOSE` for
+  `ENFORCE` and `ROLE` (see the
+  [Ampersand release notes](https://github.com/AmpersandTarski/Ampersand/blob/main/ReleaseNotes.md)).
+  The framework's compiler constraint (`>=5.9.2 <6.0.0`) is unchanged.
+
 ## v2.14.0 (1 October 2026)
 
 * **A LaTeX text is shown formatted (DesignChoices OK-25).** `app-atomic-markup` has a fifth
