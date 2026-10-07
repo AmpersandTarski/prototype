@@ -19,7 +19,12 @@ expect "the migration context stores what it copied in its own database" "a1-b1"
   "$(sql migration "SELECT GROUP_CONCAT(CONCAT(\"old.A\", '-', \"old.B\")) FROM \"copyr\"")"
 expect "the existing system is untouched" "a1-b1" "$(pairs old)"
 
-# Step 5: the new invariant is a business constraint in the migration context.
+# Step 5: the new invariant is a business constraint in the migration context,
+# and a blocking invariant in the desired system: one rule, written once, in desired.adl.
+expect "the rule is a signal in the model of the migration context" "new.totalR" \
+  "$(jq -r '[.signals[].name | select(test("totalR"))] | join(",")' "$work/migration/generics/rules.json")"
+expect "and an invariant in the model of the desired system" "totalR" \
+  "$(jq -r '[.invariants[].name | select(test("totalR"))] | join(",")' "$work/new/generics/rules.json")"
 expect "the migration context signals what users have to repair" \
   "Pair a2 with an (any) atom from B.; Pair a3 with an (any) atom from B." "$(signals migration)"
 
@@ -51,8 +56,7 @@ sql new "UPDATE \"a\" SET \"r\" = 'b2' WHERE \"A\" IN ('a1', 'a2', 'a3')" >/dev/
 api migration admin/execengine/run >/dev/null
 expect "no violation of the new invariant is left" "" "$(signals migration)"
 
-# The moment of completion: the desired system starts with its blocking invariant, on the database as it is.
-recompile new desired.adl
-api new admin/installer/checksum/update >/dev/null
+# The moment of completion: the desired system keeps its blocking invariant on the database as it is.
+# Its application has run on the model of desired.adl all along: nothing is compiled or installed again.
 expect "the desired system satisfies its invariant on its own database" "" "$(invariants new)"
 expect "no data was moved at the moment of completion" "a1-b2,a2-b2,a3-b2,a4-b3" "$(pairs new)"
