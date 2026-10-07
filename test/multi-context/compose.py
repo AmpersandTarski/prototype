@@ -1,7 +1,7 @@
 """Write the compose file for one scenario of test/multi-context/run.sh.
 
 Arguments: system.json, the root of the framework working copy, the work directory with the
-compiled contexts, the name of the stack, and the first port.
+compiled contexts, the name of the stack, the first port, and optionally the word "own".
 Every context gets an application: the framework of the working copy, with the compiled model
 of that context mounted over backend/generics.
 """
@@ -9,6 +9,9 @@ import json
 import sys
 
 system, repo, work, stack, base_port = sys.argv[1:6]
+# With "own", every application connects as a database user of its own, named after its service.
+# The scenario grants that user its rights in grants.sql. Otherwise all applications share one user with all rights.
+own_users = sys.argv[6:7] == ["own"]
 contexts = json.load(open(system))["contexts"]
 database = {c["service"]: c["defaultDatabase"] for c in contexts}
 
@@ -32,7 +35,7 @@ for i, c in enumerate(contexts):
     environment:
       - AMPERSAND_DEBUG_MODE=true
       - AMPERSAND_DBHOST={stack}-db
-      - AMPERSAND_DBUSER=ampersand
+      - AMPERSAND_DBUSER={c['service'] if own_users else 'ampersand'}
       - AMPERSAND_DBPASS=ampersand
       - AMPERSAND_DBNAME={c['defaultDatabase']}
       - AMPERSAND_CONTEXT_DBNAMES={names}

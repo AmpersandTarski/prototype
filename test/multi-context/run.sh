@@ -47,10 +47,16 @@ run_scenario() {
   done < <(jq -r '.contexts[] | [.service, .label] | @tsv' "$system")
 
   # 3. One application per context, on the framework of this working copy.
-  python3 "$HERE/compose.py" "$system" "$REPO_ROOT" "$work" "$stack" "$BASE_PORT" >"$work/compose.yaml"
+  # A scenario with a file grants.sql gives every application a database user of its own.
+  local users=""; [ -f "$dir/grants.sql" ] && users="own"
+  python3 "$HERE/compose.py" "$system" "$REPO_ROOT" "$work" "$stack" "$BASE_PORT" $users >"$work/compose.yaml"
   compose() { docker compose -f "$work/compose.yaml" -p "$stack" "$@"; }
   if ! compose up -d --build --wait >"$work/up.txt" 2>&1; then
     log "  the stack did not start:"; tail -20 "$work/up.txt" | sed 's/^/    /'; compose down -v >/dev/null 2>&1; return 1
+  fi
+  if [ -n "$users" ]; then
+    docker exec -i "$stack-db" mysql -uroot -pampersand <"$dir/grants.sql" >"$work/grants.txt" 2>&1 \
+      || { log "  grants.sql failed:"; sed 's/^/    /' "$work/grants.txt"; compose down -v >/dev/null 2>&1; return 1; }
   fi
   local first; first="$(jq -r '.contexts[0].service' "$system")"
   docker exec "$stack-$first" sh -c 'cd /var/www && composer install --no-interaction --no-progress' >/dev/null 2>&1
@@ -69,6 +75,9 @@ run_scenario() {
   }
   # sql <service> <query>: a query on the database of a context, as tab-separated rows
   sql() { docker exec "$stack-db" mysql -uroot -pampersand -N -B --default-character-set=utf8mb4 "$(db_of "$1")" -e "SET sql_mode='ANSI,TRADITIONAL'; $2" 2>&1; }
+  # sql_as <user> <service> <query>: a query on the database of a context, as the database user of an application.
+  # It prints "refused" if the database server refuses it.
+  sql_as() { docker exec "$stack-db" mysql -u"$1" -pampersand -N -B "$(db_of "$2")" -e "SET sql_mode='ANSI,TRADITIONAL'; $3" 2>/dev/null || echo refused; }
   failures=0
   # expect <what> <expected> <actual>
   expect() {
