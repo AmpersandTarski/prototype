@@ -28,6 +28,16 @@ expect "and an invariant in the model of the desired system" "totalR" \
 expect "the migration context signals what users have to repair" \
   "Pair a2 with an (any) atom from B.; Pair a3 with an (any) atom from B." "$(signals migration)"
 
+# Steps 3 and 4: the compiler added a relation that registers what satisfies the rule,
+# and a blocking invariant that keeps what is registered from violating the rule again.
+fixed() { sql migration 'SELECT GROUP_CONCAT("new.SrcA" ORDER BY 1) FROM "fixedtotalr"'; }
+unpair() { api_patch migration "resource/SESSION/1/Desired/$1" "[{\"op\":\"remove\",\"path\":\"/r\",\"value\":\"$2\"}]"; }
+expect "the atom that satisfies the rule is registered" "a1" "$(fixed)"
+expect "taking its pair away is refused" \
+  "false: A violation of new.totalR that has been repaired cannot return." \
+  "$(unpair a1 b1 | jq -r '(.isCommitted | tostring) + ": " + ([.notifications.invariants[].ruleMessage] | join("") | gsub("\n"; ""))')"
+expect "and its pair is still there" "a1-b1" "$(pairs new)"
+
 # A user of the migration system removes an atom from the desired system that the existing system still has.
 # The migration context writes the desired system, and never the existing one.
 expect "the user's transaction is committed" "true" \
@@ -55,6 +65,12 @@ expect "and so does its pair" "a4-b3" "$(pairs new)"
 sql new "UPDATE \"a\" SET \"r\" = 'b2' WHERE \"A\" IN ('a1', 'a2', 'a3')" >/dev/null
 api migration admin/execengine/run >/dev/null
 expect "no violation of the new invariant is left" "" "$(signals migration)"
+
+# Once the last violation is repaired, the rule holds for every atom as an invariant does:
+# all of them are registered, and none of them can lose its pair.
+expect "every atom is registered" "a1,a2,a3,a4" "$(fixed)"
+expect "a repaired violation cannot return" "false" "$(unpair a2 b2 | jq -r '.isCommitted')"
+expect "the pair of the repaired atom is still there" "a1-b2,a2-b2,a3-b2,a4-b3" "$(pairs new)"
 
 # The moment of completion: the desired system keeps its blocking invariant on the database as it is.
 # Its application has run on the model of desired.adl all along: nothing is compiled or installed again.

@@ -73,6 +73,12 @@ run_scenario() {
     [ -f "$jar" ] || curl -sS -c "$jar" -o /dev/null "$base/app/navbar"
     curl -sS -b "$jar" -c "$jar" -X DELETE "$base/$2"
   }
+  # api_patch <service> <path> <json patch>: a PATCH on the API of the application of a context, as a user in a session
+  api_patch() {
+    local jar="$work/$1.cookies" base="http://localhost:$(port_of "$1")/api/v1"
+    [ -f "$jar" ] || curl -sS -c "$jar" -o /dev/null "$base/app/navbar"
+    curl -sS -b "$jar" -c "$jar" -X PATCH -H 'Content-Type: application/json' -d "$3" "$base/$2"
+  }
   # sql <service> <query>: a query on the database of a context, as tab-separated rows
   sql() { docker exec "$stack-db" mysql -uroot -pampersand -N -B --default-character-set=utf8mb4 "$(db_of "$1")" -e "SET sql_mode='ANSI,TRADITIONAL'; $2" 2>&1; }
   # sql_as <user> <service> <query>: a query on the database of a context, as the database user of an application.
