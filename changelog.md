@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.15.0 (9 October 2026)
 
 * **The bundled Ampersand compiler moves from v5.9.7 to v5.9.9.** Two things reach a prototype
   with it. The first is speed: a rule whose violations are a difference onto a closure or a
