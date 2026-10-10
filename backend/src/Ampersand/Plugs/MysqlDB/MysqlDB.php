@@ -280,6 +280,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             case TType::INTEGER:
                 return (int) $atom->getId();
             case TType::OBJECT:
+            case TType::MULTITABLE:
                 return $this->escape($atom->getId());
             default:
                 throw new MetaModelException("Unknown/unsupported ttype '{$atom->concept->type->value}' for concept '[{$atom->concept}]'");
@@ -551,10 +552,17 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     */
     public function atomExists(Atom $atom): bool
     {
+        $atomId = $this->getDBRepresentation($atom);
+
+        if (!$atom->concept->hasConceptTable()) {
+            // A union concept without a table of its own (Ampersand issue #1716)
+            $query = "SELECT \"atomId\" FROM ({$atom->concept->getAllAtomsQuery()}) AS \"members\" WHERE \"atomId\" = '{$atomId}'";
+            return !empty($this->execute($query));
+        }
+
         $tableInfo = $atom->concept->getConceptTableInfo();
         $firstCol = current($tableInfo->getCols());
-        $atomId = $this->getDBRepresentation($atom);
-        
+
         $query = "SELECT \"{$firstCol->getName()}\" FROM \"{$tableInfo->getName()}\" WHERE \"{$firstCol->getName()}\" = '{$atomId}'";
         $result = $this->execute($query);
         
@@ -572,8 +580,20 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      */
     public function getAllAtoms(Concept $concept): array
     {
+        if (!$concept->hasConceptTable()) {
+            // A union concept without a table of its own (Ampersand issue #1716)
+            $query = $concept->getAllAtomsQuery();
+            $arr = [];
+            foreach ((array)$this->execute($query) as $row) {
+                $tgtAtom = new Atom($row['atomId'], $concept);
+                $tgtAtom->setQueryData($row);
+                $arr[] = $tgtAtom;
+            }
+            return $arr;
+        }
+
         $tableInfo = $concept->getConceptTableInfo();
-        
+
         // Query all atoms in table
         if (isset($tableInfo->allAtomsQuery)) {
             $query = $tableInfo->allAtomsQuery;
@@ -597,31 +617,39 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     public function addAtom(Atom $atom): void
     {
         $atomId = $this->getDBRepresentation($atom);
-                        
-        // Get table properties
-        $conceptTableInfo = $atom->concept->getConceptTableInfo();
-        $conceptTable = $conceptTableInfo->getName();
-        $conceptCols = $conceptTableInfo->getCols(); // Concept are registered in multiple cols in case of specializations. We insert the new atom in every column.
-        
-        // Create query string: "<col1>", "<col2>", etc
-        $allConceptCols = '"' . implode('", "', $conceptTableInfo->getColNames()) . '"';
-        
-        
-        // Create query string: '<newAtom>', '<newAtom', etc
-        $atomIdsArray = array_fill(0, count($conceptCols), $atomId);
-        $allValues = "'".implode("', '", $atomIdsArray)."'";
-        
-        $str = '';
-        foreach ($conceptCols as $col) {
-            $str .= ", \"{$col->getName()}\" = '{$atomId}'";
+
+        // An atom has a row in the table of its own concept and, when a generalisation
+        // is stored apart (MULTITABLE, Ampersand issue #1716), a row in that table too.
+        // The own table comes first; a generalisation table may already hold the row
+        // when an existing atom is added to a specialisation, so only the own table
+        // must report an affected row.
+        $first = true;
+        foreach ($atom->concept->getConceptTables() as $conceptTableInfo) {
+            $conceptTable = $conceptTableInfo->getName();
+            $conceptCols = $conceptTableInfo->getCols(); // Concept are registered in multiple cols in case of specializations. We insert the new atom in every column.
+
+            // Create query string: "<col1>", "<col2>", etc
+            $allConceptCols = '"' . implode('", "', $conceptTableInfo->getColNames()) . '"';
+
+            // Create query string: '<newAtom>', '<newAtom', etc
+            $atomIdsArray = array_fill(0, count($conceptCols), $atomId);
+            $allValues = "'".implode("', '", $atomIdsArray)."'";
+
+            $str = '';
+            foreach ($conceptCols as $col) {
+                $str .= ", \"{$col->getName()}\" = '{$atomId}'";
+            }
+            $duplicateStatement = substr($str, 1);
+
+            $this->execute("INSERT INTO \"$conceptTable\" ($allConceptCols) VALUES ($allValues)"
+                      ." ON DUPLICATE KEY UPDATE $duplicateStatement");
+
+            // Check if query resulted in an affected row
+            if ($first) {
+                $this->checkForAffectedRows();
+                $first = false;
+            }
         }
-        $duplicateStatement = substr($str, 1);
-        
-        $this->execute("INSERT INTO \"$conceptTable\" ($allConceptCols) VALUES ($allValues)"
-                  ." ON DUPLICATE KEY UPDATE $duplicateStatement");
-        
-        // Check if query resulted in an affected row
-        $this->checkForAffectedRows();
     }
     
     /**
@@ -630,23 +658,47 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     public function removeAtom(Atom $atom): void
     {
         $atomId = $this->getDBRepresentation($atom);
-        
+
         // Get table and col for WHERE clause
         $conceptTable = $atom->concept->getConceptTableInfo();
         $conceptCol = $atom->concept->getConceptTableInfo()->getFirstCol();
-        
-        // Get cols for UPDATE clause
+
+        // A specialisation stored in a table of its own (MULTITABLE, Ampersand issue
+        // #1716) loses its row there; a specialisation that shares the table of the
+        // concept loses its column value, as before.
         $colNames = [];
         $colNames[] = $conceptCol->getName(); // also update the concept col itself
+        $tablesToDeleteFrom = [];
         foreach ($atom->concept->getSpecializations() as $specConcept) {
-            $colNames[] = $specConcept->getConceptTableInfo()->getFirstCol()->getName();
+            if (!$specConcept->hasConceptTable()) {
+                continue;
+            }
+            $specTable = $specConcept->getConceptTableInfo();
+            if ($specTable->getName() === $conceptTable->getName()) {
+                $colNames[] = $specTable->getFirstCol()->getName();
+            } else {
+                $tablesToDeleteFrom[$specTable->getName()] = $specTable;
+            }
         }
-        
-        // Create query string: "<col1>" = '<atom>', "<col2>" = '<atom>', etc
-        $queryString = "\"" . implode("\" = NULL, \"", $colNames) . "\" = NULL";
-        
-        $this->execute("UPDATE \"{$conceptTable->getName()}\" SET $queryString WHERE \"{$conceptCol->getName()}\" = '{$atomId}'");
-        
+        foreach ($tablesToDeleteFrom as $specTable) {
+            // every row of a table names its atom in the table's key column
+            $keyCol = current($specTable->getCols())->getName();
+            $this->execute("DELETE FROM \"{$specTable->getName()}\" WHERE \"{$keyCol}\" = '{$atomId}' LIMIT 1");
+        }
+
+        // When the concept keys its own table (it is the root of a table that stores
+        // it apart from its generalisations), removing the atom from the concept
+        // means deleting its row there; the row in the table of the generalisation
+        // stays, so the atom keeps existing in the generalisation.
+        $keyColOfOwnTable = current($conceptTable->getCols())->getName();
+        if ($keyColOfOwnTable === $conceptCol->getName() && count($atom->concept->getConceptTables()) > 1) {
+            $this->execute("DELETE FROM \"{$conceptTable->getName()}\" WHERE \"{$keyColOfOwnTable}\" = '{$atomId}' LIMIT 1");
+        } else {
+            // Create query string: "<col1>" = '<atom>', "<col2>" = '<atom>', etc
+            $queryString = "\"" . implode("\" = NULL, \"", $colNames) . "\" = NULL";
+            $this->execute("UPDATE \"{$conceptTable->getName()}\" SET $queryString WHERE \"{$conceptCol->getName()}\" = '{$atomId}'");
+        }
+
         // Check if query resulted in an affected row
         $this->checkForAffectedRows();
     }
@@ -668,6 +720,25 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         // end state is reached either way, so this is not an error condition.
         if ($this->dbLink->affected_rows == 0) {
             $this->logger->info("Atom '{$atom}' already deleted by concurrent transaction: {$this->lastQuery}");
+        }
+
+        // The atom's rows in the tables of generalisations and specialisations that are
+        // stored apart (MULTITABLE, Ampersand issue #1716) go too: the atom ceases to
+        // exist in every concept, as it did when all of them shared one row.
+        $otherTables = [];
+        foreach ($atom->concept->getConceptTables() as $table) {
+            $otherTables[$table->getName()] = $table;
+        }
+        foreach ($atom->concept->getSpecializations() as $specConcept) {
+            if ($specConcept->hasConceptTable()) {
+                $specTable = $specConcept->getConceptTableInfo();
+                $otherTables[$specTable->getName()] = $specTable;
+            }
+        }
+        unset($otherTables[$conceptTable->getName()]);
+        foreach ($otherTables as $table) {
+            $keyCol = current($table->getCols())->getName();
+            $this->execute("DELETE FROM \"{$table->getName()}\" WHERE \"{$keyCol}\" = '{$atomId}' LIMIT 1");
         }
     }
 
@@ -713,17 +784,48 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     */
     public function linkExists(Link $link): bool
     {
-        $relTable = $link->relation()->getMysqlTable();
         $srcAtomId = $this->getDBRepresentation($link->src());
         $tgtAtomId = $this->getDBRepresentation($link->tgt());
-        
-        $result = $this->execute("SELECT * FROM \"{$relTable->getName()}\" WHERE \"{$relTable->srcCol()->getName()}\" = '{$srcAtomId}' AND \"{$relTable->tgtCol()->getName()}\" = '{$tgtAtomId}'");
-        
-        if (empty($result)) {
-            return false;
-        } else {
-            return true;
+
+        // A relation declared on a MULTITABLE union concept has a column in the table
+        // of each member (Ampersand issue #1716); the pair is in one of them.
+        foreach ($link->relation()->getMysqlTables() as $relTable) {
+            $result = $this->execute("SELECT * FROM \"{$relTable->getName()}\" WHERE \"{$relTable->srcCol()->getName()}\" = '{$srcAtomId}' AND \"{$relTable->tgtCol()->getName()}\" = '{$tgtAtomId}'");
+            if (!empty($result)) {
+                return true;
+            }
         }
+        return false;
+    }
+
+    /**
+     * The table of the relation that holds (or must hold) the pair (srcAtomId, tgtAtomId).
+     *
+     * A relation in one table: that table. A relation stored in several tables
+     * (declared on a MULTITABLE union concept, Ampersand issue #1716): the table
+     * whose key column holds the atom of the union concept, which is the source
+     * for a relation stored in the table of its source and the target for one
+     * stored in the table of its target.
+     */
+    protected function relationTableHolding(Relation $relation, string $srcAtomId, string $tgtAtomId): MysqlDBRelationTable
+    {
+        $tables = $relation->getMysqlTables();
+        if (count($tables) === 1) {
+            return current($tables);
+        }
+        foreach ($tables as $relTable) {
+            $keyCol = match ($relTable->inTableOf()) {
+                TableType::Src => $relTable->srcCol()->getName(),
+                TableType::Tgt => $relTable->tgtCol()->getName(),
+                default => throw new FatalException("A relation stored in several tables must be stored in concept tables; relation '{$relation}'"),
+            };
+            $keyAtomId = $relTable->inTableOf() === TableType::Src ? $srcAtomId : $tgtAtomId;
+            $result = $this->execute("SELECT \"{$keyCol}\" FROM \"{$relTable->getName()}\" WHERE \"{$keyCol}\" = '{$keyAtomId}'");
+            if (!empty($result)) {
+                return $relTable;
+            }
+        }
+        throw new FatalException("None of the tables of relation '{$relation}' holds the atom of the pair ('{$srcAtomId}', '{$tgtAtomId}')");
     }
     
     /**
@@ -734,29 +836,30 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     */
     public function getAllLinks(Relation $relation, ?Atom $srcAtom = null, ?Atom $tgtAtom = null): array
     {
-        $relTable = $relation->getMysqlTable();
-        
-        // Query all atoms in table
-        $query = "SELECT \"{$relTable->srcCol()->getName()}\" as \"src\", \"{$relTable->tgtCol()->getName()}\" as \"tgt\" FROM \"{$relTable->getName()}\"";
-        
-        // Construct WHERE-clause if applicable
-        if (isset($srcAtom)) {
-            $query .= " WHERE \"{$relTable->srcCol()->getName()}\" = '{$this->getDBRepresentation($srcAtom)}'";
-        } else {
-            $query .= " WHERE \"{$relTable->srcCol()->getName()}\" IS NOT NULL";
+        $links = [];
+        // A relation stored in several tables (Ampersand issue #1716) is the union of its parts
+        foreach ($relation->getMysqlTables() as $relTable) {
+            // Query all atoms in table
+            $query = "SELECT \"{$relTable->srcCol()->getName()}\" as \"src\", \"{$relTable->tgtCol()->getName()}\" as \"tgt\" FROM \"{$relTable->getName()}\"";
+
+            // Construct WHERE-clause if applicable
+            if (isset($srcAtom)) {
+                $query .= " WHERE \"{$relTable->srcCol()->getName()}\" = '{$this->getDBRepresentation($srcAtom)}'";
+            } else {
+                $query .= " WHERE \"{$relTable->srcCol()->getName()}\" IS NOT NULL";
+            }
+
+            if (isset($tgtAtom)) {
+                $query .= " AND \"{$relTable->tgtCol()->getName()}\" = '{$this->getDBRepresentation($tgtAtom)}'";
+            } else {
+                $query .= " AND \"{$relTable->tgtCol()->getName()}\" IS NOT NULL";
+            }
+
+            foreach ((array)$this->execute($query) as $row) {
+                $links[] = new Link($relation, new Atom($row['src'], $relation->srcConcept), new Atom($row['tgt'], $relation->tgtConcept));
+            }
         }
 
-        if (isset($tgtAtom)) {
-            $query .= " AND \"{$relTable->tgtCol()->getName()}\" = '{$this->getDBRepresentation($tgtAtom)}'";
-        } else {
-            $query .= " AND \"{$relTable->tgtCol()->getName()}\" IS NOT NULL";
-        }
-        
-        $links = [];
-        foreach ((array)$this->execute($query) as $row) {
-            $links[] = new Link($relation, new Atom($row['src'], $relation->srcConcept), new Atom($row['tgt'], $relation->tgtConcept));
-        }
-        
         return $links;
     }
     
@@ -768,12 +871,12 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $relation = $link->relation();
         $srcAtomId = $this->getDBRepresentation($link->src());
         $tgtAtomId = $this->getDBRepresentation($link->tgt());
-        
-        $relTable = $relation->getMysqlTable();
+
+        $relTable = $this->relationTableHolding($relation, $srcAtomId, $tgtAtomId);
         $table = $relTable->getName();
         $srcCol = $relTable->srcCol()->getName();
         $tgtCol = $relTable->tgtCol()->getName();
-        
+
         switch ($relTable->inTableOf()) {
             case TableType::Binary: // Relation is administrated in n-n table
                 $this->execute("REPLACE INTO \"{$table}\" (\"{$srcCol}\", \"{$tgtCol}\") VALUES ('{$srcAtomId}', '{$tgtAtomId}')");
@@ -802,8 +905,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $relation = $link->relation();
         $srcAtomId = $this->getDBRepresentation($link->src());
         $tgtAtomId = $this->getDBRepresentation($link->tgt());
-         
-        $relTable = $relation->getMysqlTable();
+
+        $relTable = $this->relationTableHolding($relation, $srcAtomId, $tgtAtomId);
         $table = $relTable->getName();
         $srcCol = $relTable->srcCol()->getName();
         $tgtCol = $relTable->tgtCol()->getName();
@@ -844,31 +947,33 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      */
     public function deleteAllLinks(Relation $relation, Atom $atom, SrcOrTgt $srcOrTgt): void
     {
-        $relationTable = $relation->getMysqlTable();
         $atomId = $this->getDBRepresentation($atom);
-        
-        $whereCol = match ($srcOrTgt) {
-            SrcOrTgt::SRC => $relationTable->srcCol(),
-            SrcOrTgt::TGT => $relationTable->tgtCol()
-        };
 
-        switch ($relationTable->inTableOf()) {
-            case TableType::Binary: // n-n table -> remove entire row
-                $query = "DELETE FROM \"{$relationTable->getName()}\" WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
-                break;
-            case TableType::Src: // administrated in table of src
-                $setCol = $relationTable->tgtCol();
-                $query = "UPDATE \"{$relationTable->getName()}\" SET \"{$setCol->getName()}\" = NULL WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
-                break;
-            case TableType::Tgt: // adminsitrated in table of tgt
-                $setCol = $relationTable->srcCol();
-                $query = "UPDATE \"{$relationTable->getName()}\" SET \"{$setCol->getName()}\" = NULL WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
-                break;
-            default:
-                throw new FatalException("Unsupported TableType '{$relationTable->inTableOf()->value}' to deleteAllLinks for for relation '{$relation}'");
+        // A relation stored in several tables (Ampersand issue #1716) loses the atom's pairs in each of them
+        foreach ($relation->getMysqlTables() as $relationTable) {
+            $whereCol = match ($srcOrTgt) {
+                SrcOrTgt::SRC => $relationTable->srcCol(),
+                SrcOrTgt::TGT => $relationTable->tgtCol()
+            };
+
+            switch ($relationTable->inTableOf()) {
+                case TableType::Binary: // n-n table -> remove entire row
+                    $query = "DELETE FROM \"{$relationTable->getName()}\" WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
+                    break;
+                case TableType::Src: // administrated in table of src
+                    $setCol = $relationTable->tgtCol();
+                    $query = "UPDATE \"{$relationTable->getName()}\" SET \"{$setCol->getName()}\" = NULL WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
+                    break;
+                case TableType::Tgt: // adminsitrated in table of tgt
+                    $setCol = $relationTable->srcCol();
+                    $query = "UPDATE \"{$relationTable->getName()}\" SET \"{$setCol->getName()}\" = NULL WHERE \"{$whereCol->getName()}\" = '{$atomId}'";
+                    break;
+                default:
+                    throw new FatalException("Unsupported TableType '{$relationTable->inTableOf()->value}' to deleteAllLinks for for relation '{$relation}'");
+            }
+
+            $this->execute($query);
         }
-
-        $this->execute($query);
 
         // The removed pairs are not individually recorded; conjuncts on this
         // relation need full re-evaluation this transaction.
@@ -880,20 +985,21 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      */
     public function emptyRelation(Relation $relation): void
     {
-        $relationTable = $relation->getMysqlTable();
-
-        switch ($relationTable->inTableOf()) {
-            case TableType::Binary: // If n-n table, remove all rows
-                $this->execute("DELETE FROM \"{$relationTable->getName()}\"");
-                break;
-            case TableType::Src: // If in table of src concept, set tgt col to null
-                $this->execute("UPDATE \"{$relationTable->getName()}\" SET \"{$relationTable->tgtCol()->getName()}\" = NULL");
-                break;
-            case TableType::Tgt: // If in table of tgt concept, set src col to null
-                $this->execute("UPDATE \"{$relationTable->getName()}\" SET \"{$relationTable->srcCol()->getName()}\" = NULL");
-                break;
-            default:
-                throw new FatalException("Unknown 'tableOf' option for relation '{$relation}'");
+        // A relation stored in several tables (Ampersand issue #1716) is emptied in each of them
+        foreach ($relation->getMysqlTables() as $relationTable) {
+            switch ($relationTable->inTableOf()) {
+                case TableType::Binary: // If n-n table, remove all rows
+                    $this->execute("DELETE FROM \"{$relationTable->getName()}\"");
+                    break;
+                case TableType::Src: // If in table of src concept, set tgt col to null
+                    $this->execute("UPDATE \"{$relationTable->getName()}\" SET \"{$relationTable->tgtCol()->getName()}\" = NULL");
+                    break;
+                case TableType::Tgt: // If in table of tgt concept, set src col to null
+                    $this->execute("UPDATE \"{$relationTable->getName()}\" SET \"{$relationTable->srcCol()->getName()}\" = NULL");
+                    break;
+                default:
+                    throw new FatalException("Unknown 'tableOf' option for relation '{$relation}'");
+            }
         }
 
         // The removed pairs are not individually recorded; conjuncts on this

@@ -109,6 +109,7 @@ class Atom implements JsonSerializable
                 $this->id = $atomId;
                 break;
             case TType::OBJECT:
+            case TType::MULTITABLE:
                 // Object identities are opaque labels, stored in a VARCHAR(255) column and required to
                 // be unique within their concept. Keep them within 254 characters: an id longer than
                 // that is deterministically shortened to <first 243 chars>_<10 hex chars of sha1(id)>.
@@ -153,6 +154,7 @@ class Atom implements JsonSerializable
             case TType::INTEGER:
                 return (int) $this->id;
             case TType::OBJECT:
+            case TType::MULTITABLE:
                 return rawurlencode($this->id);
             default:
                 throw new FatalException("Unknown/unsupported ttype '{$this->concept->type->value}' for concept '[{$this->concept}]'");
