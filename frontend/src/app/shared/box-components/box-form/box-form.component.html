@@ -1,7 +1,8 @@
 <ng-container *ngIf="!hideBecauseEmpty()">
     <div class="box-title" *ngIf="title">{{ title }}</div>
 
-    <div *ngIf="canCreate() && isEmpty()">
+    <!-- SESSION and ONE are singleton concepts — no "new" instance can be created from the UI -->
+    <div *ngIf="canCreate() && isEmpty() && tgtResourceType !== 'SESSION' && tgtResourceType !== 'ONE'">
         <p-button [rounded]="true" size="small" (click)="createItem()">
             New {{ tgtResourceType }}
         </p-button>
@@ -16,7 +17,7 @@
                 [resource]="item"
             ></app-ifcs-dropdown>
             <span
-                *ngIf="canCreate()"
+                *ngIf="canCreate() && tgtResourceType !== 'SESSION' && tgtResourceType !== 'ONE'"
                 class="pi pi-fw pi-plus"
                 pTooltip="Add"
                 tooltipPosition="left"
