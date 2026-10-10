@@ -153,6 +153,13 @@ class Concept
     private array $mysqlConceptTables = [];
 
     /**
+     * For a concept without a table of its own that is the union of its members
+     * (`CLASSIFY C IS A \/ B` with `REPRESENT C TYPE MULTITABLE`, Ampersand issue
+     * #1716): the query that lists its atoms in one column `atomId`. Null otherwise.
+     */
+    private ?string $allAtomsQuery = null;
+
+    /**
      * List with atom identifiers that exist in the concept
      *
      * Used to prevent unnecessary checks if atom exists in plug
