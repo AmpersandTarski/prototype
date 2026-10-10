@@ -24,6 +24,15 @@ Additional labels for pre-release and build metadata are available as extensions
   four contexts and the migration case of the RAMiCS 2024 paper on three databases. This needs a
   compiler with the command `ampersand deploy`
   ([Ampersand#1509](https://github.com/AmpersandTarski/Ampersand/issues/1509)).
+* **The violations of a relaxed invariant can only disappear (DesignChoices OK-28).** A context can
+  take an invariant of a context it includes as a signal (`ROLE User MAINTAINS new.totalR`), as a
+  migration does with a new invariant of the desired system. The compiler marks such a rule with
+  `"hardens": true` in `rules.json`. The application then refuses a transaction that adds a
+  violation to the ones its database holds, so a violation that a user has repaired cannot return
+  and a new atom has to satisfy the rule from the start. The installation and
+  `GET /admin/execengine/run` take stock of the violations that exist. An application without such
+  a rule behaves as before
+  ([Ampersand#1714](https://github.com/AmpersandTarski/Ampersand/issues/1714)).
 * **The bundled Ampersand compiler moves to v5.9.8.** This is the first compiler release that
   generates the candidate queries (`deltaQueries` in `conjuncts.json`, `deltaTable` in
   `relations.json`, the delta tables in `database.sql`) and a cost profile per conjunct

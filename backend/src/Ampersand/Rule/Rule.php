@@ -95,6 +95,14 @@ class Rule
      * Specifies the type of rule
      */
     protected RuleType $type;
+
+    /**
+     * Specifies that the violations of this rule can only disappear.
+     * The compiler says this of an invariant of another context that this context
+     * has assigned to a role: its users repair the violations that exist,
+     * and a transaction that would add a violation is refused.
+     */
+    protected bool $hardens;
     
     /**
      * Constructor
@@ -123,6 +131,7 @@ class Rule
         
         $this->meaning = $ruleDef['meaning'];
         $this->message = $ruleDef['message'];
+        $this->hardens = (bool)($ruleDef['hardens'] ?? false);
         
         // Conjuncts
         foreach ($ruleDef['conjunctIds'] as $conjId) {
@@ -189,6 +198,38 @@ class Rule
         return $this->type === RuleType::INV;
     }
     
+    /**
+     * Specifies if the violations of this rule can only disappear
+     */
+    public function hardens(): bool
+    {
+        return $this->hardens;
+    }
+
+    /**
+     * The violations of this rule that the database did not hold before the current transaction
+     *
+     * Note! Conjuncts are NOT re-evaluated
+     *
+     * @return \Ampersand\Rule\Violation[]
+     */
+    public function getNewViolations(): array
+    {
+        $violations = [];
+        foreach ($this->conjuncts as $conjunct) {
+            $stored = [];
+            foreach ($conjunct->getStoredViolations() ?? [] as $row) {
+                $stored[$row['src'] . "\0" . $row['tgt']] = true;
+            }
+            foreach ($conjunct->getViolations(false) as $row) {
+                if (!isset($stored[$row['src'] . "\0" . $row['tgt']])) {
+                    $violations[] = new Violation($this, $row['src'], $row['tgt']);
+                }
+            }
+        }
+        return $violations;
+    }
+
     /**
      * Get message to tell that a rule is broken
      */

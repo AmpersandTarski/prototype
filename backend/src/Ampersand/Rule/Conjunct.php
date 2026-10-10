@@ -10,6 +10,7 @@ namespace Ampersand\Rule;
 use Ampersand\AmpersandApp;
 use Ampersand\Misc\Otel;
 use Ampersand\Transaction;
+use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
 use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Exception;
 use Psr\Cache\CacheItemInterface;
@@ -92,6 +93,15 @@ class Conjunct
      * them wholesale from the (unevaluated) in-memory cache item.
      */
     protected bool $maintainedByDelta = false;
+
+    /**
+     * The rows of this conjunct in the violation cache table as they were before
+     * the delta protocol changed them in the current transaction.
+     * Null when the delta protocol did not touch them.
+     *
+     * @var array{conjId: string, src: string, tgt: string}[]|null
+     */
+    protected ?array $storedBeforeDelta = null;
 
     /**
      * Constructor
@@ -295,6 +305,7 @@ class Conjunct
             if ($dq === null) {
                 throw new Exception("Conjunct '{$this->id}' has no candidate query for relation '{$sig}'");
             }
+            $this->storedBeforeDelta ??= $this->getViolationsFromDbCache($cacheTableName);
             $candSQL = str_replace('_SESSION', session_id(), $dq['candidateSQL']);
             $inCands = fn (string $alias): string =>
                 "({$alias}.\"src\", {$alias}.\"tgt\") IN (SELECT \"src\", \"tgt\" FROM ({$candSQL}) AS cand)";
@@ -340,6 +351,25 @@ class Conjunct
     public function resetDeltaMaintained(): void
     {
         $this->maintainedByDelta = false;
+        $this->storedBeforeDelta = null;
+    }
+
+    /**
+     * The violations of this conjunct that the database held before the current transaction.
+     * A rule that hardens compares its violations with them (see Rule::getNewViolations).
+     * Null when the violations are not stored in a database table.
+     *
+     * @return array{conjId: string, src: string, tgt: string}[]|null
+     */
+    public function getStoredViolations(): ?array
+    {
+        if ($this->storedBeforeDelta !== null) {
+            return $this->storedBeforeDelta;
+        }
+        if (!$this->cachePool instanceof MysqlConjunctCache) {
+            return null;
+        }
+        return $this->getViolationsFromDbCache($this->cachePool->getTableName());
     }
 
     public function showInfo(): array

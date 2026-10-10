@@ -852,3 +852,42 @@ without the setting behaves as before.
 Technisch: `MysqlDB::setContextDatabases`, `resolveContextDatabases`, `addAtom`, `deleteAtom`,
 `copyAtomsToGeneralization`; `Transaction::restoreClassifications`; the scenarios in
 `test/multi-context`.
+
+**The violations of a rule that hardens can only disappear**
+OK-28 · geldig · 2026-10-09 · herkomst: multi-context Ampersand, Ampersand #1714, the migration method of *Data Migration under a Changing Schema in Ampersand* (RAMiCS 2024)
+
+A migration context takes a new invariant of the desired system as a signal, with `ROLE User MAINTAINS new.totalR`,
+because the data that arrives from the existing system violates it.
+The compiler marks such a rule in `rules.json` with `"hardens": true`.
+The application keeps the violations of every rule in its database, in the table `__conj_violation_cache__`.
+At the close of a transaction it compares the violations of a rule that hardens with the ones in that table,
+and it refuses a transaction that adds one, with the message of the rule, as it refuses a violation of an invariant.
+
+A transaction that takes stock is the exception: the installation, and `GET /admin/execengine/run`.
+Such a transaction brings the application up to date with data that it did not write itself,
+and the violations that it finds are where the work of the users starts.
+
+Overwegingen:
+
+1. A violation that a user has repaired is no longer in the table, so it cannot return.
+   A new atom that violates the rule was never in the table, so it is refused.
+   When the last violation is repaired the table holds none, and the rule works as the invariant of the desired system.
+2. The paper registers in a relation `fixed` everything that is no violation and blocks the violations that are in it.
+   The violations that it allows are the ones that have existed without interruption,
+   and that is the set the table holds. The table is the small one of the two.
+3. Before the moment of transition users work in the existing system, and whatever that system allows is allowed.
+   The migration application meets those changes in a transaction that takes stock.
+   After the transition the existing system no longer changes.
+4. Both transactions that take stock are for administrators (`rbac.adminRoles`), like `GET /admin/ruleengine/evaluate/all`,
+   which stores the violations as it finds them.
+5. Rejected: relations and rules that the compiler adds to the migration context to register what satisfies the rule.
+   They repeated what the table already holds, and they let an atom that was new to the rule violate it once.
+
+Impact op de specificatie: none for a script that assigns no rule of another context to a role.
+
+Impact in productie: an application whose model has no rule that hardens behaves as before.
+With delta-scoped maintenance of the violations (`transactions.deltaConjunctMaintenance`) the comparison uses the rows
+as they were before the transaction changed them.
+
+Technisch: `Rule::hardens`, `Rule::getNewViolations`, `Conjunct::getStoredViolations`, `Transaction::takeStock`,
+`Transaction::checkInvariantRules`; the scenario `migration` in `test/multi-context`.

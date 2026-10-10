@@ -16,7 +16,7 @@ class ExecEngineController extends AbstractController
             throw new AccessDeniedException("You do not have access to run the exec engine");
         }
         
-        $transaction = $this->app->newTransaction()->runExecEngine(true)->close();
+        $transaction = $this->app->newTransaction()->takeStock()->runExecEngine(true)->close();
 
         if ($transaction->isCommitted()) {
             $this->app->userLog()->notice("Run completed");
