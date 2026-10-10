@@ -21,17 +21,30 @@ Additional labels for pre-release and build metadata are available as extensions
   separated by `;`). A classification that relates concepts of two contexts is restored by the
   application that states it. An application without the setting behaves as before. The runner
   `test/multi-context/run.sh` starts one application per context; its scenarios are a diamond of
-  four contexts and the migration case of the RAMiCS 2024 paper on three databases. This needs a
-  compiler with the command `ampersand deploy`
+  four contexts and the migration case of the RAMiCS 2024 paper on three databases. The bundled
+  Ampersand compiler moves from v5.9.9 to v5.10.0, the first release with the statement and with
+  the command `ampersand deploy`
   ([Ampersand#1509](https://github.com/AmpersandTarski/Ampersand/issues/1509)).
-* **The bundled Ampersand compiler moves to v5.9.8.** This is the first compiler release that
-  generates the candidate queries (`deltaQueries` in `conjuncts.json`, `deltaTable` in
-  `relations.json`, the delta tables in `database.sql`) and a cost profile per conjunct
-  (`costProfile`). Until now the setting `transactions.deltaConjunctMaintenance`, which has
-  been in the framework since v2.11.0, had nothing to work with in a published image. Its
-  default stays `off`, so a prototype behaves as before; the new fields and tables are
-  additive. The compiler also brings `PURPOSE` for
-  `ENFORCE` and `ROLE` (see the
+  The framework's compiler constraint (`>=5.9.2 <6.0.0`) is unchanged.
+
+## v2.15.0 (9 October 2026)
+
+* **The bundled Ampersand compiler moves from v5.9.7 to v5.9.9.** Two things reach a prototype
+  with it. The first is speed: a rule whose violations are a difference onto a closure or a
+  union, such as both directions of `ENFORCE b := a+`, now compiles to a set difference
+  (`EXCEPT`) where it used to compile to a left join onto a temporary table without an index
+  ([Ampersand #1708](https://github.com/AmpersandTarski/Ampersand/issues/1708)). On the
+  application the change was measured on, the fourteen queries concerned went from 14.6 to 2.6
+  seconds together, with the same rows. `EXCEPT` exists from MariaDB 10.3, and the framework
+  requires 10.4 or later. The second is that v5.9.8 was the first compiler to generate the
+  candidate queries (`deltaQueries` in `conjuncts.json`, `deltaTable` in `relations.json`, the
+  delta tables in `database.sql`) and a cost profile per conjunct (`costProfile`). Until now the
+  setting `transactions.deltaConjunctMaintenance`, which has been in the framework since
+  v2.11.0, had nothing to work with in a published image. Its default stays `off`, so a
+  prototype behaves as before; the new fields and tables are additive. The compiler also
+  brings `PURPOSE` for `ENFORCE` and `ROLE`, the command `ampersand serve`, every status code
+  in the generated OpenAPI description, and violation queries without avoidable Cartesian
+  products (see the
   [Ampersand release notes](https://github.com/AmpersandTarski/Ampersand/blob/main/ReleaseNotes.md)).
   The framework's compiler constraint (`>=5.9.2 <6.0.0`) is unchanged.
 
