@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.16.0 (10 October 2026)
 
 * **An application can run on a database of its own next to the databases of the contexts it
   reaches (DesignChoices OK-27).** An Ampersand script can describe a system of several contexts
