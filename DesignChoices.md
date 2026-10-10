@@ -811,3 +811,44 @@ storage lists it.
 Technisch: `BoxTableComponent` (`compact`, `dense`, `toggleDense()`, `toggleRow()`), its template
 and stylesheet, `Box-TABLE.html` and `Box-FACETS.html`, the interface `TicketsCompact` and eight
 assertions in `test/projects/box-facets`.
+
+**An application runs on a database of its own, next to the databases of the contexts it reaches**
+OK-27 · geldig · 2026-10-06 · herkomst: multi-context Ampersand, Ampersand #1509
+
+One Ampersand script can describe a system of several contexts, in which every context has a
+database of its own and each fact is stored once, in the database of the context that declares
+it. The compiler gives the application of a context the tables of its own things, and a view
+for every table of another context. It does not know the name of that other database, so it
+writes the placeholder `"{{db:<label>}}"`. The framework fills it in when it installs the
+database, from the setting `mysql.contextDatabases` (`AMPERSAND_CONTEXT_DBNAMES`), a list of
+`<label>=<database name>` separated by `;`.
+
+A classification `CLASSIFY S ISA G` that relates concepts of two contexts keeps a table for S and
+a table for G. The application that states it stores every atom of S in the table of G as well:
+when it adds the atom, and for atoms that another application added, at the start of every run
+of the ExecEngine.
+
+Overwegingen:
+
+1. The name of a database is a fact of the deployment. It contains the name of the context and a
+   version, and Ampersand makes no statement about version management. The framework already
+   takes the name of its own database from the environment.
+2. With a view, every query that the compiler generates keeps working unchanged, and reads or
+   writes the one table in the database of its owner. No query is rewritten at run time.
+3. A missing setting fails at installation, with a message that names the context.
+4. The application that owns S does not know of a classification that another context states.
+   So the stating application restores it, as it restores any rule that it enforces.
+5. Rejected: a second database connection per context. MariaDB evaluates a query over several
+   databases on one server and commits a transaction over them atomically, so one connection
+   does it. Databases on different servers are outside this choice.
+
+Impact op de specificatie: none for a script with one context. The specification of systems of
+contexts is `AmpersandData/FormalAmpersand/MultiContext.adl` in the Ampersand repository.
+
+Impact in productie: the applications of a system share one database server, and the database
+user reads and writes the databases of the contexts its application reaches. An application
+without the setting behaves as before.
+
+Technisch: `MysqlDB::setContextDatabases`, `resolveContextDatabases`, `addAtom`, `deleteAtom`,
+`copyAtomsToGeneralization`; `Transaction::restoreClassifications`; the scenarios in
+`test/multi-context`.
