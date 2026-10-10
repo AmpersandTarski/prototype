@@ -659,6 +659,13 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     {
         $atomId = $this->getDBRepresentation($atom);
 
+        // A union concept without a table of its own (Ampersand issue #1716): the atom
+        // stops being a member of every specialisation, so its rows there go.
+        if (!$atom->concept->hasConceptTable()) {
+            $this->deleteFromSpecializationTables($atom, $atomId, []);
+            return;
+        }
+
         // Get table and col for WHERE clause
         $conceptTable = $atom->concept->getConceptTableInfo();
         $conceptCol = $atom->concept->getConceptTableInfo()->getFirstCol();
@@ -690,9 +697,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         // it apart from its generalisations), removing the atom from the concept
         // means deleting its row there; the row in the table of the generalisation
         // stays, so the atom keeps existing in the generalisation.
-        $keyColOfOwnTable = current($conceptTable->getCols())->getName();
-        if ($keyColOfOwnTable === $conceptCol->getName() && count($atom->concept->getConceptTables()) > 1) {
-            $this->execute("DELETE FROM \"{$conceptTable->getName()}\" WHERE \"{$keyColOfOwnTable}\" = '{$atomId}' LIMIT 1");
+        // The concept keys its own table when no generalisation shares that table with it:
+        // its column list holds its own column only.
+        if (count($conceptTable->getCols()) === 1 && count($atom->concept->getConceptTables()) > 1) {
+            $this->execute("DELETE FROM \"{$conceptTable->getName()}\" WHERE \"{$conceptCol->getName()}\" = '{$atomId}' LIMIT 1");
         } else {
             // Create query string: "<col1>" = '<atom>', "<col2>" = '<atom>', etc
             $queryString = "\"" . implode("\" = NULL, \"", $colNames) . "\" = NULL";
@@ -709,36 +717,55 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     public function deleteAtom(Atom $atom): void
     {
         $atomId = $this->getDBRepresentation($atom);
+        $ownTable = null;
 
-        // Delete atom from concept table
-        $conceptTable = $atom->concept->getConceptTableInfo();
-        $query = "DELETE FROM \"{$conceptTable->getName()}\" WHERE \"{$conceptTable->getFirstCol()->getName()}\" = '{$atomId}' LIMIT 1";
-        $this->execute($query);
+        if ($atom->concept->hasConceptTable()) {
+            // Delete atom from concept table
+            $conceptTable = $atom->concept->getConceptTableInfo();
+            $ownTable = $conceptTable->getName();
+            $query = "DELETE FROM \"{$conceptTable->getName()}\" WHERE \"{$conceptTable->getFirstCol()->getName()}\" = '{$atomId}' LIMIT 1";
+            $this->execute($query);
 
-        // Deleting an atom is idempotent: 0 affected rows means a concurrent transaction already
-        // deleted it (e.g. two requests garbage collecting the same expired session). The desired
-        // end state is reached either way, so this is not an error condition.
-        if ($this->dbLink->affected_rows == 0) {
-            $this->logger->info("Atom '{$atom}' already deleted by concurrent transaction: {$this->lastQuery}");
+            // Deleting an atom is idempotent: 0 affected rows means a concurrent transaction already
+            // deleted it (e.g. two requests garbage collecting the same expired session). The desired
+            // end state is reached either way, so this is not an error condition.
+            if ($this->dbLink->affected_rows == 0) {
+                $this->logger->info("Atom '{$atom}' already deleted by concurrent transaction: {$this->lastQuery}");
+            }
         }
 
         // The atom's rows in the tables of generalisations and specialisations that are
         // stored apart (MULTITABLE, Ampersand issue #1716) go too: the atom ceases to
-        // exist in every concept, as it did when all of them shared one row.
-        $otherTables = [];
+        // exist in every concept, as it did when all of them shared one row. A union
+        // concept without a table of its own has only those rows.
+        $this->deleteFromSpecializationTables($atom, $atomId, is_null($ownTable) ? [] : [$ownTable]);
+    }
+
+    /**
+     * Delete the atom's row from the table of every generalisation and every
+     * specialisation of its concept, except the tables named in $skip
+     * (Ampersand issue #1716). Every row of a table names its atom in each of
+     * its concept columns, so the first column of the concept's own table finds it.
+     *
+     * @param string[] $skip names of tables to leave alone
+     */
+    protected function deleteFromSpecializationTables(Atom $atom, string $atomId, array $skip): void
+    {
+        $tables = [];
         foreach ($atom->concept->getConceptTables() as $table) {
-            $otherTables[$table->getName()] = $table;
+            $tables[$table->getName()] = [$table->getName(), $table->getFirstCol()->getName()];
         }
         foreach ($atom->concept->getSpecializations() as $specConcept) {
             if ($specConcept->hasConceptTable()) {
                 $specTable = $specConcept->getConceptTableInfo();
-                $otherTables[$specTable->getName()] = $specTable;
+                $tables[$specTable->getName() . '/' . $specConcept->name] = [$specTable->getName(), $specTable->getFirstCol()->getName()];
             }
         }
-        unset($otherTables[$conceptTable->getName()]);
-        foreach ($otherTables as $table) {
-            $keyCol = current($table->getCols())->getName();
-            $this->execute("DELETE FROM \"{$table->getName()}\" WHERE \"{$keyCol}\" = '{$atomId}' LIMIT 1");
+        foreach ($tables as [$tableName, $keyCol]) {
+            if (in_array($tableName, $skip, true)) {
+                continue;
+            }
+            $this->execute("DELETE FROM \"{$tableName}\" WHERE \"{$keyCol}\" = '{$atomId}' LIMIT 1");
         }
     }
 

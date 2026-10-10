@@ -700,7 +700,7 @@ class Concept
             $this->logger->debug("Remove atom {$atom} from {$this} in plug");
             $this->app->getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
 
-            if ($this->hasConceptTable()) {
+            if ($this->hasConceptTable() || $this->hasAllAtomsQuery()) {
                 foreach ($this->getPlugs() as $plug) {
                     $plug->removeAtom($atom); // Remove from concept in plug
                 }
@@ -729,7 +729,7 @@ class Concept
             $transaction = $this->app->getCurrentTransaction();
             $transaction->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
 
-            if ($this->hasConceptTable()) {
+            if ($this->hasConceptTable() || $this->hasAllAtomsQuery()) {
                 foreach ($this->getPlugs() as $plug) {
                     $plug->deleteAtom($atom); // Delete from plug
                 }
