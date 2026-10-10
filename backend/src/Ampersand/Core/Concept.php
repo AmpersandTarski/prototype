@@ -139,7 +139,26 @@ class Concept
      * The Ampersand compiler always outputs "conceptTable": null for ONE in concepts.json.
      */
     private ?MysqlDBTable $mysqlConceptTable = null;
-    
+
+    /**
+     * Every table that holds a row for an atom of this concept, own table first
+     * (compiler field `conceptTables`, Ampersand issue #1716). In a typology with a
+     * MULTITABLE concept an atom has a row in the table of its own concept and in the
+     * table of each generalisation that is stored apart. Adding or deleting an atom
+     * touches every one of these tables. For an unmarked typology this is the one
+     * table of `conceptTable`.
+     *
+     * @var \Ampersand\Plugs\MysqlDB\MysqlDBTable[]
+     */
+    private array $mysqlConceptTables = [];
+
+    /**
+     * For a concept without a table of its own that is the union of its members
+     * (`CLASSIFY C IS A \/ B` with `REPRESENT C TYPE MULTITABLE`, Ampersand issue
+     * #1716): the query that lists its atoms in one column `atomId`. Null otherwise.
+     */
+    private ?string $allAtomsQuery = null;
+
     /**
      * List with atom identifiers that exist in the concept
      *
@@ -187,6 +206,19 @@ class Concept
                 $this->mysqlConceptTable->addCol(new MysqlDBTableCol($colName));
             }
         }
+        // A compiler from v5.10.0 on lists every table that holds a row for an atom
+        // of this concept (issue #1716); an older compiler lists only the one table.
+        foreach ((array)($conceptDef['conceptTables'] ?? []) as $tableDef) {
+            $table = new MysqlDBTable($tableDef['name']);
+            foreach ($tableDef['cols'] as $colName) {
+                $table->addCol(new MysqlDBTableCol($colName));
+            }
+            $this->mysqlConceptTables[] = $table;
+        }
+        if (empty($this->mysqlConceptTables) && !is_null($this->mysqlConceptTable)) {
+            $this->mysqlConceptTables[] = $this->mysqlConceptTable;
+        }
+        $this->allAtomsQuery = $conceptDef['allAtomsQuery'] ?? null;
         // A null conceptTable is legitimate: ONE never has a SQL table, and since
         // compiler v5.9.4 (Ampersand#1672) a concept gets a table only when it
         // stores relations or some generated query enumerates it. A concept
@@ -236,7 +268,7 @@ class Concept
      */
     public function isObject(): bool
     {
-        return $this->type === TType::OBJECT;
+        return $this->type === TType::OBJECT || $this->type === TType::MULTITABLE;
     }
     
     /**
@@ -430,6 +462,38 @@ class Concept
     }
 
     /**
+     * Every table that holds a row for an atom of this concept, own table first
+     * (Ampersand issue #1716). See $mysqlConceptTables.
+     *
+     * @return \Ampersand\Plugs\MysqlDB\MysqlDBTable[]
+     */
+    public function getConceptTables(): array
+    {
+        return $this->mysqlConceptTables;
+    }
+
+    /**
+     * True when this concept has no table of its own but is the union of its
+     * members (Ampersand issue #1716); its atoms are listed by getAllAtomsQuery().
+     */
+    public function hasAllAtomsQuery(): bool
+    {
+        return !is_null($this->allAtomsQuery);
+    }
+
+    /**
+     * The query that lists the atoms of a concept without a table of its own,
+     * in one column `atomId` (Ampersand issue #1716).
+     */
+    public function getAllAtomsQuery(): string
+    {
+        if (is_null($this->allAtomsQuery)) {
+            throw new NotDefinedException("No all-atoms query defined for concept {$this->label}");
+        }
+        return $this->allAtomsQuery;
+    }
+
+    /**
      * Get registered plugs for this concept
      *
      * @return \Ampersand\Plugs\ConceptPlugInterface[]
@@ -519,7 +583,7 @@ class Concept
         // Check if atom exists in concept population
         if (in_array($atom->getId(), $this->atomCache, true)) { // strict mode to prevent 'Nesting level too deep' error
             return true;
-        } elseif ($this->hasConceptTable() && $this->primaryPlug->atomExists($atom)) {
+        } elseif (($this->hasConceptTable() || $this->hasAllAtomsQuery()) && $this->primaryPlug->atomExists($atom)) {
             $this->atomCache[] = $atom->getId(); // Add to cache
             return true;
         } else {
@@ -535,7 +599,7 @@ class Concept
      */
     public function getAllAtomObjects(): array
     {
-        if (!$this->hasConceptTable()) {
+        if (!$this->hasConceptTable() && !$this->hasAllAtomsQuery()) {
             // No table means no query enumerates this concept's population
             return [];
         }
@@ -643,7 +707,7 @@ class Concept
             $this->logger->debug("Remove atom {$atom} from {$this} in plug");
             $this->app->getCurrentTransaction()->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
 
-            if ($this->hasConceptTable()) {
+            if ($this->hasConceptTable() || $this->hasAllAtomsQuery()) {
                 foreach ($this->getPlugs() as $plug) {
                     $plug->removeAtom($atom); // Remove from concept in plug
                 }
@@ -672,7 +736,7 @@ class Concept
             $transaction = $this->app->getCurrentTransaction();
             $transaction->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
 
-            if ($this->hasConceptTable()) {
+            if ($this->hasConceptTable() || $this->hasAllAtomsQuery()) {
                 foreach ($this->getPlugs() as $plug) {
                     $plug->deleteAtom($atom); // Delete from plug
                 }
