@@ -27,3 +27,4 @@ frontend/cypress/screenshots/
 
 # Gegenereerde prototype-output in test-projecten (compiler output, niet committen)
 test/projects/**/.proto/
+test/multi-context/scenarios/*/.deploy/

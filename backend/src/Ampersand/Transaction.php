@@ -8,6 +8,7 @@
 namespace Ampersand;
 
 use Exception;
+use Ampersand\Plugs\MysqlDB\MysqlDB;
 use Ampersand\Core\Concept;
 use Ampersand\Core\Relation;
 use Ampersand\Plugs\MysqlConjunctCache\MysqlConjunctCache;
@@ -209,6 +210,9 @@ class Transaction
         $doRun = true;
         $runCounter = 0;
 
+        // Classifications across contexts are restored first, because they add atoms that rules depend on
+        $this->restoreClassifications();
+
         // Rules to check
         $rulesToCheck = $checkAllRules ? $this->app->getModel()->getAllRules() : $this->getAffectedRules();
 
@@ -249,6 +253,40 @@ class Transaction
         $logger->info("ExecEngine finished");
         
         return $this;
+    }
+
+    /**
+     * Restore the classifications that relate concepts with tables of their own
+     *
+     * In a system of contexts a concept is stored in the database of the context that owns it.
+     * A classification 'CLASSIFY S ISA G' that relates concepts of two contexts therefore cannot be
+     * kept by storing S and G in one table. This application keeps it instead: it stores every atom
+     * of S in the table of G as well. The application that owns S does not know of the classification,
+     * so its new atoms are brought across here, before the rules are evaluated.
+     */
+    protected function restoreClassifications(): void
+    {
+        foreach ($this->app->getModel()->getAllConcepts() as $specific) {
+            if (!$specific->hasConceptTable()) {
+                continue;
+            }
+            foreach ($specific->getGeneralizations() as $generic) {
+                if (!$generic->hasConceptTable()
+                    || $generic->getConceptTableInfo()->getName() === $specific->getConceptTableInfo()->getName()
+                ) {
+                    continue;
+                }
+                foreach ($generic->getPlugs() as $plug) {
+                    if ($plug instanceof MysqlDB) {
+                        $this->addAffectedStorage($plug);
+                        $plug->startTransaction($this);
+                        if ($plug->copyAtomsToGeneralization($specific, $generic) > 0) {
+                            $this->addAffectedConcept($generic);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

@@ -770,13 +770,29 @@ class Concept
     protected function deleteAllLinksWithAtom(Atom $atom): void
     {
         foreach ($this->app->getModel()->getRelations() as $relation) {
-            if ($atom->concept->inSameClassificationBranch($relation->srcConcept)) {
+            if ($atom->concept->inSameClassificationBranch($relation->srcConcept) && !$atom->concept->keepsAtomIn($relation->srcConcept)) {
                 $relation->deleteAllLinks($atom, SrcOrTgt::SRC);
             }
-            if ($atom->concept->inSameClassificationBranch($relation->tgtConcept)) {
+            if ($atom->concept->inSameClassificationBranch($relation->tgtConcept) && !$atom->concept->keepsAtomIn($relation->tgtConcept)) {
                 $relation->deleteAllLinks($atom, SrcOrTgt::TGT);
             }
         }
+    }
+
+    /**
+     * True when an atom that is deleted from this concept remains an atom of the given concept
+     *
+     * That is the case for a specialization with a table of its own. Such a specialization belongs
+     * to another context, in a system of contexts: its atoms are stored in the database of that
+     * context, which this application does not write. So the atom stays there, and so do its links
+     * in the relations of that concept.
+     */
+    public function keepsAtomIn(Concept $other): bool
+    {
+        return $this->hasSpecialization($other)
+            && $this->hasConceptTable()
+            && $other->hasConceptTable()
+            && $other->getConceptTableInfo()->getName() !== $this->getConceptTableInfo()->getName();
     }
     
     /**
