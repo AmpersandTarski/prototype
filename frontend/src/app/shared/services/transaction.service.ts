@@ -17,6 +17,12 @@ export interface TransactionalInterface {
   save(): Observable<unknown>;
   /** Discard the buffered edits (rollback) and restore the server state. */
   cancel(): void;
+  /**
+   * True when the interface is a screen of its own for one record, which the user
+   * opened to do one transaction. After a successful SAVE the application then
+   * returns to where the user came from.
+   */
+  returnsWhenDone(): boolean;
 }
 
 /**

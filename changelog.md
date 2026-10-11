@@ -24,6 +24,11 @@ Additional labels for pre-release and build metadata are available as extensions
   four contexts and the migration case of the RAMiCS 2024 paper on three databases. This needs a
   compiler with the command `ampersand deploy`
   ([Ampersand#1509](https://github.com/AmpersandTarski/Ampersand/issues/1509)).
+* **After SAVE, a transactional screen for one record returns to where the user came from.** A
+  transactional interface on one record (`TRANSACTIONAL INTERFACE Plot : I[Plot]`) is opened to do
+  one transaction. When the save is committed, the application goes back to the screen the user
+  came from. It stays when the save is refused, when the screen was opened directly, and on a
+  transactional interface on the session. CANCEL is unchanged.
 * **The violations of a relaxed invariant can only disappear (DesignChoices OK-28).** A context can
   take an invariant of a context it includes as a signal (`ROLE User MAINTAINS new.totalR`), as a
   migration does with a new invariant of the desired system. The compiler marks such a rule with
