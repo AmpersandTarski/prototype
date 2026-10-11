@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.17.0 (11 October 2026)
 
 * **A transactional screen for one record returns to where the user came from, after SAVE and
   after CANCEL.** A transactional interface on one record (`TRANSACTIONAL INTERFACE Plot : I[Plot]`)
