@@ -29,7 +29,11 @@ describe('TransactionBarComponent', () => {
 
   function bar(): TransactionBarComponent {
     const txn = { active$: of(null) };
-    return new TransactionBarComponent(txn as any, router as any, location as any);
+    return new TransactionBarComponent(
+      txn as any,
+      router as any,
+      location as any,
+    );
   }
 
   beforeEach(() => {
@@ -50,6 +54,18 @@ describe('TransactionBarComponent', () => {
 
   it('stays on a screen that is not for one record', () => {
     bar().save(anInterface({ committed: true, forOneRecord: false }));
+    expect(location.back).not.toHaveBeenCalled();
+  });
+
+  it('returns to where the user came from after a cancel of a screen for one record', () => {
+    const ifc = anInterface({ committed: false, forOneRecord: true });
+    bar().cancel(ifc);
+    expect(ifc.cancel).toHaveBeenCalledTimes(1);
+    expect(location.back).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays after a cancel on a screen that is not for one record', () => {
+    bar().cancel(anInterface({ committed: false, forOneRecord: false }));
     expect(location.back).not.toHaveBeenCalled();
   });
 
