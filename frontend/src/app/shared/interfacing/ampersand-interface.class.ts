@@ -394,6 +394,19 @@ export class AmpersandInterfaceComponent<T extends ObjectBase | ObjectBase[]>
     return this.buffer.length > 0;
   }
 
+  returnsWhenDone(): boolean {
+    // The interface itself is transactional (an inlined transactional reference is
+    // part of another screen), and it shows one record. An interface on the session
+    // or on ONE is a screen the user stays on.
+    const path = this.resource?._path_ ?? '';
+    return (
+      this.resolveMode() === 'Transactional' &&
+      path !== '' &&
+      !path.startsWith('resource/SESSION/') &&
+      !path.startsWith('resource/ONE/')
+    );
+  }
+
   canSave(): boolean {
     // An empty buffer is trivially consistent; otherwise SAVE is enabled only when
     // the last dry-run found no invariant violations.
