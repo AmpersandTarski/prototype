@@ -886,29 +886,51 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     protected function deleteFromSpecializationTables(Atom $atom, string $atomId, array $skip): void
     {
         $tables = [];
+        // the tables of generalisations stored apart in this context (conceptTables)
         foreach ($atom->concept->getConceptTables() as $table) {
             $tables[$table->getName()] = [$table->getName(), $table->getFirstCol()->getName()];
         }
+        // the tables of generalizations that another context owns (see addAtom): the atom leaves them too
+        foreach ($atom->concept->getGeneralizations() as $genConcept) {
+            if ($genConcept->hasConceptTable()) {
+                $genTable = $genConcept->getConceptTableInfo();
+                $tables[$genTable->getName()] ??= [$genTable->getName(), $genTable->getFirstCol()->getName()];
+            }
+        }
+        // the tables of specialisations stored apart in this context (MULTITABLE). A specialization
+        // with a table of its own that belongs to another context keeps its atom: a context writes the
+        // database of a generic concept of a classification, and never that of the specific one.
         foreach ($atom->concept->getSpecializations() as $specConcept) {
             if ($specConcept->hasConceptTable()) {
                 $specTable = $specConcept->getConceptTableInfo();
+                if ($this->isTableOfOtherContext($specTable->getName())) {
+                    continue;
+                }
                 $tables[$specTable->getName() . '/' . $specConcept->name] = [$specTable->getName(), $specTable->getFirstCol()->getName()];
             }
         }
+        $done = $skip;
         foreach ($tables as [$tableName, $keyCol]) {
-            if (in_array($tableName, $skip, true)) {
+            if (in_array($tableName, $done, true)) {
                 continue;
             }
             $this->execute("DELETE FROM \"{$tableName}\" WHERE \"{$keyCol}\" = '{$atomId}' LIMIT 1");
+            $done[] = $tableName;
         }
+    }
 
-        // Generalizations that have a table of their own (see addAtom): the atom leaves them too.
-        // A specialization with a table of its own belongs to another context, which keeps its atom:
-        // a context writes the database of a generic concept of a classification, and never that of the specific one.
-        foreach ($this->tablesOfOtherConcepts($atom->concept->getGeneralizations(), $conceptTable) as $table) {
-            $firstCol = $table->getFirstCol()->getName();
-            $this->execute("DELETE FROM \"{$table->getName()}\" WHERE \"{$firstCol}\" = '{$atomId}' LIMIT 1");
+    /**
+     * True when the table belongs to another context: the compiler names such a table
+     * by the label of that context, as "<label>.<name>" (see setContextDatabases).
+     */
+    protected function isTableOfOtherContext(string $tableName): bool
+    {
+        foreach (array_keys($this->contextDatabases) as $label) {
+            if (str_starts_with($tableName, $label . '.')) {
+                return true;
+            }
         }
+        return false;
     }
 
     public function executeCustomSQLQuery(string $query): bool|array
