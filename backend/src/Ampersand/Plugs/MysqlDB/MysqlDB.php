@@ -134,6 +134,17 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
      * @var array<string, true>
      */
     protected array $deltaBulkMutated = [];
+
+    /**
+     * The databases of the other contexts that this context reaches, by their label
+     *
+     * In a system of contexts every context has a database of its own. The compiler knows another
+     * context by a label only and writes the placeholder "{{db:<label>}}" where the name of its
+     * database belongs. That name is a fact of the deployment, so it is configured here.
+     *
+     * @var array<string,string> label => database name
+     */
+    protected array $contextDatabases = [];
     
     /**
      * Constructor
@@ -170,6 +181,44 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             // Catch mysqli_sql_exceptions
             throw new MysqlConnectionException("Cannot connect to the database: {$e->getMessage()}", previous: $e);
         }
+    }
+
+    /**
+     * Configure the databases of the other contexts that this context reaches
+     *
+     * @param string $config list of <label>=<database name>, separated by ';' or ','
+     */
+    public function setContextDatabases(string $config): void
+    {
+        $this->contextDatabases = [];
+        foreach (preg_split('/[;,]/', $config, -1, PREG_SPLIT_NO_EMPTY) as $entry) {
+            $parts = array_map('trim', explode('=', $entry, 2));
+            if (count($parts) !== 2 || $parts[0] === '' || $parts[1] === '') {
+                throw new InvalidConfigurationException("Cannot read '{$entry}' in the setting mysql.contextDatabases. Write <label>=<database name>, separated by ';'");
+            }
+            if (!preg_match('/^[0-9A-Za-z_$]+$/', $parts[1])) {
+                throw new InvalidConfigurationException("The database name '{$parts[1]}' for context '{$parts[0]}' does not comply with the MariaDB identifier rules");
+            }
+            $this->contextDatabases[$parts[0]] = $parts[1];
+        }
+    }
+
+    /**
+     * Fill in the names of the databases of other contexts in the structure queries of the compiler
+     */
+    protected function resolveContextDatabases(string $queries): string
+    {
+        return preg_replace_callback(
+            '/"\{\{db:([^}"]+)\}\}"/',
+            function (array $matches): string {
+                $label = $matches[1];
+                if (!array_key_exists($label, $this->contextDatabases)) {
+                    throw new InvalidConfigurationException("This application reads the database of context '{$label}', and no database is configured for it. Set AMPERSAND_CONTEXT_DBNAMES, for example to '{$label}=<database name>'");
+                }
+                return '"' . $this->contextDatabases[$label] . '"';
+            },
+            $queries
+        );
     }
 
     public function init(): void
@@ -213,7 +262,8 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     public function reinstallStorage(Model $model): void
     {
         $this->createDB();
-        $structure = file_get_contents($model->getFolder() . '/database.sql');
+        // A table of another context is a view on that table in the database of its owner
+        $structure = $this->resolveContextDatabases(file_get_contents($model->getFolder() . '/database.sql'));
         $this->logger->info("Execute database structure queries");
         $this->doQuery($structure, true);
 
@@ -618,38 +668,123 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     {
         $atomId = $this->getDBRepresentation($atom);
 
-        // An atom has a row in the table of its own concept and, when a generalisation
-        // is stored apart (MULTITABLE, Ampersand issue #1716), a row in that table too.
-        // The own table comes first; a generalisation table may already hold the row
-        // when an existing atom is added to a specialisation, so only the own table
-        // must report an affected row.
-        $first = true;
-        foreach ($atom->concept->getConceptTables() as $conceptTableInfo) {
-            $conceptTable = $conceptTableInfo->getName();
-            $conceptCols = $conceptTableInfo->getCols(); // Concept are registered in multiple cols in case of specializations. We insert the new atom in every column.
+        // The own table first; an atom of a union concept without a table of its own
+        // (MULTITABLE, Ampersand issue #1716) exists through its members and is not inserted.
+        if (!$atom->concept->hasConceptTable()) {
+            return;
+        }
+        $conceptTableInfo = $atom->concept->getConceptTableInfo();
+        $this->insertAtomInTable($conceptTableInfo, $atomId);
+        
+        // Check if query resulted in an affected row
+        $this->checkForAffectedRows();
+        $done = [$conceptTableInfo->getName() => true];
 
-            // Create query string: "<col1>", "<col2>", etc
-            $allConceptCols = '"' . implode('", "', $conceptTableInfo->getColNames()) . '"';
-
-            // Create query string: '<newAtom>', '<newAtom', etc
-            $atomIdsArray = array_fill(0, count($conceptCols), $atomId);
-            $allValues = "'".implode("', '", $atomIdsArray)."'";
-
-            $str = '';
-            foreach ($conceptCols as $col) {
-                $str .= ", \"{$col->getName()}\" = '{$atomId}'";
+        // A generalisation stored apart in this context (MULTITABLE, Ampersand issue #1716)
+        // has a table of its own, listed under conceptTables; the atom gets a row there too.
+        // That table may already hold the row when an existing atom is added to a specialisation.
+        foreach ($atom->concept->getConceptTables() as $table) {
+            if (isset($done[$table->getName()])) {
+                continue;
             }
-            $duplicateStatement = substr($str, 1);
+            $this->insertAtomInTable($table, $atomId);
+            $done[$table->getName()] = true;
+        }
 
-            $this->execute("INSERT INTO \"$conceptTable\" ($allConceptCols) VALUES ($allValues)"
-                      ." ON DUPLICATE KEY UPDATE $duplicateStatement");
-
-            // Check if query resulted in an affected row
-            if ($first) {
-                $this->checkForAffectedRows();
-                $first = false;
+        // A generalization can have a table of its own: that is the case when another context owns it,
+        // because the population of a concept is stored in the database of its owner.
+        // Every atom of a concept is an atom of its generalizations, so the atom is stored there as well.
+        foreach ($this->tablesOfOtherConcepts($atom->concept->getGeneralizations(), $conceptTableInfo) as $table) {
+            if (isset($done[$table->getName()])) {
+                continue;
+            }
+            $firstCol = $table->getFirstCol()->getName();
+            $found = $this->execute("SELECT \"{$firstCol}\" FROM \"{$table->getName()}\" WHERE \"{$firstCol}\" = '{$atomId}'");
+            if (empty($found)) {
+                $this->insertAtomInTable($table, $atomId);
             }
         }
+    }
+
+    /**
+     * Insert an atom in every concept column of a concept table
+     *
+     * A concept is registered in multiple cols in case of specializations. We insert the new atom in every column.
+     */
+    protected function insertAtomInTable(MysqlDBTable $table, string $atomId): void
+    {
+        $cols = $table->getCols();
+        
+        // Create query string: "<col1>", "<col2>", etc
+        $allConceptCols = '"' . implode('", "', $table->getColNames()) . '"';
+        
+        // Create query string: '<newAtom>', '<newAtom', etc
+        $atomIdsArray = array_fill(0, count($cols), $atomId);
+        $allValues = "'".implode("', '", $atomIdsArray)."'";
+        
+        $str = '';
+        foreach ($cols as $col) {
+            $str .= ", \"{$col->getName()}\" = '{$atomId}'";
+        }
+        $duplicateStatement = substr($str, 1);
+        
+        $this->execute("INSERT INTO \"{$table->getName()}\" ($allConceptCols) VALUES ($allValues)"
+                  ." ON DUPLICATE KEY UPDATE $duplicateStatement");
+    }
+
+    /**
+     * Store the atoms of a concept in the table of a generalization that has a table of its own
+     *
+     * A classification that relates concepts of two contexts is a rule that this context restores:
+     * every atom of the specific concept has to be an atom of the generic concept, and the generic
+     * concept is stored in the database of its owner. Another application can add an atom to the
+     * specific concept without knowing of this classification.
+     *
+     * @return int the number of atoms that were added to the generalization
+     */
+    public function copyAtomsToGeneralization(Concept $specific, Concept $generic): int
+    {
+        if (!$specific->hasConceptTable() || !$generic->hasConceptTable()) {
+            return 0;
+        }
+        $from = $specific->getConceptTableInfo();
+        $to = $generic->getConceptTableInfo();
+        if ($from->getName() === $to->getName()) {
+            return 0; // one table holds both concepts
+        }
+        $fromCol = $from->getFirstCol()->getName();
+        $toCol = $to->getFirstCol()->getName();
+        $toCols = '"' . implode('", "', $to->getColNames()) . '"';
+        $values = implode(', ', array_fill(0, count($to->getCols()), "s.\"{$fromCol}\""));
+
+        $this->execute(
+            "INSERT INTO \"{$to->getName()}\" ($toCols)"
+            . " SELECT $values FROM \"{$from->getName()}\" AS s"
+            . " WHERE s.\"{$fromCol}\" IS NOT NULL"
+            . " AND s.\"{$fromCol}\" NOT IN (SELECT g.\"{$toCol}\" FROM \"{$to->getName()}\" AS g WHERE g.\"{$toCol}\" IS NOT NULL)"
+        );
+        return max(0, (int) $this->dbLink->affected_rows);
+    }
+
+    /**
+     * The concept tables of the given concepts, apart from the given table
+     *
+     * @param \Ampersand\Core\Concept[] $concepts
+     * @return \Ampersand\Plugs\MysqlDB\MysqlDBTable[]
+     */
+    protected function tablesOfOtherConcepts(array $concepts, MysqlDBTable $own): array
+    {
+        $tables = [];
+        foreach ($concepts as $concept) {
+            if (!$concept->hasConceptTable()) {
+                continue;
+            }
+            $table = $concept->getConceptTableInfo();
+            if ($table->getName() !== $own->getName()) {
+                $tables[$table->getName()] ??= $table;
+            }
+        }
+        return array_values($tables);
     }
     
     /**
@@ -693,17 +828,16 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             $this->execute("DELETE FROM \"{$specTable->getName()}\" WHERE \"{$keyCol}\" = '{$atomId}' LIMIT 1");
         }
 
-        // When the concept keys its own table (it is the root of a table that stores
-        // it apart from its generalisations), removing the atom from the concept
-        // means deleting its row there; the row in the table of the generalisation
-        // stays, so the atom keeps existing in the generalisation.
-        // The concept keys its own table when no generalisation shares that table with it:
-        // its column list holds its own column only.
-        if (count($conceptTable->getCols()) === 1 && count($atom->concept->getConceptTables()) > 1) {
-            $this->execute("DELETE FROM \"{$conceptTable->getName()}\" WHERE \"{$conceptCol->getName()}\" = '{$atomId}' LIMIT 1");
+        // Create query string: "<col1>" = '<atom>', "<col2>" = '<atom>', etc
+        $queryString = "\"" . implode("\" = NULL, \"", $colNames) . "\" = NULL";
+
+        if (count($conceptTable->getCols()) === 1) {
+            // The concept has a table of its own, apart from its generalizations (they are stored
+            // apart by MULTITABLE, Ampersand issue #1716, or they belong to another context).
+            // Then the atom leaves the concept by leaving that table; its rows in the tables of
+            // the generalizations stay, so it keeps existing there.
+            $this->execute("DELETE FROM \"{$conceptTable->getName()}\" WHERE \"{$conceptCol->getName()}\" = '{$atomId}'");
         } else {
-            // Create query string: "<col1>" = '<atom>', "<col2>" = '<atom>', etc
-            $queryString = "\"" . implode("\" = NULL, \"", $colNames) . "\" = NULL";
             $this->execute("UPDATE \"{$conceptTable->getName()}\" SET $queryString WHERE \"{$conceptCol->getName()}\" = '{$atomId}'");
         }
 
@@ -766,6 +900,14 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                 continue;
             }
             $this->execute("DELETE FROM \"{$tableName}\" WHERE \"{$keyCol}\" = '{$atomId}' LIMIT 1");
+        }
+
+        // Generalizations that have a table of their own (see addAtom): the atom leaves them too.
+        // A specialization with a table of its own belongs to another context, which keeps its atom:
+        // a context writes the database of a generic concept of a classification, and never that of the specific one.
+        foreach ($this->tablesOfOtherConcepts($atom->concept->getGeneralizations(), $conceptTable) as $table) {
+            $firstCol = $table->getFirstCol()->getName();
+            $this->execute("DELETE FROM \"{$table->getName()}\" WHERE \"{$firstCol}\" = '{$atomId}' LIMIT 1");
         }
     }
 

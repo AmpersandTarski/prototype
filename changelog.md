@@ -10,7 +10,41 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.17.0 (unreleased)
+
+* **A concept hierarchy stored in several tables (compiler v5.11.0, Ampersand issue #1716).**
+  A concept marked `REPRESENT ... TYPE MULTITABLE` has its direct specialisations stored in
+  tables of their own, so an atom has a row in the table of its own concept and in the table
+  of each generalisation that is stored apart. The compiler lists those tables under
+  `conceptTables` in `concepts.json`; `addAtom` inserts the atom in every one of them,
+  `deleteAtom` deletes it from them and from the tables of the concept's specialisations, and
+  `removeAtom` deletes the row of a specialisation that keys its own table. A concept declared
+  as the union of its members (`CLASSIFY C IS A \/ B` with the mark) has no table of its own:
+  `allAtomsQuery` in `concepts.json` lists its atoms, and a relation declared on it is stored
+  in the table of each member, listed under `mysqlTables` in `relations.json`; `addLink` and
+  `deleteLink` write such a pair in the table that holds its atom, and `getAllLinks`,
+  `linkExists`, `deleteAllLinks` and `emptyRelation` cover every table. `MULTITABLE` is a new
+  value of `TType`, treated as `OBJECT`. The compiler constraint is now `>=5.11.0 <6.0.0`,
+  because the new fields carry the layout; a model without the mark behaves as before.
+
+## v2.16.0 (10 October 2026)
+
+* **An application can run on a database of its own next to the databases of the contexts it
+  reaches (DesignChoices OK-27).** An Ampersand script can describe a system of several contexts
+  with the statement `CONTEXT A INCLUDES B`; every context then has an application and a database
+  of its own. The compiler gives an application a view for every table of another context, and
+  the framework fills in the name of that database at installation, from the new setting
+  `mysql.contextDatabases` (`AMPERSAND_CONTEXT_DBNAMES`, a list of `<label>=<database name>`
+  separated by `;`). A classification that relates concepts of two contexts is restored by the
+  application that states it. An application without the setting behaves as before. The runner
+  `test/multi-context/run.sh` starts one application per context; its scenarios are a diamond of
+  four contexts and the migration case of the RAMiCS 2024 paper on three databases. The bundled
+  Ampersand compiler moves from v5.9.9 to v5.10.0, the first release with the statement and with
+  the command `ampersand deploy`
+  ([Ampersand#1509](https://github.com/AmpersandTarski/Ampersand/issues/1509)).
+  The framework's compiler constraint (`>=5.9.2 <6.0.0`) is unchanged.
+
+## v2.15.0 (9 October 2026)
 
 * **The bundled Ampersand compiler moves from v5.9.7 to v5.9.9.** Two things reach a prototype
   with it. The first is speed: a rule whose violations are a difference onto a closure or a
@@ -30,23 +64,6 @@ Additional labels for pre-release and build metadata are available as extensions
   products (see the
   [Ampersand release notes](https://github.com/AmpersandTarski/Ampersand/blob/main/ReleaseNotes.md)).
   The framework's compiler constraint (`>=5.9.2 <6.0.0`) is unchanged.
-
-## v2.15.0 (unreleased)
-
-* **A concept hierarchy stored in several tables (compiler v5.10.0, Ampersand issue #1716).**
-  A concept marked `REPRESENT ... TYPE MULTITABLE` has its direct specialisations stored in
-  tables of their own, so an atom has a row in the table of its own concept and in the table
-  of each generalisation that is stored apart. The compiler lists those tables under
-  `conceptTables` in `concepts.json`; `addAtom` inserts the atom in every one of them,
-  `deleteAtom` deletes it from them and from the tables of the concept's specialisations, and
-  `removeAtom` deletes the row of a specialisation that keys its own table. A concept declared
-  as the union of its members (`CLASSIFY C IS A \/ B` with the mark) has no table of its own:
-  `allAtomsQuery` in `concepts.json` lists its atoms, and a relation declared on it is stored
-  in the table of each member, listed under `mysqlTables` in `relations.json`; `addLink` and
-  `deleteLink` write such a pair in the table that holds its atom, and `getAllLinks`,
-  `linkExists`, `deleteAllLinks` and `emptyRelation` cover every table. `MULTITABLE` is a new
-  value of `TType`, treated as `OBJECT`. The compiler constraint is now `>=5.10.0 <6.0.0`,
-  because the new fields carry the layout; a model without the mark behaves as before.
 
 ## v2.14.0 (1 October 2026)
 
