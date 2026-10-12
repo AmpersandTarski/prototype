@@ -646,7 +646,7 @@ class AmpersandApp
             $cpt->clearAtomCache(); // local cache in Ampersand code
         }
 
-        $transaction = $this->newTransaction();
+        $transaction = $this->newTransaction()->takeStock();
         $installer = new Installer($this->logger);
 
         // Metapopulation and navigation menus

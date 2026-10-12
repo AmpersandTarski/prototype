@@ -194,6 +194,20 @@ class Transaction
      *
      * CheckAllRules specifies if all rules must be evaluated (true) or only the affected rules in this transaction (false)
      */
+    /**
+     * Specifies that this transaction takes stock: it brings the application up to date
+     * with data that it did not write itself, such as the initial population
+     * or what another context wrote in its own database.
+     * The violations that it finds of a rule that hardens are work for users.
+     */
+    protected bool $takesStock = false;
+
+    public function takeStock(): Transaction
+    {
+        $this->takesStock = true;
+        return $this;
+    }
+
     public function runExecEngine(bool $checkAllRules = false): Transaction
     {
         return Otel::span('execengine run', fn () => $this->doRunExecEngine($checkAllRules));
@@ -779,6 +793,20 @@ class Transaction
         foreach (RuleEngine::getViolations($affectedInvRules) as $violation) {
             $rulesHold = false; // set to false if there is one or more violation
             $this->app->userLog()->invariant($violation); // notify user of broken invariant rules
+        }
+
+        // A rule that hardens is a signal whose violations can only disappear:
+        // the violations that the database already holds are work for users,
+        // and a violation that this transaction adds is refused like that of an invariant.
+        // A transaction that takes stock is the exception: what it finds is where the work starts.
+        foreach ($this->takesStock ? [] : $this->getAffectedRules() as $rule) {
+            if (!$rule->isSignalRule() || !$rule->hardens()) {
+                continue;
+            }
+            foreach ($rule->getNewViolations() as $violation) {
+                $rulesHold = false;
+                $this->app->userLog()->invariant($violation);
+            }
         }
 
         return $rulesHold;
