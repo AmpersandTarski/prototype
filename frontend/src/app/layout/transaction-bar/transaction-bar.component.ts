@@ -1,4 +1,6 @@
+import { Location } from '@angular/common';
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import {
   TransactionService,
@@ -16,6 +18,10 @@ import {
  * nothing to cancel. SAVE is disabled while any invariant is violated, and its hover
  * text lists the concrete violations. The transaction boundary is a single interface
  * (one root interface per route), so one bar suffices.
+ *
+ * A screen for one record is opened to do one transaction. When that transaction is
+ * over, by a successful SAVE or by CANCEL, the application returns to where the user
+ * came from, provided the user came from another screen of the application.
  */
 @Component({
   selector: 'app-transaction-bar',
@@ -25,17 +31,35 @@ import {
 export class TransactionBarComponent {
   public readonly active$: Observable<TransactionalInterface | null>;
 
-  constructor(private txn: TransactionService) {
+  constructor(
+    private txn: TransactionService,
+    private router: Router,
+    private location: Location,
+  ) {
     this.active$ = this.txn.active$;
   }
 
   public save(active: TransactionalInterface): void {
     if (!active.canSave()) return;
-    active.save().subscribe();
+    active.save().subscribe(() => {
+      // A save that was refused leaves its edits in the buffer: the user stays to repair them.
+      if (!active.isDirty()) this.returnToOrigin(active);
+    });
   }
 
   public cancel(active: TransactionalInterface): void {
     active.cancel();
+    this.returnToOrigin(active);
+  }
+
+  /** The transaction is over: leave a screen for one record the way the user entered it. */
+  private returnToOrigin(active: TransactionalInterface): void {
+    if (
+      active.returnsWhenDone() &&
+      this.router.lastSuccessfulNavigation?.previousNavigation
+    ) {
+      this.location.back();
+    }
   }
 
   /** Violation lines joined for the disabled-SAVE tooltip (`[escape]="false"`). */
