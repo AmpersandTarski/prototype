@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## v2.17.0 (13 October 2026)
+## v2.18.0 (13 October 2026)
 
 * **A concept hierarchy stored in several tables (compiler v5.11.0, Ampersand issue #1716).**
   A concept marked `REPRESENT ... TYPE MULTITABLE` has its direct specialisations stored in
@@ -26,6 +26,16 @@ Additional labels for pre-release and build metadata are available as extensions
   `linkExists`, `deleteAllLinks` and `emptyRelation` cover every table. `MULTITABLE` is a new
   value of `TType`, treated as `OBJECT`. The compiler constraint is now `>=5.11.0 <6.0.0`,
   because the new fields carry the layout; a model without the mark behaves as before.
+
+## v2.17.0 (11 October 2026)
+
+* **A transactional screen for one record returns to where the user came from, after SAVE and
+  after CANCEL.** A transactional interface on one record (`TRANSACTIONAL INTERFACE Plot : I[Plot]`)
+  is opened to do one transaction. When the user saves and the save is committed, or cancels the
+  edits, the transaction is over and the application goes back to the screen the user came from.
+  The screen stays open when the save is refused, so that the user can repair the edits, and when
+  it was opened directly, with no screen to return to. A transactional interface on the session
+  behaves as before.
 
 ## v2.16.0 (10 October 2026)
 

@@ -105,6 +105,14 @@ open across requests.
    edits. Navigating away triggers a route guard ("Lose your edits?") that does the
    same on confirm.
 
+A transactional interface that shows one record, such as `INTERFACE Booking : I[Booking]`, is a screen
+that the user opens to do one transaction. When the transaction is over, by a successful SAVE or
+by CANCEL, the application returns to the screen the user came from. It stays where it is when
+the save is refused, so that the user can repair the edits, and when the user opened the screen
+directly, with no screen to return to.
+An interface on the session, such as the example above, is a screen the user stays on:
+there SAVE and CANCEL keep the screen open.
+
 A **PROPBUTTON** is an explicit action. In Transactional mode a click buffers the
 button's own operation and then flushes the whole buffer — the button acts as the SAVE.
 This keeps single-click forms (such as a login form) working: the user fills the fields
