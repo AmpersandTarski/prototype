@@ -106,6 +106,16 @@ class Relation
     private MysqlDBRelationTable $mysqlTable;
 
     /**
+     * Every table that stores a part of this relation (compiler field `mysqlTables`,
+     * Ampersand issue #1716). One table for every relation, except one declared on a
+     * MULTITABLE union concept: that one has a column in the table of each member, and
+     * a pair is written in the table that holds the atom.
+     *
+     * @var \Ampersand\Plugs\MysqlDB\MysqlDBRelationTable[]
+     */
+    private array $mysqlTables = [];
+
+    /**
      * Name of the table that holds this relation's touched pairs during a
      * transaction, for delta-scoped re-evaluation (issue Ampersand#1684).
      * Null when the compiler did not emit one.
@@ -153,6 +163,21 @@ class Relation
         
         $this->mysqlTable->addSrcCol(new MysqlDBTableCol($srcCol['name'], $srcCol['null'], $srcCol['unique']));
         $this->mysqlTable->addTgtCol(new MysqlDBTableCol($tgtCol['name'], $tgtCol['null'], $tgtCol['unique']));
+
+        // A compiler from v5.10.0 on lists every table that stores a part of this
+        // relation (issue #1716); an older compiler lists only the one table.
+        foreach ((array)($relationDef['mysqlTables'] ?? []) as $tableDef) {
+            $table = new MysqlDBRelationTable(
+                $tableDef['name'],
+                TableType::fromCompiler($tableDef['tableOf'], $this->name)
+            );
+            $table->addSrcCol(new MysqlDBTableCol($tableDef['srcCol']['name'], $tableDef['srcCol']['null'], $tableDef['srcCol']['unique']));
+            $table->addTgtCol(new MysqlDBTableCol($tableDef['tgtCol']['name'], $tableDef['tgtCol']['null'], $tableDef['tgtCol']['unique']));
+            $this->mysqlTables[] = $table;
+        }
+        if (empty($this->mysqlTables)) {
+            $this->mysqlTables[] = $this->mysqlTable;
+        }
     }
     
     /**
@@ -184,6 +209,17 @@ class Relation
     public function getMysqlTable(): MysqlDBRelationTable
     {
         return $this->mysqlTable;
+    }
+
+    /**
+     * Every table that stores a part of this relation (Ampersand issue #1716).
+     * See $mysqlTables.
+     *
+     * @return \Ampersand\Plugs\MysqlDB\MysqlDBRelationTable[]
+     */
+    public function getMysqlTables(): array
+    {
+        return $this->mysqlTables;
     }
 
     /**

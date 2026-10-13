@@ -10,6 +10,23 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.18.0 (13 October 2026)
+
+* **A concept hierarchy stored in several tables (compiler v5.11.0, Ampersand issue #1716).**
+  A concept marked `REPRESENT ... TYPE MULTITABLE` has its direct specialisations stored in
+  tables of their own, so an atom has a row in the table of its own concept and in the table
+  of each generalisation that is stored apart. The compiler lists those tables under
+  `conceptTables` in `concepts.json`; `addAtom` inserts the atom in every one of them,
+  `deleteAtom` deletes it from them and from the tables of the concept's specialisations, and
+  `removeAtom` deletes the row of a specialisation that keys its own table. A concept declared
+  as the union of its members (`CLASSIFY C IS A \/ B` with the mark) has no table of its own:
+  `allAtomsQuery` in `concepts.json` lists its atoms, and a relation declared on it is stored
+  in the table of each member, listed under `mysqlTables` in `relations.json`; `addLink` and
+  `deleteLink` write such a pair in the table that holds its atom, and `getAllLinks`,
+  `linkExists`, `deleteAllLinks` and `emptyRelation` cover every table. `MULTITABLE` is a new
+  value of `TType`, treated as `OBJECT`. The compiler constraint is now `>=5.11.0 <6.0.0`,
+  because the new fields carry the layout; a model without the mark behaves as before.
+
 ## v2.17.0 (11 October 2026)
 
 * **A transactional screen for one record returns to where the user came from, after SAVE and

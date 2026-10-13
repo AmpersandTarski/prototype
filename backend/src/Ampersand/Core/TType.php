@@ -22,6 +22,9 @@ enum TType: string
     case INTEGER            = 'INTEGER';
     case FLOAT              = 'FLOAT';
     case OBJECT             = 'OBJECT';
+    // An OBJECT whose direct specialisations the compiler stores in separate tables
+    // (Ampersand issue #1716). For the value of an atom it is an OBJECT.
+    case MULTITABLE         = 'MULTITABLE';
     case TYPEOFONE          = 'TYPEOFONE';
 
     public function getXmlTypeUri(): string
@@ -40,6 +43,7 @@ enum TType: string
             self::INTEGER           => 'http://www.w3.org/2001/XMLSchema#integer',
             self::FLOAT             => 'http://www.w3.org/2001/XMLSchema#float',
             self::OBJECT            => 'http://www.w3.org/2001/XMLSchema#string',
+            self::MULTITABLE        => 'http://www.w3.org/2001/XMLSchema#string',
             self::TYPEOFONE         => 'http://www.w3.org/2001/XMLSchema#string'
         };
     }
