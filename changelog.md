@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## v2.17.0 (unreleased)
+## v2.17.0 (13 October 2026)
 
 * **A concept hierarchy stored in several tables (compiler v5.11.0, Ampersand issue #1716).**
   A concept marked `REPRESENT ... TYPE MULTITABLE` has its direct specialisations stored in
