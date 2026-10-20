@@ -812,18 +812,25 @@ Technisch: `BoxTableComponent` (`compact`, `dense`, `toggleDense()`, `toggleRow(
 and stylesheet, `Box-TABLE.html` and `Box-FACETS.html`, the interface `TicketsCompact` and eight
 assertions in `test/projects/box-facets`.
 
-**An application runs on a database of its own, next to the databases of the contexts it reaches**
-OK-27 · geldig · 2026-10-06 · herkomst: multi-context Ampersand, Ampersand #1509
+**An application runs on a database, next to the databases of the contexts it reaches**
+OK-27 · geldig · 2026-10-20 · herkomst: multi-context Ampersand, Ampersand #1509 and #1733
 
-One Ampersand script can describe a system of several contexts, in which every context has a
-database of its own and each fact is stored once, in the database of the context that declares
-it. The compiler gives the application of a context the tables of its own things, and a view
-for every table of another context. It does not know the name of that other database, so it
-writes the placeholder `"{{db:<label>}}"`. The framework fills it in when it installs the
-database, from the setting `mysql.contextDatabases` (`AMPERSAND_CONTEXT_DBNAMES`), a list of
-`<label>=<database name>` separated by `;`.
+One Ampersand script can describe a system of several contexts. Every context lands on a
+database, and each fact is stored once, in the database of the context that declares it.
+A context has a database of its own, unless the statement `NAMED` puts several contexts on one
+database; such a database has one application, that of the context which includes the others.
+The compiler gives an application the tables of its own database, and a view for every table
+in the database of another context. It does not know the name of that database on the server, so
+it writes the placeholder `"{{db:<name>}}"`, in which `<name>` is the name of the database in the
+model. The framework fills it in when it installs the database, from the setting
+`mysql.contextDatabases` (`AMPERSAND_CONTEXT_DBNAMES`), a list of
+`<name in the model>=<database name on the server>` separated by `;`.
 
-A classification `CLASSIFY S ISA G` that relates concepts of two contexts keeps a table for S and
+A table of another context is a view in the database of the application, and every view that the
+compiler generates is such a table. When the application deletes an atom, it leaves the rows of
+those views alone.
+
+A classification `CLASSIFY S ISA G` that relates concepts of two databases keeps a table for S and
 a table for G. The application that states it stores every atom of S in the table of G as well:
 when it adds the atom, and for atoms that another application added, at the start of every run
 of the ExecEngine.
@@ -835,10 +842,22 @@ Overwegingen:
    takes the name of its own database from the environment.
 2. With a view, every query that the compiler generates keeps working unchanged, and reads or
    writes the one table in the database of its owner. No query is rewritten at run time.
-3. A missing setting fails at installation, with a message that names the context.
+3. A missing setting fails at installation, with a message that names the database.
 4. The application that owns S does not know of a classification that another context states.
    So the stating application restores it, as it restores any rule that it enforces.
-5. Rejected: a second database connection per context. MariaDB evaluates a query over several
+5. Whether a table belongs to another database follows from the database itself: the server
+   lists the views in `information_schema.TABLES`. The name of a table says nothing about it,
+   because contexts on one database keep their tables there as base tables, under names with the
+   prefix of their context. A rule on the prefix of the name, as before compiler v5.12.0, deletes
+   the rows of an atom in another database when the keys of the setting are database names.
+6. Rejected: reading the views from `database.sql` at run time. That makes the text of a
+   generated file a contract, and the database plug has the folder of the model only during
+   installation.
+7. Rejected: a mark per table in `concepts.json` that names its database. That is the structural
+   form, but it needs a new release of the compiler, and the server already knows the answer.
+8. Rejected: both the alias and the database name as keys in the setting. Every deployment would
+   have to know that, and `ampersand deploy` writes the database names only.
+9. Rejected: a second database connection per context. MariaDB evaluates a query over several
    databases on one server and commits a transaction over them atomically, so one connection
    does it. Databases on different servers are outside this choice.
 
@@ -847,8 +866,9 @@ contexts is `AmpersandData/FormalAmpersand/MultiContext.adl` in the Ampersand re
 
 Impact in productie: the applications of a system share one database server, and the database
 user reads and writes the databases of the contexts its application reaches. An application
-without the setting behaves as before.
+without the setting behaves as before. A hand-written `AMPERSAND_CONTEXT_DBNAMES` uses the names
+of the databases in the model as keys, from compiler v5.12.0 on.
 
 Technisch: `MysqlDB::setContextDatabases`, `resolveContextDatabases`, `addAtom`, `deleteAtom`,
-`copyAtomsToGeneralization`; `Transaction::restoreClassifications`; the scenarios in
-`test/multi-context`.
+`isTableOfOtherContext`, `copyAtomsToGeneralization`; `Transaction::restoreClassifications`; the
+scenarios `diamond`, `migration` and `shared-database` in `test/multi-context`.
