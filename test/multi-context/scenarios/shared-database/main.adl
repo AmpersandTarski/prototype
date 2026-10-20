@@ -1,0 +1,10 @@
+CONTEXT Town INCLUDES School FROM "school.adl"
+CONTEXT Town IN ENGLISH
+PURPOSE CONTEXT Town
+{+ A town with a database of its own, which reads the school and its library on their shared database. +}
+
+RELATION residence[School.Person*Street] [UNI]
+REPRESENT Street TYPE ALPHANUMERIC
+POPULATION residence[School.Person*Street] CONTAINS [ ("m1", "Hengelosestraat") ]
+
+ENDCONTEXT

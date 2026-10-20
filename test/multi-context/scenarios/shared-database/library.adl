@@ -1,0 +1,10 @@
+CONTEXT Library IN ENGLISH
+PURPOSE CONTEXT Library
+{+ The library of the school. It lands on the database of the school and has no application of its own. +}
+
+RELATION borrows[Member*Book]
+REPRESENT Book TYPE ALPHANUMERIC
+POPULATION Member CONTAINS [ "m1", "m2" ]
+POPULATION borrows[Member*Book] CONTAINS [ ("m1", "Dik Trom") ]
+
+ENDCONTEXT
