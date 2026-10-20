@@ -10,6 +10,25 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.19.0 (20 October 2026)
+
+* **Contexts can share a database (compiler v5.12.0, Ampersand PR #1733).**
+  The compiler image in `Dockerfile` and `dev.Dockerfile` is `ampersandtarski/ampersand:v5.12.0`.
+  With `CONTEXT A NAMED Kaart INCLUDES B NAMED Kaart` two contexts land on one database, which has
+  one application: that of the context which includes the other. `ampersand deploy` writes one
+  service per database, named after the database (`Kurk_1` gives `kurk1`), and the keys of
+  `AMPERSAND_CONTEXT_DBNAMES` and of the placeholder `{{db:<name>}}` in `database.sql` are the names
+  of the databases in the model instead of the labels of the contexts. The scenario
+  `shared-database` in `test/multi-context` runs a school and its library on one database, read by
+  a town on a database of its own; the scenario `migration` uses the new service names.
+* **Deleting an atom leaves the tables of another database alone.**
+  The application recognises a table of another context as a view in its database
+  (`information_schema.TABLES`), and no longer by the prefix of the name of the table. The prefix
+  rule fails with compiler v5.12.0, because the keys of `AMPERSAND_CONTEXT_DBNAMES` became
+  database names: framework v2.18.0 with compiler v5.12.0 deletes the row of an atom from the
+  table of a specialisation in another database, when its database user has the right to. The
+  constraint in `compiler-version.txt` stays `>=5.11.0 <6.0.0`, because the fix works with both.
+
 ## v2.18.0 (13 October 2026)
 
 * **A concept hierarchy stored in several tables (compiler v5.11.0, Ampersand issue #1716).**
