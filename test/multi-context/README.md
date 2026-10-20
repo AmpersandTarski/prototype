@@ -1,10 +1,12 @@
 # Systems of contexts
 
 An Ampersand script can describe a system of several contexts with the statement `CONTEXT A INCLUDES B`.
-Every context then has an application of its own and a database of its own, on one database server.
+Every context lands on a database, on one database server.
+A context has a database of its own, unless the statement `NAMED` puts several contexts on one database.
+Every database has one application.
 The scenarios in this directory run such a system and check what it does.
 
-**Guards:** an application reads and writes the tables of the contexts it reaches in the databases of their owners; a classification that relates concepts of two contexts is restored.
+**Guards:** an application reads and writes the tables of the contexts it reaches in the databases of their owners, and leaves the tables of another database alone when it deletes an atom; a classification that relates concepts of two contexts is restored; two contexts on one database share its tables.
 
 ## Running
 
@@ -14,8 +16,8 @@ AMPERSAND=/path/to/ampersand test/multi-context/run.sh all
 ```
 
 The runner asks the compiler which contexts the system has (`ampersand deploy`),
-compiles each of them (`ampersand proto --context`),
-starts one application per context on the framework in this working copy,
+compiles the context that installs each database (`ampersand proto --context`),
+starts one application per database on the framework in this working copy,
 and runs the file `checks.sh` of the scenario.
 The compiler runs on your machine, so that a compiler under development can be tried without building an image of it.
 It has to know the command `deploy`.
@@ -27,6 +29,7 @@ It has to know the command `deploy`.
 | --- | --- | --- |
 | `diamond` | City includes Registry and Shops, and both include Towns. | Towns is one context with one database. A rule of City composes relations of Shops and Registry over the towns of Towns. A change in one database is seen by every context that reaches it. |
 | `migration` | The migration of *Data Migration under a Changing Schema in Ampersand* (RAMiCS 2024): a migration context includes two versions of the context Kurk. | The two versions get two databases. The classification brings the atoms of the existing system to the database of the desired system, and an enforced rule copies the pairs. Traffic in the existing system keeps arriving. A user's deletion in the desired system leaves the existing system as it is, and the database refuses the migration application a write there. The migration context relaxes the new invariant of the desired system with a role, and the compiler makes it harden: an atom that satisfies the rule cannot lose its pair, and once the last violation is repaired that holds for every atom. At the moment of completion the desired system starts with its blocking invariant on the database as it is. |
+| `shared-database` | Town includes School, and School includes Library; `NAMED Campus` puts School and Library on one database. | School and Library have one application, which installs the database Campus. A relation of School on a member of Library is a column in the table of the members. Town reads Campus through views. A user of School deletes a person who is a member of Library, and the member leaves the table of Library on Campus. |
 
 ## Writing a scenario
 
@@ -43,7 +46,7 @@ A scenario is a directory under `scenarios/` with the scripts of a system, of wh
 - `recompile <service> <script>`: gives an application the model of another script, as a new release would;
 - `expect <what> <expected> <actual>`: one check.
 
-The service of a context is its name in lower case, or its alias if the root file gives it one.
+The service of a database is its name in lower case, without underscores: the database `Kurk_1` has the service `kurk1`.
 
 A scenario with a file `grants.sql` gives every application a database user of its own, named after its service, with the password `ampersand`.
 The runner executes `grants.sql` as the administrator of the database server before it installs the applications.

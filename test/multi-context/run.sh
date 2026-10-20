@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 #
-# Run a system of contexts on one database server, each context on a database of its own,
+# Run a system of contexts on one database server, with one application per database,
 # and check what its scenario expects.
 #
 #   test/multi-context/run.sh <scenario>      one scenario from test/multi-context/scenarios
 #   test/multi-context/run.sh all             every scenario
 #
 # A scenario is a directory with the scripts of a system (main.adl is its root) and a file checks.sh.
-# The runner asks the compiler which contexts the system has (`ampersand deploy`), compiles each of
-# them (`ampersand proto --context`), starts one application per context on the framework in this
-# working copy, installs them in the order the compiler gives, and runs checks.sh.
+# The runner asks the compiler which databases the system has (`ampersand deploy`), compiles the context
+# that installs each of them (`ampersand proto --context`), starts one application per database on the
+# framework in this working copy, installs them in the order the compiler gives, and runs checks.sh.
 #
 # The compiler is the one in $AMPERSAND (default: `ampersand` on the path). It runs on this machine,
 # so that a compiler under development can be tried without building an image of it.
