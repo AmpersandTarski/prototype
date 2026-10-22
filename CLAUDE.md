@@ -35,6 +35,10 @@ Raakt je wijziging gedrag dat nog geen project bewaakt? Voeg dan een project of 
 
 De runner compileert het model in je werkkopie: ná een run staan in `backend/generics/` en `html/` de bestanden van het laatst gedraaide project (allebei gitignored). Draai `./generate.sh <project>` om je dev-stack terug te zetten op het project waaraan je werkt.
 
+### Gemergde takken blijven staan
+
+Een tak die in `main` is gemerged, blijft bestaan, lokaal en op de remote. Zijn naam draagt de herkomst van de merge; de afspraak staat in `~/git/Werkplaats/werkwijze/Branches.md` onder "De naam van een samengevoegde tak blijft". Daarom hoort de repo-instelling `delete_branch_on_merge` uit te staan: `gh api -X PATCH repos/AmpersandTarski/prototype -F delete_branch_on_merge=false`, met `-F`, want `-f` stuurt de string "false". Een instelling heeft geen commentaarveld, dus de reden staat hier. Bij de release van v2.11.0 (29 september 2026) stond de instelling nog aan: GitHub verwijderde de takken van #465 en #449 bij de merge, en die moesten met de hand terug.
+
 ## 3. Base Image Bouwen (Voor linux/amd64)
 Het base image (`ampersandtarski/prototype-framework:local`) wordt gebruikt in `FROM` statements van alle test- en klantprojecten.
 **ALTIJD bouwen voor `linux/amd64`**, ook op Apple Silicon:
