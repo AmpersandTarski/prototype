@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## v2.18.1 (21 October 2026)
+## v2.18.1 (22 October 2026)
 
 * **PHP 8.3.36, against the remote code execution of CVE-2026-109618 and CVE-2026-109619.**
   The image is built on `php:8.3.36-apache-bookworm`, with PHP 8.3.36, which php.net released on
