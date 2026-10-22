@@ -5,8 +5,8 @@
 #   test/multi-context/run-deployment.sh <scenario>
 #
 # The runner asks the compiler for the deployment of the scenario (a compose file and a Dockerfile
-# per context), builds the images, starts the stack, installs the applications with the generated
-# install.sh, and checks that every application answers and has a database of its own.
+# per database), builds the images, starts the stack, installs the applications with the generated
+# install.sh, and checks that every application answers and has its database.
 #
 # The generated Dockerfiles compile the scripts inside the image, so the framework image has to
 # contain a compiler that knows systems of contexts. Build one with:

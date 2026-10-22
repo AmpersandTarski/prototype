@@ -51,7 +51,7 @@ class Settings
             'key' => 'mysql.dbName',
             'bool' => false
         ],
-        // The databases of the other contexts that this context reaches: <label>=<database name>;...
+        // The databases of the other contexts that this context reaches: <name in the model>=<database name on the server>;...
         'AMPERSAND_CONTEXT_DBNAMES' => [
             'key' => 'mysql.contextDatabases',
             'bool' => false

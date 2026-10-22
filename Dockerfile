@@ -1,6 +1,6 @@
 # To run generated prototypes we require a apache webserver with php
 # NOTE! Also check/update constraints in compiler-version.txt when updating the compiler
-ARG COMPILER_IMAGE=ampersandtarski/ampersand:v5.11.0
+ARG COMPILER_IMAGE=ampersandtarski/ampersand:v5.12.0
 FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
 # The PHP patch release is pinned, so that a release states which PHP it carries (OK-28, DesignChoices.md).
 FROM --platform=linux/amd64 php:8.3.36-apache-bookworm AS framework

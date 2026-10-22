@@ -136,15 +136,23 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     protected array $deltaBulkMutated = [];
 
     /**
-     * The databases of the other contexts that this context reaches, by their label
+     * The databases of the other contexts that this context reaches, by the name the compiler gives them
      *
-     * In a system of contexts every context has a database of its own. The compiler knows another
-     * context by a label only and writes the placeholder "{{db:<label>}}" where the name of its
-     * database belongs. That name is a fact of the deployment, so it is configured here.
+     * In a system of contexts the contexts are spread over databases. The compiler names each database
+     * in the model and writes the placeholder "{{db:<name>}}" where the name of that database on the
+     * server belongs. The name on the server is a fact of the deployment, so it is configured here.
      *
-     * @var array<string,string> label => database name
+     * @var array<string,string> name in the model => database name on the server
      */
     protected array $contextDatabases = [];
+
+    /**
+     * The tables in this database that are views on a table in the database of another context,
+     * in lower case; null until isTableOfOtherContext reads them
+     *
+     * @var array<string,true>|null
+     */
+    protected ?array $viewsOnOtherContexts = null;
     
     /**
      * Constructor
@@ -186,7 +194,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     /**
      * Configure the databases of the other contexts that this context reaches
      *
-     * @param string $config list of <label>=<database name>, separated by ';' or ','
+     * @param string $config list of <name in the model>=<database name on the server>, separated by ';' or ','
      */
     public function setContextDatabases(string $config): void
     {
@@ -194,10 +202,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         foreach (preg_split('/[;,]/', $config, -1, PREG_SPLIT_NO_EMPTY) as $entry) {
             $parts = array_map('trim', explode('=', $entry, 2));
             if (count($parts) !== 2 || $parts[0] === '' || $parts[1] === '') {
-                throw new InvalidConfigurationException("Cannot read '{$entry}' in the setting mysql.contextDatabases. Write <label>=<database name>, separated by ';'");
+                throw new InvalidConfigurationException("Cannot read '{$entry}' in the setting mysql.contextDatabases. Write <name in the model>=<database name on the server>, separated by ';'");
             }
             if (!preg_match('/^[0-9A-Za-z_$]+$/', $parts[1])) {
-                throw new InvalidConfigurationException("The database name '{$parts[1]}' for context '{$parts[0]}' does not comply with the MariaDB identifier rules");
+                throw new InvalidConfigurationException("The database name '{$parts[1]}' for '{$parts[0]}' does not comply with the MariaDB identifier rules");
             }
             $this->contextDatabases[$parts[0]] = $parts[1];
         }
@@ -211,11 +219,11 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         return preg_replace_callback(
             '/"\{\{db:([^}"]+)\}\}"/',
             function (array $matches): string {
-                $label = $matches[1];
-                if (!array_key_exists($label, $this->contextDatabases)) {
-                    throw new InvalidConfigurationException("This application reads the database of context '{$label}', and no database is configured for it. Set AMPERSAND_CONTEXT_DBNAMES, for example to '{$label}=<database name>'");
+                $name = $matches[1];
+                if (!array_key_exists($name, $this->contextDatabases)) {
+                    throw new InvalidConfigurationException("This application reads the database '{$name}' of another context, and no database on the server is configured for it. Set AMPERSAND_CONTEXT_DBNAMES, for example to '{$name}=<database name>'");
                 }
-                return '"' . $this->contextDatabases[$label] . '"';
+                return '"' . $this->contextDatabases[$name] . '"';
             },
             $queries
         );
@@ -262,6 +270,7 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     public function reinstallStorage(Model $model): void
     {
         $this->createDB();
+        $this->viewsOnOtherContexts = null;
         // A table of another context is a view on that table in the database of its owner
         $structure = $this->resolveContextDatabases(file_get_contents($model->getFolder() . '/database.sql'));
         $this->logger->info("Execute database structure queries");
@@ -920,17 +929,23 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
     }
 
     /**
-     * True when the table belongs to another context: the compiler names such a table
-     * by the label of that context, as "<label>.<name>" (see setContextDatabases).
+     * True when the table belongs to the database of another context
+     *
+     * Such a table is a view on the table in the database of its owner (see reinstallStorage),
+     * and no other table of the compiler is a view. The name of the table says nothing about it:
+     * contexts that share a database have their tables there as base tables, whatever their names.
+     * The server stores the names in lower case (--lower-case-table-names=1).
      */
     protected function isTableOfOtherContext(string $tableName): bool
     {
-        foreach (array_keys($this->contextDatabases) as $label) {
-            if (str_starts_with($tableName, $label . '.')) {
-                return true;
+        if (is_null($this->viewsOnOtherContexts)) {
+            $this->viewsOnOtherContexts = [];
+            $views = $this->execute("SELECT \"TABLE_NAME\" FROM information_schema.\"TABLES\" WHERE \"TABLE_SCHEMA\" = DATABASE() AND \"TABLE_TYPE\" = 'VIEW'");
+            foreach (is_array($views) ? $views : [] as $row) {
+                $this->viewsOnOtherContexts[strtolower($row['TABLE_NAME'])] = true;
             }
         }
-        return false;
+        return isset($this->viewsOnOtherContexts[strtolower($tableName)]);
     }
 
     public function executeCustomSQLQuery(string $query): bool|array

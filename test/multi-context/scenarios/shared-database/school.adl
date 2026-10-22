@@ -1,0 +1,22 @@
+CONTEXT School NAMED Campus INCLUDES Library FROM "library.adl" NAMED Campus
+CONTEXT School IN ENGLISH
+PURPOSE CONTEXT School
+{+ A school and its library on one database, Campus.
+The school includes the library, so the application of the school installs that database. +}
+
+-- A member of the library is a person of the school. Person is stored apart from its
+-- specialisations, so the table of the members is a table of the library on the database Campus.
+CLASSIFY Library.Member ISA Person
+REPRESENT Person TYPE MULTITABLE
+
+-- A univalent relation from a concept of the library to a concept of the school,
+-- on one database: a column in the table of the members.
+RELATION school[Library.Member*SchoolName] [UNI]
+REPRESENT SchoolName TYPE ALPHANUMERIC
+POPULATION school[Library.Member*SchoolName] CONTAINS [ ("m1", "Het Stedelijk") ; ("m2", "Het Stedelijk") ]
+
+INTERFACE Persons : "_SESSION";V[SESSION*Person] cRuD BOX
+  [ "Person" : I cRud
+  ]
+
+ENDCONTEXT
