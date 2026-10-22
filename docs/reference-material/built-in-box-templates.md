@@ -142,7 +142,8 @@ PrimeNG tab-index problems that a structural `*ngIf` on a tab panel would cause.
 A table has two stands. In the roomy stand a row is as high as its longest text. In the dense
 stand every row is one line, a long text ends in an ellipsis, and the table scrolls under its
 own header, so many rows fit on a screen. A click on a dense row shows its full text; a second
-click folds it again.
+click folds it again. A dense row also takes the keyboard focus, so Tab reaches it, and Enter or
+Space does what the click does.
 
 ```ampersand
 INTERFACE Requirements : "_SESSION";V[SESSION*Requirement] cRud BOX<FACETS compact sortable>
