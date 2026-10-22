@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## v2.19.0 (20 October 2026)
+## v2.19.0 (22 October 2026)
 
 * **Contexts can share a database (compiler v5.12.0, Ampersand PR #1733).**
   The compiler image in `Dockerfile` and `dev.Dockerfile` is `ampersandtarski/ampersand:v5.12.0`.
