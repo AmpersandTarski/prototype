@@ -657,6 +657,21 @@ LaTeX text passes Angular's sanitiser. The formulas are in it as source text; Ka
 MathML in the page, as DOM nodes and with `trust: false`. `\href` and `\url` give text and no
 link (DesignChoices OK-25).
 
+### Line breaks in the stored text
+
+Markdown reads a heading, a list and a table from the start of a line.
+The text in the database therefore has to keep the line breaks its author wrote.
+An import that joins the lines of a text into one long line changes what the reader sees:
+
+- a `#` or a `-` in the middle of the line stays visible as a character;
+- a text that starts with `#` becomes one heading as a whole, in heading-sized type,
+  because the first line break that would end the heading is gone;
+- bold, inline code and links still work, because they do not depend on line breaks.
+
+When a screen shows this, look at the stored text first: `SELECT` the value and check that it
+contains line breaks.
+In a `POPULATION` statement, `\n` inside the string gives a line break.
+
 ### Safety
 
 HTML, also the HTML that Markdown produces, passes the sanitiser of Angular before it

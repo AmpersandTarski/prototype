@@ -872,3 +872,28 @@ of the databases in the model as keys, from compiler v5.12.0 on.
 Technisch: `MysqlDB::setContextDatabases`, `resolveContextDatabases`, `addAtom`, `deleteAtom`,
 `isTableOfOtherContext`, `copyAtomsToGeneralization`; `Transaction::restoreClassifications`; the
 scenarios `diamond`, `migration` and `shared-database` in `test/multi-context`.
+
+**The Dockerfile pins the PHP patch release, so that every release of the framework states which PHP it carries**
+OK-28 · geldig · 2026-10-21 · herkomst: Stef, 21 October 2026 (the PHP leak CVE-2026-109618 and CVE-2026-109619; "bouw met tag php-8.3.36"), v2.18.1
+
+The framework image builds `FROM php:8.3.36-apache-bookworm`. A new PHP patch release reaches the
+framework through a change of that line and a new release of the framework.
+
+Overwegingen:
+
+1. The purpose is that a release of the framework carries a known PHP. On 21 October 2026 the
+   framework built on the floating tag `php:8.3-apache-bookworm`; that tag still carried PHP 8.3.35
+   hours after php.net released 8.3.36, so a release that day would have shipped the vulnerable PHP
+   under a new version number without anyone noticing.
+2. With the pin, a release whose base image does not exist yet fails to build, which is visible,
+   instead of building on an older PHP, which is not.
+3. A project learns the PHP of its framework version from the Dockerfile and the changelog, without
+   running the image.
+4. Rejected: keep the floating tag and check the PHP version after the build. That check depends on
+   someone looking, and a release is published by the same run that builds it.
+
+Impact op de specificatie: none.
+
+Impact in productie: every PHP patch release asks for a commit to the Dockerfile and a release of
+the framework; Renovate or Dependabot can propose that commit. Projects that pin the framework
+version, such as the Moestuin-app and the Artefactenkaart, get the new PHP when they raise that pin.
