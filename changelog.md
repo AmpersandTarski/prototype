@@ -10,6 +10,17 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.18.1 (22 October 2026)
+
+* **PHP 8.3.36, against the remote code execution of CVE-2026-109618 and CVE-2026-109619.**
+  The image is built on `php:8.3.36-apache-bookworm`, with PHP 8.3.36, which php.net released on
+  21 October 2026 against two critical leaks in PHP itself. The Dockerfile now pins the PHP patch
+  release instead of following the floating tag `php:8.3-apache-bookworm` (OK-28). The security advisory of php.net
+  names Apache with mod_php, the way this framework runs, among the installations at greatest risk:
+  an unauthenticated request can run code before the application does. The PHP code of the
+  framework is the same as in v2.18.0; a project upgrades by raising `PROTOTYPE_FRAMEWORK_VERSION` and
+  rebuilding.
+
 ## v2.18.0 (13 October 2026)
 
 * **A concept hierarchy stored in several tables (compiler v5.11.0, Ampersand issue #1716).**
