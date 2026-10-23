@@ -1,7 +1,8 @@
 # To run generated prototypes we require a apache webserver with php
 ARG COMPILER_IMAGE=ampersandtarski/ampersand:v5.12.0
 FROM --platform=linux/amd64 ${COMPILER_IMAGE} AS compiler
-FROM --platform=linux/amd64 php:8.3-apache-bookworm AS framework
+# The same PHP patch release as in Dockerfile, so that tests run on the PHP of the release (OK-28).
+FROM --platform=linux/amd64 php:8.3.36-apache-bookworm AS framework
 
 RUN apt-get update \
  && apt-get install -y \

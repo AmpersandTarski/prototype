@@ -876,6 +876,7 @@ OK-28 · geldig · 2026-10-21 · herkomst: Stef, 21 October 2026 (the PHP leak C
 
 The framework image builds `FROM php:8.3.36-apache-bookworm`. A new PHP patch release reaches the
 framework through a change of that line and a new release of the framework.
+`dev.Dockerfile` names the same PHP patch release as `Dockerfile`.
 
 Overwegingen:
 
@@ -889,9 +890,14 @@ Overwegingen:
    running the image.
 4. Rejected: keep the floating tag and check the PHP version after the build. That check depends on
    someone looking, and a release is published by the same run that builds it.
+5. The regression runner (`test/runtime-stack.compose.yaml`) and the development stack
+   (`compose.yaml`) build on `dev.Dockerfile`.
+   With the same pin in both files, the tests run on the PHP that the release carries.
+   v2.18.1 pinned only `Dockerfile`;
+   at the next PHP patch release the tests would have run on a newer PHP than the published image.
 
 Impact op de specificatie: none.
 
-Impact in productie: every PHP patch release asks for a commit to the Dockerfile and a release of
+Impact in productie: every PHP patch release asks for a commit to both Dockerfiles and a release of
 the framework; Renovate or Dependabot can propose that commit. Projects that pin the framework
 version, such as the Moestuin-app and the Artefactenkaart, get the new PHP when they raise that pin.
