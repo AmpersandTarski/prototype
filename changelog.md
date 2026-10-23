@@ -10,6 +10,17 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.20.1 (23 October 2026)
+
+* **The navigation menu shows its root once, also after refreshes that overlap (#511).**
+  Two quick clicks on the admin switch, or a role switch while the menu was still loading, used to
+  give the menu a second "Main menu" and a second "New" section, which session storage then kept
+  across reloads; four clicks gave four. The menu now builds once per refresh: an answer that a newer
+  refresh overtook is dropped, and the menu appears only when it is complete. It also reads the "New"
+  buttons from the same navbar answer, so a page load asks the backend for the navbar one time less.
+  `MenuService` no longer offers `getAddButtons()` and `getMenuItems()`; nothing in the framework
+  called the second, and `getNavbar()` gives both. `app.menu.component.spec.ts` guards the menu.
+
 ## v2.20.0 (23 October 2026)
 
 * **A column header of BOX\<FACETS\> names the specialization its shown rows share (OK-29, Ampersand#1702).**

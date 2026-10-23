@@ -11,6 +11,8 @@ module.exports = {
     ],
   },
   moduleFileExtensions: ["ts", "html", "js", "json", "mjs"],
+  // The sources import each other as 'src/app/...' (baseUrl in tsconfig.json); Jest resolves that from the root.
+  moduleNameMapper: { "^src/(.*)$": "<rootDir>/src/$1" },
   collectCoverage: true,
   coverageDirectory: "coverage",
   coverageReporters: ["html", "text-summary", "lcov"],

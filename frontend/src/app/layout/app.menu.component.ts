@@ -8,7 +8,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { Component } from '@angular/core';
-import { takeUntil } from 'rxjs/operators';
+import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MenuItem } from 'primeng/api';
 import { menuItems as adminMenuItems } from '../admin/admin.module';
 import { BaseComponent } from '../shared/BaseComponent.class';
@@ -53,18 +53,26 @@ export class AppMenuComponent
     super();
   }
 
+  /* One build per load or refresh. switchMap drops the navbar answer of a build that a
+   * newer refresh overtook, and each build assigns a complete model, so refreshes that
+   * overlap (e.g. two clicks on the admin switch) cannot stack their menus into one. */
   ngOnInit() {
-    this.loadOrCreateMenu();
-
     this.menuService.refreshSource$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        sessionStorage.removeItem('menuItems');
-        this.model = [];
-        this.moreSection = null;
-        this.fullBarWidths = [];
-
-        this.loadOrCreateMenu();
+      .pipe(
+        tap(() => {
+          sessionStorage.removeItem('menuItems');
+          this.model = [];
+          this.moreSection = null;
+          this.fullBarWidths = [];
+        }),
+        startWith(null),
+        switchMap(() => this.menuService.getNavbar()),
+        takeUntil(this.destroy$),
+      )
+      .subscribe((navbar) => {
+        this.model = this.buildMenu(navbar);
+        // Menu content is complete; (re)compute the horizontal overflow.
+        this.updateOverflow(true);
       });
   }
 
@@ -110,213 +118,184 @@ export class AppMenuComponent
     }
   }
 
-  /* Creates the menuItems from API data, or load from session storage when it already exists. */
-  private loadOrCreateMenu() {
+  /* The complete menu for one navbar answer: the menu items from session storage when an
+   * earlier build stored them, else from the navbar; then the admin items and the 'New' section. */
+  private buildMenu(navbar: Navbar): MenuItem[] {
+    const isProduction = !!navbar.productionEnv;
+    this.applyDefaultMenuMode(navbar);
+
     const navbarItems = sessionStorage.getItem('menuItems');
+    let model: MenuItem[];
     if (navbarItems != null) {
-      // Using menu items in session storage
-      this.model = (JSON.parse(navbarItems) as Array<MenuItem>).filter(
+      model = (JSON.parse(navbarItems) as Array<MenuItem>).filter(
         (item) => item.label !== 'Admin',
       );
-
-      // We need to check productionEnv to know if we should add admin items
-      this.menuService
-        .getNavbar()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((navbar) => {
-          const isProduction = !!navbar.productionEnv;
-          this.applyDefaultMenuMode(navbar);
-
-          // Add admin menu items if admin mode is active and not in production
-          if (!isProduction && this.menuService.adminMode) {
-            adminMenuItems.forEach((item) => this.model.push(item));
-          }
-
-          // Add 'New' buttons for new instance of the defined entities
-          this.addAddButtons();
-        });
     } else {
-      // Add menu items from API
-      this.addMenuItems();
+      model = this.menuItemsFrom(navbar);
+      this.menuService.setSessionStorageItem(
+        'menuItems',
+        JSON.stringify(model),
+      );
     }
+
+    // Add admin menu items if admin mode is active and not in production
+    if (!isProduction && this.menuService.adminMode) {
+      adminMenuItems.forEach((item) => model.push(item));
+    }
+
+    // Add 'New' buttons for new instance of the defined entities
+    const newSection = this.newSection(navbar);
+    if (newSection != null) {
+      model.unshift(newSection);
+    }
+    return model;
   }
 
-  /* Adds MenuItems to the navigation menu */
-  private addMenuItems() {
+  /* The menu items of the navbar, as a tree ordered by seqNr */
+  private menuItemsFrom(navbar: Navbar): MenuItem[] {
+    const model: MenuItem[] = [];
     const childItems = new Array<MenuItem>(); // Storage for child items where parent is not added yet.
     const seqNrs = new WeakMap<MenuItem, number>(); // seqNr per item, to order siblings after tree assembly
-    this.menuService
-      .getNavbar()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((navbar) => {
-        const isProduction = !!navbar.productionEnv;
-        this.applyDefaultMenuMode(navbar);
-        const navs = navbar.navs;
+    const isProduction = !!navbar.productionEnv;
+    const navs = navbar.navs;
 
-        // Filter out developer / model-debugging interfaces when in production mode,
-        // or when not in admin mode (in development)
-        const displayNavs =
-          isProduction || !this.menuService.adminMode
-            ? navs.filter((nav) => !nav.ifc?.startsWith('PrototypeContext.'))
-            : navs;
+    // Filter out developer / model-debugging interfaces when in production mode,
+    // or when not in admin mode (in development)
+    const displayNavs =
+      isProduction || !this.menuService.adminMode
+        ? navs.filter((nav) => !nav.ifc?.startsWith('PrototypeContext.'))
+        : navs;
 
-        // Add fetched menu items
-        displayNavs.forEach((nav) => {
-          let menuItem: MenuItem;
+    // Add fetched menu items
+    displayNavs.forEach((nav) => {
+      let menuItem: MenuItem;
 
-          /* Create a variable to determine the type of menu item */
-          const itemType =
-            2 * Number(nav.ifc != null) + Number(nav.url != null);
-          switch (itemType) {
-            case 0: {
-              // An item without interface or url: a menu root (no parent),
-              // or a submenu container grouping other items (has a parent).
-              // No routerLink: a container is a toggle, not a navigation target
-              menuItem = {
-                id: nav.id,
-                label: nav.label,
-                icon: 'pi pi-fw pi-bars',
-                items: [],
-              };
-              if (nav.seqNr != null) {
-                seqNrs.set(menuItem, nav.seqNr);
-              }
-
-              if (nav.parent == null) {
-                this.model.unshift(menuItem);
-              } else {
-                menuItem.fragment = nav.parent;
-                childItems.push(menuItem);
-              }
-              break;
-            }
-            case 1: {
-              // External URL
-              menuItem = {
-                label: nav.label,
-                icon: 'pi pi-fw pi-bars',
-                url: nav.url ?? undefined,
-              };
-
-              this.model.push(menuItem);
-              break;
-            }
-            default: {
-              // Direct link to interface
-              menuItem = {
-                id: nav.id,
-                label: nav.label,
-                icon: 'pi pi-fw pi-bars',
-                routerLink: [this.interfaceRouteMap[nav.ifc ?? 'undefined']],
-              };
-              if (nav.seqNr != null) {
-                seqNrs.set(menuItem, nav.seqNr);
-              }
-
-              // If item has a parent, add it to the parent items.
-              // Else try adding it at the end.
-              if (nav.parent == null) {
-                break;
-              }
-              menuItem.fragment = nav.parent;
-              childItems.push(menuItem);
-              break;
-            }
+      /* Create a variable to determine the type of menu item */
+      const itemType = 2 * Number(nav.ifc != null) + Number(nav.url != null);
+      switch (itemType) {
+        case 0: {
+          // An item without interface or url: a menu root (no parent),
+          // or a submenu container grouping other items (has a parent).
+          // No routerLink: a container is a toggle, not a navigation target
+          menuItem = {
+            id: nav.id,
+            label: nav.label,
+            icon: 'pi pi-fw pi-bars',
+            items: [],
+          };
+          if (nav.seqNr != null) {
+            seqNrs.set(menuItem, nav.seqNr);
           }
-        });
 
-        // Attach child items to their parent, which may itself be a child
-        // (e.g. an interface item inside a submenu container). Repeat until no
-        // progress is made; whatever remains has no reachable parent and is
-        // added at root level so no item silently disappears.
-        let remaining = childItems;
-        while (remaining.length > 0) {
-          const deferred: MenuItem[] = [];
-          for (const childItem of remaining) {
-            const parentItem = this.findItemById(
-              this.model,
-              childItem.fragment,
-            );
-            parentItem == null
-              ? deferred.push(childItem)
-              : this.addItemToParent(parentItem, childItem);
+          if (nav.parent == null) {
+            model.unshift(menuItem);
+          } else {
+            menuItem.fragment = nav.parent;
+            childItems.push(menuItem);
           }
-          if (deferred.length === remaining.length) {
-            // No parent found for these items; show them at root level
-            deferred.forEach((item) => {
-              item.fragment = undefined;
-              this.model.push(item);
-            });
+          break;
+        }
+        case 1: {
+          // External URL
+          menuItem = {
+            label: nav.label,
+            icon: 'pi pi-fw pi-bars',
+            url: nav.url ?? undefined,
+          };
+
+          model.push(menuItem);
+          break;
+        }
+        default: {
+          // Direct link to interface
+          menuItem = {
+            id: nav.id,
+            label: nav.label,
+            icon: 'pi pi-fw pi-bars',
+            routerLink: [this.interfaceRouteMap[nav.ifc ?? 'undefined']],
+          };
+          if (nav.seqNr != null) {
+            seqNrs.set(menuItem, nav.seqNr);
+          }
+
+          // If item has a parent, add it to the parent items.
+          // Else try adding it at the end.
+          if (nav.parent == null) {
             break;
           }
-          remaining = deferred;
+          menuItem.fragment = nav.parent;
+          childItems.push(menuItem);
+          break;
         }
+      }
+    });
 
-        // Order siblings by seqNr on every level (stable: items without a
-        // seqNr keep their position at the end); the attach order above
-        // depends on parent availability, not on seqNr
-        const sortTree = (items: MenuItem[]) => {
-          items.sort(
-            (a, b) =>
-              (seqNrs.get(a) ?? Number.MAX_SAFE_INTEGER) -
-              (seqNrs.get(b) ?? Number.MAX_SAFE_INTEGER),
-          );
-          items.forEach((item) => {
-            if (item.items != null) {
-              sortTree(item.items);
-            }
-          });
-        };
-        sortTree(this.model);
+    // Attach child items to their parent, which may itself be a child
+    // (e.g. an interface item inside a submenu container). Repeat until no
+    // progress is made; whatever remains has no reachable parent and is
+    // added at root level so no item silently disappears.
+    let remaining = childItems;
+    while (remaining.length > 0) {
+      const deferred: MenuItem[] = [];
+      for (const childItem of remaining) {
+        const parentItem = this.findItemById(model, childItem.fragment);
+        parentItem == null
+          ? deferred.push(childItem)
+          : this.addItemToParent(parentItem, childItem);
+      }
+      if (deferred.length === remaining.length) {
+        // No parent found for these items; show them at root level
+        deferred.forEach((item) => {
+          item.fragment = undefined;
+          model.push(item);
+        });
+        break;
+      }
+      remaining = deferred;
+    }
 
-        // Store menu items in session storage
-        this.menuService.setSessionStorageItem(
-          'menuItems',
-          JSON.stringify(this.model),
-        );
-
-        // Add admin menu items if admin mode is active and not in production
-        if (!isProduction && this.menuService.adminMode) {
-          adminMenuItems.forEach((item) => this.model.push(item));
+    // Order siblings by seqNr on every level (stable: items without a
+    // seqNr keep their position at the end); the attach order above
+    // depends on parent availability, not on seqNr
+    const sortTree = (items: MenuItem[]) => {
+      items.sort(
+        (a, b) =>
+          (seqNrs.get(a) ?? Number.MAX_SAFE_INTEGER) -
+          (seqNrs.get(b) ?? Number.MAX_SAFE_INTEGER),
+      );
+      items.forEach((item) => {
+        if (item.items != null) {
+          sortTree(item.items);
         }
-
-        // Add 'New' buttons for new instance of the defined entities
-        this.addAddButtons();
       });
+    };
+    sortTree(model);
+    return model;
   }
 
-  private addAddButtons() {
-    this.menuService
-      .getAddButtons()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((addBtns) => {
-        const items: MenuItem[] = [];
+  /* The 'New' section with a button per interface that creates an instance, or null when there is none */
+  private newSection(navbar: Navbar): MenuItem | null {
+    const items: MenuItem[] = [];
 
-        addBtns.forEach((addBtn) => {
-          const ifc = addBtn.ifcs[0];
-          // SESSION/ONE-scope interfaces are a single shared session view, not
-          // per-resource instances. "New" has no meaning for them, and the
-          // UUID-based route (/clinics/{uuid}) the old code generated does not exist.
-          if (ifc.resourceType === 'SESSION' || ifc.resourceType === 'ONE') {
-            return;
-          }
-          const link = (this.interfaceRouteMap[ifc.id] ?? '') + '/' + uuidv4();
-          items.push({
-            id: ifc.id,
-            label: addBtn.label,
-            icon: 'pi pi-fw pi-plus',
-            routerLink: [link],
-          });
-        });
-
-        // Only show the "New" section when there are applicable interfaces.
-        if (items.length > 0) {
-          this.model.unshift({ label: 'New', items });
-        }
-
-        // Menu content is complete; (re)compute the horizontal overflow.
-        this.updateOverflow(true);
+    (navbar.new ?? []).forEach((addBtn) => {
+      const ifc = addBtn.ifcs[0];
+      // SESSION/ONE-scope interfaces are a single shared session view, not
+      // per-resource instances. "New" has no meaning for them, and the
+      // UUID-based route (/clinics/{uuid}) the old code generated does not exist.
+      if (ifc.resourceType === 'SESSION' || ifc.resourceType === 'ONE') {
+        return;
+      }
+      const link = (this.interfaceRouteMap[ifc.id] ?? '') + '/' + uuidv4();
+      items.push({
+        id: ifc.id,
+        label: addBtn.label,
+        icon: 'pi pi-fw pi-plus',
+        routerLink: [link],
       });
+    });
+
+    // Only show the "New" section when there are applicable interfaces.
+    return items.length > 0 ? { label: 'New', items } : null;
   }
 
   /* The items that appear side by side in the horizontal menu bar: children of
