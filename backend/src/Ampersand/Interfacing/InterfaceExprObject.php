@@ -82,6 +82,11 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     
     protected ?View $view;
     protected ?BoxHeader $boxHeader = null;
+
+    /**
+     * Whether this field is a column of a BOX<FACETS>, the only box that uses `_concepts_`
+     */
+    protected bool $isFacetsColumn = false;
     
     /**
      * @var \Ampersand\Interfacing\InterfaceObjectInterface[]
@@ -110,6 +115,8 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         $this->label = $ifcDef['label'];
         $this->view = is_null($ifcDef['viewName']) ? null : $rootIfc->getModel()->getView($ifcDef['viewName']);
         $this->path = is_null($parent) ? $this->label : "{$parent->getPath()}/{$this->label}"; // Use label, because path is only used for human readable purposes (e.g. Exception messages)
+        // The parent builds its box header before its fields, so a field knows whether it is a column of BOX<FACETS>
+        $this->isFacetsColumn = $parent instanceof self && $parent->isBox() && strtoupper($parent->boxHeader->getType()) === 'FACETS';
         
         // Information about the (editable) relation if applicable
         $this->relation = is_null($ifcDef['relation']) ? null : $rootIfc->getModel()->getRelation($ifcDef['relation']);
@@ -177,13 +184,14 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
     }
 
     /**
-     * Whether this field carries the name of its target concept and that concept has
-     * specializations. Only then does an atom get `_concepts_`; any other field gets the
-     * JSON it always got, at no extra cost.
+     * Whether this field is a column of BOX<FACETS> that carries the name of its target concept,
+     * and that concept has specializations. Only then does an atom get `_concepts_`; any other
+     * field gets the JSON it always got, at no extra cost.
      */
     protected function namedAfterSpecializedTarget(): bool
     {
-        return in_array($this->label, [$this->tgtConcept->getId(), $this->tgtConcept->getLabel()], true)
+        return $this->isFacetsColumn
+            && in_array($this->label, [$this->tgtConcept->getId(), $this->tgtConcept->getLabel()], true)
             && !empty($this->tgtConcept->getSpecializations());
     }
 

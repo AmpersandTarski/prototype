@@ -16,7 +16,7 @@ Additional labels for pre-release and build metadata are available as extensions
   When the label of a column is the name of its target concept, and the facets leave only atoms
   of one specialization of that concept, the header names that specialization: with
   `CLASSIFY Claim ISA Artefact`, the column `"Artefact" : I` reads *Claim* once only claims pass,
-  and *Artefact* again when the selection is cleared. For such a field the backend adds
+  and *Artefact* again when the selection is cleared. For such a column of BOX\<FACETS\> the backend adds
   `_concepts_` to each atom in the JSON, the specializations it belongs to with the most specific
   first, in every storage layout (one wide table, `MULTITABLE`, a union concept). It reads the
   population of each specialization once per request. Every other field gets the JSON it got

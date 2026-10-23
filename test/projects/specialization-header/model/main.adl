@@ -72,4 +72,9 @@ INTERFACE Items : "_SESSION";V[SESSION*Item] cRud BOX<FACETS>
   , "Kind" : itemKind cRud
   ]
 
+-- The same column in a plain TABLE: only BOX<FACETS> uses _concepts_, so this one gets none.
+INTERFACE ArtefactTable : "_SESSION";V[SESSION*Artefact] cRud BOX<TABLE>
+  [ "Artefact" : I cRud
+  ]
+
 ENDCONTEXT

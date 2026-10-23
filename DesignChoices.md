@@ -610,7 +610,7 @@ OK-29 · geldig · 2026-10-23 · herkomst: interview met Stef over de Artefacten
 When the label of a column is the name of its target concept, and every atom in that column over
 the passing rows belongs to a specialization of that concept, the header names the most specific
 specialization they all share. Otherwise the header is the label of the modeler. For such a column
-the backend gives each atom the specializations it belongs to, the most specific first, as
+of BOX<FACETS> the backend gives each atom the specializations it belongs to, the most specific first, as
 `_concepts_` in the JSON of the resource.
 
 Overwegingen:
@@ -640,10 +640,14 @@ Overwegingen:
    which is true of every row.
 
 6. The cost is one query per specialization of the target concept per request, because each
-   population is read once and kept as a set (`Concept::hasAtomId()`). Only a field whose label is
-   the name of a target concept with specializations pays it, so every other field gets the JSON
-   it got before. Rejected: checking each atom with `atomExists()`, which scans a list per call
-   and makes a long list quadratic.
+   population is read once and kept as a set (`Concept::hasAtomId()`), whatever the number of
+   rows. A list of 4 400 artefacts over 15 specializations took 119 ms with `_concepts_` and
+   78 ms without (median of five reads). Only a column of BOX<FACETS> whose label is the name of
+   a target concept with specializations pays it, because BOX<FACETS> is the only box that uses
+   the list; a detail screen, a TABLE or any other field gets the JSON it got before. Rejected:
+   checking each atom with `atomExists()`, which scans a list per call and makes a long list
+   quadratic; and giving `_concepts_` to every field named after its concept, which would make
+   every detail screen of an artefact read the populations of all specializations.
 
 7. The header changes only in a column named after its concept. A label of the modeler's own,
    such as "Is about", says something the concept does not, and stays.
@@ -656,7 +660,8 @@ the specialization while the facets leave only atoms of it. The JSON of such a f
 `_concepts_`; a field of a concept without specializations is unchanged.
 
 Technisch: `Concept::hasAtomId()`, `specializationsHolding()` and `forgetPopulations()`,
-`InterfaceExprObject::namedAfterSpecializedTarget()`, `BoxFacetsComponent.columnConcept()` and
+`InterfaceExprObject::namedAfterSpecializedTarget()` and `$isFacetsColumn`, `BoxHeader::getType()`,
+`BoxFacetsComponent.columnConcept()` and
 `findSharedConcepts()`, `sharedConcept()` in `facet-engine.ts` with five cases in
 `facet-engine.spec.ts`, `Box-FACETS.html`, and the regression project
 `test/projects/specialization-header`.

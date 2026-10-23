@@ -35,6 +35,8 @@ assert(artefacts.a1 && !('_concepts_' in artefacts.a1), 'a1, an Artefact of no s
 const about = byId(await getJson('/api/v1/resource/SESSION/1/Artefacts'), 'Is_32_about');
 const aboutAtoms = Object.values(about).flat().filter(Boolean);
 assert(aboutAtoms.length > 0 && aboutAtoms.every((a) => !('_concepts_' in a)), 'a column with a label of its own gets no _concepts_');
+const table = byId(await getJson('/api/v1/resource/SESSION/1/ArtefactTable'), 'Artefact');
+assert(table.m1 && !('_concepts_' in table.m1), 'the same column in a plain TABLE gets no _concepts_');
 const docs = byId(await getJson('/api/v1/resource/SESSION/1/Docs'), 'Doc');
 assert(JSON.stringify(docs.rep1?._concepts_) === '["Report"]', `MULTITABLE: rep1 is a Report (got: ${JSON.stringify(docs.rep1?._concepts_)})`);
 assert(JSON.stringify(docs.memo1?._concepts_) === '["Memo"]', 'MULTITABLE: memo1 is a Memo');
