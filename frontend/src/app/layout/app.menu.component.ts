@@ -2,13 +2,21 @@ import {
   AfterViewChecked,
   AfterViewInit,
   ElementRef,
+  ErrorHandler,
   Inject,
   NgZone,
   OnDestroy,
   OnInit,
 } from '@angular/core';
 import { Component } from '@angular/core';
-import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
+import {
+  catchError,
+  startWith,
+  switchMap,
+  takeUntil,
+  tap,
+} from 'rxjs/operators';
 import { MenuItem } from 'primeng/api';
 import { menuItems as adminMenuItems } from '../admin/admin.module';
 import { BaseComponent } from '../shared/BaseComponent.class';
@@ -49,13 +57,16 @@ export class AppMenuComponent
     private zone: NgZone,
     @Inject(INTERFACE_ROUTE_MAPPING_TOKEN)
     private interfaceRouteMap: InterfaceRouteMap,
+    private errorHandler: ErrorHandler,
   ) {
     super();
   }
 
   /* One build per load or refresh. switchMap drops the navbar answer of a build that a
    * newer refresh overtook, and each build assigns a complete model, so refreshes that
-   * overlap (e.g. two clicks on the admin switch) cannot stack their menus into one. */
+   * overlap (e.g. two clicks on the admin switch) cannot stack their menus into one.
+   * A failed navbar request ends only its own build, so the next refresh builds again;
+   * the error goes to the ErrorHandler, which shows it as before. */
   ngOnInit() {
     this.menuService.refreshSource$
       .pipe(
@@ -66,7 +77,14 @@ export class AppMenuComponent
           this.fullBarWidths = [];
         }),
         startWith(null),
-        switchMap(() => this.menuService.getNavbar()),
+        switchMap(() =>
+          this.menuService.getNavbar().pipe(
+            catchError((error) => {
+              this.errorHandler.handleError(error);
+              return EMPTY;
+            }),
+          ),
+        ),
         takeUntil(this.destroy$),
       )
       .subscribe((navbar) => {

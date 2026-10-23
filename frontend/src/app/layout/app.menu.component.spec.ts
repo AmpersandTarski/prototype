@@ -47,6 +47,7 @@ describe('AppMenuComponent', () => {
 
   let refresh: Subject<unknown>;
   let pending: Subject<Navbar>[];
+  let errorHandler: { handleError: jest.Mock };
 
   /** A menu whose navbar requests stay open until the test answers them. */
   function menu(): AppMenuComponent {
@@ -68,6 +69,7 @@ describe('AppMenuComponent', () => {
       { nativeElement: document.createElement('div') } as any,
       { run: (f: () => void) => f() } as any,
       { Claims: '/claims', Issues: '/issues', Claim: '/claim' },
+      errorHandler as any,
     );
   }
 
@@ -88,6 +90,7 @@ describe('AppMenuComponent', () => {
     sessionStorage.clear();
     refresh = new Subject();
     pending = [];
+    errorHandler = { handleError: jest.fn() };
   });
 
   it('shows the menu root once after one load', () => {
@@ -109,6 +112,17 @@ describe('AppMenuComponent', () => {
     answerNewestFirst();
     expect(labels(component.model)).toEqual(['New', 'Main menu']);
     expect(stored()).toEqual(['Main menu']);
+  });
+
+  it('builds the menu on the next refresh after a navbar request failed', () => {
+    const component = menu();
+    component.ngOnInit();
+    // The session expired, so the backend refused the first request.
+    pending.shift()?.error(new Error('401 Unauthorized'));
+    expect(errorHandler.handleError).toHaveBeenCalledTimes(1);
+    refresh.next(true);
+    answerNewestFirst();
+    expect(labels(component.model)).toEqual(['New', 'Main menu']);
   });
 
   it('restores one menu root from session storage after overlapping refreshes', () => {
