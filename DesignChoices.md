@@ -487,7 +487,7 @@ Technisch: `chosenKinds()` in `facet-engine.ts`, the `facetKind` input of `BoxFa
 ---
 
 **A FORM shows the fields a record has, and the fields the user may fill**
-OK-20 · voorstel · 2026-09-29 · herkomst: interview met Stef over de Artefactenkaart (29 september 2026), tak ux-intenties
+OK-20 · geldig · 2026-09-29 · herkomst: interview met Stef over de Artefactenkaart (29 september 2026), tak ux-intenties, besluit Stef, 22 oktober 2026
 
 A FORM leaves out a field that is empty and that the user cannot fill (no `C` or `U` in its
 CRUD). A group, a FORM box on `I` inside a FORM, is left out when all of its fields are empty
@@ -523,9 +523,9 @@ Overwegingen:
 
 7. Each field has a kind that a subtle style follows: group, meta (a UNI field with a short
    value), content (a UNI field with a long value) and related (a field with several values).
-   The kinds come from the model without annotation. Stef named three kinds of blocks in the
-   interview (meta-information, content, related information); that the kind of a field follows
-   from its multiplicity and length is a hypothesis that awaits his verdict.
+   The kinds come from the model without annotation: the multiplicity and the length of a field
+   decide its kind. Stef named three kinds of blocks in the interview (meta-information, content,
+   related information); the modeler arranges the blocks, and the style follows the kind.
 
 Impact op de specificatie: a modeler groups fields that belong together in a FORM box on `I`
 and adds `showOnNoRecords` where an empty group tells the user something. Existing interfaces
@@ -763,7 +763,7 @@ Technisch: `latex.ts` with `latex.spec.ts`, `MarkupMathDirective`, `markup.ts`, 
 ---
 
 **A table has a roomy and a dense stand; the modeler chooses where it starts, the user may switch**
-OK-26 · voorstel · 2026-10-01 · herkomst: interview met Stef over de Artefactenkaart (1 oktober 2026: "Is er een instelling om van de ruime opmaak naar de dichte opmaak te gaan? Want niet alles vraagt om een dichte opmaak. En wie stelt dat in? De gebruiker of de programmeur?"), AmpersandTarski/Ampersand#1166
+OK-26 · geldig · 2026-10-01 · herkomst: interview met Stef over de Artefactenkaart (1 oktober 2026: "Is er een instelling om van de ruime opmaak naar de dichte opmaak te gaan? Want niet alles vraagt om een dichte opmaak. En wie stelt dat in? De gebruiker of de programmeur?"), AmpersandTarski/Ampersand#1166, besluit Stef, 22 oktober 2026
 
 `BOX<TABLE compact>` and `BOX<FACETS compact>` start a table in the dense stand: every row is
 one line, a long text ends in an ellipsis, and the table scrolls under its own header. Without
@@ -796,9 +796,7 @@ Overwegingen:
 
 5. A row of one line hides the end of a long text. A click on the row shows it; a tooltip was
    rejected, because the cells hold components and a long text does not read in a tooltip.
-
-6. Stef asked how this works before deciding ("Laten we eerst maar eens kijken hoe dit werkt"),
-   so this choice is a proposal until he has seen it.
+   A dense row takes the keyboard focus, and Enter or Space does what the click does.
 
 Impact op de specificatie: an interface gains `compact` where its table is data. Nothing changes
 for an interface without it.
