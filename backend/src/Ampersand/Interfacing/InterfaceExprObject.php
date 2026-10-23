@@ -176,6 +176,17 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
         return $this->label;
     }
 
+    /**
+     * Whether this field carries the name of its target concept and that concept has
+     * specializations. Only then does an atom get `_concepts_`; any other field gets the
+     * JSON it always got, at no extra cost.
+     */
+    protected function namedAfterSpecializedTarget(): bool
+    {
+        return in_array($this->label, [$this->tgtConcept->getId(), $this->tgtConcept->getLabel()], true)
+            && !empty($this->tgtConcept->getSpecializations());
+    }
+
     public function getSrcConcept(): Concept
     {
         return $this->srcConcept;
@@ -456,7 +467,17 @@ class InterfaceExprObject extends AbstractIfcObject implements InterfaceObjectIn
             $content['_id_'] = $tgt->getId();
             $content['_label_'] = empty($viewData) ? $tgt->getLabel() : implode('', $viewData);
             $content['_path_'] = $tgtPath;
-            
+
+            // The specializations of the target concept that hold the atom, most specific first,
+            // for a field named after a target concept with specializations, so that BOX<FACETS>
+            // can head the column with the one all its rows share (Ampersand#1702, OK-29)
+            if ($this->namedAfterSpecializedTarget()) {
+                $concepts = $this->tgtConcept->specializationsHolding($tgt);
+                if (!empty($concepts)) {
+                    $content['_concepts_'] = array_map(fn (Concept $c) => $c->getLabel(), $concepts);
+                }
+            }
+
             // Add view data if array is assoc (i.e. not sequential, because then it is a label)
             if (!isSequential($viewData)) {
                 $content['_view_'] = $viewData;

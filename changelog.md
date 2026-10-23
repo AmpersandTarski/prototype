@@ -10,6 +10,18 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.20.0 (23 October 2026)
+
+* **A column header of BOX\<FACETS\> names the specialization its shown rows share (OK-29, Ampersand#1702).**
+  When the label of a column is the name of its target concept, and the facets leave only atoms
+  of one specialization of that concept, the header names that specialization: with
+  `CLASSIFY Claim ISA Artefact`, the column `"Artefact" : I` reads *Claim* once only claims pass,
+  and *Artefact* again when the selection is cleared. For such a field the backend adds
+  `_concepts_` to each atom in the JSON, the specializations it belongs to with the most specific
+  first, in every storage layout (one wide table, `MULTITABLE`, a union concept). It reads the
+  population of each specialization once per request. Every other field gets the JSON it got
+  before. The regression project `specialization-header` guards it.
+
 ## v2.19.0 (22 October 2026)
 
 * **Contexts can share a database (compiler v5.12.0, Ampersand PR #1733).**

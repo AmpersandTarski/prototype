@@ -6,7 +6,9 @@
      FACETS annotations are `facets` (which items are facets, in which order),
      `facetOnly` (facets that are no table column) and `facetKind` (the kind of facet
      chosen by the modeller, DesignChoices OK-18). The component hides the facetOnly
-     columns at runtime, because StringTemplate cannot compare strings.
+     columns at runtime, because StringTemplate cannot compare strings. A column header
+     names the specialization that every shown row holds, when there is one
+     (`columnConcept`, OK-29); otherwise it keeps the label of the modeler.
      The *ngIf on the outer div gives each box its own template scope, so the
      reference #facets never collides with that of a sibling FACETS box. -->
 
@@ -62,13 +64,13 @@
                 >$subObjects:{subObj|
                 <ng-container *ngIf="facets.showColumn('$subObj.subObjName$')">$if(subObj.subObjExprIsUni)$$if(sortable)$
                 <th$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$ appSortableColumn="_sortValues_.$subObj.subObjName$">
-                    <span>$subObj.subObjLabel$</span>
+                    <span>{{ facets.columnConcept('$subObj.subObjName$') }}<ng-container *ngIf="!facets.columnConcept('$subObj.subObjName$')">$subObj.subObjLabel$</ng-container></span>
                     <app-sort-icon field="_sortValues_.$subObj.subObjName$"></app-sort-icon>
                 </th>
                 $else$
-                <th$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$>$subObj.subObjLabel$</th>
+                <th$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$>{{ facets.columnConcept('$subObj.subObjName$') }}<ng-container *ngIf="!facets.columnConcept('$subObj.subObjName$')">$subObj.subObjLabel$</ng-container></th>
                 $endif$$else$
-                <th$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$>$subObj.subObjLabel$</th>
+                <th$if(sortByAndHide)$ *ngIf="\$any('$subObj.subObjName$') !== '$sortByAndHide$'"$endif$>{{ facets.columnConcept('$subObj.subObjName$') }}<ng-container *ngIf="!facets.columnConcept('$subObj.subObjName$')">$subObj.subObjLabel$</ng-container></th>
                 $endif$</ng-container>}$
             </ng-template>
             <!-- [boxTableRow] only types the row (a template context guard); it gets the

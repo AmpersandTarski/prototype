@@ -1,0 +1,75 @@
+CONTEXT SpecializationHeader IN ENGLISH
+PURPOSE CONTEXT SpecializationHeader
+{+ Test project for the header of a BOX<FACETS> column that names the specialization all
+   shown rows share (DesignChoices OK-29, Ampersand#1702). Three hierarchies, one per
+   storage layout: Artefact in one wide table, Doc with its specialisations in tables of
+   their own (MULTITABLE), and Item as the union of Book and Film. The population is
+   synthetic. +}
+
+REPRESENT Kind  TYPE ALPHANUMERIC
+REPRESENT Title TYPE ALPHANUMERIC
+
+-- One wide table: Artefact, with a two-level specialisation below Claim.
+CLASSIFY Claim, Requirement ISA Artefact
+CLASSIFY MainClaim ISA Claim
+RELATION kind  [Artefact*Kind]  [UNI]
+RELATION title [Artefact*Title] [UNI]
+RELATION about [Artefact*Artefact]
+
+POPULATION Artefact    CONTAINS [ "a1" ]
+POPULATION Claim       CONTAINS [ "c1", "c2" ]
+POPULATION MainClaim   CONTAINS [ "m1" ]
+POPULATION Requirement CONTAINS [ "r1", "r2" ]
+POPULATION kind CONTAINS
+  [ ("a1", "Other"), ("c1", "Claim"), ("c2", "Claim"), ("m1", "Claim")
+  , ("r1", "Requirement"), ("r2", "Requirement") ]
+POPULATION title CONTAINS
+  [ ("a1", "A note"), ("c1", "Claim one"), ("c2", "Claim two"), ("m1", "Main claim")
+  , ("r1", "Requirement one"), ("r2", "Requirement two") ]
+POPULATION about CONTAINS [ ("r1", "c1"), ("r2", "c2"), ("a1", "r1") ]
+
+-- Specialisations in tables of their own.
+CLASSIFY Report, Memo ISA Doc
+REPRESENT Doc TYPE MULTITABLE
+-- Memo and Report have relations of their own, as is usual in a MULTITABLE hierarchy, so each
+-- gets a table. A specialisation without one gets no table up to compiler v5.12.1 (Ampersand#1727).
+RELATION docKind [Doc*Kind] [UNI]
+RELATION pages   [Report*Title] [UNI]
+RELATION sender  [Memo*Title] [UNI]
+
+POPULATION Doc    CONTAINS [ "d1" ]
+POPULATION Report CONTAINS [ "rep1", "rep2" ]
+POPULATION Memo   CONTAINS [ "memo1" ]
+POPULATION docKind CONTAINS
+  [ ("d1", "Other"), ("rep1", "Report"), ("rep2", "Report"), ("memo1", "Memo") ]
+POPULATION pages  CONTAINS [ ("rep1", "12"), ("rep2", "30") ]
+POPULATION sender CONTAINS [ ("memo1", "Ann") ]
+
+-- A union concept without a table of its own.
+CLASSIFY Item IS Book \/ Film
+REPRESENT Item TYPE MULTITABLE
+RELATION itemKind [Item*Kind] [UNI]
+
+POPULATION Book CONTAINS [ "b1", "b2" ]
+POPULATION Film CONTAINS [ "f1" ]
+POPULATION itemKind CONTAINS [ ("b1", "Book"), ("b2", "Book"), ("f1", "Film") ]
+
+-- Columns named after their target concept follow the rows; "Is about" keeps its label.
+INTERFACE Artefacts : "_SESSION";V[SESSION*Artefact] cRud BOX<FACETS>
+  [ "Artefact" : I     cRud
+  , "Kind"     : kind  cRud
+  , "Title"    : title cRud
+  , "Is about" : about cRud
+  ]
+
+INTERFACE Docs : "_SESSION";V[SESSION*Doc] cRud BOX<FACETS>
+  [ "Doc"  : I       cRud
+  , "Kind" : docKind cRud
+  ]
+
+INTERFACE Items : "_SESSION";V[SESSION*Item] cRud BOX<FACETS>
+  [ "Item" : I        cRud
+  , "Kind" : itemKind cRud
+  ]
+
+ENDCONTEXT

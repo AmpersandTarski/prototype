@@ -604,6 +604,65 @@ Technisch: `BoxFacetsComponent.findConstantColumns()`, `showColumn()`, `isImplie
 
 ---
 
+**A column of BOX<FACETS> named after its target concept is headed by the specialization all its shown rows share**
+OK-29 · geldig · 2026-10-23 · herkomst: interview met Stef over de Artefactenkaart (1 oktober 2026: "Omdat ik Claim heb geselecteerd, staan er in de kolom Artefact alleen maar claims. Ik zou het zo aardig vinden als in zulke gevallen de kolomnaam ook 'Claim' zou zijn, omdat Claim ISA Artefact."), AmpersandTarski/Ampersand#1702, besluit Stef, 23 oktober 2026
+
+When the label of a column is the name of its target concept, and every atom in that column over
+the passing rows belongs to a specialization of that concept, the header names the most specific
+specialization they all share. Otherwise the header is the label of the modeler. For such a column
+the backend gives each atom the specializations it belongs to, the most specific first, as
+`_concepts_` in the JSON of the resource.
+
+Overwegingen:
+
+1. The purpose is a header that says what the rows are. After choosing the facet Type = Claim in
+   the list Werkvoorraad of the Artefactenkaart, every row was a claim under the header Artefact.
+
+2. The frontend receives an atom as `_id_`, `_label_` and `_path_`, which do not say its concept.
+   A facet value is no source either: "Claim" in the facet Type is a value of the application's
+   own relation, which only happens to equal the name of the concept.
+
+3. The backend asks the population of each specialization the way `getAllAtomObjects()` does,
+   which covers one wide table, the tables of a `MULTITABLE` hierarchy and the `allAtomsQuery` of
+   a union concept alike. Rejected: reading the specialization columns of `conceptTable` in
+   `concepts.json`, which was the plan in Ampersand#1702 before v2.18.0; since that release an atom
+   of a `MULTITABLE` hierarchy has its specializations in other tables, and a union concept has no
+   table at all.
+
+4. The backend lists every specialization of an atom, and the frontend picks the most specific one
+   that all atoms share. Rejected: sending only the most specific concept of each atom. Claims
+   among which one is also a MainClaim would then differ, and the header would stay Artefact,
+   while Claim holds for every row.
+
+5. The list is ordered on the number of generalizations, so a concept comes before each of its
+   generalizations. An atom in two unrelated specializations with as many generalizations has
+   them in the order of the model; when the shown rows share both, the header names the first,
+   which is true of every row.
+
+6. The cost is one query per specialization of the target concept per request, because each
+   population is read once and kept as a set (`Concept::hasAtomId()`). Only a field whose label is
+   the name of a target concept with specializations pays it, so every other field gets the JSON
+   it got before. Rejected: checking each atom with `atomExists()`, which scans a list per call
+   and makes a long list quadratic.
+
+7. The header changes only in a column named after its concept. A label of the modeler's own,
+   such as "Is about", says something the concept does not, and stays.
+
+Impact op de specificatie: none. A modeler who wants the header to follow the rows names the
+column after its target concept, as is usual for the identity column.
+
+Impact in productie: in a faceted list over a hierarchy, the header of the identity column reads
+the specialization while the facets leave only atoms of it. The JSON of such a field carries
+`_concepts_`; a field of a concept without specializations is unchanged.
+
+Technisch: `Concept::hasAtomId()`, `specializationsHolding()` and `forgetPopulations()`,
+`InterfaceExprObject::namedAfterSpecializedTarget()`, `BoxFacetsComponent.columnConcept()` and
+`findSharedConcepts()`, `sharedConcept()` in `facet-engine.ts` with five cases in
+`facet-engine.spec.ts`, `Box-FACETS.html`, and the regression project
+`test/projects/specialization-header`.
+
+---
+
 **The content follows the width of the window, and the menu folds below 1200 pixels**
 OK-23 · geldig · 2026-09-29 · herkomst: snapshots van de Artefactenkaart op 2560×1440 en 1080×1920 (29 september 2026), tak ux-intenties, besluit Stef, 30 september 2026
 

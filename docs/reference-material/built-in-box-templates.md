@@ -526,6 +526,23 @@ value checked, also when the user did not choose it. Choosing *Project = Patents
 removes the column Project, and a column in which every row is empty disappears as well.
 An editable column stays, so an empty value can still be filled in.
 
+### A column header that follows the rows
+
+A column whose label is the name of its target concept is headed by a specialization of
+that concept when every atom in it, over the rows that pass, belongs to that
+specialization. With `CLASSIFY Claim ISA Artefact`, the column `"Artefact" : I` reads
+*Claim* once the facets leave only claims, and *Artefact* again when the selection is
+cleared. Of the specializations all atoms share, the header names the most specific one,
+so claims among which one is a `MainClaim` (`CLASSIFY MainClaim ISA Claim`) still read
+*Claim*. A column with a label of its own, such as `"Is about" : about`, keeps it.
+
+The backend gives each atom of such a column the specializations it belongs to, the most
+specific first, as `_concepts_` in the JSON of the resource. It does so for a field whose
+label is the name of its target concept, when that concept has specializations, in every
+storage layout (one wide table, `MULTITABLE`, a union concept). Every other field gets the
+JSON it got before. Building the list costs one query per specialization of the target
+concept per request.
+
 ### Recursive facets for an OBJECT item
 
 An OBJECT item with a box of its own offers the items of that box as child facets, and
