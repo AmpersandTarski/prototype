@@ -13,6 +13,7 @@ import {
   paramName,
   rowText,
   selectFields,
+  sharedConcept,
   sortBuckets,
   toggleDate,
   valuesAt,
@@ -622,5 +623,17 @@ describe('facet-engine', () => {
       const back = decodeState(fields, kinds, (n) => params[n] ?? [], '');
       expect(back).toEqual(state);
     });
+  });
+});
+
+describe('sharedConcept', () => {
+  it.each([
+    ['claims, one of them a main claim', [['Claim'], ['MainClaim', 'Claim']], 'Claim'],
+    ['only main claims', [['MainClaim', 'Claim'], ['MainClaim', 'Claim']], 'MainClaim'],
+    ['a claim and a requirement', [['Claim'], ['Requirement']], undefined],
+    ['an atom of no specialization', [['Claim'], []], undefined],
+    ['no atoms', [], undefined],
+  ])('%s', (_case, lists, expected) => {
+    expect(sharedConcept(lists as string[][])).toBe(expected);
   });
 });

@@ -761,3 +761,14 @@ function decodeSelection(
       return { kind, prefixes: new Set(values) };
   }
 }
+
+/**
+ * The specialization every atom of a column holds (Ampersand#1702, OK-29). Each list names
+ * the specializations of one atom, the most specific first, as the backend gives them in
+ * `_concepts_`. The result is the first concept of the first list that every list contains,
+ * or undefined when there are no atoms or they share none.
+ */
+export function sharedConcept(lists: string[][]): string | undefined {
+  if (lists.length === 0) return undefined;
+  return lists[0].find((c) => lists.every((l) => l.includes(c)));
+}

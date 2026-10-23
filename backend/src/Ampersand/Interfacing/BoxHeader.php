@@ -27,6 +27,11 @@ class BoxHeader
         }
     }
 
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
     public function isSortable(): bool
     {
         // sortByAndHide sorts on a column that is not rendered, so it needs the

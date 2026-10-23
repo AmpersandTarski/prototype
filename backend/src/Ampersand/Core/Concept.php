@@ -167,7 +167,15 @@ class Concept
      * @var string[]
      */
     private array $atomCache = [];
-    
+
+    /**
+     * The whole population of the concept as a set (atom id => true), read on first use
+     * by hasAtomId() and forgotten when an atom in its hierarchy is added or removed
+     *
+     * @var array<string|int,true>|null
+     */
+    private ?array $population = null;
+
     /**
      * Constructor
      */
@@ -525,6 +533,55 @@ class Concept
     public function clearAtomCache(): void
     {
         $this->atomCache = [];
+        $this->population = null;
+    }
+
+    /**
+     * Whether the population of this concept holds an atom with this id
+     *
+     * Reads the population once and keeps it as a set, so that checking every atom of a long
+     * list costs one query instead of one per atom. Works for every storage layout, because it
+     * asks the population the way getAllAtomObjects() does.
+     */
+    public function hasAtomId(string $atomId): bool
+    {
+        if (is_null($this->population)) {
+            $this->population = [];
+            foreach ($this->getAllAtomObjects() as $atom) {
+                $this->population[$atom->getId()] = true;
+            }
+        }
+        return isset($this->population[$atomId]);
+    }
+
+    /**
+     * The specializations of this concept that the atom belongs to, the most specific first
+     *
+     * A concept comes before each of its generalizations, because the list is ordered on the
+     * number of generalizations, from most to fewest; concepts with as many generalizations
+     * keep the order of getSpecializations().
+     *
+     * @return \Ampersand\Core\Concept[]
+     */
+    public function specializationsHolding(Atom $atom): array
+    {
+        $holders = array_values(array_filter(
+            $this->getSpecializations(),
+            fn (Concept $spec) => $spec->hasAtomId($atom->getId())
+        ));
+        usort($holders, fn (Concept $a, Concept $b) => count($b->generalizations) <=> count($a->generalizations));
+        return $holders;
+    }
+
+    /**
+     * Forget the population sets in the hierarchy of this concept, because adding or
+     * deleting an atom here can change the population of a generalization or specialization
+     */
+    private function forgetPopulations(): void
+    {
+        foreach (array_merge($this->getSpecializationsIncl(), $this->getGeneralizations()) as $cpt) {
+            $cpt->population = null;
+        }
     }
     
     /**
@@ -657,6 +714,7 @@ class Concept
                     }
                 }
                 $this->atomCache[] = $atom->getId(); // Add to cache
+                $this->forgetPopulations();
 
                 $this->app->eventDispatcher()->dispatch(new AtomEvent($atom, $transaction), AtomEvent::ADDED);
                 $this->logger->info("Atom added to concept: {$atom}");
@@ -715,6 +773,7 @@ class Concept
             if (($key = array_search($atom->getId(), $this->atomCache)) !== false) {
                 unset($this->atomCache[$key]); // Delete from cache
             }
+            $this->forgetPopulations();
 
             $this->logger->info("Atom removed from concept: {$atom}");
             
@@ -744,6 +803,7 @@ class Concept
             if (($key = array_search($atom->getId(), $this->atomCache)) !== false) {
                 unset($this->atomCache[$key]); // Delete from cache
             }
+            $this->forgetPopulations();
 
             $this->app->eventDispatcher()->dispatch(new AtomEvent($atom, $transaction), AtomEvent::DELETED);
             $this->logger->info("Atom deleted: {$atom}");

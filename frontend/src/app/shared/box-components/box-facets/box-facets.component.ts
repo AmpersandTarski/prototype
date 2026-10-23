@@ -33,6 +33,7 @@ import {
   kindOf,
   locateBox,
   selectFields,
+  sharedConcept,
   sortBuckets,
   splitList,
   toggleDate,
@@ -123,6 +124,10 @@ export class BoxFacetsComponent
   private constantColumns = new Set<string>();
   /** Per facet, the value every passing row has, shown as checked in the panel. */
   private implied = new Map<string, string>();
+  /** The columns of the box, by item name. */
+  private columns: string[] = [];
+  /** Per column, the specialization all passing rows share; see findSharedConcepts. */
+  private sharedConcepts = new Map<string, string>();
   private expanded = new Set<string>();
   private childrenShown = new Set<string>();
   private valueFilters = new Map<string, string>();
@@ -201,6 +206,14 @@ export class BoxFacetsComponent
    */
   showColumn(name: string): boolean {
     return !this.hiddenColumns.has(name) && !this.constantColumns.has(name);
+  }
+
+  /**
+   * The header of a column when every passing row holds an atom of the same
+   * specialization of its target concept, or '' to keep the header of the modeler.
+   */
+  columnConcept(name: string): string {
+    return this.sharedConcepts.get(name) ?? '';
   }
 
   /** Whether every passing row has this value, so the panel shows it checked. */
@@ -386,6 +399,7 @@ export class BoxFacetsComponent
         .filter((f): f is FacetField => f !== undefined && f.path.length === 1)
         .map((f) => f.path[0]),
     );
+    this.columns = itemsOf(box, interfaces).map((item: any) => item.name);
     this.editableColumns = new Set(
       itemsOf(box, interfaces)
         .filter((item: any) => item.crud?.create || item.crud?.update)
@@ -483,6 +497,30 @@ export class BoxFacetsComponent
       this.addChips(f, title);
     }
     this.findConstantColumns();
+    this.findSharedConcepts();
+  }
+
+  /**
+   * A column named after its target concept is headed by a specialization when every
+   * atom in it, over all passing rows, belongs to that specialization. The backend lists
+   * the specializations of such an atom in `_concepts_`, the most specific first
+   * (Ampersand#1702, OK-29). The header names the first concept of that list that every
+   * atom has; an atom without the list keeps the header of the modeler.
+   */
+  private findSharedConcepts(): void {
+    this.sharedConcepts = new Map();
+    const rows = this.filtered.filter((r) => r !== null && r !== undefined);
+    for (const column of this.columns) {
+      const lists: string[][] = rows.flatMap((r: any) => {
+        const value = r[column];
+        if (value === null || value === undefined) return [];
+        return (Array.isArray(value) ? value : [value]).map(
+          (atom: any) => atom?._concepts_ ?? [],
+        );
+      });
+      const shared = sharedConcept(lists);
+      if (shared) this.sharedConcepts.set(column, shared);
+    }
   }
 
   /**
