@@ -1,13 +1,6 @@
 import { Injectable } from '@angular/core';
-import {
-  Subject,
-  map,
-  Observable,
-  BehaviorSubject,
-  ReplaySubject,
-  tap,
-} from 'rxjs';
-import { Navbar, Navs } from '../shared/interfacing/navbar.interface';
+import { Subject, Observable, BehaviorSubject, ReplaySubject, tap } from 'rxjs';
+import { Navbar } from '../shared/interfacing/navbar.interface';
 import { MenuChangeEvent } from './api/menuchangeevent';
 import { HttpClient } from '@angular/common/http';
 
@@ -54,15 +47,6 @@ export class MenuService {
 
   refresh() {
     this.refreshSource.next(true);
-  }
-
-  /* Obtain navbar navs and convert them to MenuItems */
-  getMenuItems(): Observable<Array<Navs>> {
-    return this.http.get<Navbar>('app/navbar').pipe(map((x) => x.navs));
-  }
-
-  getAddButtons(): Observable<Navbar['new']> {
-    return this.http.get<Navbar>('app/navbar').pipe(map((x) => x.new));
   }
 
   /* Every navbar response is also published on navbar$, so that other layout parts (the footer)
