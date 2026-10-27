@@ -959,3 +959,39 @@ Impact op de specificatie: none.
 Impact in productie: every PHP patch release asks for a commit to the Dockerfile and a release of
 the framework; Renovate or Dependabot can propose that commit. Projects that pin the framework
 version, such as the Moestuin-app and the Artefactenkaart, get the new PHP when they raise that pin.
+
+**A relation that the compiler stores as a view is read like a table and never written; the cascades of deleting and merging an atom pass it by, and a direct write is refused with a message**
+OK-30 · geldig · 2026-10-27 · herkomst: AmpersandTarski/Ampersand#1744 (compiler option `--derived-views`, field `storage` in relations.json), the answers of the researcher of that issue (27 October 2026)
+
+The compiler can generate a derived relation, `ENFORCE r := term`, as a database view on the SQL
+of its term, and marks it with `"storage": "view"` in `relations.json`. The framework reads the
+field in `Relation::__construct`; a file without it, from an earlier compiler, means `"table"`.
+A view relation answers every read as a table does. `Relation::deleteAllLinks`, which
+`Concept::deleteAtom` calls for every relation of the atom's concept, does nothing on a view;
+`Concept::mergeAtoms` skips a view; `Relation::addLink`, `deleteLink` and `empty` on a view throw a
+`BadRequestException` that names the relation and says how to change it.
+
+Overwegingen:
+
+1. The purpose is that a prototype with views behaves as a prototype with tables for everything
+   that reads, and tells the user what cannot be done instead of failing in the database. Without
+   this choice, deleting any atom that occurs in a derived relation, every `SESSION` atom among
+   them, ended in a MariaDB error on the `DELETE` or `UPDATE` of the view.
+2. The pairs of a view follow the relations its definition reads. Deleting an atom removes its
+   pairs from those relations, so the view loses them without a write; the cascade has nothing to
+   do and is not an error. A merge moves the pairs of the base relations; the view follows.
+3. A direct write is an error of the model or of the caller: a field on a view that an interface
+   lets a user edit (the compiler makes such a field read-only and warns), an ExecEngine rule that
+   inserts into it, an import that carries pairs for it. The message names the relation and the
+   two ways out: change the base relations, or compile the relation as a stored table
+   (`--materialize`, or without `--derived-views`).
+4. Rejected: letting the database refuse the write. Its message names a view and a column, and
+   the user of a prototype cannot act on it.
+5. Rejected: a silent no-op on a direct write. The caller would believe the pair was written.
+
+Impact op de specificatie: none.
+
+Impact in productie: none until a compiler emits the field; with such a compiler and
+`--derived-views`, deleting and merging atoms work in a prototype with views, and a write to a view
+answers 400 with the message above. The delta route records no pair for a view, because the compiler
+emits no delta table for it.

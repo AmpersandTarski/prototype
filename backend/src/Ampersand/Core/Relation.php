@@ -17,6 +17,7 @@ use Ampersand\Event\LinkEvent;
 use Ampersand\Plugs\MysqlDB\TableType;
 use Ampersand\Core\SrcOrTgt;
 use Ampersand\Exception\AmpersandException;
+use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\NotDefined\NotDefinedException;
 
 /**
@@ -123,6 +124,15 @@ class Relation
     protected ?string $deltaTable = null;
 
     /**
+     * True when the compiler generated this relation as a database view on its defining
+     * term (`ENFORCE r := term` with `--derived-views`, issue Ampersand#1744). A view is read
+     * like a table and cannot be written: nothing maintains it, and the database refuses a
+     * write. The compiler says so in the field `storage` of relations.json; a compiler
+     * without that field generated a table.
+     */
+    protected bool $isView = false;
+
+    /**
      * Constructor
      */
     public function __construct(array $relationDef, LoggerInterface $logger, AmpersandApp $app)
@@ -131,6 +141,7 @@ class Relation
         $this->app = $app;
 
         $this->deltaTable = $relationDef['deltaTable'] ?? null;
+        $this->isView = ($relationDef['storage'] ?? 'table') === 'view';
 
         $this->name = $relationDef['name'];
         $this->srcConcept = $app->getModel()->getConcept($relationDef['srcConceptName']);
@@ -231,6 +242,27 @@ class Relation
     }
 
     /**
+     * True when this relation is a database view on its defining term (issue Ampersand#1744).
+     * Such a relation is read like any other and cannot be written.
+     */
+    public function isView(): bool
+    {
+        return $this->isView;
+    }
+
+    /**
+     * Refuse a write to a relation that is a view, with a message that names the relation
+     * and the way out: a view is kept equal to its definition by the database itself, so a
+     * pair is added or removed by changing the relations the definition reads.
+     */
+    protected function refuseWriteToView(string $what): void
+    {
+        if ($this->isView) {
+            throw new BadRequestException("Cannot {$what} in relation '{$this}': it is a derived relation that the database computes as a view. Change the relations its definition reads instead, or compile without --derived-views (or with --materialize) to store it.");
+        }
+    }
+
+    /**
      * Get registered plugs for this relation
      *
      * @return \Ampersand\Plugs\RelationPlugInterface[]
@@ -290,6 +322,7 @@ class Relation
      */
     public function addLink(Link $link, bool $trackAffected = true): void
     {
+        $this->refuseWriteToView("add link {$link}");
         $this->logger->debug("Add link {$link} to plug");
         $transaction = $this->app->getCurrentTransaction();
 
@@ -319,6 +352,7 @@ class Relation
      */
     public function deleteLink(Link $link): void
     {
+        $this->refuseWriteToView("delete link {$link}");
         $this->logger->debug("Delete link {$link} from plug");
         $transaction = $this->app->getCurrentTransaction();
         $transaction->addAffectedRelations($this); // Add relation to affected relations. Needed for conjunct evaluation and transaction management
@@ -338,6 +372,13 @@ class Relation
      */
     public function deleteAllLinks(Atom $atom, SrcOrTgt $srcOrTgt): void
     {
+        // A view holds no links of its own: the links of the atom disappear from it as soon
+        // as they disappear from the relations the definition reads, which the deletion of
+        // the atom takes care of (issue Ampersand#1744). Nothing to do here.
+        if ($this->isView) {
+            $this->logger->debug("Relation '{$this}' is a view; its links with '{$atom}' follow its definition");
+            return;
+        }
         $this->logger->debug("Deleting all links in relation '{$this}' with {$srcOrTgt->value} '{$atom}'");
 
         // Add relation to affected relations. Needed for conjunct evaluation and transaction management
@@ -354,6 +395,7 @@ class Relation
      */
     public function empty(): void
     {
+        $this->refuseWriteToView("delete all links");
         $this->logger->debug("Deleting all links in relation {$this}");
 
         // Add relation to affected relations. Needed for conjunct evaluation and transaction management

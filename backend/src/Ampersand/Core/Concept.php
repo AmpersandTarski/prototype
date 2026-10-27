@@ -858,6 +858,10 @@ class Concept
 
         // Merge step 2: rename right atom by left atom in relation sets
         foreach ($this->app->getModel()->getRelations() as $relation) {
+            // A view follows the relations its definition reads; it has no links to move (issue Ampersand#1744)
+            if ($relation->isView()) {
+                continue;
+            }
             // Source
             if ($this->inSameClassificationBranch($relation->srcConcept)) {
                 // Delete and add links where atom is the source
