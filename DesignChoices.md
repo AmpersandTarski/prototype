@@ -1022,7 +1022,11 @@ Overwegingen:
    removing links and reinstalling passed, and every deletion of an atom was refused with error
    1451, because `deleteAtom` deleted the row of the atom first and its links after. The end
    state of the transaction was correct; the state in between was not. With the links removed
-   first, the same fifteen requests pass, also with `--derived-views`.
+   first, the same fifteen requests pass, also with `--derived-views`. The event
+   `AtomEvent::DELETED` now fires after the links are gone; the framework has no listener
+   on it, so only an extension of a project that reads the links of the deleted atom in
+   such a listener notices the change. H6 did not merge atoms; `mergeAtoms` moves the
+   links and then deletes the atom, which removes any remaining link first.
 4. Rejected: `ON DELETE CASCADE` in the generated foreign keys. The database would remove pairs
    that the framework does not see, so the delta tables and the affected conjuncts would miss
    them.
