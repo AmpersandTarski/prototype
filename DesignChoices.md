@@ -995,3 +995,46 @@ Impact in productie: none until a compiler emits the field; with such a compiler
 `--derived-views`, deleting and merging atoms work in a prototype with views, and a write to a view
 answers 400 with the message above. The delta route records no pair for a view, because the compiler
 emits no delta table for it.
+
+**Deleting an atom removes its links before the atom itself, and the framework reports a refusal by a foreign key as a fault of the application, which the user cannot cause**
+OK-31 · geldig · 2026-10-29 · herkomst: AmpersandTarski/Ampersand#1744 (compiler option `--foreign-keys`), the two considerations of Stef Joosten (29 October 2026), test H6 of the falsification experiment of that issue
+
+`Concept::deleteAtom` removes every link of the atom (`deleteAllLinksWithAtom`) before it deletes
+the atom from the plugs. `MysqlDB::doQuery` turns MariaDB errors 1451 and 1452, a refused
+reference, into a `DatabaseGuardException`, a `FatalException`. The `ExceptionHandler` answers
+it with status 500 and a fixed message that tells the user the fault is in the application, not
+in what the user did, and that the supplier should hear of it with the time of the message; in
+debug mode the database error follows.
+
+Overwegingen:
+
+1. The compiler option `--foreign-keys` puts a `FOREIGN KEY` on every column that holds an atom.
+   Code that goes into production follows the generally accepted principles of good SQL, and a
+   reference is a foreign key there (Stef Joosten).
+2. The constraints are a second line of defence, as the fatals in the Haskell code of Ampersand
+   are: they guard the tables also against code that writes them directly, and they are not
+   meant to fire for a user. When one fires anyway, the user should see that this is a deep
+   fault and call the supplier (Stef Joosten). The framework guarantees the references of its
+   own writes, so a refusal through the framework is a defect of the framework or of the
+   generated code; `FatalException` already means "SHOULD not occur".
+3. MariaDB checks a foreign key at every statement; it has no deferred constraints. Test H6
+   drove a prototype with `--foreign-keys` through its REST API: creating atoms, adding and
+   removing links and reinstalling passed, and every deletion of an atom was refused with error
+   1451, because `deleteAtom` deleted the row of the atom first and its links after. The end
+   state of the transaction was correct; the state in between was not. With the links removed
+   first, the same fifteen requests pass, also with `--derived-views`.
+4. Rejected: `ON DELETE CASCADE` in the generated foreign keys. The database would remove pairs
+   that the framework does not see, so the delta tables and the affected conjuncts would miss
+   them.
+5. Rejected: `SET FOREIGN_KEY_CHECKS=0` around the deletion. It switches the guard off at the
+   moment it is meant for.
+6. Rejected: the general message of a `FatalException` ("A fatal error occured. For more
+   information see server log files"). It does not tell the user that the fault is not theirs,
+   nor whom to call.
+
+Impact op de specificatie: none.
+
+Impact in productie: none without `--foreign-keys`, apart from the order in which a deletion
+writes; the result of a deletion is the same. With the option, deleting an atom works, and a
+write that breaks a reference answers 500 with the message of overweging 2 instead of a general
+error.

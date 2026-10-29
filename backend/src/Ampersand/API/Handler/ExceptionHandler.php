@@ -12,6 +12,7 @@ use Ampersand\Exception\NotInstalledException;
 use Ampersand\Exception\SessionExpiredException;
 use Ampersand\Exception\UploadException;
 use Ampersand\Log\Logger;
+use Ampersand\Plugs\MysqlDB\Exception\DatabaseGuardException;
 use Exception;
 use function Ampersand\Misc\stackTrace;
 use JsonException;
@@ -82,6 +83,11 @@ class ExceptionHandler
                     if ($debugMode) {
                         $data['navTo'] = "/admin/installer";
                     }
+                    break;
+                case $exception instanceof DatabaseGuardException:
+                    // A second line of defence (Ampersand#1744): the user sees that the fault is not theirs
+                    $message = $debugMode ? DatabaseGuardException::USER_MESSAGE . " {$exception->getMessage()}" : DatabaseGuardException::USER_MESSAGE;
+                    $code = 500; // Internal server error
                     break;
                 case $exception instanceof FatalException:
                     $message = $debugMode ? "A fatal exception occured. Please report the full stacktrace to the Ampersand development team on Github: {$exception->getMessage()}" : "A fatal error occured. For more information see server log files";

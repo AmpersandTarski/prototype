@@ -12,6 +12,16 @@ Additional labels for pre-release and build metadata are available as extensions
 
 ## Unreleased
 
+* **Deleting an atom removes its links first, and a refusal by a foreign key tells the user that
+  the fault is not theirs (DesignChoices OK-31).** The compiler option `--foreign-keys` of Ampersand
+  ([Ampersand#1744](https://github.com/AmpersandTarski/Ampersand/issues/1744)) puts a foreign key on
+  every column that holds an atom. MariaDB checks it at every statement, and deleting an atom
+  deleted the atom before its links, so every deletion of an atom with a link failed with error
+  1451. The links now go first. A refused reference (error 1451 or 1452) becomes a
+  `DatabaseGuardException`: status 500 with the message "The database refused a change that this
+  application should never make. This is a fault in the application, not in what you did. Please
+  report it to the supplier of the application, with the time of this message." A view of a derived
+  relation is read with `DISTINCT`, because the compiler leaves it out of the view.
 * **A derived relation that the compiler generates as a database view is read and never written
   (DesignChoices OK-30).** Compiler option `--derived-views` of Ampersand
   ([Ampersand#1744](https://github.com/AmpersandTarski/Ampersand/issues/1744)) turns an
