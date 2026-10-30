@@ -10,8 +10,10 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.21.0 (30 October 2026)
 
+* **The bundled compiler is Ampersand v5.13.0**, which carries `--derived-views`, `--foreign-keys` and
+  `--schema-views` of [Ampersand#1744](https://github.com/AmpersandTarski/Ampersand/issues/1744).
 * **Deleting an atom removes its links first, and a refusal by a foreign key tells the user that
   the fault is not theirs (DesignChoices OK-31).** The compiler option `--foreign-keys` of Ampersand
   ([Ampersand#1744](https://github.com/AmpersandTarski/Ampersand/issues/1744)) puts a foreign key on
