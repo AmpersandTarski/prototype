@@ -10,6 +10,33 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.21.0 (30 October 2026)
+
+* **The bundled compiler is Ampersand v5.13.0**, which carries `--derived-views`, `--foreign-keys` and
+  `--schema-views` of [Ampersand#1744](https://github.com/AmpersandTarski/Ampersand/issues/1744).
+* **Deleting an atom removes its links first, and a refusal by a foreign key tells the user that
+  the fault is not theirs (DesignChoices OK-31).** The compiler option `--foreign-keys` of Ampersand
+  ([Ampersand#1744](https://github.com/AmpersandTarski/Ampersand/issues/1744)) puts a foreign key on
+  every column that holds an atom. MariaDB checks it at every statement, and deleting an atom
+  deleted the atom before its links, so every deletion of an atom with a link failed with error
+  1451. The links now go first. A refused reference (error 1451 or 1452) becomes a
+  `DatabaseGuardException`: status 500 with the message "The database refused a change that this
+  application should never make. This is a fault in the application, not in what you did. Please
+  report it to the supplier of the application, with the time of this message." A view of a derived
+  relation is read with `DISTINCT`, because the compiler leaves it out of the view.
+* **A derived relation that the compiler generates as a database view is read and never written
+  (DesignChoices OK-30).** Compiler option `--derived-views` of Ampersand
+  ([Ampersand#1744](https://github.com/AmpersandTarski/Ampersand/issues/1744)) turns an
+  `ENFORCE r := term` into a `CREATE VIEW` instead of a table that the ExecEngine maintains, and
+  says so in the new field `storage` (`"view"`) of `relations.json`. The framework reads such a
+  relation as it reads a table. Deleting an atom and merging two atoms used to write to every
+  relation of the atom's concept, which the database refuses on a view; they now pass a view by,
+  because its pairs follow the relations its definition reads. A direct write to a view, from an
+  interface, an `{EX} InsPair` or `DelPair`, or an import, is refused with a message that names the
+  relation and the way out. A `relations.json` without the field, from any earlier compiler, is read
+  as before. No released compiler emits the field yet; the regression project follows once the
+  bundled compiler does.
+
 ## v2.20.1 (23 October 2026)
 
 * **The navigation menu shows its root once, also after refreshes that overlap (#511).**

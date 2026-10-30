@@ -31,6 +31,7 @@ use Ampersand\Plugs\ViewPlugInterface;
 use Ampersand\Transaction;
 use Psr\Log\LoggerInterface;
 use Ampersand\Exception\NotInstalledException;
+use Ampersand\Plugs\MysqlDB\Exception\DatabaseGuardException;
 use Ampersand\Plugs\MysqlDB\Exception\MysqlConnectionException;
 use Ampersand\Plugs\MysqlDB\Exception\MysqlDeadlockException;
 use Ampersand\Plugs\MysqlDB\Exception\MysqlQueryException;
@@ -433,6 +434,9 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
                     throw new BadRequestException("Data entry is too long", previous: $e);
                 case 1213: // Error: 1213 SQLSTATE: 40001 (ER_LOCK_DEADLOCK)
                     throw new MysqlDeadlockException("MYSQL err{$e->getCode()}: '{$e->getMessage()}' in query: {$query}", previous: $e);
+                case 1451: // Error: 1451 SQLSTATE: 23000 (ER_ROW_IS_REFERENCED_2), a foreign key of --foreign-keys
+                case 1452: // Error: 1452 SQLSTATE: 23000 (ER_NO_REFERENCED_ROW_2), a foreign key of --foreign-keys
+                    throw new DatabaseGuardException("The database guard refused a write. MYSQL err{$e->getCode()}: '{$e->getMessage()}' in query: {$query}", previous: $e);
                 default:
                     throw new MysqlQueryException("MYSQL err{$e->getCode()}: '{$e->getMessage()}' in query: {$query}", previous: $e);
             }
@@ -1045,8 +1049,10 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
         $links = [];
         // A relation stored in several tables (Ampersand issue #1716) is the union of its parts
         foreach ($relation->getMysqlTables() as $relTable) {
-            // Query all atoms in table
-            $query = "SELECT \"{$relTable->srcCol()->getName()}\" as \"src\", \"{$relTable->tgtCol()->getName()}\" as \"tgt\" FROM \"{$relTable->getName()}\"";
+            // Query all atoms in table. A view of a derived relation (Ampersand#1744) leaves out
+            // DISTINCT so that the database can merge it into a query; reading it, we add it.
+            $distinct = $relation->isView() ? "DISTINCT " : "";
+            $query = "SELECT {$distinct}\"{$relTable->srcCol()->getName()}\" as \"src\", \"{$relTable->tgtCol()->getName()}\" as \"tgt\" FROM \"{$relTable->getName()}\"";
 
             // Construct WHERE-clause if applicable
             if (isset($srcAtom)) {

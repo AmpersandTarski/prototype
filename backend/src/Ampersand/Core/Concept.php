@@ -795,6 +795,11 @@ class Concept
             $transaction = $this->app->getCurrentTransaction();
             $transaction->addAffectedConcept($this); // Add concept to affected concepts. Needed for conjunct evaluation and transaction management
 
+            // Delete all links where $atom is used as src or tgt atom, before the atom itself:
+            // a foreign key of --foreign-keys (Ampersand#1744) refuses to delete an atom that a
+            // link still refers to, also in the middle of a transaction.
+            $this->deleteAllLinksWithAtom($atom);
+
             if ($this->hasConceptTable() || $this->hasAllAtomsQuery()) {
                 foreach ($this->getPlugs() as $plug) {
                     $plug->deleteAtom($atom); // Delete from plug
@@ -807,9 +812,6 @@ class Concept
 
             $this->app->eventDispatcher()->dispatch(new AtomEvent($atom, $transaction), AtomEvent::DELETED);
             $this->logger->info("Atom deleted: {$atom}");
-            
-            // Delete all links where $atom is used as src or tgt atom
-            $this->deleteAllLinksWithAtom($atom);
         } else {
             $this->logger->debug("Cannot delete atom {$atom}, because it does not exist");
         }
@@ -858,6 +860,10 @@ class Concept
 
         // Merge step 2: rename right atom by left atom in relation sets
         foreach ($this->app->getModel()->getRelations() as $relation) {
+            // A view follows the relations its definition reads; it has no links to move (issue Ampersand#1744)
+            if ($relation->isView()) {
+                continue;
+            }
             // Source
             if ($this->inSameClassificationBranch($relation->srcConcept)) {
                 // Delete and add links where atom is the source
