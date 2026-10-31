@@ -34,8 +34,8 @@ Additional labels for pre-release and build metadata are available as extensions
   because its pairs follow the relations its definition reads. A direct write to a view, from an
   interface, an `{EX} InsPair` or `DelPair`, or an import, is refused with a message that names the
   relation and the way out. A `relations.json` without the field, from any earlier compiler, is read
-  as before. No released compiler emits the field yet; the regression project follows once the
-  bundled compiler does.
+  as before. The bundled compiler v5.13.0 emits the field; the regression project does not use
+  `--derived-views` yet.
 
 ## v2.20.1 (23 October 2026)
 

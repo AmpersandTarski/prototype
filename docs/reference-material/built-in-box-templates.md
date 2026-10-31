@@ -538,7 +538,7 @@ so claims among which one is a `MainClaim` (`CLASSIFY MainClaim ISA Claim`) stil
 
 The backend gives each atom of such a column the specializations it belongs to, the most
 specific first, as `_concepts_` in the JSON of the resource. It does so for a column of
-BOX<FACETS> whose label is the name of its target concept, when that concept has
+`BOX<FACETS>` whose label is the name of its target concept, when that concept has
 specializations, in every storage layout (one wide table, `MULTITABLE`, a union concept).
 Every other field, also the same column in a TABLE or a FORM, gets the JSON it got before.
 Building the list costs one query per specialization of the target concept per request,
