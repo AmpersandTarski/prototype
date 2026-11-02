@@ -1,0 +1,24 @@
+CONTEXT BoxGuardedEdit IN ENGLISH
+-- CRUD rights are fixed per interface object, so rights that differ per atom sit in a box whose term selects the atoms.
+-- Here a choice whose home is the application can be edited and deleted, and a choice that lives elsewhere cannot.
+
+REPRESENT Text TYPE ALPHANUMERIC
+REPRESENT Artefact TYPE OBJECT
+CLASSIFY Choice ISA Artefact
+RELATION text[Choice*Text] [UNI]
+RELATION homeHere[Artefact*Artefact] [PROP]
+
+POPULATION Choice CONTAINS [ "here", "elsewhere" ]
+POPULATION homeHere[Artefact*Artefact] CONTAINS [ ("here", "here") ]
+POPULATION text[Choice*Text] CONTAINS [ ("here", "old here"), ("elsewhere", "old elsewhere") ]
+
+INTERFACE Choice : I[Choice] cRud BOX <FORM>
+    -- The term ends on I[Choice] outside the intersection, because a field of Choice needs a box with that target:
+    -- the compiler drops I[Choice] from I[Choice];homeHere;I[Choice] and gives that box the target Artefact.
+    [ "Edit" : (I[Choice] /\ homeHere);I[Choice] cRuD BOX <FORM>
+        [ "Text" : text cRUd ]
+    , "Contents" : I cRud BOX <FORM>
+        [ "Text" : text cRud ]
+    ]
+
+ENDCONTEXT
