@@ -6,6 +6,7 @@ use Ampersand\AmpersandApp;
 use Ampersand\Exception\AccessDeniedException;
 use Ampersand\Exception\BadRequestException;
 use Ampersand\Exception\FatalException;
+use Ampersand\Exception\InvalidTokenException;
 use Ampersand\Exception\MethodNotAllowedException;
 use Ampersand\Exception\NotFoundException;
 use Ampersand\Exception\NotInstalledException;
@@ -48,6 +49,12 @@ class ExceptionHandler
                     if ($this->app->getSettings()->get('session.loginEnabled')) {
                         $data['loginPage'] = $this->app->getSettings()->get('session.loginPage'); // picked up by frontend to nav to login page
                     }
+                    break;
+                case $exception instanceof InvalidTokenException:
+                    // The door refused a bearer token (OK-32). The session is not set up at this
+                    // point, so this case must not ask the session anything.
+                    $code = 401; // Unauthorized
+                    $message = $exception->getMessage();
                     break;
                 case $exception instanceof AccessDeniedException:
                     // If not yet authenticated, return 401 Unauthorized

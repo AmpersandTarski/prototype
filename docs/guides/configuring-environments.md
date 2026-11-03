@@ -37,6 +37,12 @@ The following environment variables map directly to configuration settings:
 | `AMPERSAND_DBUSER`           | `mysql.dbUser`           | string  |
 | `AMPERSAND_DBPASS`           | `mysql.dbPass`           | string  |
 | `AMPERSAND_SESSION_COOKIE_SECURE` | `session.cookieSecure` | string: `auto`, `true` or `false` |
+| `AMPERSAND_DOOR`             | `session.door`           | string: `proxy` or empty (see [The Door](../reference-material/the-door.md)) |
+| `AMPERSAND_DOOR_GROUPS_HEADER` | `session.door.groupsHeader` | string |
+| `AMPERSAND_DOOR_TOKEN_ISSUER` | `session.door.tokenIssuer` | string |
+| `AMPERSAND_DOOR_TOKEN_AUDIENCE` | `session.door.tokenAudience` | string |
+| `AMPERSAND_DOOR_TRUSTED_PROXIES` | `session.door.trustedProxies` | string: comma-separated addresses or ranges |
+| `AMPERSAND_ACCESSIBLE_INTERFACES_IFC` | `rbac.accessibleInterfacesIfcId` | string: an interface of the script (see [The Door](../reference-material/the-door.md)) |
 
 Boolean values are parsed with PHP's `FILTER_VALIDATE_BOOLEAN`. The strings `"true"`, `"1"`, `"yes"`, and `"on"` all result in `true`; `"false"`, `"0"`, `"no"`, and `"off"` result in `false`.
 

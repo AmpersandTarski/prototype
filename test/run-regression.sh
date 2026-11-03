@@ -73,7 +73,10 @@ guards_of() {
 # so the application is never installed against a database that is still starting.
 stack_up() {
   local project="$1"
-  REG_STACK="reg-$project" REG_PORT="$REG_PORT" \
+  # Settings of the project itself, such as the door of test/projects/door, come from its regression.vars.
+  local env_file="$PROJECTS_DIR/$project/regression.vars"
+  [ -f "$env_file" ] || env_file=/dev/null
+  REG_STACK="reg-$project" REG_PORT="$REG_PORT" REG_ENV_FILE="$env_file" \
     docker compose -f "$COMPOSE_FILE" -p "reg-$project" up -d --build --wait >/dev/null 2>&1
 }
 

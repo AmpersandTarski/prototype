@@ -10,6 +10,32 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.24.0 (3 November 2026)
+
+* **A prototype can take its roles from an identity service in front of it (the door, OK-32).** With
+  `session.door: proxy` (environment variable `AMPERSAND_DOOR=proxy`) every request gets the roles it
+  presents: a person through the groups header that a proxy such as oauth2-proxy passes on
+  (`X-Auth-Request-Groups`), a machine through a bearer token that the framework checks itself against the
+  keys of the identity service (`AMPERSAND_DOOR_TOKEN_ISSUER`, `AMPERSAND_DOOR_TOKEN_AUDIENCE`). Only roles
+  that the script declares count, never ExecEngine or SYSTEM, and a role taken away is gone at the next
+  request. This lets a prototype run on the internet behind passkeys for people and tokens for machines,
+  without passwords and without SIAM. Off by default; nothing changes for a prototype that does not set it.
+  `test/projects/door` and `test/unit/DoorTest.php` guard it.
+* **Apache passes the `Authorization` header to PHP**, so that a bearer token reaches the framework
+  (`apache-conf/.htaccess` and `docker/apache/000-default.conf`).
+* **A regression project can set its own environment** in `test/projects/<project>/regression.vars`.
+* **The role synchroniser makes Pocket ID know the roles of the script (OK-33).** After a deployment,
+  `php /var/www/backend/bin/door-sync-roles.php` adds a group per role, the API of the prototype and a
+  permission per role, so that an administrator can give every role to a person or a machine without
+  typing its name. It removes nothing, and `--dry-run` says what it would do. A role whose name is not an
+  OAuth scope token, such as `Coördinator`, gets a group and no permission: people can have it, machines
+  cannot. `test/unit/DoorRoleSyncTest.php` guards it.
+* **Access can follow every allowed role instead of the one active role (OK-34).** A script names an
+  interface that lists the accessible interfaces in `rbac.accessibleInterfacesIfcId`, now also settable as
+  `AMPERSAND_ACCESSIBLE_INTERFACES_IFC`. With the interface in OK-34, a person with two roles opens both
+  without switching, a machine role reaches only the interfaces that name it, and a prototype with the door
+  off stays open whichever role is active. `test/projects/door-access` and `door-access-off` guard it.
+
 ## v2.23.0 (3 November 2026)
 
 * **A detail screen can show its blocks as tabs, without empty tabs.** With

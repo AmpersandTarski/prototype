@@ -1,0 +1,42 @@
+CONTEXT DoorAccessTest IN ENGLISH
+
+-- Access from all allowed roles through rbac.accessibleInterfacesIfcId, instead of from the one active role.
+--   * PublicIfc  : no FOR-clause -> Any: every allowed role except Anonymous and Stampreporter
+--   * EditorIfc  : FOR Editor
+--   * ReaderIfc  : FOR Reader
+--   * StampIfc   : FOR Stampreporter
+--   * AnonIfc    : FOR Anonymous
+
+REPRESENT Text TYPE ALPHANUMERIC
+RELATION sessionText[SESSION*Text] [UNI]
+MEANING "A piece of text known in the current session."
+
+INTERFACE PublicIfc LABEL "Public interface": "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "text (public)" : sessionText cRUd
+   ]
+
+INTERFACE EditorIfc LABEL "Editor interface" FOR Editor : "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "text (Editor)" : sessionText cRUd
+   ]
+
+INTERFACE ReaderIfc LABEL "Reader interface" FOR Reader : "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "text (Reader)" : sessionText cRUd
+   ]
+
+INTERFACE StampIfc LABEL "Stamp interface" FOR Stampreporter : "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "text (Stampreporter)" : sessionText cRUd
+   ]
+
+INTERFACE AnonIfc LABEL "Anonymous interface" FOR Anonymous : "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "text (Anonymous)" : sessionText cRUd
+   ]
+
+-- The interfaces that a session may open: those of every allowed role, and the role-less ones (Any)
+-- for every allowed role that is a person's role.
+INTERFACE Access FOR ExecEngine : PrototypeContext.sessionAllowedRoles;PrototypeContext.ifcRoles~
+   \/ PrototypeContext.sessionAllowedRoles;(I[PrototypeContext.Role] - ("Anonymous"[PrototypeContext.Role] \/ "Stampreporter"[PrototypeContext.Role]));V[PrototypeContext.Role*PrototypeContext.Role];"Any"[PrototypeContext.Role];PrototypeContext.ifcRoles~
+   cRud BOX<TABLE>
+   [ "interface" : I[PrototypeContext.Interface] cRud
+   ]
+
+ENDCONTEXT

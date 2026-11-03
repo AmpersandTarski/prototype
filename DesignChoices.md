@@ -1042,3 +1042,165 @@ Impact in productie: none without `--foreign-keys`, apart from the order in whic
 writes; the result of a deletion is the same. With the option, deleting an atom works, and a
 write that breaks a reference answers 500 with the message of overweging 2 instead of a general
 error.
+
+**With the door on, a session holds exactly the roles that the request presents: from the groups header of a trusted proxy, or from a bearer token that the framework checks itself**
+OK-32 · geldig · 2026-11-03 · herkomst: Werkplaats#132 (the artefact map of LightBrain on a server, behind a password per person), Stef Joosten (3 November 2026: "Een passkey voor mensen en een token voor machines", roles linked to persons in the identity service, "applicaties die niet weten wie hun gebruiker is maar alleen hun rol kennen")
+
+The setting `session.door` is `null` by default, and then nothing changes. With `session.door: proxy`, every
+request gives the session the roles it presents. A request with `Authorization: Bearer <token>` presents the
+roles in the claim `scp` (or the space-separated `scope`) of that token, after the framework has checked its
+signature against the key set of `session.door.tokenIssuer`, its algorithm (asymmetric only), its issuer, its
+audience (`session.door.tokenAudience`) and its expiry; a token that fails a check ends the request with 401. A
+request without a token presents the names in the header `session.door.groupsHeader` (default
+`X-Auth-Request-Groups`), comma-separated, provided the request comes from an address in
+`session.door.trustedProxies` when that setting is given. A request that presents neither gets the role
+Anonymous. Of the presented names, only roles that the script declares count, and never ExecEngine, SYSTEM, Any
+or Anonymous. The allowed roles of the session become exactly the presented roles, plus Anonymous; one of them
+is active, an active role stays active as long as it is allowed, and otherwise the first presented role becomes
+active.
+
+Overwegingen:
+
+1. The purpose is that a prototype can run on the internet behind an identity service, with a passkey for every
+   person and a token for every machine, while the roles in the script decide what each visitor may do. Until
+   now the framework knew two states: login off, where every session gets every role, and login on, where SIAM
+   or a login route in the model sets `sessionAccount` and the roles follow from the account. The artefact map
+   of LightBrain therefore ran with login off behind a password per person in Caddy, and every person and every
+   machine could read and write everything.
+2. Authentication stays outside the framework. A passkey is a cryptographic challenge and response that no rule
+   in a model can verify, and an identity service such as Pocket ID does it for every application at once. The
+   framework already separated the two: `AmpersandApp::login()` takes an account that is already authenticated.
+   The door goes one step further and takes roles instead of an account, because Stef wants applications that
+   know only the role of their visitor. A session with roles needs no `Account`, no `sessionAccount` and no
+   SIAM, so `session.loginEnabled` stays false: with that setting on and no SIAM, `SessionController` throws
+   on every navigation request (`Session::getSessionAccount`).
+3. The roles are set on every request, not only when the session starts. A group that the administrator takes
+   away in the identity service must close the door at the next request, and the PHP session cookie outlives
+   the groups of the moment. Measured in `test/projects/door`: a session that presented Editor and Reader and
+   then only Reader, loses Editor at once.
+4. `sessionActiveRoles` is UNI in the PrototypeContext of the compiler, and its ENFORCE allows Anonymous to every
+   session. The door respects both: it leaves Anonymous allowed, makes one presented role active, and keeps the
+   role that the visitor chose in the role menu as long as it is allowed. Activating all presented roles, as the
+   framework does with login off, leaves only the last one active; the first run of `test/projects/door`
+   showed that.
+5. The framework believes the groups header because the proxy is the only way in, which is a condition of the
+   deployment. Apache drops a header spelled with underscores (measured on 3 November 2026 with
+   php:8.3.36-apache-bookworm: `X_Auth_Request_Groups` did not reach `$_SERVER`), so the spoofing of
+   CVE-2026-52845, which needs `php_fastcgi` in Caddy, does not reach a prototype behind `reverse_proxy`.
+   `session.door.trustedProxies` narrows the trust to the addresses of the proxy, for a deployment where the
+   network cannot guarantee it. Two lines of the same header arrive as one, joined with ", ".
+6. A machine sends a bearer token that the framework checks itself, because the token comes straight from the
+   identity service and a proxy would only pass it on. Only asymmetric algorithms are accepted, so that neither
+   `none` nor HS256 with the public key as secret can forge a token. The keys come from the OpenID
+   configuration of the issuer and are cached for ten minutes; an unknown key id fetches them again, at most
+   once a minute, so that forged key ids cannot make the application a load on the identity service. Pocket ID
+   v2.19.2 puts the permissions of a machine in both `scp` and `scope`
+   (`backend/internal/oidc/provider.go`, `JWTScopeClaimKey: jwt.JWTScopeFieldBoth`). `firebase/php-jwt` v7.2
+   does the cryptography.
+7. Apache passes the `Authorization` header to PHP only with `SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1`
+   (measured: without it `$_SERVER` has no `HTTP_AUTHORIZATION`). The production image gets that line from
+   `apache-conf/.htaccess`, the dev image from `docker/apache/000-default.conf`.
+8. Rejected: an OIDC client in the framework that sends the browser to the identity service itself. It would
+   put sessions, redirects and token refresh in PHP, where oauth2-proxy already does them, and the 2021 OAuth
+   module was removed from the framework for that reason (commit `953dd140`).
+9. Rejected: a `login()` with an account per visitor that the door creates. It would write a person into the
+   population of an application that only wants to know roles, and it would need SIAM or an equivalent in
+   every script.
+10. A role that the script declares only with `ROLE X MAINTAINS ...` has no atom in `PrototypeContext.Role`:
+    compiler v5.15.0 populates that concept with the roles of FOR-clauses and its own roles, while
+    `roles.json` lists every role. Measured on the kern of the Artefactenkaart: `Registerwachter` and
+    `Wachter` were in `roles.json` and not in the population, and a person with such a group got no role.
+    The door therefore adds the atom of a declared role that lacks one; the names it handles are declared
+    roles already, so it adds nothing a script does not name.
+
+Impact op de specificatie: none. A script declares its roles and uses `FOR` as before; the names of the roles
+are the names of the groups and permissions in the identity service, so a role name holds no comma, and a role
+for machines is an OAuth scope token (OK-33).
+
+Impact in productie: none while `session.door` is null. A deployment that switches it on puts an identity service
+and a proxy in front of the prototype, publishes no port of the prototype itself, and configures the issuer and
+the audience for machines. A machine request without a cookie starts a new session atom, which the existing
+garbage collection removes after `session.expirationTime`.
+
+**The identity service knows every role of the script, as a group for people and as a permission for machines, because a program in the image adds what is missing after every deployment**
+OK-33 · geldig · 2026-11-03 · herkomst: Stef Joosten (3 November 2026: "Ik wil ook dat Caddy tenminste alle rollen kent die het Ampersand script noemt"), OK-32, Werkplaats#132
+
+`backend/bin/door-sync-roles.php` reads `backend/generics/roles.json` and sees to it that Pocket ID has a group
+for every role, an API with `session.door.tokenAudience` as its resource, and a permission for every role on that
+API. It adds and never removes. ExecEngine, SYSTEM, Any and Anonymous get neither. A role whose name has a comma
+or fewer than two characters is an error, and the program exits 1. A role whose name is not an OAuth scope token,
+or one that Pocket ID reserves, gets a group and no permission, and the report names it.
+
+Overwegingen:
+
+1. The purpose is that an administrator can give every role of the script to a person or a machine without
+   typing its name, and that no role exists in the script that the identity service cannot give. Stef asked
+   that the door knows at least all roles of the script; more is allowed, because Pocket ID may serve other
+   applications.
+2. The compiler already writes the roles of the script in `roles.json`, so the program reads the script's own
+   list and needs no change of the compiler.
+3. It removes nothing. A group that the script no longer names may still belong to another application, and
+   removing a permission takes its grants away from machines. `PUT /api/apis/{id}/permissions` of Pocket ID
+   replaces the full set, so the program sends the existing permissions along; Pocket ID keeps a permission
+   whose key stays, with its id and grants (`UpdatePermissions` in `backend/internal/api/service.go` of
+   Pocket ID v2.19.2).
+4. Pocket ID accepts a group name of 2 to 255 characters and a permission key that is an OAuth scope token
+   (RFC 6749: printable ASCII without space, double quote or backslash) other than six names it reserves for its
+   own scopes. In the scripts of the Werkplaats, VoedselVeurElkaar, LightBrain and FC5 no role has a space or a
+   comma, and one role is named `Coördinator`. Refusing such a role would stop the deployment of a working
+   application for a capability it may not need, so it gets its group and a note.
+5. A comma in a role name is an error, because oauth2-proxy passes the groups comma-separated and the door could
+   not tell the role from two others.
+6. Rejected: the synchroniser inside the framework at every request or at installation. It would put the API key
+   that can change every group in the environment of every PHP process, and make a request wait on Pocket ID.
+   A separate program that a deployment runs once keeps the key in one place.
+7. Rejected: a synchroniser in each project's deployment scripts. The rule "group name = role name = permission
+   key" belongs to the door, and a copy per project would drift.
+
+Impact op de specificatie: none.
+
+Impact in productie: a deployment with the door runs the program after the prototype has started, with an API key
+of Pocket ID in the `.env` of the server. That key can change every group and permission, and deserves the care
+of a master key.
+
+**Under the door, access follows every allowed role through an interface of the script that `rbac.accessibleInterfacesIfcId` names, and the environment variable `AMPERSAND_ACCESSIBLE_INTERFACES_IFC` sets that setting**
+OK-34 · geldig · 2026-11-03 · herkomst: Werkplaats#132 (the machine account `werkplaats` that may reach one interface of the artefact map, decided by Stef Joosten on 3 November 2026), OK-32, the measurement of the active role on the artefact map of the Werkplaats (3 November 2026)
+
+The framework keeps deciding access as it did: from the interface that `rbac.accessibleInterfacesIfcId` names, or
+otherwise from the one active role. A script that wants access from every allowed role declares an interface such as
+
+```
+INTERFACE Access FOR ExecEngine : PrototypeContext.sessionAllowedRoles;PrototypeContext.ifcRoles~
+   \/ PrototypeContext.sessionAllowedRoles;(I[PrototypeContext.Role] - ("Anonymous"[PrototypeContext.Role] \/ "Stampreporter"[PrototypeContext.Role]));V[PrototypeContext.Role*PrototypeContext.Role];"Any"[PrototypeContext.Role];PrototypeContext.ifcRoles~
+   cRud BOX<TABLE> [ "interface" : I[PrototypeContext.Interface] cRud ]
+```
+
+and names it in that setting. The environment variable `AMPERSAND_ACCESSIBLE_INTERFACES_IFC` sets the setting as well.
+
+Overwegingen:
+
+1. The purpose is that a machine role reaches only the interfaces that name it, while a person with more roles
+   reaches all their interfaces and every prototype with the door off stays open as before. With the door,
+   `sessionActiveRoles` is UNI in the PrototypeContext of the compiler, so access from the active role makes a
+   person with two groups switch roles, and a role-less interface opens for every authenticated role, a machine
+   role included.
+2. Putting `FOR` a person's role on every interface does not work with the door off. Such a prototype allows every
+   role and keeps one active, the last one: on the artefact map of the Werkplaats that was SYSTEM (measured on
+   3 November 2026), so every interface `FOR` another role would close there.
+3. The setting already existed and needed no change of the framework. `test/projects/door-access` (door on) and
+   `test/projects/door-access-off` (door off, active role Stampreporter) measure the interface above: two roles
+   open both without switching, a token with only Stampreporter opens its own interface and nothing role-less,
+   and with the door off every interface opens. The path was not guarded by any project before.
+4. The rules that a session maintains still follow the active role (`AmpersandApp::setRulesToMaintain`); a person
+   sees the signals of one role at a time and switches in the role menu.
+5. Rejected for now: access from the allowed roles as the default of the framework. It changes the contract of
+   `test/projects/any-role`, where an interface `FOR` a role opens only while that role is active, for every
+   prototype; the setting lets a script choose it.
+6. Rejected: excluding service roles (`SERVICE X MAINTAINS`, `isService` in `roles.json`) from the wildcard in the
+   framework. It asks every machine role for a rule to maintain, and how the compiler unites `FOR X` with
+   `SERVICE X` was not measured.
+
+Impact op de specificatie: a script that uses the door with machine roles declares the interface above, with its
+own machine roles in place of Stampreporter, and names it in `rbac.accessibleInterfacesIfcId`.
+
+Impact in productie: none for a prototype that does not set the setting.

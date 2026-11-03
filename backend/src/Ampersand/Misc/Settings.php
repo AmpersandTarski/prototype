@@ -9,6 +9,7 @@ namespace Ampersand\Misc;
 
 use Ampersand\Exception\InvalidConfigurationException;
 use Ampersand\Misc\Extension;
+use Ampersand\Misc\Door;
 use Ampersand\Model;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Encoder\YamlEncoder;
@@ -81,6 +82,35 @@ class Settings
         // 'auto', 'true' or 'false', so it stays a string; Session::cookieParams() interprets it
         'AMPERSAND_SESSION_COOKIE_SECURE' => [
             'key' => 'session.cookieSecure',
+            'bool' => false
+        ],
+        // The interface that lists the interfaces a session may open, instead of the interfaces of
+        // its one active role. With the door, it lets access follow every allowed role (OK-34).
+        'AMPERSAND_ACCESSIBLE_INTERFACES_IFC' => [
+            'key' => 'rbac.accessibleInterfacesIfcId',
+            'bool' => false
+        ],
+        // The door: roles come from an identity service in front of the application. See OK-32
+        // and Ampersand\Misc\Door.
+        'AMPERSAND_DOOR' => [
+            'key' => Door::SETTING_MODE,
+            'bool' => false
+        ],
+        'AMPERSAND_DOOR_GROUPS_HEADER' => [
+            'key' => Door::SETTING_GROUPS_HEADER,
+            'bool' => false
+        ],
+        'AMPERSAND_DOOR_TOKEN_ISSUER' => [
+            'key' => Door::SETTING_TOKEN_ISSUER,
+            'bool' => false
+        ],
+        'AMPERSAND_DOOR_TOKEN_AUDIENCE' => [
+            'key' => Door::SETTING_TOKEN_AUDIENCE,
+            'bool' => false
+        ],
+        // Comma-separated addresses or address/prefix ranges from which the groups header is believed.
+        'AMPERSAND_DOOR_TRUSTED_PROXIES' => [
+            'key' => Door::SETTING_TRUSTED_PROXIES,
             'bool' => false
         ]
     ];
