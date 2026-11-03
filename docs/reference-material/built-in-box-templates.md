@@ -134,6 +134,22 @@ A category with no products shows only the *Name* tab. In TABS this is
 implemented by filtering the list of tab panels per record, which avoids the
 PrimeNG tab-index problems that a structural `*ngIf` on a tab panel would cause.
 
+A tab is empty in the sense a FORM uses (see *Empty fields in a FORM*). A tab that
+holds a group, a FORM box on `I`, is empty when none of the group's fields has a
+value or may be filled, so a detail screen whose blocks are tabs shows only the
+blocks the record has. A tab whose own box says `showOnNoRecords` stays visible:
+
+```ampersand
+INTERFACE Requirement : I[Requirement] cRud BOX<TABS hideSubOnNoRecords>
+  [ "Properties" : I cRud BOX<FORM> [ "Status" : status cRud ]
+  , "Trace"      : I cRud BOX<FORM showOnNoRecords> [ "Tests" : tests~ cRud ]
+  , "History"    : I cRud BOX<FORM> [ "Earlier versions" : earlier cRud ]
+  ]
+```
+
+A requirement without tests and without earlier versions shows the tabs
+*Properties* and *Trace*; *History* is left out.
+
 > **Warning.** A hidden field/tab cannot be edited through this box. Make sure the
 > underlying data is reachable through another interface when it matters.
 

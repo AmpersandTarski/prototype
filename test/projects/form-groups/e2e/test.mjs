@@ -12,7 +12,9 @@
  *    an empty group does not, and an empty group with showOnNoRecords does, with a dash;
  * 3. asserts the kind of field (group, meta) and the item as title;
  * 4. asserts that showSubOnNoRecords shows an empty read-only field;
- * 5. asserts that the New menu leaves out an API with create rights.
+ * 5. asserts that TABS with hideSubOnNoRecords leaves out the tab of an empty group,
+ *    the way a FORM leaves out the group, and keeps one that says showOnNoRecords;
+ * 6. asserts that the New menu leaves out an API with create rights.
  */
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -118,6 +120,19 @@ try {
   await open(page, '/requirementall/R1');
   const all = (await readFields(page)).map((f) => f.label);
   assert(all.includes('Reviewers'), 'the empty read-only field Reviewers appears under showSubOnNoRecords');
+
+  console.log('\n▶ TABS with hideSubOnNoRecords: an empty group is no tab');
+  await page.goto(`${baseUrl}/requirementtabs/R1`, { waitUntil: 'networkidle0', timeout: 30000 });
+  await page.waitForSelector('app-box-tabs .p-tabview-nav', { timeout: 15000 });
+  await sleep(1000);
+  const tabs = await page.$$eval('app-box-tabs .p-tabview-nav li .p-tabview-title', (els) =>
+    els.map((e) => e.textContent.trim()),
+  );
+  for (const shown of ['Properties', 'Content', 'Mentioned by']) {
+    assert(tabs.includes(shown), `the filled group "${shown}" is a tab`);
+  }
+  assert(!tabs.includes('History'), `the empty group History is no tab (got: ${tabs.join(', ')})`);
+  assert(tabs.includes('Trace'), 'the empty group Trace is a tab, for it says showOnNoRecords');
 
   console.log('\n▶ The New menu leaves out an API');
   const navbar = await (await fetch(`${baseUrl}/api/v1/app/navbar`)).json();

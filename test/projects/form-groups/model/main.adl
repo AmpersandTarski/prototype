@@ -3,7 +3,9 @@ PURPOSE CONTEXT FormGroups
 {+ Test project for what a FORM shows (DesignChoices OK-20, OK-21, OK-23): a detail
    interface whose fields are grouped in FORM boxes on I, with filled, empty read-only
    and empty editable fields, an empty group, and an empty group that says
-   showOnNoRecords. An API with create rights guards the New menu. The population is
+   showOnNoRecords. RequirementTabs shows the same groups as tabs with
+   hideSubOnNoRecords, so an empty group is no tab. An API with create rights guards
+   the New menu. The population is
    synthetic. +}
 
 REPRESENT Status TYPE ALPHANUMERIC
@@ -40,6 +42,25 @@ INTERFACE Requirement : I[Requirement] cRud BOX <FORM>
         [ "Text"      : text     cRud
         ]
     , "Note"         : note     cRUd
+    , "Mentioned by" : I cRud BOX <FORM>
+        [ "Rules"     : mentions~ cRud
+        ]
+    , "Trace"        : I cRud BOX <FORM showOnNoRecords>
+        [ "Tests"     : tests~   cRud
+        ]
+    , "History"      : I cRud BOX <FORM>
+        [ "Earlier versions" : earlier cRud
+        ]
+    ]
+
+INTERFACE RequirementTabs : I[Requirement] cRud BOX <TABS hideSubOnNoRecords>
+    [ "Properties"   : I cRud BOX <FORM>
+        [ "Status"    : status   cRud
+        , "Owner"     : owner    cRud
+        ]
+    , "Content"      : I cRud BOX <FORM>
+        [ "Text"      : text     cRud
+        ]
     , "Mentioned by" : I cRud BOX <FORM>
         [ "Rules"     : mentions~ cRud
         ]

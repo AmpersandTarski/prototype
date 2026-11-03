@@ -5,7 +5,9 @@ when the user may fill it, when the box says `showSubOnNoRecords`, or when it is
 whose box says `showOnNoRecords` (then with a dash). A group, a FORM box on `I`, is left
 out when all of its fields are empty. The FORM gives each field a kind (group, meta) and a
 field with several values shows their number. A screen on one item carries that item as
-its title. The New menu leaves out an API with create rights.
+its title. TABS with `hideSubOnNoRecords` leaves out the tab of an empty group in the same
+sense, and keeps a tab whose box says `showOnNoRecords`. The New menu leaves out an API
+with create rights.
 
 **Origin:** DesignChoices OK-20 (the fields a FORM shows), OK-21 (the item as title) and
 OK-23 (the New menu). The request came from an interview with the modeler of a large
