@@ -25,7 +25,10 @@ export class RecordFields {
     const known = this.metas.get(path);
     if (known) return known.get(name);
     this.metas.set(path, new Map());
-    this.interfacesJson.fieldMetas(path).then((m) => this.metas.set(path, m));
+    // Not awaited: until the metadata arrive, the field counts as unknown, and an unknown field appears.
+    void this.interfacesJson
+      .fieldMetas(path)
+      .then((m) => this.metas.set(path, m));
     return undefined;
   }
 
