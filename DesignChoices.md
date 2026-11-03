@@ -1108,10 +1108,51 @@ Overwegingen:
    every script.
 
 Impact op de specificatie: none. A script declares its roles and uses `FOR` as before; the names of the roles
-are the names of the groups and permissions in the identity service, so a role name holds no space and no
-comma.
+are the names of the groups and permissions in the identity service, so a role name holds no comma, and a role
+for machines is an OAuth scope token (OK-33).
 
 Impact in productie: none while `session.door` is null. A deployment that switches it on puts an identity service
 and a proxy in front of the prototype, publishes no port of the prototype itself, and configures the issuer and
 the audience for machines. A machine request without a cookie starts a new session atom, which the existing
 garbage collection removes after `session.expirationTime`.
+
+**The identity service knows every role of the script, as a group for people and as a permission for machines, because a program in the image adds what is missing after every deployment**
+OK-33 · geldig · 2026-11-03 · herkomst: Stef Joosten (3 November 2026: "Ik wil ook dat Caddy tenminste alle rollen kent die het Ampersand script noemt"), OK-32, Werkplaats#132
+
+`backend/bin/door-sync-roles.php` reads `backend/generics/roles.json` and sees to it that Pocket ID has a group
+for every role, an API with `session.door.tokenAudience` as its resource, and a permission for every role on that
+API. It adds and never removes. ExecEngine, SYSTEM, Any and Anonymous get neither. A role whose name has a comma
+or fewer than two characters is an error, and the program exits 1. A role whose name is not an OAuth scope token,
+or one that Pocket ID reserves, gets a group and no permission, and the report names it.
+
+Overwegingen:
+
+1. The purpose is that an administrator can give every role of the script to a person or a machine without
+   typing its name, and that no role exists in the script that the identity service cannot give. Stef asked
+   that the door knows at least all roles of the script; more is allowed, because Pocket ID may serve other
+   applications.
+2. The compiler already writes the roles of the script in `roles.json`, so the program reads the script's own
+   list and needs no change of the compiler.
+3. It removes nothing. A group that the script no longer names may still belong to another application, and
+   removing a permission takes its grants away from machines. `PUT /api/apis/{id}/permissions` of Pocket ID
+   replaces the full set, so the program sends the existing permissions along; Pocket ID keeps a permission
+   whose key stays, with its id and grants (`UpdatePermissions` in `backend/internal/api/service.go` of
+   Pocket ID v2.19.2).
+4. Pocket ID accepts a group name of 2 to 255 characters and a permission key that is an OAuth scope token
+   (RFC 6749: printable ASCII without space, double quote or backslash) other than six names it reserves for its
+   own scopes. In the scripts of the Werkplaats, VoedselVeurElkaar, LightBrain and FC5 no role has a space or a
+   comma, and one role is named `Coördinator`. Refusing such a role would stop the deployment of a working
+   application for a capability it may not need, so it gets its group and a note.
+5. A comma in a role name is an error, because oauth2-proxy passes the groups comma-separated and the door could
+   not tell the role from two others.
+6. Rejected: the synchroniser inside the framework at every request or at installation. It would put the API key
+   that can change every group in the environment of every PHP process, and make a request wait on Pocket ID.
+   A separate program that a deployment runs once keeps the key in one place.
+7. Rejected: a synchroniser in each project's deployment scripts. The rule "group name = role name = permission
+   key" belongs to the door, and a copy per project would drift.
+
+Impact op de specificatie: none.
+
+Impact in productie: a deployment with the door runs the program after the prototype has started, with an API key
+of Pocket ID in the `.env` of the server. That key can change every group and permission, and deserves the care
+of a master key.

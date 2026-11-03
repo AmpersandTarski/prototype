@@ -52,8 +52,30 @@ Apache drops a header whose name contains an underscore, so the underscore spell
 
 Apache passes the `Authorization` header to PHP through the line `SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1`, which the framework images carry in `apache-conf/.htaccess` (production) and `docker/apache/000-default.conf` (development).
 
-A role name is also the name of a group and of a permission in the identity service, so it holds no space and no comma.
+A role name is also the name of a group in the identity service, so it holds no comma and has at least two characters.
+A role that a machine can get is also a permission, and Pocket ID accepts as permission only an OAuth scope token: printable ASCII without space, double quote or backslash, and none of `openid`, `profile`, `email`, `email_verified`, `groups` and `offline_access`.
+A role such as `Coördinator` can therefore be given to people, and not to machines.
 
 The keys of the identity service are cached for ten minutes in the temporary directory of PHP.
 A token with a key id that the cache does not know fetches the keys again, at most once a minute.
 A machine request without a cookie starts a new session, which the garbage collection of sessions removes after `session.expirationTime`.
+
+## The role synchroniser
+
+The identity service has to know every role of the script, as a group for people and as a permission for machines (design choice OK-33).
+The program `backend/bin/door-sync-roles.php`, which every prototype image carries, sees to that.
+It reads the roles from `backend/generics/roles.json`, which the compiler writes with every prototype, and adds to Pocket ID what is missing: a group per role, the API of the prototype with `session.door.tokenAudience` as its resource, and a permission per role on that API.
+It removes nothing, because Pocket ID may know groups of other applications, and a permission that stays keeps its grants to machines.
+ExecEngine, SYSTEM, Any and Anonymous get no group and no permission.
+
+A deployment runs it after the prototype has started:
+
+```sh
+docker exec <prototype> php /var/www/backend/bin/door-sync-roles.php --dry-run   # says what it would do
+docker exec <prototype> php /var/www/backend/bin/door-sync-roles.php
+```
+
+It reads `AMPERSAND_DOOR_TOKEN_ISSUER` (the address of Pocket ID), `AMPERSAND_DOOR_TOKEN_AUDIENCE` and `POCKET_ID_API_KEY`, an API key that an administrator makes in Pocket ID under Settings, API keys.
+That key can change every group and permission in Pocket ID, so it lives only in the `.env` of the server.
+The program prints a line per role and exits 0 when every role has its group, 1 when a role could not get one (a comma in its name, or fewer than two characters), and 2 when it could not run.
+A role that cannot be a permission is no error: the report names it as a role that machines cannot get.

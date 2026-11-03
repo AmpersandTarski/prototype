@@ -24,6 +24,12 @@ Additional labels for pre-release and build metadata are available as extensions
 * **Apache passes the `Authorization` header to PHP**, so that a bearer token reaches the framework
   (`apache-conf/.htaccess` and `docker/apache/000-default.conf`).
 * **A regression project can set its own environment** in `test/projects/<project>/regression.vars`.
+* **The role synchroniser makes Pocket ID know the roles of the script (OK-33).** After a deployment,
+  `php /var/www/backend/bin/door-sync-roles.php` adds a group per role, the API of the prototype and a
+  permission per role, so that an administrator can give every role to a person or a machine without
+  typing its name. It removes nothing, and `--dry-run` says what it would do. A role whose name is not an
+  OAuth scope token, such as `Coördinator`, gets a group and no permission: people can have it, machines
+  cannot. `test/unit/DoorRoleSyncTest.php` guards it.
 
 ## v2.23.0 (3 November 2026)
 
