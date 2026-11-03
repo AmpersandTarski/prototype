@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.22.0 (3 November 2026)
 
 * **A detail screen can show its blocks as tabs, without empty tabs.** With
   `BOX<TABS hideSubOnNoRecords>` a tab disappears when its group, a FORM box on `I`, has no
