@@ -44,6 +44,23 @@ A session has one active role at a time.
 The first presented role becomes active, and a role that the visitor chose in the role menu stays active as long as the request presents it.
 Because this happens on every request, a group that the administrator removes in the identity service closes the door at the next request.
 
+## Access from every allowed role
+
+By default, a session opens the interfaces of its one active role, and a role-less interface opens for every role except Anonymous.
+A person with two roles then switches in the role menu, and a machine role opens every role-less interface.
+A script that wants access from every allowed role, with machine roles that reach only the interfaces that name them, declares an interface that lists the accessible interfaces and names it in `rbac.accessibleInterfacesIfcId` (environment variable `AMPERSAND_ACCESSIBLE_INTERFACES_IFC`; design choice OK-34):
+
+```
+INTERFACE Access FOR ExecEngine : PrototypeContext.sessionAllowedRoles;PrototypeContext.ifcRoles~
+   \/ PrototypeContext.sessionAllowedRoles;(I[PrototypeContext.Role] - ("Anonymous"[PrototypeContext.Role] \/ "Stampreporter"[PrototypeContext.Role]));V[PrototypeContext.Role*PrototypeContext.Role];"Any"[PrototypeContext.Role];PrototypeContext.ifcRoles~
+   cRud BOX<TABLE> [ "interface" : I[PrototypeContext.Interface] cRud ]
+```
+
+The first line gives the interfaces of every allowed role.
+The second gives the role-less interfaces to every allowed role except Anonymous and the machine roles, here `Stampreporter`; a script lists its own machine roles there.
+With the door off, every role is allowed, so every interface opens, whichever role is active.
+The rules that a session maintains still follow the active role.
+
 ## Conditions of the deployment
 
 The framework believes the groups header because the proxy is the only way in.

@@ -1156,3 +1156,45 @@ Impact op de specificatie: none.
 Impact in productie: a deployment with the door runs the program after the prototype has started, with an API key
 of Pocket ID in the `.env` of the server. That key can change every group and permission, and deserves the care
 of a master key.
+
+**Under the door, access follows every allowed role through an interface of the script that `rbac.accessibleInterfacesIfcId` names, and the environment variable `AMPERSAND_ACCESSIBLE_INTERFACES_IFC` sets that setting**
+OK-34 · geldig · 2026-11-03 · herkomst: Werkplaats#132 (the machine account `werkplaats` that may reach one interface of the artefact map, decided by Stef Joosten on 3 November 2026), OK-32, the measurement of the active role on the artefact map of the Werkplaats (3 November 2026)
+
+The framework keeps deciding access as it did: from the interface that `rbac.accessibleInterfacesIfcId` names, or
+otherwise from the one active role. A script that wants access from every allowed role declares an interface such as
+
+```
+INTERFACE Access FOR ExecEngine : PrototypeContext.sessionAllowedRoles;PrototypeContext.ifcRoles~
+   \/ PrototypeContext.sessionAllowedRoles;(I[PrototypeContext.Role] - ("Anonymous"[PrototypeContext.Role] \/ "Stampreporter"[PrototypeContext.Role]));V[PrototypeContext.Role*PrototypeContext.Role];"Any"[PrototypeContext.Role];PrototypeContext.ifcRoles~
+   cRud BOX<TABLE> [ "interface" : I[PrototypeContext.Interface] cRud ]
+```
+
+and names it in that setting. The environment variable `AMPERSAND_ACCESSIBLE_INTERFACES_IFC` sets the setting as well.
+
+Overwegingen:
+
+1. The purpose is that a machine role reaches only the interfaces that name it, while a person with more roles
+   reaches all their interfaces and every prototype with the door off stays open as before. With the door,
+   `sessionActiveRoles` is UNI in the PrototypeContext of the compiler, so access from the active role makes a
+   person with two groups switch roles, and a role-less interface opens for every authenticated role, a machine
+   role included.
+2. Putting `FOR` a person's role on every interface does not work with the door off. Such a prototype allows every
+   role and keeps one active, the last one: on the artefact map of the Werkplaats that was SYSTEM (measured on
+   3 November 2026), so every interface `FOR` another role would close there.
+3. The setting already existed and needed no change of the framework. `test/projects/door-access` (door on) and
+   `test/projects/door-access-off` (door off, active role Stampreporter) measure the interface above: two roles
+   open both without switching, a token with only Stampreporter opens its own interface and nothing role-less,
+   and with the door off every interface opens. The path was not guarded by any project before.
+4. The rules that a session maintains still follow the active role (`AmpersandApp::setRulesToMaintain`); a person
+   sees the signals of one role at a time and switches in the role menu.
+5. Rejected for now: access from the allowed roles as the default of the framework. It changes the contract of
+   `test/projects/any-role`, where an interface `FOR` a role opens only while that role is active, for every
+   prototype; the setting lets a script choose it.
+6. Rejected: excluding service roles (`SERVICE X MAINTAINS`, `isService` in `roles.json`) from the wildcard in the
+   framework. It asks every machine role for a rule to maintain, and how the compiler unites `FOR X` with
+   `SERVICE X` was not measured.
+
+Impact op de specificatie: a script that uses the door with machine roles declares the interface above, with its
+own machine roles in place of Stampreporter, and names it in `rbac.accessibleInterfacesIfcId`.
+
+Impact in productie: none for a prototype that does not set the setting.

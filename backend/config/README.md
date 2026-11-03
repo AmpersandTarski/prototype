@@ -29,6 +29,7 @@ These are loaded last and overwrite previous set settings.
 * AMPERSAND_DOOR_TOKEN_ISSUER -> session.door.tokenIssuer
 * AMPERSAND_DOOR_TOKEN_AUDIENCE -> session.door.tokenAudience
 * AMPERSAND_DOOR_TRUSTED_PROXIES -> session.door.trustedProxies
+* AMPERSAND_ACCESSIBLE_INTERFACES_IFC -> rbac.accessibleInterfacesIfcId (see OK-34)
 
 The five `AMPERSAND_DOOR` variables let a prototype take the roles of its visitor from an identity service in front of it: from the groups header of a proxy, or from a bearer token that the framework checks itself. See the reference page "The Door" (OK-32).
 

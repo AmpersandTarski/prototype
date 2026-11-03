@@ -84,6 +84,12 @@ class Settings
             'key' => 'session.cookieSecure',
             'bool' => false
         ],
+        // The interface that lists the interfaces a session may open, instead of the interfaces of
+        // its one active role. With the door, it lets access follow every allowed role (OK-34).
+        'AMPERSAND_ACCESSIBLE_INTERFACES_IFC' => [
+            'key' => 'rbac.accessibleInterfacesIfcId',
+            'bool' => false
+        ],
         // The door: roles come from an identity service in front of the application. See OK-32
         // and Ampersand\Misc\Door.
         'AMPERSAND_DOOR' => [

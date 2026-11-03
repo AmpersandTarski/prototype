@@ -30,6 +30,11 @@ Additional labels for pre-release and build metadata are available as extensions
   typing its name. It removes nothing, and `--dry-run` says what it would do. A role whose name is not an
   OAuth scope token, such as `Coördinator`, gets a group and no permission: people can have it, machines
   cannot. `test/unit/DoorRoleSyncTest.php` guards it.
+* **Access can follow every allowed role instead of the one active role (OK-34).** A script names an
+  interface that lists the accessible interfaces in `rbac.accessibleInterfacesIfcId`, now also settable as
+  `AMPERSAND_ACCESSIBLE_INTERFACES_IFC`. With the interface in OK-34, a person with two roles opens both
+  without switching, a machine role reaches only the interfaces that name it, and a prototype with the door
+  off stays open whichever role is active. `test/projects/door-access` and `door-access-off` guard it.
 
 ## v2.23.0 (3 November 2026)
 
