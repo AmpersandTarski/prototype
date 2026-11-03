@@ -149,6 +149,15 @@ try {
       `and becomes Anonymous when the header is gone (got ${JSON.stringify(none)}, active ${JSON.stringify(noneActive)})`);
   }
 
+  {
+    const request = browser();
+    const header = { 'X-Auth-Request-Groups': 'Auditor' };
+    const r = await roles(request, header);
+    assert(same(r, ['Auditor']), `a role declared only with MAINTAINS is given too (got ${JSON.stringify(r)})`);
+    const open = await reachable(request, header);
+    assert(same(open, ['PublicIfc']), `and opens the role-less interface (got ${JSON.stringify(open)})`);
+  }
+
   console.log('▶ Roles from a bearer token');
   {
     const request = browser();

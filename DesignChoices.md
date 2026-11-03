@@ -1106,6 +1106,12 @@ Overwegingen:
 9. Rejected: a `login()` with an account per visitor that the door creates. It would write a person into the
    population of an application that only wants to know roles, and it would need SIAM or an equivalent in
    every script.
+10. A role that the script declares only with `ROLE X MAINTAINS ...` has no atom in `PrototypeContext.Role`:
+    compiler v5.15.0 populates that concept with the roles of FOR-clauses and its own roles, while
+    `roles.json` lists every role. Measured on the kern of the Artefactenkaart: `Registerwachter` and
+    `Wachter` were in `roles.json` and not in the population, and a person with such a group got no role.
+    The door therefore adds the atom of a declared role that lacks one; the names it handles are declared
+    roles already, so it adds nothing a script does not name.
 
 Impact op de specificatie: none. A script declares its roles and uses `FOR` as before; the names of the roles
 are the names of the groups and permissions in the identity service, so a role name holds no comma, and a role

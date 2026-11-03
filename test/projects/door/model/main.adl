@@ -27,4 +27,9 @@ INTERFACE AnonIfc LABEL "Anonymous interface" FOR Anonymous : "_SESSION"[SESSION
    [ "text (Anonymous)" : sessionText cRUd
    ]
 
+-- A role declared only with MAINTAINS has no atom in the metapopulation; the door adds it.
+RULE AuditorSignal : sessionText |- sessionText
+MEANING "A signal that the role Auditor maintains."
+ROLE Auditor MAINTAINS AuditorSignal
+
 ENDCONTEXT

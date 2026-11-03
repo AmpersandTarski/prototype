@@ -43,6 +43,7 @@ The allowed roles of the session become exactly the presented roles; Anonymous s
 A session has one active role at a time.
 The first presented role becomes active, and a role that the visitor chose in the role menu stays active as long as the request presents it.
 Because this happens on every request, a group that the administrator removes in the identity service closes the door at the next request.
+A role that the script declares only with `ROLE ... MAINTAINS` counts as well: the door adds its atom to the metapopulation, where the compiler leaves it out.
 
 ## Access from every allowed role
 

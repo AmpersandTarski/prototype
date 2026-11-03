@@ -185,6 +185,10 @@ class Session
      * because the invariant `sessionActiveRole |- sessionAllowedRole` holds after every step.
      * Anonymous stays allowed: the PrototypeContext of the compiler allows it to every session with
      * an ENFORCE, which would put it back after every request.
+     * A role that the script declares only with MAINTAINS has no atom in the metapopulation (the
+     * compiler populates PrototypeContext.Role with the roles of FOR-clauses and its own roles, while
+     * roles.json lists them all; measured with compiler v5.15.0). The door adds such an atom, so that
+     * a person in that group gets the role and its signals. The names are declared roles already.
      *
      * @param string[] $roleNames
      */
@@ -213,8 +217,8 @@ class Session
         foreach ($roleNames as $roleName) {
             $roleAtom = $this->ampersandApp->getModel()->getRoleConcept()->makeAtom($roleName);
             if (!$roleAtom->exists()) {
-                $this->logger->warning("Door: role '{$roleName}' is declared, but not in the metapopulation; run the metapopulation installer");
-                continue;
+                $this->logger->notice("Door: role '{$roleName}' is declared, but had no atom in the metapopulation; added it");
+                $roleAtom->add();
             }
             if (!isset($allowed[$roleName])) {
                 $this->sessionAtom->link($roleAtom, ProtoContext::REL_SESSION_ALLOWED_ROLES)->add();
