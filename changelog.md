@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## Unreleased
+## v2.24.0 (3 November 2026)
 
 * **A prototype can take its roles from an identity service in front of it (the door, OK-32).** With
   `session.door: proxy` (environment variable `AMPERSAND_DOOR=proxy`) every request gets the roles it
