@@ -27,13 +27,16 @@ async function call(method, path, body) {
 // A box whose term is not I has the atom in its path, as its _path_ shows.
 const edit = (id) => [{ op: 'replace', path: `/Edit/${id}/Text`, value: `new ${id}` }];
 
+// A response goes to the log on one line, so that its text cannot pose as a line of the test.
+const oneLine = (s) => String(s).replace(/[\r\n]+/g, ' ');
+
 const here = await call('GET', 'Choice/here/Choice');
-console.log('GET here:', JSON.stringify(here.json));
+console.log('GET here:', oneLine(JSON.stringify(here.json)));
 assert(here.status === 200, 'an atom whose home is here can be read');
 assert(here.json?.Edit?.Text === 'old here', 'it shows the box with its text');
 
 const elsewhere = await call('GET', 'Choice/elsewhere/Choice');
-console.log('GET elsewhere:', JSON.stringify(elsewhere.json));
+console.log('GET elsewhere:', oneLine(JSON.stringify(elsewhere.json)));
 assert(elsewhere.status === 200, 'an atom that lives elsewhere can be read');
 assert(!elsewhere.json?.Edit, 'its box is empty');
 assert(elsewhere.json?.Contents?.Text === 'old elsewhere', 'its contents are shown read-only');
@@ -75,24 +78,24 @@ await browser.close();
 
 console.log('\n▶ Writing, over the API');
 const patchHere = await call('PATCH', 'Choice/here/Choice', edit('here'));
-console.log('PATCH here:', patchHere.status, patchHere.text.slice(0, 300));
+console.log('PATCH here:', patchHere.status, oneLine(patchHere.text.slice(0, 300)));
 assert(patchHere.status === 200 && patchHere.json?.isCommitted === true, 'an update through the box is committed');
 const again = await call('GET', 'Choice/here/Choice');
 assert(again.json?.Contents?.Text === 'new here', 'the read-only block shows the new text');
 
 const patchElsewhere = await call('PATCH', 'Choice/elsewhere/Choice', edit('elsewhere'));
-console.log('PATCH elsewhere:', patchElsewhere.status, patchElsewhere.text.slice(0, 300));
+console.log('PATCH elsewhere:', patchElsewhere.status, oneLine(patchElsewhere.text.slice(0, 300)));
 assert(patchElsewhere.json?.isCommitted !== true, 'an update of an atom that lives elsewhere is not committed');
 const stillOld = await call('GET', 'Choice/elsewhere/Choice');
 assert(stillOld.json?.Contents?.Text === 'old elsewhere', 'its text stays what it was');
 
 const removeElsewhere = await call('DELETE', 'Choice/elsewhere/Choice/Edit/elsewhere');
-console.log('DELETE elsewhere:', removeElsewhere.status, removeElsewhere.text.slice(0, 300));
+console.log('DELETE elsewhere:', removeElsewhere.status, oneLine(removeElsewhere.text.slice(0, 300)));
 const stillThere = await call('GET', 'Choice/elsewhere/Choice');
 assert(stillThere.json?.Contents?.Text === 'old elsewhere', 'an atom that lives elsewhere cannot be deleted through the box');
 
 const removeHere = await call('DELETE', 'Choice/here/Choice/Edit/here');
-console.log('DELETE here:', removeHere.status, removeHere.text.slice(0, 300));
+console.log('DELETE here:', removeHere.status, oneLine(removeHere.text.slice(0, 300)));
 assert(removeHere.status === 200, 'an atom whose home is here can be deleted through the box');
 const gone = await call('GET', 'Choice/here/Choice');
 console.log('GET here after delete:', gone.status);
