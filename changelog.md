@@ -35,6 +35,10 @@ Additional labels for pre-release and build metadata are available as extensions
   `AMPERSAND_ACCESSIBLE_INTERFACES_IFC`. With the interface in OK-34, a person with two roles opens both
   without switching, a machine role reaches only the interfaces that name it, and a prototype with the door
   off stays open whichever role is active. `test/projects/door-access` and `door-access-off` guard it.
+* **A role that the script declares only with `ROLE ... MAINTAINS` counts at the door.** Compiler v5.15.0
+  leaves such a role out of the population of `PrototypeContext.Role`, although `roles.json` names it; the
+  door now adds its atom, so that a person in that group gets the role and its signals (OK-32,
+  consideration 10). `test/projects/door` covers it with a role that only maintains a rule.
 
 ## v2.23.0 (3 November 2026)
 
