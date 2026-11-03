@@ -13,6 +13,7 @@ import {
   InterfacesJsonService,
 } from '../../services/interfaces-json.service';
 import { BaseBoxComponent } from '../BaseBoxComponent.class';
+import { RecordFields } from '../record-fields';
 import { BoxFormTemplateDirective } from './box-form-template.directive';
 
 /**
@@ -49,8 +50,8 @@ export class BoxFormComponent<
   @Input({ transform: booleanAttribute }) hideSubOnNoRecords = false;
 
   private interfacesJson = inject(InterfacesJsonService);
-  /** Field metadata per record path, read asynchronously from interfaces.json. */
-  private metas = new Map<string, Map<string, FieldMeta>>();
+  /** Which fields of a record are empty; TABS uses the same notion. */
+  private fields = new RecordFields(this.interfacesJson);
   private conceptTypes = new Map<string, string>();
 
   override ngOnInit(): void {
@@ -61,13 +62,7 @@ export class BoxFormComponent<
   }
 
   private metaOf(item: any, name: string): FieldMeta | undefined {
-    const path: string | undefined = item?._path_;
-    if (!path) return undefined;
-    const known = this.metas.get(path);
-    if (known) return known.get(name);
-    this.metas.set(path, new Map());
-    this.interfacesJson.fieldMetas(path).then((m) => this.metas.set(path, m));
-    return undefined;
+    return this.fields.metaOf(item, name);
   }
 
   /**
@@ -129,30 +124,8 @@ export class BoxFormComponent<
     return String(value).length;
   }
 
-  /**
-   * A value is empty when it is absent, an empty string or an empty list. A
-   * group (a nested box on I) is empty when all of its own fields are empty and
-   * none of them is one the user may fill.
-   */
+  /** See RecordFields.isEmptyValue. */
   isEmptyValue(value: any, meta?: FieldMeta): boolean {
-    if (value == null || value === '') return true;
-    const isGroup = meta?.isIdent === true && meta.isBox;
-    if (Array.isArray(value)) {
-      if (value.length === 0) return true;
-      return isGroup ? value.every((v) => this.isEmptyGroup(v)) : false;
-    }
-    if (typeof value === 'object' && isGroup) return this.isEmptyGroup(value);
-    return false;
-  }
-
-  private isEmptyGroup(group: any): boolean {
-    if (group == null) return true;
-    return Object.keys(group)
-      .filter((k) => !k.startsWith('_'))
-      .every((k) => {
-        const meta = this.metaOf(group, k);
-        const fillable = meta?.crud.create || meta?.crud.update;
-        return this.isEmptyValue(group[k], meta) && !fillable;
-      });
+    return this.fields.isEmptyValue(value, meta);
   }
 }

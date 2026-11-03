@@ -10,6 +10,16 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.23.0 (3 November 2026)
+
+* **A detail screen can show its blocks as tabs, without empty tabs.** With
+  `BOX<TABS hideSubOnNoRecords>` a tab disappears when its group, a FORM box on `I`, has no
+  field with a value or a field the user may fill: empty in the same sense in which a FORM
+  leaves a group out. A tab whose box says `showOnNoRecords` stays. Before, a tab holding a
+  group always appeared, also when the group was empty, because the record of a group is never
+  empty itself. The FORM and TABS share this notion of empty in one class (`RecordFields`).
+  Regression: `test/projects/form-groups`.
+
 ## v2.22.0 (2 November 2026)
 
 * **The bundled compiler is Ampersand v5.15.0**, whose `PrototypeContext` says of each interface on
