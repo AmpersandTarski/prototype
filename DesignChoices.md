@@ -1042,3 +1042,76 @@ Impact in productie: none without `--foreign-keys`, apart from the order in whic
 writes; the result of a deletion is the same. With the option, deleting an atom works, and a
 write that breaks a reference answers 500 with the message of overweging 2 instead of a general
 error.
+
+**With the door on, a session holds exactly the roles that the request presents: from the groups header of a trusted proxy, or from a bearer token that the framework checks itself**
+OK-32 · geldig · 2026-11-03 · herkomst: Werkplaats#132 (the artefact map of LightBrain on a server, behind a password per person), Stef Joosten (3 November 2026: "Een passkey voor mensen en een token voor machines", roles linked to persons in the identity service, "applicaties die niet weten wie hun gebruiker is maar alleen hun rol kennen")
+
+The setting `session.door` is `null` by default, and then nothing changes. With `session.door: proxy`, every
+request gives the session the roles it presents. A request with `Authorization: Bearer <token>` presents the
+roles in the claim `scp` (or the space-separated `scope`) of that token, after the framework has checked its
+signature against the key set of `session.door.tokenIssuer`, its algorithm (asymmetric only), its issuer, its
+audience (`session.door.tokenAudience`) and its expiry; a token that fails a check ends the request with 401. A
+request without a token presents the names in the header `session.door.groupsHeader` (default
+`X-Auth-Request-Groups`), comma-separated, provided the request comes from an address in
+`session.door.trustedProxies` when that setting is given. A request that presents neither gets the role
+Anonymous. Of the presented names, only roles that the script declares count, and never ExecEngine, SYSTEM, Any
+or Anonymous. The allowed roles of the session become exactly the presented roles, plus Anonymous; one of them
+is active, an active role stays active as long as it is allowed, and otherwise the first presented role becomes
+active.
+
+Overwegingen:
+
+1. The purpose is that a prototype can run on the internet behind an identity service, with a passkey for every
+   person and a token for every machine, while the roles in the script decide what each visitor may do. Until
+   now the framework knew two states: login off, where every session gets every role, and login on, where SIAM
+   or a login route in the model sets `sessionAccount` and the roles follow from the account. The artefact map
+   of LightBrain therefore ran with login off behind a password per person in Caddy, and every person and every
+   machine could read and write everything.
+2. Authentication stays outside the framework. A passkey is a cryptographic challenge and response that no rule
+   in a model can verify, and an identity service such as Pocket ID does it for every application at once. The
+   framework already separated the two: `AmpersandApp::login()` takes an account that is already authenticated.
+   The door goes one step further and takes roles instead of an account, because Stef wants applications that
+   know only the role of their visitor. A session with roles needs no `Account`, no `sessionAccount` and no
+   SIAM, so `session.loginEnabled` stays false: with that setting on and no SIAM, `SessionController` throws
+   on every navigation request (`Session::getSessionAccount`).
+3. The roles are set on every request, not only when the session starts. A group that the administrator takes
+   away in the identity service must close the door at the next request, and the PHP session cookie outlives
+   the groups of the moment. Measured in `test/projects/door`: a session that presented Editor and Reader and
+   then only Reader, loses Editor at once.
+4. `sessionActiveRoles` is UNI in the PrototypeContext of the compiler, and its ENFORCE allows Anonymous to every
+   session. The door respects both: it leaves Anonymous allowed, makes one presented role active, and keeps the
+   role that the visitor chose in the role menu as long as it is allowed. Activating all presented roles, as the
+   framework does with login off, leaves only the last one active; the first run of `test/projects/door`
+   showed that.
+5. The framework believes the groups header because the proxy is the only way in, which is a condition of the
+   deployment. Apache drops a header spelled with underscores (measured on 3 November 2026 with
+   php:8.3.36-apache-bookworm: `X_Auth_Request_Groups` did not reach `$_SERVER`), so the spoofing of
+   CVE-2026-52845, which needs `php_fastcgi` in Caddy, does not reach a prototype behind `reverse_proxy`.
+   `session.door.trustedProxies` narrows the trust to the addresses of the proxy, for a deployment where the
+   network cannot guarantee it. Two lines of the same header arrive as one, joined with ", ".
+6. A machine sends a bearer token that the framework checks itself, because the token comes straight from the
+   identity service and a proxy would only pass it on. Only asymmetric algorithms are accepted, so that neither
+   `none` nor HS256 with the public key as secret can forge a token. The keys come from the OpenID
+   configuration of the issuer and are cached for ten minutes; an unknown key id fetches them again, at most
+   once a minute, so that forged key ids cannot make the application a load on the identity service. Pocket ID
+   v2.19.2 puts the permissions of a machine in both `scp` and `scope`
+   (`backend/internal/oidc/provider.go`, `JWTScopeClaimKey: jwt.JWTScopeFieldBoth`). `firebase/php-jwt` v7.2
+   does the cryptography.
+7. Apache passes the `Authorization` header to PHP only with `SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1`
+   (measured: without it `$_SERVER` has no `HTTP_AUTHORIZATION`). The production image gets that line from
+   `apache-conf/.htaccess`, the dev image from `docker/apache/000-default.conf`.
+8. Rejected: an OIDC client in the framework that sends the browser to the identity service itself. It would
+   put sessions, redirects and token refresh in PHP, where oauth2-proxy already does them, and the 2021 OAuth
+   module was removed from the framework for that reason (commit `953dd140`).
+9. Rejected: a `login()` with an account per visitor that the door creates. It would write a person into the
+   population of an application that only wants to know roles, and it would need SIAM or an equivalent in
+   every script.
+
+Impact op de specificatie: none. A script declares its roles and uses `FOR` as before; the names of the roles
+are the names of the groups and permissions in the identity service, so a role name holds no space and no
+comma.
+
+Impact in productie: none while `session.door` is null. A deployment that switches it on puts an identity service
+and a proxy in front of the prototype, publishes no port of the prototype itself, and configures the issuer and
+the audience for machines. A machine request without a cookie starts a new session atom, which the existing
+garbage collection removes after `session.expirationTime`.

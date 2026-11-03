@@ -26,6 +26,15 @@ services:
       - ..:/var/www # the runner compiles the project's model into this working copy
     networks:
       - reg
+    # A project may add settings in test/projects/<project>/regression.vars; the runner names that
+    # file in REG_ENV_FILE. Without it, /dev/null adds nothing.
+    env_file:
+      - path: ${REG_ENV_FILE:-/dev/null}
+        required: false
+    # Lets a spec serve something on the host that the prototype calls, such as the keys of an
+    # identity service (test/projects/door). Docker Desktop knows the name; Linux needs this line.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - AMPERSAND_DEBUG_MODE=true
       - AMPERSAND_DBHOST=${REG_STACK:-reg}-db

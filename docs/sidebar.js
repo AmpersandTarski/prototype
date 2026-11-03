@@ -122,5 +122,10 @@ module.exports = {
       type: "doc",
       id: "prototype/reference-material/cookies-and-browser-storage",
     },
+    {
+      label: "The Door",
+      type: "doc",
+      id: "prototype/reference-material/the-door",
+    },
   ],
 };

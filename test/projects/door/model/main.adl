@@ -1,0 +1,30 @@
+CONTEXT DoorTest IN ENGLISH
+
+-- Script for the door (OK-32): a session takes its roles from the request.
+-- Each interface below is reachable for one role, so a GET on it tells which roles the session holds.
+--   * PublicIfc  : no FOR-clause -> the wildcard "Any": every session with a role other than Anonymous
+--   * EditorIfc  : FOR Editor
+--   * ReaderIfc  : FOR Reader
+--   * AnonIfc    : FOR Anonymous -> a request that presents nothing at the door
+
+REPRESENT Text TYPE ALPHANUMERIC
+RELATION sessionText[SESSION*Text] [UNI]
+MEANING "A piece of text known in the current session."
+
+INTERFACE PublicIfc LABEL "Public interface": "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "text (public)" : sessionText cRUd
+   ]
+
+INTERFACE EditorIfc LABEL "Editor interface" FOR Editor : "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "text (Editor)" : sessionText cRUd
+   ]
+
+INTERFACE ReaderIfc LABEL "Reader interface" FOR Reader : "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "text (Reader)" : sessionText cRUd
+   ]
+
+INTERFACE AnonIfc LABEL "Anonymous interface" FOR Anonymous : "_SESSION"[SESSION] cRud BOX<TABLE>
+   [ "text (Anonymous)" : sessionText cRUd
+   ]
+
+ENDCONTEXT

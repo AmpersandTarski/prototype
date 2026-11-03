@@ -10,6 +10,21 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **A prototype can take its roles from an identity service in front of it (the door, OK-32).** With
+  `session.door: proxy` (environment variable `AMPERSAND_DOOR=proxy`) every request gets the roles it
+  presents: a person through the groups header that a proxy such as oauth2-proxy passes on
+  (`X-Auth-Request-Groups`), a machine through a bearer token that the framework checks itself against the
+  keys of the identity service (`AMPERSAND_DOOR_TOKEN_ISSUER`, `AMPERSAND_DOOR_TOKEN_AUDIENCE`). Only roles
+  that the script declares count, never ExecEngine or SYSTEM, and a role taken away is gone at the next
+  request. This lets a prototype run on the internet behind passkeys for people and tokens for machines,
+  without passwords and without SIAM. Off by default; nothing changes for a prototype that does not set it.
+  `test/projects/door` and `test/unit/DoorTest.php` guard it.
+* **Apache passes the `Authorization` header to PHP**, so that a bearer token reaches the framework
+  (`apache-conf/.htaccess` and `docker/apache/000-default.conf`).
+* **A regression project can set its own environment** in `test/projects/<project>/regression.vars`.
+
 ## v2.23.0 (3 November 2026)
 
 * **A detail screen can show its blocks as tabs, without empty tabs.** With

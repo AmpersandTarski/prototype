@@ -7,6 +7,11 @@ Options -Indexes
 # mapping; RemoveHandler only works in directory context (runtime-tested).
 RemoveHandler .var
 
+# Pass the Authorization header to PHP, so that the door (OK-32) can read a bearer token.
+# Apache with mod_php leaves it out of $_SERVER otherwise (measured on 3 November 2026 with
+# php:8.3.36-apache-bookworm). The dev image gets the same line from docker/apache/000-default.conf.
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
 # See https://angular.io/guide/deployment
 RewriteEngine On
 

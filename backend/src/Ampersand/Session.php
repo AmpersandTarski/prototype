@@ -21,6 +21,8 @@ use Ampersand\Exception\MetaModelException;
 use Ampersand\Exception\NotDefined\RelationNotDefined;
 use Ampersand\Exception\SessionExpiredException;
 use Ampersand\Log\Logger;
+use Ampersand\Misc\Door;
+use Ampersand\Misc\DoorKeySet;
 use Ampersand\Misc\ProtoContext;
 use Ampersand\Misc\Settings;
 use Ampersand\Plugs\MysqlDB\Exception\MysqlDeadlockException;
@@ -86,9 +88,13 @@ class Session
     
     public function initSessionAtom(): void
     {
+        // With the door on, the request decides the roles (OK-32). They are determined before
+        // anything is written, so that a refused token leaves no session behind.
+        $doorRoles = Door::isEnabled($this->settings) ? $this->rolesAtTheDoor() : null;
+
         $this->sessionAtom = $this->ampersandApp->getModel()->getSessionConcept()->makeAtom($this->id);
         $now = time();
-        
+
         // Create a new Ampersand session atom if not yet in SESSION table (i.e. new php session)
         if (!$this->sessionAtom->exists()) {
             // Garbage collect expired sessions. Doing this only when a new session starts bounds
@@ -99,7 +105,7 @@ class Session
             $this->sessionAtom->add();
 
             // If login functionality is not enabled, add all defined roles as allowed roles
-            if (!$this->settings->get('session.loginEnabled')) {
+            if (!$this->settings->get('session.loginEnabled') && $doorRoles === null) {
                 foreach ($this->ampersandApp->getModel()->getRoleConcept()->getAllAtomObjects() as $roleAtom) {
                     // "Any" is a wildcard role (it stands for 'every authenticated role'), not a
                     // role a session can hold or activate. Skip it so it never becomes an allowed/
@@ -148,6 +154,76 @@ class Session
         // for every session interaction. We can safely do this, because no new Session atom is implicitly created here nor does
         // the DateTime atom is reused elsewhere
         $this->sessionAtom->link(date(DATE_ATOM, $now), ProtoContext::REL_SESSION_LAST_ACCESS, false)->add(trackAffected: false);
+
+        if ($doorRoles !== null) {
+            $this->holdOnlyRoles($doorRoles);
+        }
+    }
+
+    /**
+     * The roles that this request presents at the door (OK-32).
+     *
+     * @return string[]
+     */
+    private function rolesAtTheDoor(): array
+    {
+        $issuer = $this->settings->get(Door::SETTING_TOKEN_ISSUER);
+        $keySet = is_string($issuer) && trim($issuer) !== '' ? DoorKeySet::forIssuer($issuer, $this->logger) : null;
+        $declaredRoles = array_keys($this->ampersandApp->getModel()->getAllRoles());
+
+        return Door::rolesFromRequest($this->settings, $_SERVER, $declaredRoles, $keySet, $this->logger);
+    }
+
+    /**
+     * Make the allowed roles of this session exactly the given roles, with one of them active.
+     *
+     * Every request does this, so a role that the identity service takes away is gone at the next
+     * request. A session has at most one active role (`sessionActiveRoles` is UNI in the
+     * PrototypeContext of the compiler); the visitor switches between his allowed roles in the role
+     * menu. An active role that is still allowed therefore stays active, and otherwise the first
+     * role of the request becomes active. Roles are removed active-first and added allowed-first,
+     * because the invariant `sessionActiveRole |- sessionAllowedRole` holds after every step.
+     * Anonymous stays allowed: the PrototypeContext of the compiler allows it to every session with
+     * an ENFORCE, which would put it back after every request.
+     *
+     * @param string[] $roleNames
+     */
+    private function holdOnlyRoles(array $roleNames): void
+    {
+        $wanted = array_flip($roleNames);
+        $keepAllowed = $wanted + [ProtoContext::ROLE_ANONYMOUS => true];
+
+        $activeStays = false;
+        foreach ($this->getSessionActiveRoles() as $roleAtom) {
+            if (isset($wanted[$roleAtom->getId()])) {
+                $activeStays = true;
+            } else {
+                $this->toggleActiveRole($roleAtom, false);
+            }
+        }
+        $allowed = [];
+        foreach ($this->getSessionAllowedRoles() as $roleAtom) {
+            if (isset($keepAllowed[$roleAtom->getId()])) {
+                $allowed[$roleAtom->getId()] = true;
+            } else {
+                $this->sessionAtom->link($roleAtom, ProtoContext::REL_SESSION_ALLOWED_ROLES)->delete();
+            }
+        }
+
+        foreach ($roleNames as $roleName) {
+            $roleAtom = $this->ampersandApp->getModel()->getRoleConcept()->makeAtom($roleName);
+            if (!$roleAtom->exists()) {
+                $this->logger->warning("Door: role '{$roleName}' is declared, but not in the metapopulation; run the metapopulation installer");
+                continue;
+            }
+            if (!isset($allowed[$roleName])) {
+                $this->sessionAtom->link($roleAtom, ProtoContext::REL_SESSION_ALLOWED_ROLES)->add();
+            }
+            if (!$activeStays) {
+                $this->toggleActiveRole($roleAtom, true);
+                $activeStays = true;
+            }
+        }
     }
 
     /**
