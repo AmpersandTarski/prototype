@@ -6,7 +6,9 @@ for (const ifc of ['PublicIfc', 'EditorIfc', 'ReaderIfc', 'StampIfc', 'AnonIfc']
   const r = await fetch(`${baseUrl}/api/v1/resource/SESSION/1/${ifc}`);
   if (r.status === 200) open.push(ifc);
 }
+// The session has one active role (sessionActiveRoles is UNI), so access does not come from that role alone.
 const nav = await (await fetch(`${baseUrl}/api/v1/app/navbar`)).json();
-console.log('active role:', JSON.stringify((nav.sessionRoles ?? []).filter((r) => r.active).map((r) => r.id)));
-assert(open.length === 5, `door off: every interface opens, whatever the active role (got ${JSON.stringify(open)})`);
+const activeCount = (nav.sessionRoles ?? []).filter((r) => r.active).length;
+assert(activeCount === 1, `door off: the session has exactly one active role (got ${activeCount})`);
+assert(open.length === 5, `door off: every interface opens, whatever the active role (got ${open.length} of 5)`);
 process.exit(failureCount() === 0 ? 0 : 1);
