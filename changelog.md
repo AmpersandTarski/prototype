@@ -10,7 +10,7 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
-## v2.22.0 (3 November 2026)
+## v2.23.0 (3 November 2026)
 
 * **A detail screen can show its blocks as tabs, without empty tabs.** With
   `BOX<TABS hideSubOnNoRecords>` a tab disappears when its group, a FORM box on `I`, has no
@@ -19,6 +19,20 @@ Additional labels for pre-release and build metadata are available as extensions
   group always appeared, also when the group was empty, because the record of a group is never
   empty itself. The FORM and TABS share this notion of empty in one class (`RecordFields`).
   Regression: `test/projects/form-groups`.
+
+## v2.22.0 (2 November 2026)
+
+* **The bundled compiler is Ampersand v5.15.0**, whose `PrototypeContext` says of each interface on
+  which concept it opens and whether it, or a box inside it, can create, update or delete
+  ([Ampersand#1756](https://github.com/AmpersandTarski/Ampersand/pull/1756)). A script can read
+  that in a signal rule, for instance to report an atom that has to be editable while no screen
+  allows it. A database kept across this release needs its metapopulation installed again.
+* **A regression project guards rights that differ per atom.** `test/projects/box-guarded-edit`
+  measures, in the browser and over the API, that a box whose term selects atoms offers its U and D
+  for those atoms only, and is empty for any other atom. The term ends on `I[Concept]` outside the
+  intersection, `(I[Choice] /\ homeHere);I[Choice]`: the compiler drops the identity from
+  `I[Choice];homeHere;I[Choice]`, and the box then has the target of the generalisation, so a write
+  to a field of `Choice` is refused.
 
 ## v2.21.0 (30 October 2026)
 
