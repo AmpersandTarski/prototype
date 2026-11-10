@@ -109,6 +109,7 @@ Lees eerst hier voordat je gaat zoeken. Paden zijn geverifieerd op 2026-05-31.
 - Base image `ampersandtarski/prototype-framework:local` ← `Dockerfile` (prod, PHP 8.3-apache) / `dev.Dockerfile` (dev). **Altijd `--platform linux/amd64` bouwen** (zie §3).
 - `compose.yaml` — dev-stack (prototype + MariaDB + phpmyadmin); `test/docker-compose*.yml` — testprojecten.
 - `generate.sh` — orkestreert ADL → backend + frontend → `npm run build:dev` → kopie naar `html/`. Vereist een draaiende `prototype`-container.
+- `docs/guides/updating-and-releasing.md` — een frameworkwijziging bijwerken en releasen.
 - `docker/apache/000-default.conf` + `apache-conf/.htaccess` — Apache SPA-rewrite; `db-init-scripts/01_grant_ampersand.sql` — DB-user.
 - **Valkuilen:** schema-incompatibiliteit bij upgrades (reset via `docker compose down -v`, wist data → eerst backup); platform-mismatch (arm64 ≠ amd64); `--load` niet vergeten bij buildx.
 
@@ -116,4 +117,4 @@ Lees eerst hier voordat je gaat zoeken. Paden zijn geverifieerd op 2026-05-31.
 Lees-eerst per onderwerp:
 - **Architectuur/interfaces:** `ampersand-interface-architectuur.md` (BOX-atomen, compositie, interface-debugging), `ampersand-crud-rules.md`, `ampersand-concept-type-mapping.md`, `ampersand-ontwerp-methodiek.md`, `ampersandSyntax.md`, `ampersand-operators-reference.md`.
 - **Framework/frontend:** `frontend-development.md`, `systemPatterns.md`, `techContext.md`, `productcontext.md`, `projectbrief.md`, `atomic-*.md`.
-- **Deployment/DB:** `build-commando-cheatsheet.md`, `deployment-framework-updates.md`, `database-schema-compatibility-warnings.md`, `ampersand-database-inspection-guide.md`, `ampersand-test-project-workflow.md`, `werkdirectory-richtlijnen.md`.
+- **Deployment/DB:** `build-commando-cheatsheet.md`, `database-schema-compatibility-warnings.md`, `ampersand-database-inspection-guide.md`, `ampersand-test-project-workflow.md`, `werkdirectory-richtlijnen.md`.
