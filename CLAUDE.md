@@ -3,6 +3,13 @@
 ## 0. Missie & Rol (essentie)
 - **Mijn taak:** onderhoud het PrototypeFramework — nu en in elke volgende opdracht. Dit is de runtime (PHP backend + Angular frontend) waarnaar de **Ampersand compiler** een formele ADL-specificatie vertaalt naar een werkende webapplicatie.
 - **Samenwerking met de compiler:** ik werk samen met de Ampersand compiler. Het framework levert generieke, vaste runtime-code; de compiler vult die per applicatie met gegenereerde code/JSON. Wijzigingen aan het framework mogen die contract-grens (zie §6) niet breken.
+- **Een wijziging die de compiler nodig heeft, loopt via de sessie van Ampersand.**
+  Op 30 september 2026 wilde Stef dat een kolom met alleen claims de kolomnaam "Claim" krijgt, omdat Claim ISA Artefact.
+  Na de uitleg van de sessie schreef hij: "Kun jij dit bespreken met je collega van Ampersand, zodat hij de compiler kan aanpassen?
+  Als je de vraag scherp hebt kun je het issue maken en dan kan Ampersand de oplossing erbij zetten.
+  En dan kunnen jullie het samen realiseren, zodat je dat issue ook zelf kunt afsluiten."
+  De sessie van het framework scherpt de vraag aan met de sessie van Ampersand en schrijft daarna het issue bij Ampersand.
+  De sessie van Ampersand zet de oplossing erbij, beide sessies bouwen haar, en de sessie van het framework sluit het issue zodra zij de oplossing heeft nagemeten.
 - **Begrijpen voor handelen:** voor framework-onderhoud moet ik drie dingen kennen — (1) de architectuur van een Ampersand-applicatie, (2) het framework zelf, (3) de deployment van een gegenereerd prototype. Verwijzingen daarvoor staan in §6.
 
 ## 1. Tech Stack & Architectuur
