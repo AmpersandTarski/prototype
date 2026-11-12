@@ -117,6 +117,10 @@ Lees eerst hier voordat je gaat zoeken. Paden zijn geverifieerd op 2026-05-31.
 - `compose.yaml` — dev-stack (prototype + MariaDB + phpmyadmin); `test/docker-compose*.yml` — testprojecten.
 - `generate.sh` — orkestreert ADL → backend + frontend → `npm run build:dev` → kopie naar `html/`. Vereist een draaiende `prototype`-container.
 - `docs/guides/updating-and-releasing.md` — een frameworkwijziging bijwerken en releasen.
+- **Een nieuwe functie heeft een issue met haar doel en haar documentatie vóórdat zij gereleaset wordt.**
+  Op 29 september 2026 vroeg Stef om een BOX-template MARKUP voor opgemaakte tekst en schreef daarbij: "Maak ook hier een issue van met de juiste purpose, zodat de onstaansgeschiedenis samen met de ontwerpkeuzen erin bewaard blijven.
+  Vergeet niet te documenteren voordat je dit releaset."
+  De releasegids noemt alleen de changelog; de documentatie van de functie zelf staat in `docs/` volgens `docs/guides/documenting-prototype-changes.md`, en haar ontwerpkeuzes in `DesignChoices.md`.
 - `docker/apache/000-default.conf` + `apache-conf/.htaccess` — Apache SPA-rewrite; `db-init-scripts/01_grant_ampersand.sql` — DB-user.
 - **Valkuilen:** schema-incompatibiliteit bij upgrades (reset via `docker compose down -v`, wist data → eerst backup); platform-mismatch (arm64 ≠ amd64); `--load` niet vergeten bij buildx.
 
