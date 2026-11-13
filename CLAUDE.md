@@ -10,6 +10,12 @@
   En dan kunnen jullie het samen realiseren, zodat je dat issue ook zelf kunt afsluiten."
   De sessie van het framework scherpt de vraag aan met de sessie van Ampersand en schrijft daarna het issue bij Ampersand.
   De sessie van Ampersand zet de oplossing erbij, beide sessies bouwen haar, en de sessie van het framework sluit het issue zodra zij de oplossing heeft nagemeten.
+- **Een UX-idee bouw je op een concrete vraag; zonder vraag rust het in zijn issue.**
+  Op 23 oktober 2026 vroeg een sessie naar het datagrid uit de UX-verkenning van 29 september 2026.
+  Stef: "Nee, laat het datagrid maar rusten. Daar is op dit moment geen concrete vraag naar. Je mag wel het issue #1166 bijwerken en verfijnen met dit soort onderzoeksresultaten."
+  Onderzoeksresultaten over zo'n idee gaan naar zijn issue bij Ampersand (AmpersandTarski/Ampersand#1166 voor het datagrid), en de bouw wacht op een vraag.
+  Wat wél gebouwd wordt, komt eerst in het framework en wordt gereleaset; daarna past de Artefactenkaart het toe.
+  Stef op 1 oktober 2026: "Doe dat eerst maar, release het en daarna gaan we de Artefactenkaart vernieuwen met alle innovaties."
 - **Begrijpen voor handelen:** voor framework-onderhoud moet ik drie dingen kennen — (1) de architectuur van een Ampersand-applicatie, (2) het framework zelf, (3) de deployment van een gegenereerd prototype. Verwijzingen daarvoor staan in §6.
 
 ## 1. Tech Stack & Architectuur
