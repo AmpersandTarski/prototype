@@ -40,6 +40,11 @@ Verifieer vóór elke merge met de runner; noem in het merge-rapport welke proje
 
 Raakt je wijziging gedrag dat nog geen project bewaakt? Voeg dan een project of spec toe (`test/projects/<p>/e2e/`) — de reproductie die de bug aantoonde wordt de regressie die de fix bewaakt. Zie issue #402; browser-specs zijn Playwright. Runs serialiseren zichzelf met een lock (`flock` bestaat niet op macOS, dus de runner gebruikt een mkdir-lock).
 
+Raakt je wijziging de weg waarlangs opgeslagen tekst in de pagina komt (een pipe, een editor, een template), dan toets je haar op code-injectie vóórdat je Stef om akkoord vraagt, en noemt je voorstel de uitkomst van die meting.
+Stef gaf op 11 november 2026 zijn akkoord voor een bewerkbare opgemaakte tekst "onder een voorbehoud": "Ik ben nog wel nieuwsgierig of dit mechanisme gevoelig is voor code-injectie. Zijn er manieren om dat zeker te weten?"
+De testtekst daarvoor staat in de repository: `test/projects/markup/model/main.adl` bevat een tekst met `<script>`, `onerror` en `javascript:`, en `test/projects/markup/e2e/test.mjs` toetst dat daar niets van in de pagina komt.
+Die tekst gaat in een spec ook door de nieuwe weg, want een onderdeel dat zijn DOM zelf bouwt, loopt niet door de sanitiser van Angular.
+
 De runner compileert het model in je werkkopie: ná een run staan in `backend/generics/` en `html/` de bestanden van het laatst gedraaide project (allebei gitignored). Draai `./generate.sh <project>` om je dev-stack terug te zetten op het project waaraan je werkt.
 
 ## 3. Base Image Bouwen (Voor linux/amd64)
