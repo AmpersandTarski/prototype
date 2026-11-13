@@ -94,7 +94,8 @@ Lees eerst hier voordat je gaat zoeken. Paden zijn geverifieerd op 2026-05-31.
 ### Gegenereerd vs. vaste code (contract-grens — niet breken)
 - **Gegenereerd** (compiler-output, niet handmatig editen): `backend/generics/*.json` + `database.sql` (concepts, relations, interfaces, rules, conjuncts, views, roles, populations, settings), `frontend/src/app/generated/`, build-output in `html/`.
 - **Vast** (framework, hier onderhouden): `backend/src/Ampersand/` (PHP-runtime: `AmpersandApp.php`, `Model.php`, `Session.php`, `Transaction.php` + mappen API/Controller/Core/Event/Frontend/Interfacing/Rule/Plugs), `frontend/src/app/shared/` (atomic- & box-components), `frontend/src/app/{layout,admin}/`, `frontend/src/app/generated/.templates/` (template-voorbeelden).
-- **Compilerversie-contract:** `backend/generics/compiler-version.txt` (nu `>=5.0.0 <6.0.0`). Check bij compiler-upgrades.
+- **Compilerversie-contract:** `backend/generics/compiler-version.txt` bevat het bereik van compilerversies dat het framework aanvaardt.
+  Lees het bestand zelf, want het bereik verschuift met elke compiler-upgrade en een getal in deze instructie loopt achter.
 
 ### (a) Ampersand-applicatie-architectuur — `~/git/Ampersand/docs/`
 - `CompilationProcess.md` — pipeline ADL → P_Context (parse) → A_Context (typecheck, lattice/typologies) → FSpec (enrichment) → generatie. Lezen bij type-/compilatievragen.
