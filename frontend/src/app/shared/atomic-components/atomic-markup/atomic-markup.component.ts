@@ -8,8 +8,10 @@ import { MarkupFormat, formatName, markupFormat } from './markup';
  * GitHub-flavoured Markdown, HTML or plain text. Two templates use it:
  * - Box-MARKUP.html, for every item of a `BOX <MARKUP ...>`;
  * - a `Concept-<name>.html` that a project writes, for every text of one concept.
- * With update rights the field is the text area of BIGALPHANUMERIC, so a modeller who gives
- * a concept this component keeps the editor.
+ * With update rights on a univalent field in MARKDOWN or GFM, the field is the WYSIWYG editor
+ * `app-markdown-editor` (DesignChoices OK-35); in the other formats, and for a field that holds
+ * more texts, it is the text area of BIGALPHANUMERIC. A BOX<MARKUP> passes no update rights, so
+ * its texts are for reading.
  */
 @Component({
   selector: 'app-atomic-markup',
@@ -40,5 +42,23 @@ export class AtomicMarkupComponent<I extends ObjectBase | ObjectBase[]> extends 
   get effectiveFormat(): MarkupFormat {
     const dynamic = formatName(this.formatValue);
     return markupFormat(dynamic !== '' ? dynamic : this.format);
+  }
+
+  /** Whether the field is the Markdown editor (DesignChoices OK-35). */
+  get usesEditor(): boolean {
+    const format = this.effectiveFormat;
+    return this.canRead() && this.canUpdate() && this.isUni && (format === 'MARKDOWN' || format === 'GFM');
+  }
+
+  /** While the person edits, a sync after another field's save leaves this text alone. */
+  onEditing(active: boolean): void {
+    if (active) this.markEditing();
+    else this.clearEditing();
+  }
+
+  onSave(text: string): void {
+    this.resource[this.propertyName] = text as never;
+    this.dirty = true;
+    this.updateValue();
   }
 }

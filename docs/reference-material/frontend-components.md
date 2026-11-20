@@ -121,8 +121,10 @@ REPRESENT Password TYPE PASSWORD
 A text written in Markdown, GitHub-flavoured Markdown or HTML can be shown formatted, by
 `app-atomic-markup`. Two routes lead there: `BOX<MARKUP>` for the texts of one box, and a
 template `Concept-<name>.html` for every text of one concept. With update rights the second
-route shows the text area of BIGALPHANUMERIC. See
-[Built-in BOX Templates](built-in-box-templates#box-markup).
+route shows an editor: for Markdown and GitHub-flavoured Markdown a WYSIWYG editor, in which a
+person types in the formatted text itself, and for the other formats the text area of
+BIGALPHANUMERIC. See [Built-in BOX Templates](built-in-box-templates#box-markup) and
+[Editing Markdown](built-in-box-templates#editing-markdown).
 
 ### Object relations
 

@@ -4,9 +4,12 @@ PURPOSE CONTEXT Markup
    Markdown, GitHub-flavoured Markdown, HTML, LaTeX and plain text, a format fixed in the box
    header, a format per row from a relation on the note and from a relation on the text
    itself, an unknown format, HTML that must be sanitised, and a concept whose texts a
-   Concept-<name>.html template formats in every interface. The population is synthetic. +}
+   Concept-<name>.html template formats in every interface. The concept Sample holds texts for
+   the Markdown editor (DesignChoices OK-35): Markdown that an editor would normalise, attack
+   texts from the XSS cheat sheets of OWASP and PortSwigger, and texts to type in.
+   The population is synthetic. +}
 
-REPRESENT Body, Explanation TYPE BIGALPHANUMERIC
+REPRESENT Body, Explanation, Readme, Texsource TYPE BIGALPHANUMERIC
 REPRESENT Title, Format TYPE ALPHANUMERIC
 
 RELATION title[Note*Title] [UNI]
@@ -73,5 +76,95 @@ INTERFACE Explanations : "_SESSION";V[SESSION*Note] cRud BOX <TABLE>
 
 INTERFACE EditExplanation : I[Note] cRud BOX <FORM>
   [ "explanation" : explanation cRUd
+  ]
+
+-- The Markdown editor (DesignChoices OK-35). Concept-Explanation.html shows an Explanation as
+-- MARKDOWN, Concept-Readme.html a Readme as GFM and Concept-Texsource.html a Texsource as LATEX;
+-- the spec copies all three into the template folder.
+RELATION sampleText[Sample*Explanation] [UNI]
+MEANING "A Markdown text of a sample."
+RELATION sampleReadme[Sample*Readme] [UNI]
+MEANING "A GitHub-flavoured Markdown text of a sample."
+RELATION sampleTex[Sample*Texsource] [UNI]
+MEANING "A LaTeX text of a sample."
+RELATION sampleRemark[Sample*Explanation]
+MEANING "Remarks on a sample, in Markdown; a sample may have more than one."
+
+-- r*: Markdown that the editor writes back differently (escapes, list markers, a table
+-- separator, formulas and raw LaTeX it does not know), so a save without typing would change it.
+POPULATION sampleText CONTAINS
+  [ ("r1", "The home rule -toets\\.(py|sh)$ holds for every script.")
+  , ("r2", "Two patterns: a\\.py$ and b\\.sh$ together.")
+  , ("r3", "A snake\\_case name and a price of \\$5 and \\$6.")
+  , ("r4", "Formula $a^2+b^2=c^2$ and a block:\n\n$$\n\\int_0^1 x\\,dx\n$$\n\nSee \\cite{knuth84}.")
+  , ("r5", "\\begin{theorem}\nEvery line is one sentence.\n\\end{theorem}")
+  , ("r6", "First sentence.\nSecond sentence.\n\n- one\n- two\n  - nested\n\n1. first\n2. second")
+  , ("r7", "Title\n=====\n\nText with _emphasis_ and __strong__.  \nA hard break.\n\n<!-- a comment -->\n\n```\ncode with \\\\backslash\n```")
+  , ("r8", "[link](https://ampersandtarski.github.io \"title\") and <https://example.org> and [ref][r]\n\n[r]: https://example.org")
+-- x*: attack texts. Each sets window.__xss when it runs; the spec fails if that flag is set.
+  , ("x01", "<script>window.__xss='x01'</script>")
+  , ("x02", "<img src=x onerror=\"window.__xss='x02'\">")
+  , ("x03", "<svg onload=\"window.__xss='x03'\"></svg>")
+  , ("x04", "<iframe src=\"javascript:window.__xss='x04'\"></iframe>")
+  , ("x05", "<details open ontoggle=\"window.__xss='x05'\">d</details>")
+  , ("x06", "<a href=\"javascript:window.__xss='x06'\">a</a>")
+  , ("x07", "[link](javascript:window.__xss='x07')")
+  , ("x08", "[case](JaVaScRiPt:window.__xss='x08')")
+  , ("x09", "[entity](&#106;avascript:window.__xss='x09')")
+  , ("x10", "![image](javascript:window.__xss='x10')")
+  , ("x11", "[data](data:text/html;base64,PHNjcmlwdD53aW5kb3cuX194c3M9J3gxMSc8L3NjcmlwdD4=)")
+  , ("x12", "![svg](data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIG9ubG9hZD0id2luZG93Ll9feHNzPSd4MTInIi8+)")
+  , ("x13", "<javascript:window.__xss='x13'>")
+  , ("x14", "[ref][r]\n\n[r]: javascript:window.__xss='x14'")
+  , ("x15", "![t](x \"a\\\" onerror=\\\"window.__xss='x15'\")")
+  , ("x16", "[t](https://example.org \"a\\\" onmouseover=\\\"window.__xss='x16'\")")
+  , ("x17", "<math><mtext><table><mglyph><style><img src=x onerror=\"window.__xss='x17'\">")
+  , ("x18", "<noscript><p title=\"</noscript><img src=x onerror=window.__xss='x18'>\">")
+  , ("x19", "<object data=\"javascript:window.__xss='x19'\"></object>")
+  , ("x20", "<embed src=\"javascript:window.__xss='x20'\">")
+  , ("x21", "<form><button formaction=\"javascript:window.__xss='x21'\">b</button></form>")
+  , ("x22", "<input autofocus onfocus=\"window.__xss='x22'\">")
+  , ("x23", "<svg><a xlink:href=\"javascript:window.__xss='x23'\"><text x=\"0\" y=\"20\">t</text></a></svg>")
+  , ("x24", "Inline <b onmouseover=\"window.__xss='x24'\">bold</b> in a sentence.")
+  , ("x25", "`<img src=x onerror=window.__xss='x25'>`")
+  , ("x26", "<a href=\"&#x6A;avascript:window.__xss='x26'\">e</a>")
+  , ("x27", "<style>*{background:url(\"javascript:window.__xss='x27'\")}</style>")
+  , ("x28", "<base href=\"javascript:window.__xss='x28'//\">")
+  , ("x29", "<marquee onstart=\"window.__xss='x29'\">m</marquee>")
+-- e*: texts to type in.
+  , ("e1", "First paragraph with -toets\\.(py|sh)$ in it.\n\nSecond paragraph.")
+  , ("e2", "Start.")
+  ]
+
+POPULATION sampleReadme CONTAINS
+  [ ("r9", "| a | b |\n|---|:-:|\n| 1 | 2 |\n\n- [ ] task\n- [x] done\n\n~~gone~~ and a\\_b")
+  , ("x30", "| a |\n| - |\n| <img src=x onerror=\"window.__xss='x30'\"> |")
+  ]
+
+POPULATION sampleTex CONTAINS
+  [ ("e1", "A \\emph{LaTeX} text.") ]
+
+POPULATION sampleRemark CONTAINS
+  [ ("e1", "A remark.") ]
+
+-- Every sample in the reading mode: no update rights, so every text is formatted HTML.
+INTERFACE ReadSamples : "_SESSION";V[SESSION*Sample] cRud BOX <TABLE>
+  [ "sample" : I
+  , "text"   : sampleText
+  , "readme" : sampleReadme
+  ]
+
+-- Every sample in the editing mode: one editor per text.
+INTERFACE EditSamples : "_SESSION";V[SESSION*Sample] cRud BOX <TABLE>
+  [ "sample" : I
+  , "text"   : sampleText cRUd
+  , "readme" : sampleReadme cRUd
+  ]
+
+-- One sample: the editor for Markdown, the text area for LaTeX and for a field with more texts.
+INTERFACE EditSample : I[Sample] cRud BOX <FORM>
+  [ "text"    : sampleText cRUd
+  , "tex"     : sampleTex cRUd
+  , "remarks" : sampleRemark cRUd
   ]
 ENDCONTEXT

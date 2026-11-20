@@ -48,6 +48,7 @@ import { AtomicUrlComponent } from './atomic-components/atomic-url/atomic-url.co
 import { AtomicMarkupComponent } from './atomic-components/atomic-markup/atomic-markup.component';
 import { MarkupPipe } from './atomic-components/atomic-markup/markup.pipe';
 import { MarkupMathDirective } from './atomic-components/atomic-markup/markup-math.directive';
+import { MarkdownEditorComponent } from './atomic-components/atomic-markup/markdown-editor.component';
 import { AtomicSelectComponent } from './atomic-components/atomic-select/atomic-select.component';
 import { IfcsDropdownComponent } from './common/ifcs-dropdown/ifcs-dropdown.component';
 import { InterfaceHeadingComponent } from './common/interface-heading/interface-heading.component';
@@ -71,6 +72,7 @@ import { DiagnosticsTextComponent } from './diagnostics-text/diagnostics-text.co
     AtomicMarkupComponent,
     MarkupPipe,
     MarkupMathDirective,
+    MarkdownEditorComponent,
     BoxTableComponent,
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,
@@ -127,6 +129,7 @@ import { DiagnosticsTextComponent } from './diagnostics-text/diagnostics-text.co
     AtomicMarkupComponent,
     MarkupPipe,
     MarkupMathDirective,
+    MarkdownEditorComponent,
     BoxTableComponent,
     BoxTableHeaderTemplateDirective,
     BoxTableRowTemplateDirective,

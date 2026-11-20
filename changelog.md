@@ -10,6 +10,22 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## v2.25.0 (20 November 2026)
+
+* **A Markdown text is edited in its formatted form (OK-35, #538).** Where a `Concept-<name>.html`
+  shows a text with `app-atomic-markup` in `MARKDOWN` or `GFM` and the interface allows an update, the
+  field is a WYSIWYG editor (Milkdown): a person types bold, a list or a heading in the formatted text
+  instead of the Markdown characters. The editor saves when the field is left, and only after a change;
+  the stored text then changes only in the lines the person edited, so a regular expression such as
+  `-toets\.(py|sh)$` in an untouched paragraph keeps its backslash. It renders no formulas. A text in
+  `HTML`, `LATEX` or `TEXT`, a field with more texts, and every text in a `BOX <MARKUP>` keep what they
+  had. Milkdown loads only on a page that shows an editor.
+* **A Markdown link or image with an unsafe URL is drawn empty**, in the editor and in the reading mode
+  alike: only a URL without a scheme or with `http:`, `https:` or `mailto:` passes, so a `data:` URL,
+  which Angular's sanitiser lets through, no longer reaches the page. `test/projects/markup` opens 30
+  attack texts from the XSS cheat sheets of OWASP and PortSwigger in both modes and checks every place
+  in the packages of the editor where HTML meets a string.
+
 ## v2.24.0 (3 November 2026)
 
 * **A prototype can take its roles from an identity service in front of it (the door, OK-32).** With

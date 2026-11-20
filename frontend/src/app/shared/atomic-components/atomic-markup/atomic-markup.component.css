@@ -138,3 +138,51 @@
   overflow-x: auto;
 }
 
+/* The Markdown editor (DesignChoices OK-35): a field with the border of a text area, in which the
+   text has the formatting of the reading mode. The rules for ProseMirror itself come from its
+   stylesheet prosemirror-view/style/prosemirror.css, which the framework does not load. */
+.markup-editor .ProseMirror {
+  position: relative;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-variant-ligatures: none;
+  min-height: 6em;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--surface-300, #ced4da);
+  border-radius: 6px;
+  background: var(--surface-0, #ffffff);
+  outline: none;
+}
+
+.markup-editor .ProseMirror:focus {
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 0.2rem var(--primary-100, rgba(59, 130, 246, 0.25));
+}
+
+.markup-editor .ProseMirror pre {
+  white-space: pre-wrap;
+}
+
+.markup-editor .ProseMirror li {
+  position: relative;
+}
+
+.markup-editor .ProseMirror-hideselection *::selection {
+  background: transparent;
+}
+
+.markup-editor .ProseMirror-hideselection {
+  caret-color: transparent;
+}
+
+.markup-editor .ProseMirror-selectednode {
+  outline: 2px solid var(--primary-color, #3b82f6);
+}
+
+/* Raw HTML in the text: the editor shows its source, as code. */
+.markup-editor .ProseMirror [data-type='html'] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+

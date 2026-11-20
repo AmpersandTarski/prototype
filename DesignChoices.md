@@ -704,7 +704,8 @@ Markdown), `HTML` or `TEXT`; an unknown format name gives `TEXT` and one console
 templates use it. `BOX <MARKUP MARKDOWN> [ "text" : explanation ]` sits on the object that owns
 the texts and formats every item of the box; `formatFrom="fmt"` takes the format per row from the
 item `fmt`, which itself shows nothing. A project's own `Concept-<name>.html` formats every text
-of one concept, in every interface, and keeps the text area where the field may be updated.
+of one concept, in every interface; where the field may be updated, it is the Markdown editor of
+OK-35 for `MARKDOWN` and `GFM`, and the text area for the other formats.
 Markdown is rendered in the browser by `marked`; all HTML reaches the page through Angular's
 sanitiser.
 
@@ -750,7 +751,7 @@ Overwegingen:
 
 8. The box is for reading: the compiler hands a box template no CRUD per item, so every text in
    it is read-only, and editing stays in a FORM. The route per concept knows the CRUD of its field
-   and shows the text area of BIGALPHANUMERIC when the field may be updated.
+   and shows an editor when the field may be updated (OK-35).
 
 9. `showLabels` is off by default. A MARKUP box usually holds one text, whose label the enclosing
    FORM or TABLE already shows; FORM's opposite default, `hideLabels`, would make the common case
@@ -823,6 +824,103 @@ a `span` with the class `markup__cmd--<name>`, which the project may style in it
 Technisch: `latex.ts` with `latex.spec.ts`, `MarkupMathDirective`, `markup.ts`, the stylesheet of
 `atomic-markup`, `Box-MARKUP.html`, `katex` in `frontend/package.json`, the documentation in
 `docs/reference-material/built-in-box-templates.md`, and note `n7` in `test/projects/markup`.
+
+---
+
+**A person edits a Markdown text in its formatted form, and only the lines they edit change in the database**
+OK-35 · geldig · 2026-11-20 · herkomst: AmpersandTarski/prototype#538, besluit Stef (11 November 2026: Markdown without formulas, BOX<MARKUP> for reading; 20 November 2026: "Ja, bouw #538 met de punten 1 tot en met 3. Zorg dat de securitymaatregelen gedocumenteerd zijn op de juiste plek."), bouwt voort op OK-24
+
+Where `app-atomic-markup` holds one text (a univalent field) in `MARKDOWN` or `GFM` and the CRUD
+contains U, the field is a WYSIWYG editor, Milkdown 7.23 (ProseMirror with remark), with the preset
+commonmark and, for `GFM`, also gfm. It knows no formulas. The other formats, a field with more
+texts, and every text in a `BOX<MARKUP>` keep what OK-24 gives them. A text is saved when the
+focus leaves the editor and the person changed the document; the stored text is then the old text
+in which only the edited lines differ. A link or an image is drawn only with a URL without a
+scheme or with `http`, `https` or `mailto`, in the editor and in the reading mode alike.
+
+Overwegingen:
+
+1. The purpose is that a person writes a text in the form a reader sees, without the markup
+   characters, in every Ampersand application whose interface allows an update. One project had
+   built its own component for this, with the Markdown beside the formatted text.
+
+2. A WYSIWYG editor reads Markdown into a document model and writes new Markdown from it, so it
+   normalises what nobody typed. Measured on Milkdown 7.23 on 20 November 2026: `\.` and `\_` lose
+   their backslash, `-` in a list becomes `*`, `---` under a table header becomes `-`, two spaces at
+   the end of a line become a backslash, and a text gets a final line end. The texts of the
+   Artefactenkaart hold regular expressions such as `-toets\.(py|sh)$`, where such a change alters
+   the text, even though it renders the same.
+
+3. The save therefore merges three texts: the stored text, the editor's Markdown of it before the
+   person typed, and the editor's Markdown afterwards (`mergeEdit`, a three-way merge per line with
+   node-diff3). A line the person did not touch keeps its stored spelling; an edited line takes the
+   editor's. Where an edit and a normalisation touch neighbouring lines and the lines pair up one
+   to one, only the edited line changes. The editor then parses the merged text and compares it
+   with its own document; when they differ in meaning, it stores its own Markdown. A text opened
+   and left without a change sends no request at all. Rejected: storing the editor's Markdown as
+   it is, which changes every text on its first edit. Rejected: saving only when the person typed,
+   without the merge, which still normalises the whole text on the first letter.
+
+4. Formulas are off. With remark-math on, two dollar signs in one line make a formula, measured on
+   `a\.py$ and b\.sh$`, which the editor then wrote back as `a.py\$ and b\\.sh\$`. With formulas
+   off, the editor turns `\,` inside a `$$` block into `,`; the merge of overweging 3 keeps such a
+   line as stored as long as nobody edits it. Rejected: `@milkdown/plugin-math`, which stopped at
+   7.5.9 and is deprecated. Rejected: Milkdown Crepe, the only variant with formulas, which brings
+   Vue and CodeMirror. A text with formulas in Markdown can get a format of its own when a
+   project asks for it.
+
+5. `BOX<MARKUP>` stays for reading (OK-24, overweging 8). Making it editable would turn existing
+   boxes into editors wherever their interface allows an update. The Artefactenkaart edits its
+   texts through a `Concept-<name>.html` and needs no editable box.
+
+6. The editor builds its DOM itself, outside Angular's sanitiser. Its safety rests on three
+   measures, decided by Stef on 20 November 2026.
+   The first is a regression test in a real browser (Puppeteer with Chromium, like every spec in
+   `test/projects`). It opens 30 attack texts, taken from the XSS cheat sheets of OWASP and
+   PortSwigger, in the reading mode and in the editing mode. Each attack sets `window.__xss` when
+   it runs, and the test also looks for event handlers, unknown elements and URLs with
+   `javascript:`, `data:` or `vbscript:`. Two mutations make it fail: raw HTML drawn with
+   `innerHTML` sets the flag (`x24`), and the URL filter switched off leaves `src="javascript:…"`
+   and `data:` URLs on the page.
+   The second measure is a check of the code: ProseMirror creates the elements of a document from
+   the schema with `document.createElement`. Raw HTML in a text is a node that shows its source as
+   text. `check-editor-html.mjs` lists every place in the loaded packages where HTML and a string
+   meet; each of the seven places has been read, and a new one fails the check. Before the merge a
+   security review of the diff runs.
+   The third measure is the exact versions of the packages in `package.json` and the lock file,
+   with `npm audit` before the merge.
+
+7. The URL filter (`safeUrl`) sits in the drawing of the link and image nodes, so it covers a
+   text that is loaded, typed or pasted, and the document keeps the URL as written. Current
+   browsers run no script from the `src` of an image, but the filter makes that independent of the
+   browser. Angular's sanitiser lets a `data:` URL through; the reading mode applies the same
+   filter to every Markdown link and image through `walkTokens` of `marked`, so both modes allow
+   the same schemes. Raw HTML in the reading mode keeps Angular's sanitiser as its only filter.
+
+8. Milkdown loads with a dynamic import, in chunks of its own (about 490 kB, 135 kB over the
+   network, measured in the production build on Node 18). An application without an editable
+   Markdown text does not load it. The editor takes the separate packages, not `@milkdown/kit`,
+   which depends on Vue.
+
+9. A Content-Security-Policy for the whole framework would be a second wall behind the editor. It
+   touches every application, and possibly templates with inline scripts, so it has an issue of
+   its own, AmpersandTarski/prototype#547.
+
+Impact op de specificatie: none. An interface that allows an update of a Markdown text through a
+`Concept-<name>.html` with `format="MARKDOWN"` or `format="GFM"` gets the editor; a `BOX<MARKUP>`
+stays for reading.
+
+Impact in productie: a project gets the editor with the next framework release and a rebuild.
+A stored text changes only in the lines a person edits. The production build still succeeds on
+Node 18; `nanoid` 6, under `@milkdown/utils`, asks for Node 22 or later in its `engines` and npm
+warns about that. The initial bundle grows by about 11 kB, from 4.15 MB to 4.16 MB; its budget
+warning of 4 MB was already exceeded on `main`.
+
+Technisch: `markdown-editor.component.ts`, `markdown-merge.ts` and `safe-url.ts` with their unit
+tests, `markup.ts`, `atomic-markup.component.{ts,html,css}`, `src/types/node-diff3.d.ts`, the
+packages `@milkdown/*` 7.23.0 and `node-diff3` 3.2.1 in `frontend/package.json`, the documentation in
+`docs/reference-material/frontend-components.md`, and the samples, templates, spec and
+`check-editor-html.mjs` in `test/projects/markup`.
 
 ---
 
