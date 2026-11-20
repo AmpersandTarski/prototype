@@ -1,4 +1,36 @@
-import { mergeEdit } from './markdown-merge';
+import { mergeEdit, textToStore } from './markdown-merge';
+
+describe('textToStore', () => {
+  const same = () => true;
+  const different = () => false;
+
+  it('stores nothing when the document did not change', () => {
+    expect(textToStore('A\\.', 'A.\n', 'A.\n', same)).toBeNull();
+  });
+
+  it('stores the merge when it means what the editor shows', () => {
+    expect(textToStore('A\\.\n\nB', 'A.\n\nB\n', 'A.\n\nB, more\n', same)).toBe(
+      'A\\.\n\nB, more',
+    );
+  });
+
+  it("stores the editor's Markdown when the merge means something else", () => {
+    expect(
+      textToStore('A\\.\n\nB', 'A.\n\nB\n', 'A.\n\nB, more\n', different),
+    ).toBe('A.\n\nB, more\n');
+  });
+
+  it('compares the merge with the edited text', () => {
+    const calls: string[][] = [];
+    textToStore(
+      'A\\.\n\nB',
+      'A.\n\nB\n',
+      'A.\n\nC\n',
+      (a, b) => (calls.push([a, b]), true),
+    );
+    expect(calls).toEqual([['A\\.\n\nC', 'A.\n\nC\n']]);
+  });
+});
 
 describe('mergeEdit', () => {
   // What the editor makes of a stored text without anyone typing (measured on Milkdown 7.23).

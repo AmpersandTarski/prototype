@@ -13,7 +13,7 @@ import {
   booleanAttribute,
 } from '@angular/core';
 import type { Editor } from '@milkdown/core';
-import { mergeEdit } from './markdown-merge';
+import { textToStore } from './markdown-merge';
 import { safeUrl } from './safe-url';
 
 /**
@@ -22,13 +22,14 @@ import { safeUrl } from './safe-url';
  * commonmark and, for GFM, gfm; it renders no formulas.
  *
  * Saving: when the focus leaves the editor and the person changed the document, the editor
- * emits `save` with the stored text in which only the edited lines changed (`mergeEdit`).
+ * emits `save` with the text that `textToStore` gives: the stored text with the edited lines
+ * replaced, or the editor's Markdown where that merge would change the meaning.
  * A text that is opened and left without a change is not saved.
  *
  * Safety: the editor builds its DOM itself, outside Angular's sanitiser. It creates only the
  * elements of its schema, through ProseMirror; raw HTML in the text is a node that shows its
- * source as text. A link or an image whose URL has a scheme other than http, https or mailto
- * is drawn with an empty URL (`safeUrl`), whether it was loaded, typed or pasted.
+ * source as text. A link or an image is drawn with the URL that `safeUrl` allows, whether it was
+ * loaded, typed or pasted.
  *
  * Milkdown is loaded with a dynamic import, so an application without an editable Markdown
  * text does not load it.
@@ -154,10 +155,10 @@ export class MarkdownEditorComponent
     const ready = this.ready;
     if (!ready) return;
     const after = markdown(ready);
-    if (after === this.before) return;
-    let text = mergeEdit(this.stored, this.before, after);
-    // The merge keeps the stored spelling of untouched lines; it must not change what the text means.
-    if (!parse(ready, text).eq(parse(ready, after))) text = after;
+    const text = textToStore(this.stored, this.before, after, (a, b) =>
+      parse(ready, a).eq(parse(ready, b)),
+    );
+    if (text === null) return;
     this.stored = text;
     this.before = after;
     this.zone.run(() => this.save.emit(text));

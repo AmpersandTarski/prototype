@@ -59,10 +59,11 @@ describe('renderMarkup', () => {
   it('empties the URL of a Markdown link or image with an unsafe scheme', () => {
     for (const format of ['MARKDOWN', 'GFM'] as const) {
       const html = renderMarkup(
-        '[a](javascript:x) ![b](data:image/svg+xml;base64,PHN2Zz4=) <javascript:y> [c][r] [d](https://ampersandtarski.github.io)\n\n[r]: vbscript:z',
+        '[a](javascript:x) ![b](data:image/svg+xml;base64,PHN2Zz4=) <javascript:y> [c][r] [e](&#100;ata:text/html,x) [f](ms-msdt&colon;x) [d](https://ampersandtarski.github.io)\n\n[r]: vbscript:z',
         format,
       );
       expect(html).not.toMatch(/(href|src)="\s*(javascript|data|vbscript):/i);
+      expect(html).not.toMatch(/(href|src)="[^"/?#]*&/i);
       expect(html).toContain('href="https://ampersandtarski.github.io"');
     }
   });

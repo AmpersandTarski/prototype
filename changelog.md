@@ -13,18 +13,24 @@ Additional labels for pre-release and build metadata are available as extensions
 ## v2.25.0 (20 November 2026)
 
 * **A Markdown text is edited in its formatted form (OK-35, #538).** Where a `Concept-<name>.html`
-  shows a text with `app-atomic-markup` in `MARKDOWN` or `GFM` and the interface allows an update, the
-  field is a WYSIWYG editor (Milkdown): a person types bold, a list or a heading in the formatted text
-  instead of the Markdown characters. The editor saves when the field is left, and only after a change;
-  the stored text then changes only in the lines the person edited, so a regular expression such as
-  `-toets\.(py|sh)$` in an untouched paragraph keeps its backslash. It renders no formulas. A text in
-  `HTML`, `LATEX` or `TEXT`, a field with more texts, and every text in a `BOX <MARKUP>` keep what they
-  had. Milkdown loads only on a page that shows an editor.
-* **A Markdown link or image with an unsafe URL is drawn empty**, in the editor and in the reading mode
-  alike: only a URL without a scheme or with `http:`, `https:` or `mailto:` passes, so a `data:` URL,
-  which Angular's sanitiser lets through, no longer reaches the page. `test/projects/markup` opens 30
-  attack texts from the XSS cheat sheets of OWASP and PortSwigger in both modes and checks every place
-  in the packages of the editor where HTML meets a string.
+  shows a text with `app-atomic-markup` in `MARKDOWN` or `GFM`, with update rights and one text in the
+  field, the field is a WYSIWYG editor (Milkdown): a person types bold, a list or a heading in the
+  formatted text instead of the Markdown characters. The editor saves when the field is left, and only
+  after a change. The stored text then changes in the lines the person edited, so a regular expression
+  such as `-toets\.(py|sh)$` in an untouched paragraph keeps its backslash; where the editor joined
+  lines around the edit, or the merge would change the meaning, more of the text takes the editor's
+  spelling. It renders no formulas. A text in `HTML`, `LATEX` or `TEXT`, a field with more texts, and
+  every text in a `BOX <MARKUP>` keep what they had. Milkdown loads only on a page that shows an editor.
+* **A Markdown link or image with an unsafe URL is drawn empty (OK-35)**, in the editor and in the
+  reading mode alike, also in an existing `BOX <MARKUP>`. Only a URL without a scheme or with `http:`,
+  `https:`, `mailto:` or `tel:` passes, so a `data:` URL, which Angular's sanitiser lets through, and a
+  scheme hidden in a character reference such as `&#106;avascript:` no longer reach the page. A URL into
+  `api/v1/admin` is drawn empty too, because an image would call those routes for everyone who opens the
+  text; #548 proposes POST for the routes that change the application.
+* **Dependencies:** `phpoffice/phpspreadsheet` 1.30.8, `open-telemetry/sdk` 1.16.1 and
+  `open-telemetry/exporter-otlp` 1.5.0 in the backend; `lodash` 4.18.1, `node-forge` 1.4.3,
+  `follow-redirects` 1.16.2 and `systeminformation` in the frontend. These reached `main` after v2.24.0,
+  and v2.25.0 is the first image that holds them.
 
 ## v2.24.0 (3 November 2026)
 

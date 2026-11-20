@@ -42,6 +42,23 @@ export function mergeEdit(
   return text === '' ? '' : text + (/\r?\n$/.test(stored) ? eol : '');
 }
 
+/**
+ * The text to store when the person leaves the editor, or `null` when the document did not
+ * change and nothing is to be stored. It is the merge of `mergeEdit`, as long as that merge
+ * means what the editor shows; `sameMeaning` compares two texts as the editor parses them. When
+ * the merge means something else, the editor's own Markdown is stored, in its own spelling.
+ */
+export function textToStore(
+  stored: string,
+  before: string,
+  after: string,
+  sameMeaning: (a: string, b: string) => boolean,
+): string | null {
+  if (after === before) return null;
+  const merged = mergeEdit(stored, before, after);
+  return sameMeaning(merged, after) ? merged : after;
+}
+
 /** A conflict: `stored` and `edited` both differ from `base`. */
 function resolve(stored: string[], base: string[], edited: string[]): string[] {
   if (stored.length !== base.length) return edited;

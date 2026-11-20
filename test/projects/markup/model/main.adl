@@ -131,6 +131,12 @@ POPULATION sampleText CONTAINS
   , ("x27", "<style>*{background:url(\"javascript:window.__xss='x27'\")}</style>")
   , ("x28", "<base href=\"javascript:window.__xss='x28'//\">")
   , ("x29", "<marquee onstart=\"window.__xss='x29'\">m</marquee>")
+  , ("x31", "[entity data](&#100;ata:text/html;base64,PHNjcmlwdD53aW5kb3cuX194c3M9J3gzMSc8L3NjcmlwdD4=)")
+  , ("x32", "[named colon](ms-msdt&colon;id window.__xss='x32')")
+-- x33 and x34 point to an administration route (issue #548); a read-only one, so that a failing
+-- spec changes nothing.
+  , ("x33", "![admin](/api/v1/admin/report/relations)")
+  , ("x34", "[admin](api/v1/%61dmin/./report/relations)")
 -- e*: texts to type in.
   , ("e1", "First paragraph with -toets\\.(py|sh)$ in it.\n\nSecond paragraph.")
   , ("e2", "Start.")

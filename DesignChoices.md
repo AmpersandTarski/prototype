@@ -704,10 +704,11 @@ Markdown), `HTML` or `TEXT`; an unknown format name gives `TEXT` and one console
 templates use it. `BOX <MARKUP MARKDOWN> [ "text" : explanation ]` sits on the object that owns
 the texts and formats every item of the box; `formatFrom="fmt"` takes the format per row from the
 item `fmt`, which itself shows nothing. A project's own `Concept-<name>.html` formats every text
-of one concept, in every interface; where the field may be updated, it is the Markdown editor of
-OK-35 for `MARKDOWN` and `GFM`, and the text area for the other formats.
-Markdown is rendered in the browser by `marked`; all HTML reaches the page through Angular's
-sanitiser.
+of one concept, in every interface. Where the field has update rights and holds one text in
+`MARKDOWN` or `GFM`, the field is the editor of OK-35; otherwise, with update rights, it is the
+text area. Markdown is rendered in the browser by `marked`. In the reading mode all HTML reaches
+the page through Angular's sanitiser, and a Markdown link or image first passes the URL filter of
+OK-35; the editor of OK-35 builds its part of the page itself.
 
 Overwegingen:
 
@@ -744,6 +745,8 @@ Overwegingen:
    handlers and makes a `javascript:` URL inert (`unsafe:javascript:`), measured in the spec.
    Rejected: `bypassSecurityTrustHtml`, which would let a text run code in its reader's browser.
    Rejected: DOMPurify as a second layer, one dependency more for what Angular already does.
+   Angular keeps a `data:` URL, so OK-35 (overweging 7) adds a check on the scheme of a Markdown
+   link or image, in a function of its own.
 
 7. `marked` 15 is the renderer: it has no dependencies of its own, and 15 is the last series that
    runs on Node 18, the Node of the framework images (16 and later require Node 20). The pure pipe
@@ -830,13 +833,15 @@ Technisch: `latex.ts` with `latex.spec.ts`, `MarkupMathDirective`, `markup.ts`, 
 **A person edits a Markdown text in its formatted form, and only the lines they edit change in the database**
 OK-35 · geldig · 2026-11-20 · herkomst: AmpersandTarski/prototype#538, besluit Stef (11 November 2026: Markdown without formulas, BOX<MARKUP> for reading; 20 November 2026: "Ja, bouw #538 met de punten 1 tot en met 3. Zorg dat de securitymaatregelen gedocumenteerd zijn op de juiste plek."), bouwt voort op OK-24
 
-Where `app-atomic-markup` holds one text (a univalent field) in `MARKDOWN` or `GFM` and the CRUD
-contains U, the field is a WYSIWYG editor, Milkdown 7.23 (ProseMirror with remark), with the preset
-commonmark and, for `GFM`, also gfm. It knows no formulas. The other formats, a field with more
-texts, and every text in a `BOX<MARKUP>` keep what OK-24 gives them. A text is saved when the
-focus leaves the editor and the person changed the document; the stored text is then the old text
-in which only the edited lines differ. A link or an image is drawn only with a URL without a
-scheme or with `http`, `https` or `mailto`, in the editor and in the reading mode alike.
+Where a field of `app-atomic-markup` has update rights (its CRUD contains U) and holds one text in
+`MARKDOWN` or `GFM`, the field is a WYSIWYG editor, Milkdown 7.23 (ProseMirror with remark), with
+the preset commonmark and, for `GFM`, also gfm. It knows no formulas. The other formats, a field
+with more texts, and every text in a `BOX<MARKUP>` keep what OK-24 gives them. A text is saved when
+the focus leaves the editor and the person changed the document. The stored text is then the old
+text in which the edited lines are replaced; where that merge would change what the text means, it
+is the editor's Markdown. A Markdown link or image is drawn only with a URL without a scheme or
+with `http`, `https`, `mailto` or `tel`, and never with a URL into the administration routes of
+the framework, in the editor and in the reading mode alike.
 
 Overwegingen:
 
@@ -855,11 +860,15 @@ Overwegingen:
    person typed, and the editor's Markdown afterwards (`mergeEdit`, a three-way merge per line with
    node-diff3). A line the person did not touch keeps its stored spelling; an edited line takes the
    editor's. Where an edit and a normalisation touch neighbouring lines and the lines pair up one
-   to one, only the edited line changes. The editor then parses the merged text and compares it
-   with its own document; when they differ in meaning, it stores its own Markdown. A text opened
-   and left without a change sends no request at all. Rejected: storing the editor's Markdown as
-   it is, which changes every text on its first edit. Rejected: saving only when the person typed,
-   without the merge, which still normalises the whole text on the first letter.
+   to one, only the edited line changes; where they do not pair up, as when the editor joins lines,
+   that whole block takes the editor's spelling. The editor then parses the merged text and
+   compares it with its own document; when they differ in meaning, it stores its own Markdown of
+   the whole text (`textToStore`). A text opened and left without a change sends no request at all.
+   Rejected: storing the editor's Markdown as it is, which changes every text on its first edit.
+   Rejected: saving only when the person typed, without the merge, which still normalises the
+   whole text on the first letter. Two mutations made the browser test fail: storing the editor's
+   Markdown as it is ("the untouched paragraph keeps its backslash"), and saving without a change
+   (43 PATCH requests for a visit without typing).
 
 4. Formulas are off. With remark-math on, two dollar signs in one line make a formula, measured on
    `a\.py$ and b\.sh$`, which the editor then wrote back as `a.py\$ and b\\.sh\$`. With formulas
@@ -875,27 +884,38 @@ Overwegingen:
 
 6. The editor builds its DOM itself, outside Angular's sanitiser. Its safety rests on three
    measures, decided by Stef on 20 November 2026.
-   The first is a regression test in a real browser (Puppeteer with Chromium, like every spec in
-   `test/projects`). It opens 30 attack texts, taken from the XSS cheat sheets of OWASP and
-   PortSwigger, in the reading mode and in the editing mode. Each attack sets `window.__xss` when
-   it runs, and the test also looks for event handlers, unknown elements and URLs with
-   `javascript:`, `data:` or `vbscript:`. Two mutations make it fail: raw HTML drawn with
-   `innerHTML` sets the flag (`x24`), and the URL filter switched off leaves `src="javascript:…"`
-   and `data:` URLs on the page.
-   The second measure is a check of the code: ProseMirror creates the elements of a document from
-   the schema with `document.createElement`. Raw HTML in a text is a node that shows its source as
-   text. `check-editor-html.mjs` lists every place in the loaded packages where HTML and a string
-   meet; each of the seven places has been read, and a new one fails the check. Before the merge a
-   security review of the diff runs.
-   The third measure is the exact versions of the packages in `package.json` and the lock file,
-   with `npm audit` before the merge.
+   - A regression test in a real browser, Puppeteer with Chromium like the other browser specs in
+     `test/projects` (the decision named Playwright). It opens 34 attack texts, after the XSS cheat
+     sheets of OWASP and PortSwigger, in the reading mode and in the editing mode. Each attack sets
+     `window.__xss` when it runs. The test also fails on an event handler, an element outside a
+     fixed list of tags, a URL with a scheme that `safeUrl` does not allow, a URL into
+     `api/v1/admin`, and any request of the page to that route. Three mutations made it fail: raw
+     HTML drawn with `innerHTML` set the flag (`x24`), `safeUrl` returning every URL left
+     `src="javascript:…"` and `data:` URLs on the page, and `safeUrl` without its checks on
+     character references and administration routes let `data:` and `api/v1/admin` through.
+   - A check of the code. ProseMirror creates the elements of a document from the schema with
+     `document.createElement`, and raw HTML in a text is a node that shows its source as text.
+     `check-editor-html.mjs` lists every place where HTML or code meets a string in the packages
+     that the editor imports and in every package under them, 110 packages read from the lock
+     file. Each of the eight places has been read and stands in the script with its reason; a new
+     one fails the check. A security review of the diff on 20 November 2026 found no way to run
+     script in either mode, and led to overweging 7 and issue #548.
+   - Exact versions of the packages in `package.json` and the lock file, with `npm audit` and a
+     security review in the merge-gate of a change to them (CLAUDE.md §2). On 20 November 2026
+     `npm audit` gave the same 105 findings on the branch as on `main`, none in these packages.
 
 7. The URL filter (`safeUrl`) sits in the drawing of the link and image nodes, so it covers a
    text that is loaded, typed or pasted, and the document keeps the URL as written. Current
    browsers run no script from the `src` of an image, but the filter makes that independent of the
    browser. Angular's sanitiser lets a `data:` URL through; the reading mode applies the same
    filter to every Markdown link and image through `walkTokens` of `marked`, so both modes allow
-   the same schemes. Raw HTML in the reading mode keeps Angular's sanitiser as its only filter.
+   the same schemes. `marked` leaves a character reference in a URL as written, so the filter
+   decodes numeric references and refuses a `&` before the path, which catches `&#100;ata:` and
+   `ms-msdt&colon;`. `tel:` is allowed: it runs no code, and contact links use it. A URL into
+   `api/v1/admin` is refused, because several of those routes change the application on a GET,
+   the installer among them; an image would call them for everyone who opens the text. The
+   structural fix is POST for those routes (AmpersandTarski/prototype#548). Raw HTML in the
+   reading mode keeps Angular's sanitiser as its only filter.
 
 8. Milkdown loads with a dynamic import, in chunks of its own (about 490 kB, 135 kB over the
    network, measured in the production build on Node 18). An application without an editable
@@ -906,21 +926,31 @@ Overwegingen:
    touches every application, and possibly templates with inline scripts, so it has an issue of
    its own, AmpersandTarski/prototype#547.
 
-Impact op de specificatie: none. An interface that allows an update of a Markdown text through a
+10. Two findings of the security review stay as they are. HTML pasted as a ProseMirror node for
+    raw HTML is stored as raw HTML, while the same characters typed are stored escaped; the reading
+    mode sanitises both. A save while the field has the focus overwrites a change that someone
+    else stored in the meantime, as the text area does.
+
+Impact op de specificatie: none. An interface that gives a Markdown text update rights through a
 `Concept-<name>.html` with `format="MARKDOWN"` or `format="GFM"` gets the editor; a `BOX<MARKUP>`
 stays for reading.
 
 Impact in productie: a project gets the editor with the next framework release and a rebuild.
-A stored text changes only in the lines a person edits. The production build still succeeds on
+A stored text changes in the lines a person edits, and in a block around them where the editor
+joined or split lines. From this release on, a Markdown link or image whose URL has another scheme
+than `http`, `https`, `mailto` or `tel`, or leads into `api/v1/admin`, is drawn empty in every
+interface, also in a `BOX<MARKUP>` that has no editor. The production build still succeeds on
 Node 18; `nanoid` 6, under `@milkdown/utils`, asks for Node 22 or later in its `engines` and npm
 warns about that. The initial bundle grows by about 11 kB, from 4.15 MB to 4.16 MB; its budget
 warning of 4 MB was already exceeded on `main`.
 
-Technisch: `markdown-editor.component.ts`, `markdown-merge.ts` and `safe-url.ts` with their unit
-tests, `markup.ts`, `atomic-markup.component.{ts,html,css}`, `src/types/node-diff3.d.ts`, the
-packages `@milkdown/*` 7.23.0 and `node-diff3` 3.2.1 in `frontend/package.json`, the documentation in
-`docs/reference-material/frontend-components.md`, and the samples, templates, spec and
-`check-editor-html.mjs` in `test/projects/markup`.
+Technisch: the code is in `markdown-editor.component.ts`, `markdown-merge.ts` and `safe-url.ts`
+with their unit tests, in `markup.ts`, `atomic-markup.component.{ts,html,css}`, `shared.module.ts`
+and `src/types/node-diff3.d.ts`. The packages `@milkdown/*` 7.23.0 and `node-diff3` 3.2.1 stand in
+`frontend/package.json`. The documentation is in `docs/reference-material/built-in-box-templates.md`
+(the sections "Editing Markdown" and "Safety of the editor") and `frontend-components.md`, and the
+merge-gate in `CLAUDE.md` §2. The samples, templates, spec and `check-editor-html.mjs` are in
+`test/projects/markup`.
 
 ---
 

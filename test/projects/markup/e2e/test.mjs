@@ -6,8 +6,8 @@
  * node test/projects/markup/e2e/test.mjs
  *
  * The script:
- * 1. copies e2e/templates/Concept-Explanation.html into the template folder, builds the
- *    frontend, and removes the copy again;
+ * 1. copies the templates of e2e/templates/ into the template folder, builds the frontend, and
+ *    removes the copies again;
  * 2. opens StaticNotes (BOX <MARKUP MARKDOWN>) and asserts the Markdown elements, and that
  *    Markdown without GFM makes no table;
  * 3. opens DynamicNotes (formatFrom on the note) and asserts per row the format, the GFM
@@ -17,7 +17,7 @@
  * 4. opens FormatOnText (formatFrom on the text itself);
  * 5. asserts showLabels (LabelledNote), the route per concept (Explanations) and the Markdown
  *    editor when the field may be updated (EditExplanation);
- * 6. for the Markdown editor (DesignChoices OK-35): runs the static check check-editor-html.mjs,
+ * 6. for the Markdown editor (DesignChoices OK-35; the static check is check-editor-html.mjs):
  *    opens the attack texts of Sample in the reading mode (ReadSamples) and in the editing mode
  *    (EditSamples) and asserts that none ran and that no dangerous element or attribute is on the
  *    page, enters and leaves every editor without typing and asserts that no PATCH went out and
@@ -25,7 +25,6 @@
  *    and asserts the text area for LATEX and for a field with more texts.
  * Every error toast, page error and console error fails the spec.
  */
-import { execFileSync } from 'node:child_process';
 import { copyFileSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { assert, baseUrl, buildFrontend, failureCount, loadPuppeteer, repoRoot } from '../../../spec-support/browser-spec.mjs';
@@ -41,15 +40,6 @@ try {
 } finally {
   for (const t of templates) rmSync(resolve(templateDir, t), { force: true });
 }
-
-console.log('\n▶ check-editor-html.mjs: where the editor turns a string into HTML');
-let staticCheck = 0;
-try {
-  execFileSync('node', [resolve(import.meta.dirname, 'check-editor-html.mjs')], { stdio: 'inherit' });
-} catch (e) {
-  staticCheck = e.status ?? 1;
-}
-assert(staticCheck === 0, 'every place where the editor code meets an HTML string has been reviewed');
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 const page = await browser.newPage();
@@ -104,7 +94,11 @@ function dangers(selector) {
         if (!tags.has(tag)) found.push(`<${tag}>`);
         for (const a of el.attributes) {
           if (/^on/i.test(a.name)) found.push(`${tag}[${a.name}]`);
-          if (urlAttrs.has(a.name.toLowerCase()) && /^\s*(javascript|data|vbscript):/i.test(a.value)) found.push(`${tag}[${a.name}=${a.value.slice(0, 40)}]`);
+          // A URL with another scheme than the four that safeUrl allows, or into the administration
+          // routes. `unsafe:` is the prefix with which Angular's sanitiser makes raw HTML's URL inert.
+          const scheme = /^\s*([a-z][a-z0-9+.-]*):/i.exec(a.value)?.[1]?.toLowerCase();
+          const unsafe = (scheme && !['http', 'https', 'mailto', 'tel', 'unsafe'].includes(scheme)) || /api\/v1\/(%61|a)dmin/i.test(a.value);
+          if (urlAttrs.has(a.name.toLowerCase()) && unsafe) found.push(`${tag}[${a.name}=${a.value.slice(0, 40)}]`);
         }
       }
     }
@@ -140,8 +134,12 @@ async function waitForEditors(count) {
 }
 
 const patches = [];
+// Requests to the administration routes that the page itself makes (issue #548); the spec's own
+// installer call goes through the runner, outside the browser.
+const adminRequests = [];
 page.on('request', (r) => {
   if (r.method() === 'PATCH') patches.push(r.url());
+  if (/\/api\/v1\/admin\b/i.test(new URL(r.url()).pathname)) adminRequests.push(r.url());
 });
 
 try {
@@ -225,7 +223,7 @@ try {
   console.log('\n▶ ReadSamples: the attack texts in the reading mode');
   const before = await storedSamples();
   const attacks = Object.keys(before).filter((id) => id.startsWith('x'));
-  assert(attacks.length === 30, `the model has 30 attack texts (got: ${attacks.length})`);
+  assert(attacks.length === 34, `the model has 34 attack texts (got: ${attacks.length})`);
   await open('/readsamples', '.markup');
   await provoke('app-atomic-markup');
   await sleep(500);
@@ -244,6 +242,7 @@ try {
   found = await dangers('app-markdown-editor');
   assert(found.length === 0, `the editing mode shows no dangerous element or attribute (got: ${found.join(' ') || 'none'})`);
   assert((await page.evaluate(() => window.__xss)) === undefined, `no attack text ran in the editing mode (got: ${await page.evaluate(() => window.__xss)})`);
+  assert(adminRequests.length === 0, `no text made the page call an administration route (got: ${adminRequests.join(' ') || 'none'})`);
   const rawHtml = await page.$$eval('app-markdown-editor [data-type="html"]', (els) => els.length);
   assert(rawHtml > 0, `raw HTML in a text is a node that shows its source (${rawHtml})`);
   const images = await page.$$eval('app-markdown-editor img:not(.ProseMirror-separator)', (els) => els.map((e) => e.getAttribute('src')));
