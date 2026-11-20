@@ -50,12 +50,6 @@ export class AtomicMarkupComponent<I extends ObjectBase | ObjectBase[]> extends 
     return this.canRead() && this.canUpdate() && this.isUni && (format === 'MARKDOWN' || format === 'GFM');
   }
 
-  /** While the person edits, a sync after another field's save leaves this text alone. */
-  onEditing(active: boolean): void {
-    if (active) this.markEditing();
-    else this.clearEditing();
-  }
-
   onSave(text: string): void {
     this.resource[this.propertyName] = text as never;
     this.dirty = true;

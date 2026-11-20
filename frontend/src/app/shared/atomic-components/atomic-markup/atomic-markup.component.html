@@ -6,7 +6,7 @@
         [value]="resource[propertyName]"
         [gfm]="effectiveFormat === 'GFM'"
         [label]="label || propertyName"
-        (editing)="onEditing($event)"
+        (editing)="$event ? markEditing() : clearEditing()"
         (save)="onSave($event)"
     ></app-markdown-editor>
 

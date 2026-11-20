@@ -181,8 +181,10 @@ type Milkdown = Awaited<ReturnType<typeof importMilkdown>>;
 
 let milkdown: Promise<Milkdown> | undefined;
 
+/** The Milkdown modules, imported once for every editor on the page. */
 function loadMilkdown(): Promise<Milkdown> {
-  return (milkdown ??= importMilkdown());
+  milkdown ??= importMilkdown();
+  return milkdown;
 }
 
 async function importMilkdown() {

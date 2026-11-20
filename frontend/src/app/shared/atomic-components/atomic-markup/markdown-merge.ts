@@ -39,7 +39,8 @@ export function mergeEdit(
       );
   }
   const text = merged.join(eol);
-  return text === '' ? '' : text + (/\r?\n$/.test(stored) ? eol : '');
+  if (text === '' || !/\r?\n$/.test(stored)) return text;
+  return text + eol;
 }
 
 /**
@@ -66,7 +67,9 @@ function resolve(stored: string[], base: string[], edited: string[]): string[] {
   let i = 0;
   for (const part of diffComm(base, edited)) {
     if (part.common) {
-      for (let k = 0; k < part.common.length; k++) out.push(stored[i++]);
+      // A common line stands for the stored line at the same place, in its stored spelling.
+      out.push(...stored.slice(i, i + part.common.length));
+      i += part.common.length;
     } else {
       out.push(...part.buffer2);
       i += part.buffer1.length;

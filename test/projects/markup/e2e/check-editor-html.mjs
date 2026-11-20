@@ -58,7 +58,7 @@ function closure() {
       if (!name.startsWith('@types/')) todo.push(resolveIn(dir, name));
     }
   }
-  return [...seen].sort();
+  return [...seen].sort((a, b) => a.localeCompare(b));
 }
 
 /** The folders of those packages, relative to frontend/, such as node_modules/micromark. */
@@ -78,7 +78,7 @@ const pattern =
 export const reviewed = new Map([
   [
     'decode-named-character-reference/index.dom.js: element.innerHTML = characterReference',
-    'decodes a named character reference such as &amp; by letting the browser parse "&name;" in an <i> of the page that is never inserted into it. Such an element would still run the onerror of an <img> parsed into it, so the safety rests on the input: micromark passes only a name of at most 31 ASCII letters and digits (micromark-core-commonmark/lib/character-reference.js, and micromark-util-decode-string with [\\da-z]{1,31}), so no tag can form.',
+    'decodes a named character reference such as &amp; by letting the browser parse "&name;" in an <i> of the page that is never inserted into it. Such an element would still run the onerror of an <img> parsed into it, so the safety rests on the input: micromark passes only a name of at most 31 ASCII letters and digits (micromark-core-commonmark/lib/character-reference.js, and micromark-util-decode-string with a name of 1 to 31 letters and digits), so no tag can form.',
   ],
   [
     '@milkdown/utils/lib/index.js: return div.innerHTML;',
@@ -124,7 +124,7 @@ for (const pkg of packages) {
   // A nested copy has a folder of its own in the list, so files() skips node_modules.
   for (const file of files(join(frontend, pkg))) {
     // One build of each package suffices; the CommonJS copies repeat the ES modules.
-    if (/[\\/](cjs|umd)[\\/]|\.cjs$/.test(file)) continue;
+    if (/(?:[\\/](?:cjs|umd)[\\/])|(?:\.cjs$)/.test(file)) continue;
     readFileSync(file, 'utf8')
       .split('\n')
       .forEach((line, i) => {

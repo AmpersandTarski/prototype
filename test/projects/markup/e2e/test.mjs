@@ -87,20 +87,24 @@ function dangers(selector) {
       'div span p a img strong em b i code pre ul ol li blockquote h1 h2 h3 h4 h5 h6 hr br table thead tbody tr th td del s details summary'.split(' '),
     );
     const urlAttrs = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'data', 'srcdoc', 'poster', 'background']);
+    // `unsafe:` is the prefix with which Angular's sanitiser makes the URL of raw HTML inert.
+    const schemes = new Set(['http', 'https', 'mailto', 'tel', 'unsafe']);
+    /** A URL with another scheme than the four that safeUrl allows, or into the administration routes. */
+    const unsafeUrl = (value) => {
+      const scheme = /^\s*([a-z][a-z0-9+.-]*):/i.exec(value)?.[1]?.toLowerCase();
+      return (scheme !== undefined && !schemes.has(scheme)) || /api\/v1\/(%61|a)dmin/i.test(value);
+    };
+    /** What is dangerous about one attribute of an element, or nothing. */
+    const attributeDanger = (tag, a) => {
+      if (/^on/i.test(a.name)) return `${tag}[${a.name}]`;
+      if (urlAttrs.has(a.name.toLowerCase()) && unsafeUrl(a.value)) return `${tag}[${a.name}=${a.value.slice(0, 40)}]`;
+      return null;
+    };
     const found = [];
-    for (const root of roots) {
-      for (const el of root.querySelectorAll('*')) {
-        const tag = el.tagName.toLowerCase();
-        if (!tags.has(tag)) found.push(`<${tag}>`);
-        for (const a of el.attributes) {
-          if (/^on/i.test(a.name)) found.push(`${tag}[${a.name}]`);
-          // A URL with another scheme than the four that safeUrl allows, or into the administration
-          // routes. `unsafe:` is the prefix with which Angular's sanitiser makes raw HTML's URL inert.
-          const scheme = /^\s*([a-z][a-z0-9+.-]*):/i.exec(a.value)?.[1]?.toLowerCase();
-          const unsafe = (scheme && !['http', 'https', 'mailto', 'tel', 'unsafe'].includes(scheme)) || /api\/v1\/(%61|a)dmin/i.test(a.value);
-          if (urlAttrs.has(a.name.toLowerCase()) && unsafe) found.push(`${tag}[${a.name}=${a.value.slice(0, 40)}]`);
-        }
-      }
+    for (const el of roots.flatMap((root) => [...root.querySelectorAll('*')])) {
+      const tag = el.tagName.toLowerCase();
+      if (!tags.has(tag)) found.push(`<${tag}>`);
+      found.push(...[...el.attributes].map((a) => attributeDanger(tag, a)).filter((d) => d !== null));
     }
     return found;
   });

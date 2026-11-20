@@ -22,12 +22,14 @@ const ALLOWED = new Set(['http', 'https', 'mailto', 'tel']);
 const ADMIN = /api\/v1\/admin(?![a-z0-9_-])/i;
 
 export function safeUrl(url: unknown): string {
-  const text = url === null || url === undefined ? '' : String(url);
+  const text = typeof url === 'string' ? url : '';
   const decoded = text
     .replace(/&#x([0-9a-f]+);?/gi, (_, hex: string) =>
-      codePoint(parseInt(hex, 16)),
+      codePoint(Number.parseInt(hex, 16)),
     )
-    .replace(/&#(\d+);?/g, (_, dec: string) => codePoint(parseInt(dec, 10)))
+    .replace(/&#(\d+);?/g, (_, dec: string) =>
+      codePoint(Number.parseInt(dec, 10)),
+    )
     // eslint-disable-next-line no-control-regex
     .replace(/[\x00-\x20\x7f]/g, '');
   if (/^[^/?#]*&/.test(decoded)) return '';
@@ -43,7 +45,8 @@ export function safeUrl(url: unknown): string {
 function normalisedPath(url: string): string {
   let text: string;
   try {
-    text = new URL(url, 'http://prototype.invalid/').pathname;
+    // The base only resolves a relative URL; no request goes to it.
+    text = new URL(url, 'https://prototype.invalid/').pathname;
   } catch {
     text = url;
   }
