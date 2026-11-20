@@ -6,8 +6,8 @@
  * node test/projects/markup/e2e/test.mjs
  *
  * The script:
- * 1. copies e2e/templates/Concept-Explanation.html into the template folder, builds the
- *    frontend, and removes the copy again;
+ * 1. copies the templates of e2e/templates/ into the template folder, builds the frontend, and
+ *    removes the copies again;
  * 2. opens StaticNotes (BOX <MARKUP MARKDOWN>) and asserts the Markdown elements, and that
  *    Markdown without GFM makes no table;
  * 3. opens DynamicNotes (formatFrom on the note) and asserts per row the format, the GFM
@@ -15,23 +15,30 @@
  *    warning, the default for a note without a format, and that the format item shows
  *    nothing;
  * 4. opens FormatOnText (formatFrom on the text itself);
- * 5. asserts showLabels (LabelledNote), the route per concept (Explanations) and the text
- *    area when the field may be updated (EditExplanation).
+ * 5. asserts showLabels (LabelledNote), the route per concept (Explanations) and the Markdown
+ *    editor when the field may be updated (EditExplanation);
+ * 6. for the Markdown editor (DesignChoices OK-35; the static check is check-editor-html.mjs):
+ *    opens the attack texts of Sample in the reading mode (ReadSamples) and in the editing mode
+ *    (EditSamples) and asserts that none ran and that no dangerous element or attribute is on the
+ *    page, enters and leaves every editor without typing and asserts that no PATCH went out and
+ *    every stored text is unchanged, types in two texts (EditSample) and asserts what is stored,
+ *    and asserts the text area for LATEX and for a field with more texts.
  * Every error toast, page error and console error fails the spec.
  */
-import { copyFileSync, rmSync } from 'node:fs';
+import { copyFileSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { assert, baseUrl, buildFrontend, failureCount, loadPuppeteer, repoRoot } from '../../../spec-support/browser-spec.mjs';
 
 const puppeteer = await loadPuppeteer();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const conceptTemplate = resolve(repoRoot, 'frontend/src/app/generated/.templates/Concept-Explanation.html');
-copyFileSync(resolve(import.meta.dirname, 'templates/Concept-Explanation.html'), conceptTemplate);
+const templateDir = resolve(repoRoot, 'frontend/src/app/generated/.templates');
+const templates = readdirSync(resolve(import.meta.dirname, 'templates'));
+for (const t of templates) copyFileSync(resolve(import.meta.dirname, 'templates', t), resolve(templateDir, t));
 try {
   buildFrontend('markup');
 } finally {
-  rmSync(conceptTemplate, { force: true });
+  for (const t of templates) rmSync(resolve(templateDir, t), { force: true });
 }
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
@@ -68,6 +75,76 @@ function readRows() {
     ),
   );
 }
+
+/**
+ * Every dangerous element or attribute inside the elements that `selector` names: an element
+ * outside the tags that Markdown, the sanitiser and the editor produce, an event handler, or a
+ * URL with a scheme that runs or embeds code.
+ */
+function dangers(selector) {
+  return page.$$eval(selector, (roots) => {
+    const tags = new Set(
+      'div span p a img strong em b i code pre ul ol li blockquote h1 h2 h3 h4 h5 h6 hr br table thead tbody tr th td del s details summary'.split(' '),
+    );
+    const urlAttrs = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'data', 'srcdoc', 'poster', 'background']);
+    // `unsafe:` is the prefix with which Angular's sanitiser makes the URL of raw HTML inert.
+    const schemes = new Set(['http', 'https', 'mailto', 'tel', 'unsafe']);
+    /** A URL with another scheme than the four that safeUrl allows, or into the administration routes. */
+    const unsafeUrl = (value) => {
+      const scheme = /^\s*([a-z][a-z0-9+.-]*):/i.exec(value)?.[1]?.toLowerCase();
+      return (scheme !== undefined && !schemes.has(scheme)) || /api\/v1\/(%61|a)dmin/i.test(value);
+    };
+    /** What is dangerous about one attribute of an element, or nothing. */
+    const attributeDanger = (tag, a) => {
+      if (/^on/i.test(a.name)) return `${tag}[${a.name}]`;
+      if (urlAttrs.has(a.name.toLowerCase()) && unsafeUrl(a.value)) return `${tag}[${a.name}=${a.value.slice(0, 40)}]`;
+      return null;
+    };
+    const found = [];
+    for (const el of roots.flatMap((root) => [...root.querySelectorAll('*')])) {
+      const tag = el.tagName.toLowerCase();
+      if (!tags.has(tag)) found.push(`<${tag}>`);
+      found.push(...[...el.attributes].map((a) => attributeDanger(tag, a)).filter((d) => d !== null));
+    }
+    return found;
+  });
+}
+
+/** Moves the mouse over and focuses every element inside `selector`, so that a handler that waits for it would run. */
+function provoke(selector) {
+  return page.$$eval(selector, (roots) => {
+    for (const root of roots)
+      for (const el of root.querySelectorAll('*'))
+        for (const type of ['mouseover', 'mouseenter', 'focus', 'toggle', 'start']) el.dispatchEvent(new Event(type, { bubbles: true }));
+  });
+}
+
+/** The data of an interface, read through the API in the session of the page. */
+function api(path) {
+  return page.evaluate((p) => fetch(`/api/v1/resource/${p}`, { headers: { Accept: 'application/json' } }).then((r) => r.json()), path);
+}
+
+/** The stored texts of every sample, by sample and field. */
+async function storedSamples() {
+  const rows = await api('SESSION/1/EditSamples');
+  return Object.fromEntries(rows.map((r) => [r._id_, { text: r.text ?? null, readme: r.readme ?? null }]));
+}
+
+const editorSelector = 'app-markdown-editor .ProseMirror';
+
+async function waitForEditors(count) {
+  await page.waitForFunction((sel, n) => document.querySelectorAll(sel).length >= n, { timeout: 30000 }, editorSelector, count);
+  await sleep(300);
+}
+
+const patches = [];
+// Requests to the administration routes that the page itself makes (issue #548); the spec's own
+// installer call goes through the runner, outside the browser.
+const adminRequests = [];
+page.on('request', (r) => {
+  if (r.method() === 'PATCH') patches.push(r.url());
+  if (/\/api\/v1\/admin\b/i.test(new URL(r.url()).pathname)) adminRequests.push(r.url());
+});
 
 try {
   console.log('\n▶ StaticNotes: BOX <MARKUP MARKDOWN>');
@@ -140,8 +217,94 @@ try {
     (rows.markdown?.[0]?.html ?? '').includes('<em>explanation</em>'),
     `an Explanation is Markdown without an annotation in the interface (got: ${rows.markdown?.[0]?.html})`,
   );
-  await open('/editexplanation/n1', 'textarea');
-  assert((await page.$$('app-atomic-markup textarea')).length === 1, 'with update rights the field is the text area');
+  await open('/editexplanation/n1', editorSelector);
+  assert(
+    (await page.$$(editorSelector)).length === 1 && (await page.$$('app-atomic-markup textarea')).length === 0,
+    'with update rights a Markdown field is the editor, not the text area',
+  );
+
+  // The Markdown editor (DesignChoices OK-35).
+  console.log('\n▶ ReadSamples: the attack texts in the reading mode');
+  const before = await storedSamples();
+  const attacks = Object.keys(before).filter((id) => id.startsWith('x'));
+  assert(attacks.length === 34, `the model has 34 attack texts (got: ${attacks.length})`);
+  await open('/readsamples', '.markup');
+  await provoke('app-atomic-markup');
+  await sleep(500);
+  let found = await dangers('app-atomic-markup');
+  assert(found.length === 0, `the reading mode shows no dangerous element or attribute (got: ${found.join(' ') || 'none'})`);
+  assert((await page.evaluate(() => window.__xss)) === undefined, `no attack text ran in the reading mode (got: ${await page.evaluate(() => window.__xss)})`);
+
+  console.log('\n▶ EditSamples: the attack texts in the editing mode');
+  // Two fields per sample, text and readme; an empty field is an editor too.
+  const fields = Object.keys(before).length * 2;
+  await open('/editsamples', 'app-markdown-editor');
+  await waitForEditors(fields);
+  assert((await page.$$(editorSelector)).length === fields, `every text field of a sample is an editor (${fields})`);
+  await provoke('app-markdown-editor');
+  await sleep(500);
+  found = await dangers('app-markdown-editor');
+  assert(found.length === 0, `the editing mode shows no dangerous element or attribute (got: ${found.join(' ') || 'none'})`);
+  assert((await page.evaluate(() => window.__xss)) === undefined, `no attack text ran in the editing mode (got: ${await page.evaluate(() => window.__xss)})`);
+  assert(adminRequests.length === 0, `no text made the page call an administration route (got: ${adminRequests.join(' ') || 'none'})`);
+  const rawHtml = await page.$$eval('app-markdown-editor [data-type="html"]', (els) => els.length);
+  assert(rawHtml > 0, `raw HTML in a text is a node that shows its source (${rawHtml})`);
+  const images = await page.$$eval('app-markdown-editor img:not(.ProseMirror-separator)', (els) => els.map((e) => e.getAttribute('src')));
+  assert(images.length >= 2 && images.every((s) => !/^\s*(javascript|data):/i.test(s)), `an image with a javascript: or data: URL gets an empty src (got: ${JSON.stringify(images)})`);
+
+  console.log('\n▶ EditSamples: enter and leave every editor without typing');
+  patches.length = 0;
+  const editors = await page.$$(editorSelector);
+  for (const editor of editors) {
+    await editor.click();
+    await sleep(50);
+  }
+  await page.mouse.click(2, 2);
+  await sleep(1500);
+  assert(patches.length === 0, `leaving an editor without typing sends no PATCH (got: ${patches.length})`);
+  const after = await storedSamples();
+  const changed = Object.keys(before).filter((id) => JSON.stringify(before[id]) !== JSON.stringify(after[id]));
+  assert(changed.length === 0, `every stored text is unchanged, letter for letter (changed: ${changed.join(', ') || 'none'})`);
+
+  console.log('\n▶ EditSample: type in a text, and the rest stays as stored');
+  await open('/editsample/e1', editorSelector);
+  await waitForEditors(1);
+  assert((await page.$$('app-atomic-markup textarea')).length === 2, 'LATEX and a field with more texts keep the text area');
+  patches.length = 0;
+  await page.click(`${editorSelector} p:last-of-type`);
+  await page.keyboard.press('End');
+  await page.keyboard.type(' Edited.');
+  let saved = page.waitForResponse((r) => r.request().method() === 'PATCH', { timeout: 15000 });
+  await page.mouse.click(2, 2);
+  await saved;
+  await sleep(500);
+  let stored = (await api('Sample/e1/EditSample')).text;
+  assert(
+    stored === 'First paragraph with -toets\\.(py|sh)$ in it.\n\nSecond paragraph. Edited.',
+    `the edit is stored, and the untouched paragraph keeps its backslash (got: ${JSON.stringify(stored)})`,
+  );
+
+  console.log('\n▶ EditSample: type bold and a list in the formatted text');
+  await open('/editsample/e2', editorSelector);
+  await waitForEditors(1);
+  await page.click(`${editorSelector} p`);
+  await page.keyboard.press('End');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('Some **bold** text.');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('- an item');
+  const strong = await page.$$eval(`${editorSelector} strong`, (els) => els.map((e) => e.innerText));
+  const items = await page.$$eval(`${editorSelector} li`, (els) => els.map((e) => e.innerText.trim()));
+  assert(strong.includes('bold') && items.includes('an item'), `the editor formats bold and a list while typing (got: ${JSON.stringify({ strong, items })})`);
+  saved = page.waitForResponse((r) => r.request().method() === 'PATCH', { timeout: 15000 });
+  await page.mouse.click(2, 2);
+  await saved;
+  await sleep(500);
+  stored = (await api('Sample/e2/EditSample')).text ?? '';
+  assert(
+    stored.startsWith('Start.\n\nSome **bold** text.') && /^[-*] an item$/m.test(stored),
+    `the stored Markdown holds the bold text and the list (got: ${JSON.stringify(stored)})`,
+  );
 
   await collectToasts();
   const unexpected = [...errors, ...toasts];

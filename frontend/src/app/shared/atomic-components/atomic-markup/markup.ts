@@ -1,12 +1,15 @@
-import { Marked } from 'marked';
+import { Marked, Token } from 'marked';
 import { renderLatex } from './latex';
+import { safeUrl } from './safe-url';
 
 /**
  * Formats a text in a markup language, for app-atomic-markup (DesignChoices OK-24).
  *
  * The result is an HTML string that Angular binds with [innerHTML]; Angular's sanitiser
  * then removes scripts, event handlers and javascript: links, also from the HTML that
- * Markdown produces. Plain text is escaped here and keeps its line breaks through the
+ * Markdown produces. A Markdown link or image gets the URL filter of the Markdown editor
+ * (`safeUrl`, DesignChoices OK-35) before that, so both modes allow the same schemes; Angular
+ * itself lets a `data:` URL through. Plain text is escaped here and keeps its line breaks through the
  * CSS class `markup--text` (white-space: pre-wrap). The HTML of LaTeX holds its formulas as
  * source text; MarkupMathDirective turns them into MathML in the page (DesignChoices OK-25).
  */
@@ -63,8 +66,13 @@ export function formatName(value: unknown): string {
   return value === null || value === undefined ? '' : String(value).trim();
 }
 
-const markdown = new Marked({ gfm: false });
-const githubMarkdown = new Marked({ gfm: true });
+/** Every link and image, also an autolink and a reference link, gets a safe URL. */
+function safeLinks(token: Token): void {
+  if (token.type === 'link' || token.type === 'image') token.href = safeUrl(token.href);
+}
+
+const markdown = new Marked({ gfm: false, walkTokens: safeLinks });
+const githubMarkdown = new Marked({ gfm: true, walkTokens: safeLinks });
 
 /** The HTML for a text in a format. */
 export function renderMarkup(text: unknown, format: MarkupFormat): string {

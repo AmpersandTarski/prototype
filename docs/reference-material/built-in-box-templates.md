@@ -712,11 +712,15 @@ In a `POPULATION` statement, `\n` inside the string gives a line break.
 HTML, also the HTML that Markdown produces, passes the sanitiser of Angular before it
 reaches the page. That removes scripts, event handlers such as `onerror`, and makes a
 `javascript:` link inert. A text therefore cannot run code in the browser of its reader.
+A Markdown link or image passes a URL filter before that, because the sanitiser lets a `data:`
+URL through; see [Safety of the editor](#safety-of-the-editor) for what the filter allows.
 
 ### Reading, not editing
 
-`BOX <MARKUP>` is for reading. To edit a text, give it a `FORM` or a table column of its own,
-where the text area of `BIGALPHANUMERIC` does the work.
+`BOX <MARKUP>` is for reading. A text is edited in a `FORM` or a table column of its own, where
+the text area of `BIGALPHANUMERIC` does the work, or through a
+[template per concept](#a-template-per-concept), which gives a Markdown text the editor of
+[Editing Markdown](#editing-markdown).
 
 ### Every text of one concept
 
@@ -771,8 +775,9 @@ COPY project/templates/ /var/www/frontend/src/app/generated/.templates/
 
 Two framework components suit this route. `app-atomic-url` shows a text as a link.
 `app-atomic-markup` shows a text formatted, in the format its `format` attribute names (see
-[BOX \<MARKUP\>](#box-markup) for the formats); with update rights it shows the text area of
-`BIGALPHANUMERIC`, so the text stays editable. A file `Concept-Explanation.html` that formats
+[BOX \<MARKUP\>](#box-markup) for the formats). With update rights the text stays editable: a
+field that holds one text in `MARKDOWN` or `GFM` gets the editor of
+[Editing Markdown](#editing-markdown), and any other field the text area of `BIGALPHANUMERIC`. A file `Concept-Explanation.html` that formats
 every `Explanation` as Markdown reads:
 
 ```html
@@ -791,3 +796,56 @@ every `Explanation` as Markdown reads:
 
 A template per concept fixes one format for the whole concept. A format per text needs
 `BOX <MARKUP formatFrom="...">`, because only a box sees the other items of its row.
+
+### Editing Markdown
+
+A field of `app-atomic-markup` in `MARKDOWN` or `GFM` is a WYSIWYG editor when it has update
+rights (its CRUD contains `U`) and holds one text (`isUni`). The person types in the formatted
+text, and `**`, `-` at the start of a line or `#` become bold, a list or a heading while they
+type. The editor is
+[Milkdown](https://milkdown.dev), built on ProseMirror; `GFM` adds tables, strikethrough and task
+lists. It renders no formulas: `$` is an ordinary character. A field that holds more texts, and a
+text in `HTML`, `LATEX` or `TEXT`, keeps the text area. `BOX <MARKUP>` passes no update rights, so
+its texts are for reading.
+
+The editor saves when the focus leaves it, as every text field of the framework does, and only
+when the person changed something; opening and leaving a field sends no request. An editor writes
+Markdown in its own spelling (`*` for a list item, no backslash before `.` or `_`), so the
+framework does not store the editor's Markdown as it is. It stores the old text in which the
+lines the person edited are replaced, so a regular expression such as `-toets\.(py|sh)$` in a
+paragraph nobody touched keeps its backslash. Two cases take more of the editor's spelling: where
+the editor joined or split the lines around an edit, that block is stored as the editor writes it,
+and where the merge would change what the text means, the whole text is.
+
+Milkdown loads on the first page that shows an editor, in chunks of its own, so an application
+without an editable Markdown text does not load it.
+
+### Safety of the editor
+
+The editor builds its part of the page itself, outside Angular's sanitiser, and three measures
+keep a text from running code in the browser of the person who opens it
+([DesignChoices OK-35](https://github.com/AmpersandTarski/prototype/blob/main/DesignChoices.md)):
+
+- The regression project `test/projects/markup` opens 34 attack texts, after the XSS cheat sheets
+  of OWASP and PortSwigger, in the reading mode and in the editing mode. It fails when one of them
+  runs, or leaves an event handler, an unknown element or an unsafe URL on the page.
+- A check of the code. ProseMirror creates every element of a document from the schema of the
+  editor, with `document.createElement`, and raw HTML in a text, such as `<script>` or
+  `<img onerror=...>`, is a node that shows its source as text. The script
+  `check-editor-html.mjs` of the same project lists every place where HTML or code meets a string
+  in the packages of the editor and the packages under them, and fails on a place nobody has
+  reviewed, such as one that a new version of Milkdown or ProseMirror brings.
+- The packages have exact versions in `frontend/package.json` and the lock file. The merge of a
+  change to them names the outcome of `npm audit`, of a security review of the change and of
+  `check-editor-html.mjs`.
+
+A Markdown link or image, in the editor and in the reading mode, is drawn only with a URL without
+a scheme or with `http:`, `https:`, `mailto:` or `tel:`, whether the text was loaded, typed or
+pasted. Any other URL, such as `javascript:`, `data:` or `&#106;avascript:`, is drawn empty, and
+so is a URL into the administration routes of the framework (`api/v1/admin`), several of which
+change the application on a GET
+([AmpersandTarski/prototype#548](https://github.com/AmpersandTarski/prototype/issues/548)).
+
+A Content-Security-Policy would stop a script from running even if a text got past these measures;
+[AmpersandTarski/prototype#547](https://github.com/AmpersandTarski/prototype/issues/547) proposes
+one for every prototype, which does not send one yet.

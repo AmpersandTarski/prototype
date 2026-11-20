@@ -50,6 +50,7 @@ Raakt je wijziging de weg waarlangs opgeslagen tekst in de pagina komt (een pipe
 Stef gaf op 11 november 2026 zijn akkoord voor een bewerkbare opgemaakte tekst "onder een voorbehoud": "Ik ben nog wel nieuwsgierig of dit mechanisme gevoelig is voor code-injectie. Zijn er manieren om dat zeker te weten?"
 De testtekst daarvoor staat in de repository: `test/projects/markup/model/main.adl` bevat een tekst met `<script>`, `onerror` en `javascript:`, en `test/projects/markup/e2e/test.mjs` toetst dat daar niets van in de pagina komt.
 Die tekst gaat in een spec ook door de nieuwe weg, want een onderdeel dat zijn DOM zelf bouwt, loopt niet door de sanitiser van Angular.
+Raakt een wijziging de Markdown-editor of zijn pakketten (`@milkdown/*`, `node-diff3`, `marked` en wat daaronder hangt), dan noemt het merge-rapport de uitkomst van `npm audit` in `frontend/`, van een security-review van het verschil, en van `check-editor-html.mjs` uit `test/projects/markup`; zo besloot Stef het op 20 november 2026 (DesignChoices OK-35, overweging 6).
 
 De runner compileert het model in je werkkopie: ná een run staan in `backend/generics/` en `html/` de bestanden van het laatst gedraaide project (allebei gitignored). Draai `./generate.sh <project>` om je dev-stack terug te zetten op het project waaraan je werkt.
 
