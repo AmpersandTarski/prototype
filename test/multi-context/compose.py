@@ -43,17 +43,18 @@ for i, c in enumerate(contexts):
 """)
 print(f"""  db:
     container_name: {stack}-db
-    image: mariadb:10.6
+    image: mariadb:12.3
     command: ["--lower-case-table-names=1", "--sql-mode=ANSI,TRADITIONAL"]
     environment:
       - MYSQL_ROOT_PASSWORD=ampersand
+      - MARIADB_AUTO_UPGRADE=1 # a volume made by an older MariaDB is upgraded at start
       - MYSQL_USER=ampersand
       - MYSQL_PASSWORD=ampersand
     volumes:
       - db-data:/var/lib/mysql
       - {repo}/db-init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uampersand", "-pampersand", "--silent"]
+      test: ["CMD", "mariadb-admin", "ping", "-h", "127.0.0.1", "-uampersand", "-pampersand", "--silent"]
       interval: 2s
       timeout: 5s
       retries: 45""")

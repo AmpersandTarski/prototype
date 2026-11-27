@@ -37,7 +37,7 @@ for arg in "$@"; do
   esac
 done
 
-mysql_exec() { docker exec "$PROTO_DB" mysql -uampersand -pampersand "$DB" "$@"; }
+mysql_exec() { docker exec "$PROTO_DB" mariadb -uampersand -pampersand "$DB" "$@"; }
 
 committed() { # $1 = response file -> prints "true"/"false"
   python3 -c "import json,sys;print(str(json.load(open('$1')).get('isCommitted')).lower())" 2>/dev/null

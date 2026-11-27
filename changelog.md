@@ -10,6 +10,21 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **The framework expects MariaDB 12.3 (#555).** Every compose file and test stack of the framework
+  runs `mariadb:12.3`, the long-term-support release, maintained until 2029; MariaDB 10.6 left
+  community maintenance on 6 July 2026. On 10.6 and 10.11 a join with a materialised union or
+  intersection of relation columns ran without an index, because a pair of `VARCHAR(255)` columns in
+  UTF8MB4 is 2044 bytes and those versions index a materialised key of at most 1000 bytes; the same
+  intersection took 3.2 s there and 0.22 to 0.36 s from 11.4 on (Ampersand#1763).
+  The images since MariaDB 11.0 have no `mysql`, `mysqladmin` or `mysqldump`, so every command
+  inside a database container now uses `mariadb`, `mariadb-admin` and `mariadb-dump`.
+  A prototype with an existing database volume keeps its data: the database service sets
+  `MARIADB_AUTO_UPGRADE=1`, and the entrypoint upgrades a volume made by an older MariaDB when it
+  starts. A compose file of your own needs the new image and that variable; a healthcheck or script
+  that calls `mysqladmin` or `mysql` inside the database container needs the new names.
+
 ## v2.25.0 (20 November 2026)
 
 * **A Markdown text is edited in its formatted form (OK-35, #538).** Where a `Concept-<name>.html`

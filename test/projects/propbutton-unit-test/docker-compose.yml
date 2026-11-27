@@ -28,11 +28,12 @@ services:
   
   propbutton-db:
     container_name: propbutton-db
-    image: mariadb:10.6
+    image: mariadb:12.3
     command: ["--sql-mode=ANSI,TRADITIONAL"]
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
+      - MARIADB_AUTO_UPGRADE=1 # a volume made by an older MariaDB is upgraded at start
       - MYSQL_USER=ampersand
       - MYSQL_PASSWORD=ampersand
       - MYSQL_DATABASE=propbutton_test

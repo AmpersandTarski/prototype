@@ -22,7 +22,7 @@
 - **Backend:** PHP (gegenereerd vanuit Ampersand ADL)
 - **Frontend:** Angular + TypeScript + SCSS
 - **Webserver:** Apache
-- **Database:** MariaDB 10.6 (gegenereerd schema, `--lower-case-table-names=1`, `ANSI,TRADITIONAL` mode, UTF-8)
+- **Database:** MariaDB 12.3 (gegenereerd schema, `--lower-case-table-names=1`, `ANSI,TRADITIONAL` mode, UTF-8)
 - **Infrastructuur:** Docker & Docker Compose
 - **Ecosysteem:** Dit is het framework (PHP/Angular) waarnaar Ampersand compileert.
 

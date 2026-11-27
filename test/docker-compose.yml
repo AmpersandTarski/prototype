@@ -28,11 +28,12 @@ services:
   
   prototype-db:
     container_name: prototype-db
-    image: mariadb:10.6
+    image: mariadb:12.3
     command: ["--sql-mode=ANSI,TRADITIONAL"]
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} # from .env file
+      - MARIADB_AUTO_UPGRADE=1 # a volume made by an older MariaDB is upgraded at start
       - MYSQL_USER=${MYSQL_USER} # from .env file
       - MYSQL_PASSWORD=${MYSQL_PASSWORD} # from .env file
       - MYSQL_DATABASE=${DATABASE_NAME} # from .env file
