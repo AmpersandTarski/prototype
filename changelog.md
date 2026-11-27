@@ -22,7 +22,8 @@ Additional labels for pre-release and build metadata are available as extensions
   inside a database container now uses `mariadb`, `mariadb-admin` and `mariadb-dump`.
   A prototype with an existing database volume keeps its data: the database service sets
   `MARIADB_AUTO_UPGRADE=1`, and the entrypoint upgrades a volume made by an older MariaDB when it
-  starts. A compose file of your own needs the new image and that variable; a healthcheck or script
+  starts. That upgrade is one way, so a dump with `mariadb-dump` before the first start under 12.3 is
+  the way back. A compose file of your own needs the new image and that variable; a healthcheck or script
   that calls `mysqladmin` or `mysql` inside the database container needs the new names.
 
 ## v2.25.0 (20 November 2026)
