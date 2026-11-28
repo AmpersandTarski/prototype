@@ -18,7 +18,7 @@
 - **Examples:** ADL model collection (ampersand-models, 3★)
 
 ### Database & Data
-- **MariaDB 10.4**: Primary database with generated schema
+- **MariaDB 12.3**: Primary database with generated schema
 - **Excel Import**: Runtime data loading via population scripts
 - **CSV Processing**: Alternative data import format
 
@@ -88,7 +88,7 @@ docker run --memory="4g" ampersand-prototype:latest
 - **PHP Runtime**: Generated application runs on specific PHP/Apache stack
 
 ### Database Constraints
-- **MariaDB Version**: Fixed at 10.4 for Ampersand compatibility
+- **MariaDB Version**: 12.3, the long-term-support release (#555)
 - **Case Sensitivity**: `--lower-case-table-names=1` required
 - **SQL Mode**: `ANSI,TRADITIONAL` mode enforced
 - **Character Set**: UTF-8 encoding required for international characters
@@ -109,7 +109,7 @@ prototype:
   image: ampersand-prototype:latest
 
 prototype-db:
-  image: mariadb:10.4
+  image: mariadb:12.3
   
 phpmyadmin:
   image: phpmyadmin/phpmyadmin:latest
@@ -143,7 +143,7 @@ networks:
 docker compose down && docker compose up -d --build
 
 # Database access
-docker exec -it prototype-db mysql -u ampersand -p
+docker exec -it prototype-db mariadb -u ampersand -p
 
 # Log monitoring
 docker compose logs -f prototype     # Application

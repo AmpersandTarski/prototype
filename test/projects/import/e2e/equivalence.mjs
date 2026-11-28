@@ -32,13 +32,13 @@ function docker(container, ...cmd) {
 }
 
 function mysql(sql) {
-  return docker(DB_CONTAINER, 'mysql', '-uampersand', '-pampersand', '-N', '-e', sql, DB_NAME).trim();
+  return docker(DB_CONTAINER, 'mariadb', '-uampersand', '-pampersand', '-N', '-e', sql, DB_NAME).trim();
 }
 
 // The single application database (everything that is not a MariaDB system schema).
 function findDbName() {
   const out = docker(
-    DB_CONTAINER, 'mysql', '-uampersand', '-pampersand', '-N', '-e',
+    DB_CONTAINER, 'mariadb', '-uampersand', '-pampersand', '-N', '-e',
     "SELECT schema_name FROM information_schema.schemata " +
     "WHERE schema_name NOT IN ('information_schema','mysql','performance_schema','sys');",
   ).trim();

@@ -68,7 +68,7 @@ while IFS=$'\t' read -r service database; do
   # That is the case for the desired system of a migration, until the moment of completion.
   expected="$(awk -F'\t' -v s="$service" '$1 == s { print $2 }' "$dir/deployment-expectations.tsv" 2>/dev/null)"
   expect "the application of $service answers" "${expected:-no invariant violated}" "$answer"
-  tables="$(compose exec -T db mysql -uroot -pampersand -N -B -e "SELECT COUNT(*) > 0 FROM information_schema.TABLES WHERE TABLE_SCHEMA = '$database'" 2>/dev/null </dev/null)"
+  tables="$(compose exec -T db mariadb -uroot -pampersand -N -B -e "SELECT COUNT(*) > 0 FROM information_schema.TABLES WHERE TABLE_SCHEMA = '$database'" 2>/dev/null </dev/null)"
   expect "$service has the database $database" "1" "$tables"
   page="$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$port/")"
   expect "the frontend of $service is served" "200" "$page"

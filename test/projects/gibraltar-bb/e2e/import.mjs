@@ -25,7 +25,7 @@ const fail = (m) => { console.log(`  FAIL  ${m}`); failed = true; };
 const docker = (c, ...cmd) => execFileSync('docker', ['exec', c, ...cmd], { encoding: 'utf8' });
 
 function findDbName() {
-  const out = docker(DB_CONTAINER, 'mysql', '-uampersand', '-pampersand', '-N', '-e',
+  const out = docker(DB_CONTAINER, 'mariadb', '-uampersand', '-pampersand', '-N', '-e',
     "SELECT schema_name FROM information_schema.schemata " +
     "WHERE schema_name NOT IN ('information_schema','mysql','performance_schema','sys');").trim();
   const names = out.split('\n').map((s) => s.trim()).filter(Boolean);
@@ -33,7 +33,7 @@ function findDbName() {
   return names[0];
 }
 const DB_NAME = findDbName();
-const mysql = (sql) => docker(DB_CONTAINER, 'mysql', '-uampersand', '-pampersand', '-N', '-e', sql, DB_NAME).trim();
+const mysql = (sql) => docker(DB_CONTAINER, 'mariadb', '-uampersand', '-pampersand', '-N', '-e', sql, DB_NAME).trim();
 
 // Model-driven table/column lookup from the compiler output.
 const REL_JSON = JSON.parse(docker(PROTO, 'cat', '/var/www/backend/generics/relations.json'));

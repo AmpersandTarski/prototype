@@ -10,6 +10,26 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format. In our case this is e.g. `-rc.1`, `-rc.2`.
 
+## Unreleased
+
+* **The framework expects MariaDB 12.3 (#555).** Every compose file and test stack of the framework
+  runs `mariadb:12.3`, the long-term-support release, maintained until 2029; MariaDB 10.6 left
+  community maintenance on 6 July 2026. On 10.6 and 10.11 a join with a materialised union or
+  intersection of relation columns ran without an index, because a pair of `VARCHAR(255)` columns in
+  UTF8MB4 is 2044 bytes and those versions index a materialised key of at most 1000 bytes; the same
+  intersection took 3.2 s there and 0.22 to 0.36 s from 11.4 on (Ampersand#1763).
+  The images since MariaDB 11.0 have no `mysql`, `mysqladmin` or `mysqldump`, so every command
+  inside a database container now uses `mariadb`, `mariadb-admin` and `mariadb-dump`.
+  A prototype with an existing database volume keeps its data: the database service sets
+  `MARIADB_AUTO_UPGRADE=1`, and the entrypoint upgrades a volume made by an older MariaDB when it
+  starts. That upgrade is one way, so a dump with `mariadb-dump` before the first start under 12.3 is
+  the way back. A compose file of your own needs the new image and that variable; a healthcheck or script
+  that calls `mysqladmin` or `mysql` inside the database container needs the new names.
+* **Concurrent requests succeed on MariaDB 11.6 and later (OK-36).** Every database connection of the
+  framework sets `innodb_snapshot_isolation = OFF`, which is the default up to MariaDB 11.5. With it ON,
+  requests that start sessions together rewrote the same rows of `__conj_violation_cache__` and got error
+  1020 as a 500; `test/session-gc` passed 14 of 26 checks on 12.3 that way, and passes 26 of 26 now.
+
 ## v2.25.0 (20 November 2026)
 
 * **A Markdown text is edited in its formatted form (OK-35, #538).** Where a `Concept-<name>.html`

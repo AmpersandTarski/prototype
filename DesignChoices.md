@@ -1332,3 +1332,38 @@ Impact op de specificatie: a script that uses the door with machine roles declar
 own machine roles in place of Stampreporter, and names it in `rbac.accessibleInterfacesIfcId`.
 
 Impact in productie: none for a prototype that does not set the setting.
+
+---
+
+**Every database connection writes as MariaDB 10.6 did: `innodb_snapshot_isolation` is OFF**
+OK-36 · geldig · 2026-11-28 · herkomst: AmpersandTarski/prototype#555 (the move to MariaDB 12.3), the runs of `test/session-gc` on 27 November 2026, Stef Joosten (28 November 2026: "Je moet het gewoon oplossen!")
+
+When `MysqlDB` opens its connection, it sets `innodb_snapshot_isolation = OFF` for that session, next to
+`sql_mode`. A server that does not know the variable (error 1193) already behaves that way, and the connection
+goes on.
+
+Overwegingen:
+
+1. The purpose is that concurrent requests keep succeeding on MariaDB 12.3 as they did on 10.6. From MariaDB 11.6
+   on the variable is ON by default: a transaction that writes a row which another transaction changed after its
+   snapshot gets error 1020, "Record has changed since last read". `MysqlConjunctCache::save` deletes and inserts
+   the violations of a conjunct, and every new session rewrites the same conjuncts over `SESSION`, so six
+   sessions that start together collide there.
+2. Measured with `test/session-gc` (six concurrent sessions, races three times): 26 of 26 checks on 10.6.27,
+   14 of 26 on 12.3.3 with 15 errors 1020 in the log, and 26 of 26 on 12.3.3 with the variable OFF.
+3. In the framework the setting reaches every deployment, whichever compose file starts the database: the
+   framework's own, FC5's, and the one that `ampersand deploy` generates, which runs 12.3 since Ampersand#1766.
+4. The write semantics stay what every test has guarded on 10.6, including its weakness: under concurrency the
+   last writer of a conjunct's violations wins, even when it computed them from an older snapshot. That is
+   older than this choice; repairing it is a question of its own (#557).
+5. Rejected: `--innodb-snapshot-isolation=OFF` in the `command` of every compose file. Each deployment then
+   needs the flag, and a deployment without it fails only under concurrent load.
+6. Rejected for now: retrying a request transaction on error 1020. It removes the stale write as well, but the
+   framework has no retry of a whole request, and a retry must also replay the ExecEngine and the reply.
+7. Rejected: the isolation level READ COMMITTED for every connection. It changes what every query of a
+   transaction reads, far beyond the cache.
+
+Impact op de specificatie: none.
+
+Impact in productie: a prototype on MariaDB 11.6 or later stops returning a 500 when requests that start
+sessions or change the same conjuncts arrive together. On 10.6 nothing changes.

@@ -55,7 +55,7 @@ run_scenario() {
     log "  the stack did not start:"; tail -20 "$work/up.txt" | sed 's/^/    /'; compose down -v >/dev/null 2>&1; return 1
   fi
   if [ -n "$users" ]; then
-    docker exec -i "$stack-db" mysql -uroot -pampersand <"$dir/grants.sql" >"$work/grants.txt" 2>&1 \
+    docker exec -i "$stack-db" mariadb -uroot -pampersand <"$dir/grants.sql" >"$work/grants.txt" 2>&1 \
       || { log "  grants.sql failed:"; sed 's/^/    /' "$work/grants.txt"; compose down -v >/dev/null 2>&1; return 1; }
   fi
   local first; first="$(jq -r '.contexts[0].service' "$system")"
@@ -80,10 +80,10 @@ run_scenario() {
     curl -sS -b "$jar" -c "$jar" -X PATCH -H 'Content-Type: application/json' -d "$3" "$base/$2"
   }
   # sql <service> <query>: a query on the database of a context, as tab-separated rows
-  sql() { docker exec "$stack-db" mysql -uroot -pampersand -N -B --default-character-set=utf8mb4 "$(db_of "$1")" -e "SET sql_mode='ANSI,TRADITIONAL'; $2" 2>&1; }
+  sql() { docker exec "$stack-db" mariadb -uroot -pampersand -N -B --default-character-set=utf8mb4 "$(db_of "$1")" -e "SET sql_mode='ANSI,TRADITIONAL'; $2" 2>&1; }
   # sql_as <user> <service> <query>: a query on the database of a context, as the database user of an application.
   # It prints "refused" if the database server refuses it.
-  sql_as() { docker exec "$stack-db" mysql -u"$1" -pampersand -N -B "$(db_of "$2")" -e "SET sql_mode='ANSI,TRADITIONAL'; $3" 2>/dev/null || echo refused; }
+  sql_as() { docker exec "$stack-db" mariadb -u"$1" -pampersand -N -B "$(db_of "$2")" -e "SET sql_mode='ANSI,TRADITIONAL'; $3" 2>/dev/null || echo refused; }
   failures=0
   # expect <what> <expected> <actual>
   expect() {

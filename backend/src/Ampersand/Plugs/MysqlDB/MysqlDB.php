@@ -186,6 +186,19 @@ class MysqlDB implements ConceptPlugInterface, RelationPlugInterface, IfcPlugInt
             
             // Set sql_mode to ANSI
             $this->dbLink->query("SET SESSION sql_mode = 'ANSI,TRADITIONAL'");
+
+            // Keep the write semantics of MariaDB 10.6 (DesignChoices OK-36). From MariaDB 11.6 on,
+            // innodb_snapshot_isolation is ON by default: a transaction that writes a row which another
+            // transaction changed after its snapshot gets error 1020. Concurrent requests rewrite the
+            // same rows of the violation cache, so under ON they fail with a 500 (test/session-gc).
+            try {
+                $this->dbLink->query("SET SESSION innodb_snapshot_isolation = OFF");
+            } catch (\mysqli_sql_exception $e) {
+                // 1193: unknown system variable. A server without it already behaves as OFF.
+                if ($e->getCode() !== 1193) {
+                    throw $e;
+                }
+            }
         } catch (Exception $e) {
             // Catch mysqli_sql_exceptions
             throw new MysqlConnectionException("Cannot connect to the database: {$e->getMessage()}", previous: $e);

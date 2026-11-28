@@ -8,7 +8,7 @@ set -u
 BASE="${BASE:-http://localhost:9280/api/v1}"
 DB="${DB:-helloworld}" # databasenaam = contextnaam van het gegenereerde model
 JARDIR=$(mktemp -d /tmp/sessgc-jars.XXXX)
-SQL() { docker exec sessgc-db mysql -uampersand -pampersand $DB -N -e "$1" 2>/dev/null; }
+SQL() { docker exec sessgc-db mariadb -uampersand -pampersand $DB -N -e "$1" 2>/dev/null; }
 
 reinstall() {
   curl -s "$BASE/admin/installer" > /dev/null
