@@ -25,6 +25,10 @@ Additional labels for pre-release and build metadata are available as extensions
   starts. That upgrade is one way, so a dump with `mariadb-dump` before the first start under 12.3 is
   the way back. A compose file of your own needs the new image and that variable; a healthcheck or script
   that calls `mysqladmin` or `mysql` inside the database container needs the new names.
+* **Concurrent requests succeed on MariaDB 11.6 and later (OK-36).** Every database connection of the
+  framework sets `innodb_snapshot_isolation = OFF`, which is the default up to MariaDB 11.5. With it ON,
+  requests that start sessions together rewrote the same rows of `__conj_violation_cache__` and got error
+  1020 as a 500; `test/session-gc` passed 14 of 26 checks on 12.3 that way, and passes 26 of 26 now.
 
 ## v2.25.0 (20 November 2026)
 
